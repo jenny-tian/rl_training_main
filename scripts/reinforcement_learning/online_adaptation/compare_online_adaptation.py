@@ -12,7 +12,6 @@ from pathlib import Path
 from statistics import mean
 from typing import Any
 
-
 MODES = ("base", "residual_frozen", "online")
 
 

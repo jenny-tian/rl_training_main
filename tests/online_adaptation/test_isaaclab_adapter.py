@@ -1,5 +1,6 @@
-import pytest
 import torch
+
+import pytest
 
 from rl_training.online_adaptation.isaaclab_adapter import compose_proprio_frame
 

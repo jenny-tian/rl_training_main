@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import threading
-
 import torch
 
 from .types import TransitionBatch

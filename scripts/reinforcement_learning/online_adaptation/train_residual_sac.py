@@ -23,8 +23,9 @@ def main() -> int:
         import gymnasium as gym
         import torch
         import yaml
-        from rsl_rl.runners import OnPolicyRunner
         from torch.utils.tensorboard import SummaryWriter
+
+        from rsl_rl.runners import OnPolicyRunner
 
         from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
         from isaaclab_tasks.utils import load_cfg_from_registry, parse_env_cfg

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import torch
+from dataclasses import dataclass
 
 from .types import RewardSignals
 

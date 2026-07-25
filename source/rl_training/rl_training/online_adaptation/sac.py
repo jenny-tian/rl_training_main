@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import copy
+import torch
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Any
-
-import torch
 from torch import nn
 from torch.nn import functional as F
+from typing import Any
 
 from .networks import ResidualActor, TwinCritic
 from .types import TransitionBatch, UpdateStats

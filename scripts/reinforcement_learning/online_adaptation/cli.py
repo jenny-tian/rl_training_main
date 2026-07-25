@@ -4,7 +4,6 @@ import argparse
 
 from isaaclab.app import AppLauncher
 
-
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
 HELDOUT_TASK = "HeldoutBoxes-Deeprobotics-Lite3-v0"
 

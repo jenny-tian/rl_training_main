@@ -1,4 +1,5 @@
 import numpy as np
+
 import pytest
 
 from rl_training.tasks.manager_based.locomotion.velocity.terrains.heldout_boxes import (

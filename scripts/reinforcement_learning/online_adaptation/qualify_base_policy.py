@@ -20,6 +20,7 @@ def main() -> int:
     try:
         import gymnasium as gym
         import torch
+
         from rsl_rl.runners import OnPolicyRunner
 
         from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper

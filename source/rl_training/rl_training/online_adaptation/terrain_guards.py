@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 HELDOUT_TERRAIN_NAMES = ("boxes", "pyramid_stairs", "pyramid_stairs_inv")
 
 

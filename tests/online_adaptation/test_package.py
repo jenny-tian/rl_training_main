@@ -1,9 +1,9 @@
+import sys
+import torch
 from dataclasses import fields
 from pathlib import Path
-import sys
-import tomllib
 
-import torch
+import tomllib
 
 
 def test_extension_registers_root_and_ui_modules():
