@@ -19,6 +19,8 @@ def main() -> int:
         raise ValueError(f"--residual-checkpoint is required for mode {args.mode}")
     if "HeldoutBoxes" not in args.task:
         raise ValueError("the online demonstration must use the held-out task")
+    if args.video:
+        args.enable_cameras = True
 
     app_launcher = AppLauncher(args)
     simulation_app = app_launcher.app
@@ -58,7 +60,15 @@ def main() -> int:
         env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
         agent_cfg.seed = args.seed
-        env = gym.make(args.task, cfg=env_cfg)
+        env = gym.make(args.task, cfg=env_cfg, render_mode="rgb_array" if args.video else None)
+        if args.video:
+            env = gym.wrappers.RecordVideo(
+                env,
+                video_folder=str(run_dir / "videos"),
+                step_trigger=lambda step: step == 0,
+                video_length=args.video_length or args.max_steps,
+                disable_logger=True,
+            )
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
         try:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
@@ -221,7 +231,7 @@ def main() -> int:
                 )
 
                 if args.mode == "online" and in_heldout and heldout_steps % 250 == 0:
-                    recent = metrics.rolling_records()
+                    recent = metrics.heldout_records()[-250:]
                     score = -sum(
                         float(record["velocity_error"]) + float(record["tilt_rms"]) for record in recent
                     ) / max(len(recent), 1)

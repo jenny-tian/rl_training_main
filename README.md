@@ -108,6 +108,74 @@ python scripts/reinforcement_learning/rsl_rl/play.py --task=Rough-Deeprobotics-M
 * Play on specific folder or checkpoint, add `--load_run run_folder_name --checkpoint model.pt`
 * Resume training from folder or checkpoint, add `--resume --load_run run_folder_name --checkpoint model.pt`
 
+## Lite3 online terrain adaptation (simulation only)
+
+> [!WARNING]
+> This workflow is currently for Isaac Lab simulation only. It does **not** authorize unprotected online
+> exploration on a real Lite3. A real-robot deployment must add an independently validated hardware safety
+> controller, emergency stop, operator supervision, timing watchdogs, and staged low-energy testing. The online
+> residual policy uses proprioception only; height scans and cameras are not Actor inputs.
+
+The demonstration keeps the PPO locomotion policy frozen and trains only a bounded residual SAC policy. Source
+pretraining explicitly rejects boxes and stairs. Evaluation is one continuous pass from a 3 m flat prefix into a
+held-out box-height track, with no automatic reset after a fall.
+
+First qualify the base PPO checkpoint on source terrains:
+
+```bash
+BASE_CHECKPOINT=logs/rsl_rl/deeprobotics_lite3_rough/2026-07-24_14-42-38/model_20.pt
+python scripts/reinforcement_learning/online_adaptation/qualify_base_policy.py \
+  --base-checkpoint "$BASE_CHECKPOINT" --headless \
+  --output logs/online_adaptation/base_qualification.json
+```
+
+Only after qualification passes, pretrain the residual on the source-only task:
+
+```bash
+python scripts/reinforcement_learning/online_adaptation/train_residual_sac.py \
+  --base-checkpoint "$BASE_CHECKPOINT" \
+  --task OnlineAdapt-Deeprobotics-Lite3-v0 \
+  --num-envs 1024 --headless \
+  --log-dir logs/online_adaptation/lite3_source
+```
+
+Run the three held-out modes with the same seed and command:
+
+```bash
+RESIDUAL_CHECKPOINT=logs/online_adaptation/lite3_source/latest.pt
+
+python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
+  --base-checkpoint "$BASE_CHECKPOINT" --mode base --seed 7 --headless \
+  --run-dir logs/online_adaptation/demo/base
+
+python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
+  --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
+  --mode residual_frozen --seed 7 --headless \
+  --run-dir logs/online_adaptation/demo/residual_frozen
+
+python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
+  --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
+  --mode online --seed 7 --headless --video \
+  --run-dir logs/online_adaptation/demo/online
+```
+
+Run the required ten-seed comparison:
+
+```bash
+python scripts/reinforcement_learning/online_adaptation/compare_online_adaptation.py \
+  --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
+  --seeds 7 11 19 23 31 43 59 71 83 97 --max-steps 1750 --headless --video \
+  --output-dir logs/online_adaptation/heldout_10_seed
+```
+
+Pretraining checkpoints and TensorBoard events are written below the selected `--log-dir`. Each demonstration
+directory contains `metrics.jsonl`, `summary.json`, `config.json`, `residual_before.pt`, `residual_after.pt`,
+TensorBoard events, and optional `videos/`. Comparison output contains `comparison.csv`, `comparison.json`,
+`comparison.md`, and velocity, tilt, and success-rate plots. Safety projection limits residual HipX actions to
+0.24, HipY/Knee actions to 0.20, limits per-step residual change, clamps physical joint targets with a 0.02 rad
+margin, pauses on excessive tilt/low height/high joint speed/non-foot contact/control timeout, and requires a stable
+window before resuming adaptation.
+
 ## Multi-gpu acceleration
 * To train with multiple GPUs, use the following command, where --nproc_per_node represents the number of available GPUs:
     ```bash

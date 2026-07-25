@@ -25,6 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=2_000)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--headless", action="store_true")
+    parser.add_argument("--video", action="store_true")
     parser.add_argument("--output-dir", default="logs/online_adaptation/comparison")
     return parser
 
@@ -65,6 +66,8 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
         command.extend(("--residual-checkpoint", args.residual_checkpoint))
     if args.headless:
         command.append("--headless")
+    if args.video:
+        command.append("--video")
 
     return_code = 0
     try:
