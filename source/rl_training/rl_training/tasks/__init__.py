@@ -14,8 +14,6 @@
 import os
 import toml
 
-from isaaclab_tasks.utils import import_packages
-
 ##
 # Register Gym environments.
 ##
@@ -23,5 +21,12 @@ from isaaclab_tasks.utils import import_packages
 
 # The blacklist is used to prevent importing configs from sub-packages
 _BLACKLIST_PKGS = ["utils"]
-# Import all configs in this package
-import_packages(__name__, _BLACKLIST_PKGS)
+# Import all configs in this package when the Isaac Sim runtime is active. Pure
+# geometry/unit-test imports do not have pxr on sys.path and must remain usable.
+try:
+    from isaaclab_tasks.utils import import_packages
+except ModuleNotFoundError as error:
+    if error.name != "pxr":
+        raise
+else:
+    import_packages(__name__, _BLACKLIST_PKGS)
