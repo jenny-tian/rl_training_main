@@ -119,6 +119,24 @@ class OnlineAdaptationAgent:
             self.history.reset(done_ids)
         self._pending = None
 
+    def fallback_pending(self, safety_state: SafetyState) -> SafetyDecision:
+        """Replace the pending residual with the frozen-base fallback after a control timeout."""
+        if self._pending is None:
+            raise RuntimeError("begin_step must be called before fallback_pending")
+        fallback = self.safety.project(
+            self._pending.base_action,
+            torch.zeros_like(self._pending.residual_action),
+            safety_state,
+        )
+        self._pending = PendingStep(
+            history=self._pending.history,
+            frame=self._pending.frame,
+            base_action=self._pending.base_action,
+            residual_action=fallback.residual.detach().clone(),
+            actor_version=self._pending.actor_version,
+        )
+        return fallback
+
     def sample_update_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
         return self.replay.sample(self.config.batch_size, self.device, generator=generator)
 

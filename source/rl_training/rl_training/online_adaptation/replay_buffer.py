@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+
 import torch
 
 from .types import TransitionBatch
@@ -19,6 +21,7 @@ class ReplayBuffer:
         self.capacity = capacity
         self._size = 0
         self._cursor = 0
+        self._lock = threading.Lock()
         self._history = torch.empty(capacity, history_length, frame_dim, dtype=storage_dtype, device="cpu")
         self._current_frame = torch.empty(capacity, frame_dim, dtype=storage_dtype, device="cpu")
         self._base_action = torch.empty(capacity, action_dim, dtype=storage_dtype, device="cpu")
@@ -30,7 +33,8 @@ class ReplayBuffer:
         self._done = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
 
     def __len__(self) -> int:
-        return self._size
+        with self._lock:
+            return self._size
 
     def add_batch(
         self,
@@ -70,11 +74,12 @@ class ReplayBuffer:
             self._next_base_action,
             self._done,
         )
-        for row in range(batch_size):
-            for destination, value in zip(destinations, values, strict=True):
-                destination[self._cursor].copy_(value[row], non_blocking=False)
-            self._cursor = (self._cursor + 1) % self.capacity
-            self._size = min(self._size + 1, self.capacity)
+        with self._lock:
+            for row in range(batch_size):
+                for destination, value in zip(destinations, values, strict=True):
+                    destination[self._cursor].copy_(value[row], non_blocking=False)
+                self._cursor = (self._cursor + 1) % self.capacity
+                self._size = min(self._size + 1, self.capacity)
 
     def sample(
         self,
@@ -82,21 +87,22 @@ class ReplayBuffer:
         device: str | torch.device,
         generator: torch.Generator | None = None,
     ) -> TransitionBatch:
-        if self._size == 0:
-            raise RuntimeError("cannot sample from an empty replay buffer")
-        indices = torch.randint(self._size, (batch_size,), generator=generator, device="cpu")
+        with self._lock:
+            if self._size == 0:
+                raise RuntimeError("cannot sample from an empty replay buffer")
+            indices = torch.randint(self._size, (batch_size,), generator=generator, device="cpu")
 
-        def select(storage: torch.Tensor) -> torch.Tensor:
-            return storage[indices].to(device=device, dtype=torch.float32)
+            def select(storage: torch.Tensor) -> torch.Tensor:
+                return storage[indices].to(device=device, dtype=torch.float32)
 
-        return TransitionBatch(
-            history=select(self._history),
-            current_frame=select(self._current_frame),
-            base_action=select(self._base_action),
-            residual_action=select(self._residual_action),
-            reward=select(self._reward),
-            next_history=select(self._next_history),
-            next_frame=select(self._next_frame),
-            next_base_action=select(self._next_base_action),
-            done=select(self._done),
-        )
+            return TransitionBatch(
+                history=select(self._history),
+                current_frame=select(self._current_frame),
+                base_action=select(self._base_action),
+                residual_action=select(self._residual_action),
+                reward=select(self._reward),
+                next_history=select(self._next_history),
+                next_frame=select(self._next_frame),
+                next_base_action=select(self._next_base_action),
+                done=select(self._done),
+            )
