@@ -118,7 +118,8 @@ python scripts/reinforcement_learning/rsl_rl/play.py --task=Rough-Deeprobotics-M
 
 The demonstration keeps the PPO locomotion policy frozen and trains only a bounded residual SAC policy. Source
 pretraining explicitly rejects boxes and stairs. Evaluation is one continuous pass from a 3 m flat prefix into a
-held-out box-height track, with no automatic reset after a fall.
+held-out box-height track, with no automatic reset after a fall. The current single-seed Lite3 demo is validated at
+`--forward-speed 0.3`; `0.5` remains a stress case that can still fail on seed 7.
 
 First qualify the base PPO checkpoint on source terrains:
 
@@ -142,20 +143,23 @@ python scripts/reinforcement_learning/online_adaptation/train_residual_sac.py \
 Run the three held-out modes with the same seed and command:
 
 ```bash
-RESIDUAL_CHECKPOINT=logs/online_adaptation/lite3_source/latest.pt
+RESIDUAL_CHECKPOINT=logs/online_adaptation/lite3_deploy_base_residual_pretrain_256env_2000_20260727/latest.pt
 
 python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
   --base-checkpoint "$BASE_CHECKPOINT" --mode base --seed 7 --headless \
+  --forward-speed 0.3 \
   --run-dir logs/online_adaptation/demo/base
 
 python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
   --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
   --mode residual_frozen --seed 7 --headless \
+  --forward-speed 0.3 \
   --run-dir logs/online_adaptation/demo/residual_frozen
 
 python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
   --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
   --mode online --seed 7 --headless --video \
+  --forward-speed 0.3 \
   --run-dir logs/online_adaptation/demo/online
 ```
 
@@ -173,8 +177,8 @@ directory contains `metrics.jsonl`, `summary.json`, `config.json`, `residual_bef
 TensorBoard events, and optional `videos/`. Comparison output contains `comparison.csv`, `comparison.json`,
 `comparison.md`, and velocity, tilt, and success-rate plots. Safety projection limits residual HipX actions to
 0.24, HipY/Knee actions to 0.20, limits per-step residual change, clamps physical joint targets with a 0.02 rad
-margin, pauses on excessive tilt/low height/high joint speed/non-foot contact/control timeout, and requires a stable
-window before resuming adaptation.
+margin, disables residuals near large tilt or transient non-foot contact, pauses on excessive tilt/low height/high
+joint speed/sustained non-foot contact/control timeout, and requires a stable window before resuming adaptation.
 
 ## Multi-gpu acceleration
 * To train with multiple GPUs, use the following command, where --nproc_per_node represents the number of available GPUs:
