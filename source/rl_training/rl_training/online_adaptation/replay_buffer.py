@@ -46,6 +46,7 @@ class ReplayBuffer:
         next_frame: torch.Tensor,
         next_base_action: torch.Tensor,
         done: torch.Tensor,
+        valid_mask: torch.Tensor | None = None,
     ) -> None:
         values = (
             history,
@@ -61,6 +62,15 @@ class ReplayBuffer:
         batch_size = history.shape[0]
         if any(value.shape[0] != batch_size for value in values):
             raise ValueError("all transition tensors must have the same batch dimension")
+        if valid_mask is None:
+            valid_rows = torch.arange(batch_size, device="cpu")
+        else:
+            if valid_mask.numel() != batch_size:
+                raise ValueError("valid_mask must contain one value per transition")
+            valid_rows = torch.nonzero(
+                valid_mask.detach().reshape(-1).to(device="cpu", dtype=torch.bool),
+                as_tuple=False,
+            ).squeeze(-1)
 
         destinations = (
             self._history,
@@ -74,7 +84,7 @@ class ReplayBuffer:
             self._done,
         )
         with self._lock:
-            for row in range(batch_size):
+            for row in valid_rows.tolist():
                 for destination, value in zip(destinations, values, strict=True):
                     destination[self._cursor].copy_(value[row], non_blocking=False)
                 self._cursor = (self._cursor + 1) % self.capacity

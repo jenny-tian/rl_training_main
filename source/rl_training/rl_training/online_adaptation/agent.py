@@ -29,6 +29,7 @@ class PendingStep:
     frame: torch.Tensor
     base_action: torch.Tensor
     residual_action: torch.Tensor
+    learning_mask: torch.Tensor
     actor_version: int
 
 
@@ -87,6 +88,7 @@ class OnlineAdaptationAgent:
             frame=frame.detach().clone(),
             base_action=base_action.detach().clone(),
             residual_action=decision.residual.detach().clone(),
+            learning_mask=(~decision.paused).detach().clone(),
             actor_version=version,
         )
         return decision
@@ -112,6 +114,7 @@ class OnlineAdaptationAgent:
             next_frame=next_frame,
             next_base_action=next_base_action,
             done=done.float(),
+            valid_mask=self._pending.learning_mask,
         )
         done_ids = torch.nonzero(reset_mask, as_tuple=False).squeeze(-1)
         if done_ids.numel() > 0:
@@ -132,6 +135,7 @@ class OnlineAdaptationAgent:
             frame=self._pending.frame,
             base_action=self._pending.base_action,
             residual_action=fallback.residual.detach().clone(),
+            learning_mask=(~fallback.paused).detach().clone(),
             actor_version=self._pending.actor_version,
         )
         return fallback
@@ -142,3 +146,7 @@ class OnlineAdaptationAgent:
     @staticmethod
     def should_update(replay_size: int, min_replay_size: int, paused: bool) -> bool:
         return replay_size >= min_replay_size and not paused
+
+    @staticmethod
+    def all_environments_paused(paused: torch.Tensor) -> bool:
+        return bool(paused.bool().all().item())

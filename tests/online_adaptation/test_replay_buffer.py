@@ -25,3 +25,13 @@ def test_replay_overwrites_oldest_and_samples_float32():
     batch = replay.sample(batch_size=3, device="cpu", generator=torch.Generator().manual_seed(0))
     assert batch.history.dtype == torch.float32
     assert batch.history.shape == (3, 3, 2)
+
+
+def test_replay_add_batch_filters_paused_environments():
+    replay = ReplayBuffer(capacity=3, history_length=3, frame_dim=2, action_dim=1)
+
+    replay.add_batch(**make_transition(4.0), valid_mask=torch.tensor([True, False]))
+
+    assert len(replay) == 1
+    batch = replay.sample(batch_size=1, device="cpu")
+    assert batch.reward.item() == 4.0

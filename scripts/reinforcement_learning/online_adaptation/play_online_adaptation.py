@@ -203,7 +203,10 @@ def main() -> int:
                     control_ms = (time.perf_counter() - control_started) * 1_000.0
                     safety_fallbacks += 1
 
-                paused_event.set() if decision.paused.any().item() else paused_event.clear()
+                if online_agent.all_environments_paused(decision.paused):
+                    paused_event.set()
+                else:
+                    paused_event.clear()
                 residual_limit = normal_limits.unsqueeze(0)
                 if (decision.residual.abs() > residual_limit + 1e-6).any().item():
                     safety_violation = True

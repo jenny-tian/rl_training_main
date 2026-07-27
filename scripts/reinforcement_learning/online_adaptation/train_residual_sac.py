@@ -126,7 +126,7 @@ def main() -> int:
                 done_column = done.reshape(-1, 1)
                 online_agent.finish_step(next_frame, next_base_action, reward, done_column)
 
-                paused = bool(decision.paused.any().item())
+                paused = online_agent.all_environments_paused(decision.paused)
                 if online_agent.should_update(len(online_agent.replay), args.min_replay_size, paused):
                     stats = online_agent.updater.update(online_agent.sample_update_batch())
                     writer.add_scalar("loss/critic", stats.critic_loss, step)
