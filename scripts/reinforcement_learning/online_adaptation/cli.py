@@ -49,6 +49,7 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument("--mode", choices=("base", "residual_frozen", "online"), default="online")
     parser.add_argument("--task", default=HELDOUT_TASK)
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument("--forward-speed", type=float, default=0.5)
     parser.add_argument("--max-steps", type=int, default=2_000)
     parser.add_argument("--run-dir", default="logs/online_adaptation/demo")
     parser.add_argument("--min-replay-size", type=int, default=256)

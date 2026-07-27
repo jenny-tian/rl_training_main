@@ -12,3 +12,10 @@ def test_play_modes_are_explicit_and_default_to_online():
 def test_base_mode_does_not_require_residual_checkpoint():
     args = build_play_parser().parse_args(["--base-checkpoint", "base.pt", "--mode", "base"])
     assert args.residual_checkpoint is None
+
+
+def test_forward_speed_is_configurable():
+    args = build_play_parser().parse_args(
+        ["--base-checkpoint", "base.pt", "--mode", "base", "--forward-speed", "0.2"]
+    )
+    assert args.forward_speed == 0.2

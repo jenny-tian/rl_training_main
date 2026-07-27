@@ -4,6 +4,7 @@ import pytest
 
 from rl_training.online_adaptation.terrain_guards import (
     assert_heldout_terrains_disabled,
+    deterministic_joint_reset_params,
     deterministic_root_reset_params,
 )
 
@@ -38,6 +39,13 @@ def test_deterministic_root_reset_keeps_spawn_at_terrain_origin():
         "yaw": (0.0, 0.0),
     }
     assert all(bounds == (0.0, 0.0) for bounds in params["velocity_range"].values())
+
+
+def test_deterministic_joint_reset_preserves_default_standing_pose():
+    assert deterministic_joint_reset_params() == {
+        "position_range": (1.0, 1.0),
+        "velocity_range": (0.0, 0.0),
+    }
 
 
 @pytest.mark.isaaclab

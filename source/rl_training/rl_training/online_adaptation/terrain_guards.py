@@ -27,6 +27,14 @@ def deterministic_root_reset_params() -> dict[str, dict[str, tuple[float, float]
     }
 
 
+def deterministic_joint_reset_params() -> dict[str, tuple[float, float]]:
+    """Reset joints to their default pose without adding reset-state noise."""
+    return {
+        "position_range": (1.0, 1.0),
+        "velocity_range": (0.0, 0.0),
+    }
+
+
 def assert_heldout_terrains_disabled(terrain_generator: Any) -> None:
     leaks = {
         name: float(terrain_generator.sub_terrains[name].proportion)

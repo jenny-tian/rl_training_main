@@ -28,7 +28,10 @@ def test_rate_and_joint_target_projection():
 
 def test_unsafe_tilt_pauses_and_requires_stable_window_to_resume():
     filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2), stable_steps_to_resume=3))
-    assert filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state(tilt=0.8)).paused.item()
+    unsafe = filt.project(torch.ones(1, 12), torch.zeros(1, 12), state(tilt=0.8))
+    assert unsafe.paused.item()
+    assert torch.equal(unsafe.action, torch.zeros(1, 12))
+    assert torch.equal(unsafe.residual, torch.zeros(1, 12))
     for _ in range(2):
         assert filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()
     assert not filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()

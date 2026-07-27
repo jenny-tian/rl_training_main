@@ -62,7 +62,7 @@ def main() -> int:
         env_cfg.scene.num_envs = 1
         env_cfg.terminations.time_out = None
         env_cfg.terminations.terrain_out_of_bounds = None
-        env_cfg.commands.base_velocity.ranges.lin_vel_x = (0.5, 0.5)
+        env_cfg.commands.base_velocity.ranges.lin_vel_x = (args.forward_speed, args.forward_speed)
         env_cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")

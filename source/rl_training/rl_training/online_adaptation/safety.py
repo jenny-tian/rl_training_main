@@ -81,8 +81,13 @@ class SafetyFilter:
         accepted_residual = projected_action - base_action
         accepted_residual = torch.where(self._paused, torch.zeros_like(accepted_residual), accepted_residual)
         projected_action = base_action + accepted_residual
+        # A paused robot must move toward its neutral/default joint target instead
+        # of continuing a base action that may already be destabilizing it.
+        projected_action = torch.where(self._paused, torch.zeros_like(projected_action), projected_action)
 
-        changed = (accepted_residual - raw_residual).abs().amax(dim=-1, keepdim=True) > 1e-7
+        changed = (
+            (accepted_residual - raw_residual).abs().amax(dim=-1, keepdim=True) > 1e-7
+        ) | ((projected_action - base_action - accepted_residual).abs().amax(dim=-1, keepdim=True) > 1e-7)
         self._previous_residual = accepted_residual.detach().clone()
 
         reasons: list[str] = []
