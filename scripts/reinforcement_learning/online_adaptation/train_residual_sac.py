@@ -76,6 +76,9 @@ def main() -> int:
                 sac_config=SACConfig(),
                 device=device,
             )
+            if args.resume_checkpoint is not None:
+                online_agent.updater.load(args.resume_checkpoint, map_location=device)
+                online_agent.publisher.publish(online_agent.updater.actor, online_agent.updater.version)
             adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped)
             stable_manager = StableStateManager()
             reward_weights = RewardWeights(residual_weight=0.25, residual_rate_weight=0.10)

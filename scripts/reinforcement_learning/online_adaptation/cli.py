@@ -20,6 +20,7 @@ def _parser(description: str) -> argparse.ArgumentParser:
 def build_train_parser() -> argparse.ArgumentParser:
     parser = _parser("Pretrain the Lite3 residual SAC policy on source terrains.")
     parser.add_argument("--base-checkpoint", required=True)
+    parser.add_argument("--resume-checkpoint")
     parser.add_argument("--task", default=SOURCE_TASK)
     parser.add_argument("--num-envs", type=int, default=1024)
     parser.add_argument("--seed", type=int, default=7)

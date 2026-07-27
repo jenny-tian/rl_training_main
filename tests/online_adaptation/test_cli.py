@@ -9,6 +9,13 @@ def test_train_defaults_keep_heldout_task_out_of_pretraining():
     assert args.replay_capacity == 10_000
 
 
+def test_train_can_resume_residual_checkpoint():
+    args = build_train_parser().parse_args(
+        ["--base-checkpoint", "base.pt", "--resume-checkpoint", "residual.pt"]
+    )
+    assert args.resume_checkpoint == "residual.pt"
+
+
 def test_qualification_defaults_are_source_only_and_strict():
     args = build_qualify_parser().parse_args(["--base-checkpoint", "base.pt"])
     assert args.task == "OnlineAdapt-Deeprobotics-Lite3-v0"
