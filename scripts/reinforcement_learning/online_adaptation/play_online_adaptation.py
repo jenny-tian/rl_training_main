@@ -118,6 +118,7 @@ def main() -> int:
             reward_weights = RewardWeights()
             metrics = RollingMetrics(window=250)
             stable_manager = StableStateManager()
+            stable_manager.checkpoint(online_agent.updater)
             before_parameters = {
                 key: value.detach().cpu().clone() for key, value in online_agent.updater.actor.state_dict().items()
             }
@@ -209,6 +210,7 @@ def main() -> int:
                     control_ms = (time.perf_counter() - control_started) * 1_000.0
                     safety_fallbacks += 1
 
+                paused_now = bool(decision.paused.any().item())
                 if online_agent.all_environments_paused(decision.paused):
                     paused_event.set()
                 else:
@@ -267,7 +269,7 @@ def main() -> int:
                     "reward": float(reward.mean()),
                     "actor_version": online_agent.publisher.current()[1],
                     "updates": updates_snapshot,
-                    "paused": bool(decision.paused.any().item()),
+                    "paused": paused_now,
                     "safety_reasons": list(decision.reasons),
                     "base_action_norm": float(base_action.norm()),
                     "residual_action_norm": float(decision.residual.norm()),

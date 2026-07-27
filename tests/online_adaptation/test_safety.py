@@ -30,7 +30,7 @@ def test_unsafe_tilt_pauses_and_requires_stable_window_to_resume():
     filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2), stable_steps_to_resume=3))
     unsafe = filt.project(torch.ones(1, 12), torch.zeros(1, 12), state(tilt=0.8))
     assert unsafe.paused.item()
-    assert torch.equal(unsafe.action, torch.zeros(1, 12))
+    assert torch.equal(unsafe.action, torch.ones(1, 12))
     assert torch.equal(unsafe.residual, torch.zeros(1, 12))
     for _ in range(2):
         assert filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()
@@ -46,3 +46,23 @@ def test_transient_nonfoot_contact_uses_a_short_grace_window():
     decision = filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state(nonfoot_contact=True))
     assert decision.paused.item()
     assert "nonfoot_contact" in decision.reasons
+
+
+def test_transient_nonfoot_contact_disables_residual_before_pause():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), nonfoot_contact_grace_steps=2)
+    )
+    decision = filt.project(torch.ones(1, 12), torch.full((1, 12), 0.1), state(nonfoot_contact=True))
+    assert not decision.paused.item()
+    assert torch.equal(decision.action, torch.ones(1, 12))
+    assert torch.equal(decision.residual, torch.zeros(1, 12))
+
+
+def test_high_tilt_margin_disables_residual_before_pause():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), max_projected_gravity_xy=0.65)
+    )
+    decision = filt.project(torch.ones(1, 12), torch.full((1, 12), 0.1), state(tilt=0.56))
+    assert not decision.paused.item()
+    assert torch.equal(decision.action, torch.ones(1, 12))
+    assert torch.equal(decision.residual, torch.zeros(1, 12))

@@ -11,6 +11,7 @@ class SafetyLimits:
     residual_limits: torch.Tensor
     residual_rate_limit: float = 0.02
     max_projected_gravity_xy: float = 0.65
+    residual_guard_projected_gravity_xy: float = 0.55
     min_base_height: float = 0.20
     max_joint_velocity: float = 30.0
     nonfoot_contact_grace_steps: int = 10
@@ -23,6 +24,8 @@ class SafetyFilter:
             raise ValueError("stable_steps_to_resume must be positive")
         if limits.nonfoot_contact_grace_steps < 0:
             raise ValueError("nonfoot_contact_grace_steps must be non-negative")
+        if limits.residual_guard_projected_gravity_xy <= 0:
+            raise ValueError("residual_guard_projected_gravity_xy must be positive")
         self.limits = limits
         self._previous_residual: torch.Tensor | None = None
         self._paused: torch.Tensor | None = None
@@ -55,6 +58,10 @@ class SafetyFilter:
         height_unsafe = state.base_height < self.limits.min_base_height
         velocity_unsafe = state.joint_vel.abs().amax(dim=-1, keepdim=True) > self.limits.max_joint_velocity
         contact_active = state.nonfoot_contact.to(dtype=torch.bool)
+        tilt_guard = (
+            state.projected_gravity_xy.norm(dim=-1, keepdim=True)
+            > self.limits.residual_guard_projected_gravity_xy
+        )
         self._contact_steps = torch.where(
             contact_active,
             self._contact_steps + 1,
@@ -80,7 +87,8 @@ class SafetyFilter:
             torch.minimum(residual, self._previous_residual + self.limits.residual_rate_limit),
             self._previous_residual - self.limits.residual_rate_limit,
         )
-        residual = torch.where(self._paused, torch.zeros_like(residual), residual)
+        residual_guard = self._paused | contact_active | tilt_guard
+        residual = torch.where(residual_guard, torch.zeros_like(residual), residual)
 
         normalized_action = base_action + residual
         physical_target = state.default_joint_pos + state.action_scale * normalized_action
@@ -90,12 +98,11 @@ class SafetyFilter:
         safe_scale = torch.where(state.action_scale.abs() > 1e-8, state.action_scale, torch.ones_like(state.action_scale))
         projected_action = (projected_target - state.default_joint_pos) / safe_scale
         projected_action = torch.where(state.action_scale.abs() > 1e-8, projected_action, normalized_action)
+        paused_projected_action = projected_action
         accepted_residual = projected_action - base_action
         accepted_residual = torch.where(self._paused, torch.zeros_like(accepted_residual), accepted_residual)
         projected_action = base_action + accepted_residual
-        # A paused robot must move toward its neutral/default joint target instead
-        # of continuing a base action that may already be destabilizing it.
-        projected_action = torch.where(self._paused, torch.zeros_like(projected_action), projected_action)
+        projected_action = torch.where(self._paused, paused_projected_action, projected_action)
 
         changed = (
             (accepted_residual - raw_residual).abs().amax(dim=-1, keepdim=True) > 1e-7

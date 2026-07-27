@@ -199,16 +199,25 @@ class StableStateManager:
         self._stable_state: dict[str, Any] | None = None
         self._degradation_count = 0
 
+    def checkpoint(self, updater: SACUpdater) -> None:
+        self._stable_state = copy.deepcopy(updater.state_dict())
+        self._degradation_count = 0
+
+    def rollback(self, updater: SACUpdater) -> bool:
+        if self._stable_state is None:
+            return False
+        updater.load_state_dict(copy.deepcopy(self._stable_state))
+        self._degradation_count = 0
+        return True
+
     def observe(self, score: float, updater: SACUpdater) -> bool:
         if self._best_score is None or score > self._best_score + self.min_delta:
             self._best_score = score
-            self._stable_state = copy.deepcopy(updater.state_dict())
+            self.checkpoint(updater)
             self._degradation_count = 0
             return False
 
         self._degradation_count += 1
-        if self._stable_state is not None and self._degradation_count >= self.patience:
-            updater.load_state_dict(copy.deepcopy(self._stable_state))
-            self._degradation_count = 0
-            return True
+        if self._degradation_count >= self.patience:
+            return self.rollback(updater)
         return False

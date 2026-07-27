@@ -48,3 +48,14 @@ def test_stable_state_rolls_back_after_sustained_degradation():
     assert not manager.observe(score=0.8, updater=updater)
     assert manager.observe(score=0.7, updater=updater)
     assert updater.version == 0
+
+
+def test_stable_state_can_roll_back_to_explicit_checkpoint():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    manager = StableStateManager()
+    manager.checkpoint(updater)
+    updater.version = 11
+
+    assert manager.rollback(updater)
+    assert updater.version == 0
