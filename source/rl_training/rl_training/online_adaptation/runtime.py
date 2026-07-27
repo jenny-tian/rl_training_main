@@ -23,3 +23,7 @@ def write_failure_record(run_dir: str | Path, error: Exception) -> Path:
     }
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def safety_violation_occurred(paused: torch.Tensor, control_timed_out: bool) -> bool:
+    return bool(paused.any().item()) or control_timed_out

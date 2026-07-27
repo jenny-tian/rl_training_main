@@ -45,7 +45,11 @@ def main() -> int:
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
         from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
-        from rl_training.online_adaptation.runtime import as_torch_device, write_failure_record
+        from rl_training.online_adaptation.runtime import (
+            as_torch_device,
+            safety_violation_occurred,
+            write_failure_record,
+        )
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyLimits
 
@@ -190,12 +194,14 @@ def main() -> int:
                     frame,
                     base_action,
                     safety_state,
-                    deterministic=args.mode != "online",
+                    deterministic=not args.stochastic_control,
                 )
                 if device.type == "cuda":
                     torch.cuda.synchronize(device)
                 control_ms = (time.perf_counter() - control_started) * 1_000.0
+                control_timed_out = False
                 if control_ms > args.control_timeout_ms:
+                    control_timed_out = True
                     timed_out_state = replace(safety_state, control_timed_out=torch.ones_like(timeout))
                     decision = online_agent.fallback_pending(timed_out_state)
                     if device.type == "cuda":
@@ -207,8 +213,7 @@ def main() -> int:
                     paused_event.set()
                 else:
                     paused_event.clear()
-                residual_limit = normal_limits.unsqueeze(0)
-                if (decision.residual.abs() > residual_limit + 1e-6).any().item():
+                if safety_violation_occurred(decision.paused, control_timed_out):
                     safety_violation = True
 
                 with torch.inference_mode():

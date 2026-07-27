@@ -4,7 +4,7 @@ from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 from rl_training.online_adaptation.types import SafetyState
 
 
-def state(tilt=0.0, height=0.35):
+def state(tilt=0.0, height=0.35, nonfoot_contact=False):
     return SafetyState(
         projected_gravity_xy=torch.tensor([[tilt, 0.0]]),
         base_height=torch.tensor([[height]]),
@@ -14,7 +14,7 @@ def state(tilt=0.0, height=0.35):
         joint_upper=torch.full((1, 12), 1.0),
         default_joint_pos=torch.zeros(1, 12),
         action_scale=torch.full((1, 12), 0.25),
-        nonfoot_contact=torch.zeros(1, 1, dtype=torch.bool),
+        nonfoot_contact=torch.tensor([[nonfoot_contact]], dtype=torch.bool),
         control_timed_out=torch.zeros(1, 1, dtype=torch.bool),
     )
 
@@ -35,3 +35,14 @@ def test_unsafe_tilt_pauses_and_requires_stable_window_to_resume():
     for _ in range(2):
         assert filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()
     assert not filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()
+
+
+def test_transient_nonfoot_contact_uses_a_short_grace_window():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), nonfoot_contact_grace_steps=2)
+    )
+    assert not filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state(nonfoot_contact=True)).paused.item()
+    assert not filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state(nonfoot_contact=True)).paused.item()
+    decision = filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state(nonfoot_contact=True))
+    assert decision.paused.item()
+    assert "nonfoot_contact" in decision.reasons

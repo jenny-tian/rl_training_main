@@ -56,6 +56,7 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument("--replay-capacity", type=int, default=10_000)
     parser.add_argument("--updates-per-second", type=float, default=5.0)
     parser.add_argument("--control-timeout-ms", type=float, default=20.0)
+    parser.add_argument("--stochastic-control", action="store_true")
     parser.add_argument("--video", action="store_true")
     parser.add_argument("--video-length", type=int, default=0, help="0 records the complete requested pass")
     return parser

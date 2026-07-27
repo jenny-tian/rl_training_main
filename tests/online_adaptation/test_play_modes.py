@@ -19,3 +19,20 @@ def test_forward_speed_is_configurable():
         ["--base-checkpoint", "base.pt", "--mode", "base", "--forward-speed", "0.2"]
     )
     assert args.forward_speed == 0.2
+
+
+def test_online_control_is_deterministic_unless_exploration_is_explicitly_enabled():
+    deterministic = build_play_parser().parse_args(
+        ["--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt"]
+    )
+    exploratory = build_play_parser().parse_args(
+        [
+            "--base-checkpoint",
+            "base.pt",
+            "--residual-checkpoint",
+            "residual.pt",
+            "--stochastic-control",
+        ]
+    )
+    assert not deterministic.stochastic_control
+    assert exploratory.stochastic_control

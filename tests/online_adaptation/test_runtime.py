@@ -1,7 +1,7 @@
 import json
 import torch
 
-from rl_training.online_adaptation.runtime import as_torch_device, write_failure_record
+from rl_training.online_adaptation.runtime import as_torch_device, safety_violation_occurred, write_failure_record
 
 
 def test_as_torch_device_normalizes_isaaclab_string_device():
@@ -22,3 +22,15 @@ def test_write_failure_record_preserves_exception_details(tmp_path):
     assert record["error_type"] == "AttributeError"
     assert record["message"] == "device has no attribute type"
     assert "raise AttributeError" in record["traceback"]
+
+
+def test_safety_violation_requires_pause_or_timeout():
+    assert not safety_violation_occurred(torch.tensor([[False]]), control_timed_out=False)
+
+
+def test_safety_violation_records_paused_step():
+    assert safety_violation_occurred(torch.tensor([[True]]), control_timed_out=False)
+
+
+def test_safety_violation_records_control_timeout():
+    assert safety_violation_occurred(torch.tensor([[False]]), control_timed_out=True)
