@@ -35,6 +35,7 @@ def main() -> int:
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
+        from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyLimits
         from rl_training.online_adaptation.terrain_guards import assert_heldout_terrains_disabled
@@ -48,6 +49,7 @@ def main() -> int:
         assert_heldout_terrains_disabled(env_cfg.scene.terrain.terrain_generator)
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
         agent_cfg.seed = args.seed
+        agent_cfg = prepare_rsl_rl_agent_cfg(agent_cfg)
         env = gym.make(args.task, cfg=env_cfg)
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
         writer = SummaryWriter(log_dir=str(output_dir))
@@ -55,12 +57,7 @@ def main() -> int:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
             runner.load(args.base_checkpoint)
             policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
-            policy_module = getattr(runner.alg, "policy", None)
-            if policy_module is None:
-                policy_module = getattr(runner.alg, "actor_critic")
-            policy_module.requires_grad_(False)
-            if any(parameter.requires_grad for parameter in policy_module.parameters()):
-                raise RuntimeError("base PPO policy must remain frozen")
+            freeze_rsl_rl_models(runner)
 
             device = wrapped_env.unwrapped.device
             action_limits = torch.tensor([0.24, 0.20, 0.20] * 4, device=device)

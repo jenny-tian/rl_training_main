@@ -12,3 +12,4 @@ class DeeproboticsLite3OnlineAdaptEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.scene.num_envs = 1024
         self.observations.policy.height_scan = None
         assert_heldout_terrains_disabled(self.scene.terrain.terrain_generator)
+        self.disable_zero_weight_rewards()

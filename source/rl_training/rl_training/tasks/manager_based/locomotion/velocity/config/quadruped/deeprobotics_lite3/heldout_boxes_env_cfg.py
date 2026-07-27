@@ -1,6 +1,7 @@
 from isaaclab.terrains import TerrainGeneratorCfg
 from isaaclab.utils import configclass
 
+from rl_training.online_adaptation.terrain_guards import deterministic_root_reset_params
 from rl_training.tasks.manager_based.locomotion.velocity.terrains import HeldoutBoxesTrackCfg
 
 from .rough_env_cfg import DeeproboticsLite3RoughEnvCfg
@@ -61,5 +62,7 @@ class DeeproboticsLite3HeldoutBoxesEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.events.randomize_apply_external_force_torque = None
         self.events.randomize_reset_joints = None
         self.events.randomize_actuator_gains = None
-        self.events.randomize_reset_base = None
+        self.events.randomize_reset_base.params = deterministic_root_reset_params()
         self.events.randomize_push_robot = None
+
+        self.disable_zero_weight_rewards()

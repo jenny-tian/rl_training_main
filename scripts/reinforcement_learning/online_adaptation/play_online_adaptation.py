@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import threading
 import time
+import traceback
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -26,6 +27,7 @@ def main() -> int:
     simulation_app = app_launcher.app
     updater_thread: threading.Thread | None = None
     stop_event = threading.Event()
+    failure_writer = None
     try:
         import gymnasium as gym
         import torch
@@ -42,8 +44,12 @@ def main() -> int:
         from rl_training.online_adaptation.metrics import RollingMetrics
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
+        from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
+        from rl_training.online_adaptation.runtime import as_torch_device, write_failure_record
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyLimits
+
+        failure_writer = write_failure_record
 
         torch.manual_seed(args.seed)
         run_dir = Path(args.run_dir)
@@ -61,6 +67,7 @@ def main() -> int:
         env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
         agent_cfg.seed = args.seed
+        agent_cfg = prepare_rsl_rl_agent_cfg(agent_cfg)
         env = gym.make(args.task, cfg=env_cfg, render_mode="rgb_array" if args.video else None)
         if args.video:
             env = gym.wrappers.RecordVideo(
@@ -75,14 +82,9 @@ def main() -> int:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
             runner.load(args.base_checkpoint)
             base_policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
-            policy_module = getattr(runner.alg, "policy", None)
-            if policy_module is None:
-                policy_module = getattr(runner.alg, "actor_critic")
-            policy_module.requires_grad_(False)
-            if any(parameter.requires_grad for parameter in policy_module.parameters()):
-                raise RuntimeError("base PPO policy must remain frozen")
+            freeze_rsl_rl_models(runner)
 
-            device = wrapped_env.unwrapped.device
+            device = as_torch_device(wrapped_env.unwrapped.device)
             normal_limits = torch.tensor([0.24, 0.20, 0.20] * 4, device=device)
             actor_limits = torch.zeros_like(normal_limits) if args.mode == "base" else normal_limits
             actor = ResidualActor(49, 12, 64, actor_limits).to(device)
@@ -324,6 +326,11 @@ def main() -> int:
             metrics_stream.close()
             writer.close()
             wrapped_env.close()
+    except Exception as error:
+        traceback.print_exc()
+        if failure_writer is not None:
+            failure_writer(Path(args.run_dir), error)
+        return 2
     finally:
         simulation_app.close()
 
