@@ -3,9 +3,11 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     AdaptationRuntimeOrchestrator,
     RuntimeCounters,
     resolve_track_boundary_x,
+    warm_up_control_path,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate
+import torch
 
 
 def make_orchestrator():
@@ -50,6 +52,80 @@ def test_resolve_track_boundary_falls_back_to_heldout_start_for_legacy_configs()
     cfg.heldout_start_x = -6.5
 
     assert resolve_track_boundary_x(cfg) == -6.5
+
+
+def test_warm_up_control_path_primes_policy_actor_and_safety_without_agent_step():
+    calls = {}
+
+    class BasePolicy:
+        def __call__(self, observation):
+            calls["base_observation"] = observation
+            return torch.ones(1, 12)
+
+    class Actor:
+        def sample(self, history, frame, base_action, *, deterministic):
+            calls["actor_history_shape"] = tuple(history.shape)
+            calls["actor_frame_shape"] = tuple(frame.shape)
+            calls["actor_base_action_shape"] = tuple(base_action.shape)
+            calls["actor_deterministic"] = deterministic
+            return torch.zeros_like(base_action), None, None
+
+    class Publisher:
+        def current(self):
+            return Actor(), 11
+
+    class Config:
+        history_length = 25
+
+    class Agent:
+        config = Config()
+        publisher = Publisher()
+
+        def begin_step(self, *args, **kwargs):
+            raise AssertionError("warmup must not mutate the agent step state")
+
+    class Adapter:
+        def frame(self, previous_action):
+            calls["previous_action_shape"] = tuple(previous_action.shape)
+            return torch.zeros(1, 49)
+
+        def safety_state(self, timeout):
+            calls["timeout_shape"] = tuple(timeout.shape)
+            return "safety_state"
+
+    class SafetyFilter:
+        def __init__(self, limits):
+            calls["safety_limits"] = limits
+
+        def project(self, base_action, residual, safety_state):
+            calls["safety_project"] = (tuple(base_action.shape), tuple(residual.shape), safety_state)
+
+    class Device:
+        type = "cpu"
+
+    safety_limits = object()
+
+    warm_up_control_path(
+        base_policy=BasePolicy(),
+        online_agent=Agent(),
+        adapter=Adapter(),
+        observation="observation",
+        previous_action=torch.zeros(1, 12),
+        safety_limits=safety_limits,
+        safety_filter_cls=SafetyFilter,
+        deterministic=True,
+        device=Device(),
+    )
+
+    assert calls["base_observation"] == "observation"
+    assert calls["previous_action_shape"] == (1, 12)
+    assert calls["actor_history_shape"] == (1, 25, 49)
+    assert calls["actor_frame_shape"] == (1, 49)
+    assert calls["actor_base_action_shape"] == (1, 12)
+    assert calls["actor_deterministic"] is True
+    assert calls["timeout_shape"] == (1, 1)
+    assert calls["safety_limits"] is safety_limits
+    assert calls["safety_project"] == ((1, 12), (1, 12), "safety_state")
 
 
 def test_runtime_counters_separate_pre_and_post_novelty_actor_updates():

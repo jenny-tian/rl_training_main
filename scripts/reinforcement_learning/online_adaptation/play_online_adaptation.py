@@ -79,6 +79,37 @@ def resolve_track_boundary_x(env_cfg: Any) -> float:
     return float(getattr(env_cfg, "heldout_start_x", -7.0))
 
 
+def warm_up_control_path(
+    *,
+    base_policy: Any,
+    online_agent: Any,
+    adapter: Any,
+    observation: Any,
+    previous_action: Any,
+    safety_limits: Any,
+    safety_filter_cls: Any,
+    deterministic: bool,
+    device: Any,
+) -> None:
+    import torch
+
+    with torch.inference_mode():
+        frame = adapter.frame(previous_action)
+        base_action = base_policy(observation)
+        actor, _ = online_agent.publisher.current()
+        history = torch.zeros(
+            (frame.shape[0], online_agent.config.history_length, frame.shape[-1]),
+            dtype=frame.dtype,
+            device=frame.device,
+        )
+        actor.sample(history, frame, base_action, deterministic=deterministic)
+        timeout = torch.zeros(frame.shape[0], 1, dtype=torch.bool, device=frame.device)
+        safety_state = adapter.safety_state(timeout)
+        safety_filter_cls(safety_limits).project(base_action, torch.zeros_like(base_action), safety_state)
+    if device.type == "cuda":
+        torch.cuda.synchronize(device)
+
+
 class AdaptationRuntimeOrchestrator:
     """Pure runtime state machine for novelty-triggered actor updates."""
 
@@ -245,7 +276,7 @@ def main() -> int:
             write_failure_record,
         )
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
-        from rl_training.online_adaptation.safety import SafetyLimits
+        from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 
         failure_writer = write_failure_record
 
@@ -292,11 +323,12 @@ def main() -> int:
                 min_replay_size=args.min_replay_size,
                 updates_per_second=args.updates_per_second,
             )
+            safety_limits = SafetyLimits(residual_limits=normal_limits)
             online_agent = OnlineAdaptationAgent(
                 num_envs=1,
                 actor=actor,
                 critic=critic,
-                safety_limits=SafetyLimits(residual_limits=normal_limits),
+                safety_limits=safety_limits,
                 config=runtime_config,
                 sac_config=SACConfig(),
                 device=device,
@@ -454,6 +486,17 @@ def main() -> int:
 
             observation, _ = wrapped_env.reset()
             previous_action = torch.zeros(1, 12, device=device)
+            warm_up_control_path(
+                base_policy=base_policy,
+                online_agent=online_agent,
+                adapter=adapter,
+                observation=observation,
+                previous_action=previous_action,
+                safety_limits=safety_limits,
+                safety_filter_cls=SafetyFilter,
+                deterministic=not args.stochastic_control,
+                device=device,
+            )
             previous_residual = torch.zeros_like(previous_action)
             safety_fallbacks = 0
             safety_violation = False
