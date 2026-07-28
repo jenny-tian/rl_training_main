@@ -22,6 +22,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--task", default="HeldoutBoxes-Deeprobotics-Lite3-v0")
     parser.add_argument("--seeds", type=int, nargs="+", default=[7, 11, 19, 23, 31, 37, 41, 43, 47, 53])
     parser.add_argument("--max-steps", type=int, default=2_000)
+    parser.add_argument("--forward-speed", type=float, default=0.5)
+    parser.add_argument("--min-heldout-samples", type=int, default=1)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--video", action="store_true")
@@ -56,6 +58,8 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
         str(seed),
         "--max-steps",
         str(args.max_steps),
+        "--forward-speed",
+        str(args.forward_speed),
         "--device",
         args.device,
         "--run-dir",
@@ -95,10 +99,14 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
             "tilt_improvement": None,
             "checks": {"complete_summary": False},
         }
+    heldout_coverage_passed = int(summary.get("heldout_samples") or 0) >= args.min_heldout_samples
+    evaluation["checks"]["heldout_coverage"] = heldout_coverage_passed
+    evaluation["passed"] = bool(evaluation["passed"] and heldout_coverage_passed)
     baseline_passed = (
         int(summary.get("reset_count", 1)) == 0
         and not bool(summary.get("fell", True))
         and not bool(summary.get("safety_violation", True))
+        and heldout_coverage_passed
     )
     return {
         "mode": mode,
@@ -107,6 +115,7 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
         "return_code": return_code,
         "passed": bool(evaluation["passed"] if mode == "online" else baseline_passed),
         "acceptance_passed": bool(evaluation["passed"]),
+        "heldout_coverage_passed": heldout_coverage_passed,
         "velocity_improvement": evaluation["velocity_improvement"],
         "tilt_improvement": evaluation["tilt_improvement"],
         "checks": evaluation["checks"],
@@ -156,8 +165,12 @@ def main() -> int:
     frozen_velocity = _mean_or_none(grouped["residual_frozen"], "second_half_velocity_error")
     online_tilt = _mean_or_none(grouped["online"], "second_half_tilt_rms")
     frozen_tilt = _mean_or_none(grouped["residual_frozen"], "second_half_tilt_rms")
+    heldout_coverage = {
+        mode: sum(bool(row.get("heldout_coverage_passed")) for row in grouped[mode]) for mode in MODES
+    }
     aggregate_passed = (
-        online_successes >= required_successes
+        all(heldout_coverage[mode] == len(args.seeds) for mode in MODES)
+        and online_successes >= required_successes
         and online_velocity is not None
         and frozen_velocity is not None
         and online_velocity <= 0.90 * frozen_velocity
@@ -173,6 +186,8 @@ def main() -> int:
         "residual_frozen_mean_second_half_velocity_error": frozen_velocity,
         "online_mean_second_half_tilt_rms": online_tilt,
         "residual_frozen_mean_second_half_tilt_rms": frozen_tilt,
+        "heldout_coverage_successes": heldout_coverage,
+        "required_heldout_samples": args.min_heldout_samples,
         "passed": aggregate_passed,
     }
 
