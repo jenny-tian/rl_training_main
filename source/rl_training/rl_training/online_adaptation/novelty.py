@@ -47,9 +47,10 @@ class NoveltyConfig:
             self.tilt_scale_floor,
             self.reward_scale_floor,
         )
-        thresholds = (self.enter_threshold, self.exit_threshold)
-        if any(not isfinite(value) or value < 0.0 for value in thresholds):
-            raise ValueError("novelty thresholds must be finite and non-negative")
+        if not isfinite(self.enter_threshold) or self.enter_threshold <= 0.0:
+            raise ValueError("enter_threshold must be finite and positive")
+        if not isfinite(self.exit_threshold) or self.exit_threshold < 0.0:
+            raise ValueError("exit_threshold must be finite and non-negative")
         if any(not isfinite(value) or value <= 0.0 for value in positive_scales):
             raise ValueError("all scale floors must be positive")
         if self.enter_count > self.enter_window:

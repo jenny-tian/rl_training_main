@@ -186,6 +186,7 @@ def test_paused_observation_closes_actor_gate_without_leaving_adapting():
         {"contact_count": 4, "contact_window": 3},
         {"exit_threshold": 2.5},
         {"enter_threshold": -0.1},
+        {"enter_threshold": 0.0},
         {"exit_threshold": -0.1},
         {"enter_threshold": math.nan},
         {"exit_threshold": math.inf},
