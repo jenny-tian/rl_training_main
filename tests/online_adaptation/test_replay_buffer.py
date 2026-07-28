@@ -35,3 +35,15 @@ def test_replay_add_batch_filters_paused_environments():
     assert len(replay) == 1
     batch = replay.sample(batch_size=1, device="cpu")
     assert batch.reward.item() == 4.0
+
+
+def test_replay_clear_discards_all_rows_and_resets_for_reuse():
+    replay = ReplayBuffer(capacity=3, history_length=3, frame_dim=2, action_dim=1)
+    replay.add_batch(**make_transition(1.0))
+
+    replay.clear()
+
+    assert len(replay) == 0
+    replay.add_batch(**make_transition(2.0, batch=1))
+    assert len(replay) == 1
+    assert replay.sample(1, "cpu").reward.item() == 2.0

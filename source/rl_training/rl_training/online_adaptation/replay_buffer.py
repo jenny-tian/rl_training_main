@@ -35,6 +35,11 @@ class ReplayBuffer:
         with self._lock:
             return self._size
 
+    def clear(self) -> None:
+        with self._lock:
+            self._size = 0
+            self._cursor = 0
+
     def add_batch(
         self,
         history: torch.Tensor,

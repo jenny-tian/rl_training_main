@@ -63,6 +63,13 @@ class OnlineAdaptationAgent:
             action_dim=config.action_dim,
             storage_dtype=replay_storage_dtype,
         )
+        self.adaptation_replay = ReplayBuffer(
+            capacity=config.replay_capacity,
+            history_length=config.history_length,
+            frame_dim=config.frame_dim,
+            action_dim=config.action_dim,
+            storage_dtype=replay_storage_dtype,
+        )
         self.safety = SafetyFilter(safety_limits)
         self.updater = SACUpdater(actor, critic, sac_config)
         self.publisher = DoubleBufferedActorPublisher(actor)
@@ -99,12 +106,13 @@ class OnlineAdaptationAgent:
         next_base_action: torch.Tensor,
         reward: torch.Tensor,
         done: torch.Tensor,
+        adaptation_enabled: bool = False,
     ) -> None:
         if self._pending is None:
             raise RuntimeError("begin_step must be called before finish_step")
         reset_mask = done.squeeze(-1).bool()
         next_history = self.history.preview(next_frame, reset_mask=reset_mask)
-        self.replay.add_batch(
+        transition = dict(
             history=self._pending.history,
             current_frame=self._pending.frame,
             base_action=self._pending.base_action,
@@ -116,6 +124,9 @@ class OnlineAdaptationAgent:
             done=done.float(),
             valid_mask=self._pending.learning_mask,
         )
+        self.replay.add_batch(**transition)
+        if adaptation_enabled:
+            self.adaptation_replay.add_batch(**transition)
         done_ids = torch.nonzero(reset_mask, as_tuple=False).squeeze(-1)
         if done_ids.numel() > 0:
             self.history.reset(done_ids)
@@ -141,11 +152,29 @@ class OnlineAdaptationAgent:
         return fallback
 
     def sample_update_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
+        return self.sample_critic_batch(generator=generator)
+
+    def sample_critic_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
         return self.replay.sample(self.config.batch_size, self.device, generator=generator)
+
+    def sample_actor_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
+        return self.adaptation_replay.sample(self.config.batch_size, self.device, generator=generator)
+
+    def clear_adaptation_replay(self) -> None:
+        self.adaptation_replay.clear()
 
     @staticmethod
     def should_update(replay_size: int, min_replay_size: int, paused: bool) -> bool:
         return replay_size >= min_replay_size and not paused
+
+    @staticmethod
+    def should_update_actor(
+        replay_size: int,
+        min_replay_size: int,
+        paused: bool,
+        actor_enabled: bool,
+    ) -> bool:
+        return actor_enabled and replay_size >= min_replay_size and not paused
 
     @staticmethod
     def all_environments_paused(paused: torch.Tensor) -> bool:
