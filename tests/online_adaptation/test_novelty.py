@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
@@ -116,6 +118,30 @@ def test_force_cooldown_closes_actor_gate_and_resets_episode_counters():
     assert observe(gate, velocity_error=1.0).state is NoveltyState.COOLDOWN
 
 
+def test_force_cooldown_during_calibration_does_not_bypass_baseline_collection():
+    gate = NoveltyGate(config(calibration_steps=3, cooldown_steps=1))
+    observe(gate, velocity_error=0.10, tilt_rms=0.02, reward=1.0)
+
+    forced = gate.force_cooldown()
+
+    assert forced.state is NoveltyState.CALIBRATING
+    assert not forced.actor_update_enabled
+    assert observe(gate, velocity_error=0.10, tilt_rms=0.02, reward=1.0).state is NoveltyState.CALIBRATING
+    assert observe(gate, velocity_error=0.10, tilt_rms=0.02, reward=1.0).state is NoveltyState.CALIBRATING
+    assert observe(gate, velocity_error=0.10, tilt_rms=0.02, reward=1.0).state is NoveltyState.MONITORING
+
+
+def test_calibration_baseline_is_unbiased_for_a_constant_signal():
+    gate = NoveltyGate(config(calibration_steps=256))
+    for _ in range(256):
+        observe(gate, velocity_error=0.10, tilt_rms=0.02, reward=1.0)
+
+    decision = observe(gate, velocity_error=0.10, tilt_rms=0.02, reward=1.0)
+
+    assert decision.state is NoveltyState.MONITORING
+    assert decision.novelty_score == pytest.approx(0.0, abs=1e-6)
+
+
 def test_paused_observation_freezes_baseline_and_transition_counters():
     gate = NoveltyGate(config())
     calibrate(gate)
@@ -159,8 +185,31 @@ def test_paused_observation_closes_actor_gate_without_leaving_adapting():
         {"enter_count": 4, "enter_window": 3},
         {"contact_count": 4, "contact_window": 3},
         {"exit_threshold": 2.5},
+        {"enter_threshold": -0.1},
+        {"exit_threshold": -0.1},
+        {"enter_threshold": math.nan},
+        {"exit_threshold": math.inf},
+        {"velocity_scale_floor": math.nan},
     ],
 )
 def test_invalid_config_is_rejected(overrides):
     with pytest.raises(ValueError):
         NoveltyConfig(**{**config().__dict__, **overrides})
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("velocity_error", math.nan),
+        ("velocity_error", math.inf),
+        ("tilt_rms", math.nan),
+        ("reward", -math.inf),
+    ],
+)
+def test_nonfinite_observations_are_rejected(field, value):
+    gate = NoveltyGate(config())
+    values = {"velocity_error": 0.1, "tilt_rms": 0.02, "nonfoot_contact": False, "reward": 1.0}
+    values[field] = value
+
+    with pytest.raises(ValueError):
+        gate.observe(**values)

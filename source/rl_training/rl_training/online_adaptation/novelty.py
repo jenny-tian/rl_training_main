@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from math import sqrt
+from math import isfinite, sqrt
 
 
 class NoveltyState(str, Enum):
@@ -47,7 +47,10 @@ class NoveltyConfig:
             self.tilt_scale_floor,
             self.reward_scale_floor,
         )
-        if any(value <= 0.0 for value in positive_scales):
+        thresholds = (self.enter_threshold, self.exit_threshold)
+        if any(not isfinite(value) or value < 0.0 for value in thresholds):
+            raise ValueError("novelty thresholds must be finite and non-negative")
+        if any(not isfinite(value) or value <= 0.0 for value in positive_scales):
             raise ValueError("all scale floors must be positive")
         if self.enter_count > self.enter_window:
             raise ValueError("enter_count must not exceed enter_window")
@@ -98,6 +101,9 @@ class NoveltyGate:
         *,
         paused: bool = False,
     ) -> NoveltyDecision:
+        observations = (velocity_error, tilt_rms, reward)
+        if any(not isfinite(value) for value in observations):
+            raise ValueError("novelty observations must be finite")
         if paused:
             return self._decision(actor_update_enabled=False)
 
@@ -142,6 +148,9 @@ class NoveltyGate:
 
     def force_cooldown(self) -> NoveltyDecision:
         """Close the actor gate immediately and discard current persistence evidence."""
+        if self._state is NoveltyState.CALIBRATING:
+            self._reset_episode_counters()
+            return self._decision(actor_update_enabled=False)
         left_adapting = self._state is NoveltyState.ADAPTING
         self._enter_cooldown()
         return self._decision(left_adapting=left_adapting)
@@ -169,6 +178,10 @@ class NoveltyGate:
 
     def _update_baseline(self, velocity_error: float, tilt_rms: float, reward: float) -> None:
         for key, value in (("velocity", velocity_error), ("tilt", tilt_rms), ("reward", reward)):
+            if self._calibration_count == 0:
+                self._means[key] = value
+                self._variances[key] = 0.0
+                continue
             delta = value - self._means[key]
             self._means[key] += self._EMA_RATE * delta
             self._variances[key] = (1.0 - self._EMA_RATE) * (
