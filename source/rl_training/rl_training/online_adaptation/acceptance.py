@@ -3,6 +3,24 @@ from __future__ import annotations
 from typing import Any
 
 
+_REQUIRED_SUMMARY_FIELDS = (
+    "reset_count",
+    "fell",
+    "first_half_velocity_error",
+    "second_half_velocity_error",
+    "first_half_tilt_rms",
+    "second_half_tilt_rms",
+    "first_half_nonfoot_contacts",
+    "second_half_nonfoot_contacts",
+    "parameter_changed",
+    "safety_violation",
+    "actor_updates_before_novelty",
+    "actor_updates_after_novelty",
+    "novelty_entries",
+    "rollbacks",
+)
+
+
 def _relative_improvement(first: float, second: float) -> float:
     if first <= 0.0:
         return 0.0
@@ -10,6 +28,14 @@ def _relative_improvement(first: float, second: float) -> float:
 
 
 def evaluate_run(summary: dict[str, Any]) -> dict[str, Any]:
+    if any(field not in summary for field in _REQUIRED_SUMMARY_FIELDS):
+        return {
+            "passed": False,
+            "velocity_improvement": None,
+            "tilt_improvement": None,
+            "checks": {"complete_summary": False},
+        }
+
     first_velocity = float(summary["first_half_velocity_error"])
     second_velocity = float(summary["second_half_velocity_error"])
     first_tilt = float(summary["first_half_tilt_rms"])
@@ -17,6 +43,7 @@ def evaluate_run(summary: dict[str, Any]) -> dict[str, Any]:
     velocity_improvement = _relative_improvement(first_velocity, second_velocity)
     tilt_improvement = _relative_improvement(first_tilt, second_tilt)
     checks = {
+        "complete_summary": True,
         "no_reset": int(summary["reset_count"]) == 0,
         "no_fall": not bool(summary["fell"]),
         "velocity_improvement": velocity_improvement >= 0.30,
@@ -25,6 +52,10 @@ def evaluate_run(summary: dict[str, Any]) -> dict[str, Any]:
         <= float(summary["first_half_nonfoot_contacts"]),
         "parameter_changed": bool(summary["parameter_changed"]),
         "safety_compliance": not bool(summary["safety_violation"]),
+        "no_actor_updates_before_novelty": int(summary["actor_updates_before_novelty"]) == 0,
+        "actor_updated_after_novelty": int(summary["actor_updates_after_novelty"]) > 0,
+        "novelty_entered": int(summary["novelty_entries"]) > 0,
+        "rollback_count_recorded": int(summary["rollbacks"]) >= 0,
     }
     return {
         "passed": all(checks.values()),

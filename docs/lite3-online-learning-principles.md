@@ -6,7 +6,7 @@
 
 当前方案的核心是：保留已经训练好的 PPO 步态控制器，并在其动作上叠加一个受严格约束的残差 SAC 策略。残差策略在一次不重置的连续行走过程中采集新经验、执行梯度更新，并把更新后的网络参数用于同一次行走的后续控制。
 
-需要特别说明：截至 2026-07-27，NVIDIA 驱动与 Isaac Lab 已恢复可用，环境创建、冻结 PPO 推理、残差 SAC 梯度更新和单次连续行走脚本均已通过短程仿真验证。现有 `model_20.pt` 在正式五种子资格测试中出现 3 次跌倒，未通过基础策略门槛，因此正在继续训练基础 PPO；本文描述的是已经实现并完成初步验证的机制，不能替代最终三组对照和多种子统计结果。
+需要特别说明：截至 2026-07-28，NVIDIA 驱动与 Isaac Lab 已恢复可用，环境创建、冻结 PPO 推理、残差 SAC 梯度更新和单次连续行走脚本均已通过短程仿真验证。当前候选基础策略 `lite3_rl_deploy_policy_candidate.pt` 已通过五种子源地形资格测试：0 次跌倒，平均速度误差 0.103，小于 0.35 门槛。novelty-gated 在线适应机制已经实现并具备自动化测试，但 held-out 方块道路正式对照尚未通过最终验收。
 
 ## 2. 什么是这里的“真正在线学习”
 
@@ -25,9 +25,10 @@
 4. 安全过滤器投影并执行最终动作；
 5. 根据机器人响应计算奖励并写入回放池；
 6. 后台 SAC 更新线程从本次行走产生的数据中采样；
-7. 对 Actor、Critic、历史编码器和熵参数执行梯度更新；
-8. 将更新后的 Actor 原子发布给控制线程；
-9. 后续控制周期使用新的网络参数继续行走。
+7. Critic 持续学习，Actor 只在本体感知信号持续显示新异状态后更新；
+8. 通过稳定快照、性能回滚和安全回退保护已发布 Actor；
+9. 将更新后的 Actor 原子发布给控制线程；
+10. 后续控制周期使用新的网络参数继续行走。
 
 因此，进入演示前和离开演示后保存的残差 Actor 参数应当不同；运行脚本也会显式保存并检查 `residual_before.pt` 和 `residual_after.pt`。
 
@@ -198,13 +199,15 @@ SAC 实现位于 [`sac.py`](../source/rl_training/rl_training/online_adaptation/
 
 ### 6.2 更新启动条件
 
-默认至少积累 256 条 transition 后才允许更新，每次采样 128 条。单环境 50 Hz 下，积累 256 条数据约需要：
+默认至少积累 256 条 transition 后才允许 Critic 更新，每次采样 128 条。单环境 50 Hz 下，积累 256 条数据约需要：
 
 ```text
 256 / 50 = 5.12 s
 ```
 
-测试道路包含约 3 m 平地前缀，固定速度指令为 0.5 m/s，对应约 6 s 热身时间。更新启动只依赖回放池大小和安全状态，不依赖方块区域标志。
+测试道路包含平地热身段，使 Critic 能在进入 held-out 区域前获得安全 transition。Critic 更新启动只依赖全局回放池大小和安全状态，不依赖方块区域标志。
+
+Actor 更新使用更严格的门槛：只有 `NoveltyGate` 进入 `ADAPTING`，本轮新异回放池达到默认 128 条，且没有安全暂停时才允许更新。这样普通路面阶段可以训练价值函数，但不会提前改变控制策略。
 
 ### 6.3 Critic 目标
 
@@ -239,6 +242,18 @@ L_actor = E[alpha · log pi(a|s) - min(Q1(s, a), Q2(s, a))]
 theta_target = (1 - tau) · theta_target + tau · theta
 ```
 
+### 6.6 新异状态门控
+
+新异检测实现位于 [`novelty.py`](../source/rl_training/rl_training/online_adaptation/novelty.py)。状态机为：
+
+```text
+CALIBRATING -> MONITORING -> ADAPTING -> COOLDOWN -> MONITORING
+```
+
+输入只包含未来真机可获得或可估计的信号：平面速度误差、横滚/俯仰对应的投影重力范数、非足端接触，以及稠密在线奖励相对正常基线的下降。`heldout_mask`、世界坐标、地形类别和方块区域标志只用于日志分段和评测统计，不进入 `NoveltyGate`、SAC 更新或回滚判断。
+
+校准期建立正常路面基线；监控期要求最近窗口内持续超过阈值才进入适应，单帧尖峰不会启动 Actor 更新；适应期只把当前 episode 的 transition 写入新异回放池并低频更新 Actor；恢复或 rollback 后进入冷却期。安全暂停期间状态机计数不前进，Actor gate 关闭。
+
 ## 7. 在线奖励
 
 奖励实现位于 [`reward.py`](../source/rl_training/rl_training/online_adaptation/reward.py)。当前奖励由以下部分组成：
@@ -260,16 +275,24 @@ theta_target = (1 - tau) · theta_target + tau · theta
 
 奖励接口只依赖未来真机理论上可以测量或估计的状态。当前仿真直接读取机身真实速度；真机部署时必须替换为状态估计器输出，而不应修改 SAC 算法本身。
 
-## 8. 异步更新与双缓冲发布
+## 8. 异步更新、双回放与双缓冲发布
 
 控制周期约为 20 ms，而一次神经网络反向传播可能超过单个控制周期。因此在线运行将控制和训练分离：
 
 - 控制线程以 50 Hz 执行动作推理和环境步进；
-- 更新线程默认以约 5 Hz 执行 SAC 更新；
+- 更新线程默认以约 5 Hz 执行 Critic 更新；
+- Actor 默认最多约 1 Hz 更新，且只在新异适应 episode 中启用；
 - 更新线程修改训练 Actor；
 - 控制线程只读取冻结的推理 Actor 副本；
 - 成功更新后，参数先写入未使用的备用 Actor；
 - 写入完成后再原子切换活动索引。
+
+当前实现包含两个回放池：
+
+- `global_replay` 保存所有安全 transition，供 Critic 持续更新；
+- `adaptation_replay` 只保存 `ADAPTING` 状态下的 transition，供 Actor 和熵参数更新。
+
+Critic-only 更新不会改变 Actor 参数、不会增加 Actor 版本，也不会发布新策略。完整 Actor 更新会同时执行本周期的 Critic 更新，避免配置的 Critic 频率被隐式放大。
 
 双缓冲发布器位于 [`publisher.py`](../source/rl_training/rl_training/online_adaptation/publisher.py)，运行线程位于 [`play_online_adaptation.py`](../scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py)。
 
@@ -318,7 +341,15 @@ theta_target = (1 - tau) · theta_target + tau · theta
 
 ### 9.4 性能回滚
 
-`StableStateManager` 保存近期表现最好的 SAC 状态。如果滚动性能连续多次没有改善，则恢复最近的稳定版本，并重新发布对应 Actor。
+在线模式会在每个适应 episode 内比较固定长度性能窗口。代价为：
+
+```text
+mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
+```
+
+第一个完整窗口建立 episode 参考；后续窗口比当前最佳值改善至少 5% 时保存完整 SAC 稳定快照；连续两个窗口比最佳值差 10% 以上时回滚。回滚恢复 Actor、Critic、目标 Critic、优化器、熵参数和 Actor 版本号，只影响残差模块，基础 PPO 不变。
+
+安全事件、控制超时或环境终止会立即关闭 Actor gate、清空新异回放池并请求回滚。安全阈值不会为了让某次演示通过而放宽；触发保护的 seed 必须如实计入报告。
 
 ## 10. 源地形预训练与未见地形隔离
 
@@ -450,18 +481,20 @@ theta_target = (1 - tau) · theta_target + tau · theta
 - 独立方块道路和三模式对照脚本；
 - 运行日志、前后参数保存和多种子汇总入口；
 - RSL-RL 5 配置转换和冻结 Actor/Critic 兼容层；
+- 新异状态门控、双回放、Critic/Actor 更新解耦和 episode-local 性能回滚；
 - Isaac Lab 环境创建、PPO 加载和单步控制集成验证；
 - 源地形残差 SAC 正式预训练，256 环境、2000 步，产物位于 `lite3_deploy_base_residual_pretrain_256env_2000_20260727/latest.pt`；
 - 冻结残差连续行走验证，参数保持逐位不变；
-- 在线适应模块单元测试（45 通过，2 个 Isaac-only 用例在普通测试中跳过）；
+- 在线适应模块纯测试（102 通过，4 个 Isaac-only 用例在普通测试中跳过）；
 - 五种子资格入口改为每个种子独立 Isaac 进程，避免仿真单例重建卡死；
 - `/home/tjx/Lite3_rl_deploy` 官方部署 PPO 导入为 RSL-RL 兼容检查点，并通过五种子源地形资格测试；
-- seed 7、0.3 m/s heldout 单次连续行走在线演示跑满 2000 步，残差参数在线变化，heldout 后半段速度误差下降。
+- seed 7、0.3 m/s heldout 单次连续行走在线演示曾跑满 2000 步并产生残差参数变化；当前 novelty-gated 正式对照仍在调试，不能视为最终通过结果。
 
 尚未完成实证验证：
 
 - 同种子三组演示录像；
 - 十个未见方块种子的统计对照；
+- novelty-gated 配置下 held-out 方块道路的正式通过结果；
 - 真机部署与硬件安全验证。
 
 ## 14. 已知限制与后续修正
@@ -470,7 +503,7 @@ theta_target = (1 - tau) · theta_target + tau · theta
 
 1. 0.5 m/s、seed 7 的 heldout 压力测试仍会在 300 步左右因姿态角过大失败；当前可演示配置为 0.3 m/s。
 2. 安全暂停 transition 已通过 `valid_mask` 排除在 replay 训练之外，但 safety pause 仍会计入日志，需要在展示时解释它是保护事件，不是在线更新样本。
-3. 方块区域坐标不会进入 Actor、奖励或更新启动条件，但当前用于分段性能回滚检查。更严格的在线实验应改为完全不依赖地形标签的通用滚动指标。
+3. 方块区域坐标不会进入 Actor、奖励、更新启动条件或性能回滚；`heldout_mask` 保留为评测统计字段，必须继续防止它流入学习决策。
 4. 网络使用 LayerNorm，但尚未单独保存完整的输入归一化统计。
 5. 更新线程不能强制中断一次正在执行的反向传播；需要通过计算预算、独立进程或 watchdog 进一步加强超时隔离。
 6. 当前残差限幅和奖励权重只完成了单种子连续道路验证，尚未通过十种子统计。
