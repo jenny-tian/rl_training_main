@@ -1,7 +1,7 @@
+import torch
 from dataclasses import replace
 
-import torch
-
+from rl_training.online_adaptation.metrics import AdaptationPerformanceDecision
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
 from rl_training.online_adaptation.sac import SACConfig, SACUpdater, StableStateManager
 from rl_training.online_adaptation.types import TransitionBatch
@@ -112,3 +112,31 @@ def test_stable_state_can_roll_back_to_explicit_checkpoint():
 
     assert manager.rollback(updater)
     assert updater.version == 0
+
+
+def test_stable_state_manager_observes_adaptation_decisions():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    manager = StableStateManager()
+    manager.checkpoint(updater)
+    updater.version = 2
+    improved = AdaptationPerformanceDecision(
+        cost=0.8,
+        improved=True,
+        degraded=False,
+        should_rollback=False,
+        rollback_reason=None,
+    )
+
+    assert not manager.observe_adaptation(improved, updater)
+    updater.version = 3
+    rollback = AdaptationPerformanceDecision(
+        cost=1.0,
+        improved=False,
+        degraded=True,
+        should_rollback=True,
+        rollback_reason="performance_degradation",
+    )
+
+    assert manager.observe_adaptation(rollback, updater)
+    assert updater.version == 2

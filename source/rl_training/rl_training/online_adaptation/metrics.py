@@ -1,8 +1,101 @@
 from __future__ import annotations
 
 from collections import deque
+from dataclasses import dataclass
+from math import isfinite
 from numbers import Integral, Real
 from typing import Any
+
+
+@dataclass(frozen=True)
+class AdaptationPerformanceDecision:
+    cost: float
+    improved: bool
+    degraded: bool
+    should_rollback: bool
+    rollback_reason: str | None
+
+
+class AdaptationPerformance:
+    """Evaluates non-overlapping observable-signal windows within one adaptation episode."""
+
+    def __init__(
+        self,
+        *,
+        window: int = 50,
+        improvement_ratio: float = 0.05,
+        degradation_ratio: float = 0.10,
+        patience: int = 2,
+    ) -> None:
+        if window <= 0 or patience <= 0:
+            raise ValueError("window and patience must be positive")
+        if not isfinite(improvement_ratio) or not 0.0 <= improvement_ratio < 1.0:
+            raise ValueError("improvement_ratio must be finite and in [0, 1)")
+        if not isfinite(degradation_ratio) or degradation_ratio < 0.0:
+            raise ValueError("degradation_ratio must be finite and non-negative")
+        self.window = window
+        self.improvement_ratio = improvement_ratio
+        self.degradation_ratio = degradation_ratio
+        self.patience = patience
+        self._records: list[tuple[float, float, float]] = []
+        self._best_cost: float | None = None
+        self._degradation_count = 0
+
+    @property
+    def best_cost(self) -> float | None:
+        return self._best_cost
+
+    @property
+    def degradation_count(self) -> int:
+        return self._degradation_count
+
+    def start_episode(self) -> None:
+        self._records.clear()
+        self._best_cost = None
+        self._degradation_count = 0
+
+    def add(
+        self,
+        *,
+        velocity_error: float,
+        tilt_rms: float,
+        nonfoot_contact: int | float,
+    ) -> AdaptationPerformanceDecision | None:
+        values = (float(velocity_error), float(tilt_rms), float(nonfoot_contact))
+        if any(not isfinite(value) for value in values):
+            raise ValueError("adaptation performance values must be finite")
+        self._records.append(values)
+        if len(self._records) < self.window:
+            return None
+
+        count = len(self._records)
+        velocity_mean = sum(record[0] for record in self._records) / count
+        tilt_mean = sum(record[1] for record in self._records) / count
+        contact_rate = sum(record[2] for record in self._records) / count
+        cost = velocity_mean + tilt_mean + 0.25 * contact_rate
+        self._records.clear()
+
+        if self._best_cost is None:
+            self._best_cost = cost
+            return AdaptationPerformanceDecision(cost, False, False, False, None)
+
+        improved = cost <= self._best_cost * (1.0 - self.improvement_ratio)
+        degraded = cost > self._best_cost * (1.0 + self.degradation_ratio)
+        if improved:
+            self._best_cost = cost
+            self._degradation_count = 0
+        elif degraded:
+            self._degradation_count += 1
+        else:
+            self._degradation_count = 0
+        should_rollback = self._degradation_count >= self.patience
+        return AdaptationPerformanceDecision(
+            cost=cost,
+            improved=improved,
+            degraded=degraded,
+            should_rollback=should_rollback,
+            rollback_reason="performance_degradation" if should_rollback else None,
+        )
 
 
 def _json_value(value: Any) -> Any:

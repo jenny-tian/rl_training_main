@@ -8,6 +8,7 @@ from torch import nn
 from torch.nn import functional as F
 from typing import Any
 
+from .metrics import AdaptationPerformanceDecision
 from .networks import ResidualActor, TwinCritic
 from .types import TransitionBatch, UpdateStats
 
@@ -249,5 +250,17 @@ class StableStateManager:
 
         self._degradation_count += 1
         if self._degradation_count >= self.patience:
+            return self.rollback(updater)
+        return False
+
+    def observe_adaptation(
+        self,
+        decision: AdaptationPerformanceDecision,
+        updater: SACUpdater,
+    ) -> bool:
+        if decision.improved:
+            self.checkpoint(updater)
+            return False
+        if decision.should_rollback:
             return self.rollback(updater)
         return False
