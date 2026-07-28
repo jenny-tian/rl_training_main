@@ -24,6 +24,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=2_000)
     parser.add_argument("--forward-speed", type=float, default=0.5)
     parser.add_argument("--min-heldout-samples", type=int, default=1)
+    parser.add_argument("--control-timeout-ms", type=float, default=20.0)
+    parser.add_argument("--stochastic-control", action="store_true")
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--video", action="store_true")
@@ -62,6 +64,8 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
         str(args.forward_speed),
         "--device",
         args.device,
+        "--control-timeout-ms",
+        str(args.control_timeout_ms),
         "--run-dir",
         str(run_dir),
     ]
@@ -69,6 +73,8 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
         command.extend(("--residual-checkpoint", args.residual_checkpoint))
     if args.headless:
         command.append("--headless")
+    if args.stochastic_control:
+        command.append("--stochastic-control")
     if args.video:
         command.append("--video")
 

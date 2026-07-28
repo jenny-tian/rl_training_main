@@ -41,6 +41,8 @@ def test_run_one_passes_forward_speed_and_rejects_insufficient_heldout(tmp_path,
         headless=True,
         video=False,
         forward_speed=0.3,
+        control_timeout_ms=100.0,
+        stochastic_control=False,
         min_heldout_samples=100,
     )
 
@@ -48,6 +50,8 @@ def test_run_one_passes_forward_speed_and_rejects_insufficient_heldout(tmp_path,
 
     assert "--forward-speed" in commands[0]
     assert commands[0][commands[0].index("--forward-speed") + 1] == "0.3"
+    assert "--control-timeout-ms" in commands[0]
+    assert commands[0][commands[0].index("--control-timeout-ms") + 1] == "100.0"
     assert not result["passed"]
     assert not result["acceptance_passed"]
     assert result["heldout_coverage_passed"] is False
