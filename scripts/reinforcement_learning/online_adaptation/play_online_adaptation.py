@@ -3,15 +3,200 @@
 from __future__ import annotations
 
 import json
+import queue
 import threading
 import time
 import traceback
-from dataclasses import asdict, replace
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
+from typing import Any, Literal
 
 from isaaclab.app import AppLauncher
 
+from rl_training.online_adaptation.metrics import AdaptationPerformance
+from rl_training.online_adaptation.novelty import NoveltyGate
+
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser
+
+
+@dataclass(frozen=True)
+class AdaptationCommand:
+    kind: Literal["start_episode", "checkpoint", "rollback"]
+    episode: int
+    reason: str = ""
+
+
+@dataclass
+class RuntimeCounters:
+    critic_updates: int = 0
+    actor_updates: int = 0
+    actor_updates_before_novelty: int = 0
+    actor_updates_after_novelty: int = 0
+    first_actor_update_step: int | None = None
+    novelty_entries: int = 0
+    rollbacks: int = 0
+    performance_rollbacks: int = 0
+    safety_rollbacks: int = 0
+    state_durations: dict[str, int] = field(default_factory=dict)
+
+    def record_state(self, state: str) -> None:
+        self.state_durations[state] = self.state_durations.get(state, 0) + 1
+
+    def record_critic_update(self) -> None:
+        self.critic_updates += 1
+
+    def record_actor_update(self, *, step: int, adaptation_episode: int) -> None:
+        self.actor_updates += 1
+        if adaptation_episode > 0:
+            self.actor_updates_after_novelty += 1
+        else:
+            self.actor_updates_before_novelty += 1
+        if self.first_actor_update_step is None:
+            self.first_actor_update_step = step
+
+    def record_novelty_entry(self) -> None:
+        self.novelty_entries += 1
+
+    def record_rollback(self, reason: str) -> None:
+        self.rollbacks += 1
+        if reason == "performance_degradation":
+            self.performance_rollbacks += 1
+        else:
+            self.safety_rollbacks += 1
+
+
+@dataclass(frozen=True)
+class RuntimeStepResult:
+    adaptation_enabled: bool
+    clear_adaptation_replay: bool
+    commands: tuple[AdaptationCommand, ...]
+    record_fields: dict[str, Any]
+
+
+class AdaptationRuntimeOrchestrator:
+    """Pure runtime state machine for novelty-triggered actor updates."""
+
+    def __init__(
+        self,
+        *,
+        mode: Literal["base", "residual_frozen", "online"],
+        novelty_gate: NoveltyGate,
+        adaptation_performance: AdaptationPerformance,
+        counters: RuntimeCounters | None = None,
+    ) -> None:
+        self.mode = mode
+        self.novelty_gate = novelty_gate
+        self.adaptation_performance = adaptation_performance
+        self.counters = counters if counters is not None else RuntimeCounters()
+        self.adaptation_episode = 0
+        self.active_episode = 0
+        self.last_rollback_reason = ""
+
+    def observe_step(
+        self,
+        *,
+        step: int,
+        velocity_error: float,
+        tilt_rms: float,
+        nonfoot_contact: int,
+        reward: float,
+        paused: bool = False,
+        control_timed_out: bool = False,
+        done: bool = False,
+        safety_reasons: tuple[str, ...] = (),
+    ) -> RuntimeStepResult:
+        commands: list[AdaptationCommand] = []
+        clear_adaptation_replay = False
+        rollback_reason = ""
+        safety_reason = ""
+
+        if self.active_episode > 0:
+            if control_timed_out:
+                safety_reason = "control_timeout"
+            elif paused:
+                safety_reason = safety_reasons[0] if safety_reasons else "safety_pause"
+            elif done:
+                safety_reason = "environment_termination"
+
+        if safety_reason:
+            episode_to_rollback = self.active_episode
+            novelty_decision = self.novelty_gate.force_cooldown()
+            self.adaptation_performance.start_episode()
+            self.active_episode = 0
+            self.counters.record_rollback(safety_reason)
+            self.last_rollback_reason = safety_reason
+            rollback_reason = safety_reason
+            clear_adaptation_replay = True
+            commands.append(AdaptationCommand("rollback", episode_to_rollback, safety_reason))
+        else:
+            novelty_decision = self.novelty_gate.observe(
+                velocity_error,
+                tilt_rms,
+                bool(nonfoot_contact),
+                reward,
+                paused=paused,
+            )
+
+        if self.mode == "online" and novelty_decision.entered_adapting:
+            self.adaptation_performance.start_episode()
+            self.adaptation_episode += 1
+            self.active_episode = self.adaptation_episode
+            self.counters.record_novelty_entry()
+            clear_adaptation_replay = True
+            commands.append(AdaptationCommand("start_episode", self.adaptation_episode))
+
+        adaptation_enabled = (
+            self.mode == "online"
+            and novelty_decision.actor_update_enabled
+            and self.active_episode > 0
+            and not paused
+        )
+
+        if adaptation_enabled:
+            performance_decision = self.adaptation_performance.add(
+                velocity_error=velocity_error,
+                tilt_rms=tilt_rms,
+                nonfoot_contact=nonfoot_contact,
+            )
+            if performance_decision is not None:
+                if performance_decision.improved:
+                    commands.append(AdaptationCommand("checkpoint", self.active_episode))
+                elif performance_decision.should_rollback:
+                    episode_to_rollback = self.active_episode
+                    rollback_reason = performance_decision.rollback_reason or "performance_degradation"
+                    novelty_decision = self.novelty_gate.force_cooldown()
+                    self.active_episode = 0
+                    self.counters.record_rollback(rollback_reason)
+                    self.last_rollback_reason = rollback_reason
+                    clear_adaptation_replay = True
+                    commands.append(AdaptationCommand("rollback", episode_to_rollback, rollback_reason))
+        elif novelty_decision.left_adapting and self.active_episode > 0:
+            self.active_episode = 0
+            clear_adaptation_replay = True
+
+        self.counters.record_state(novelty_decision.state.value)
+        return RuntimeStepResult(
+            adaptation_enabled=adaptation_enabled,
+            clear_adaptation_replay=clear_adaptation_replay,
+            commands=tuple(commands),
+            record_fields={
+                "step": step,
+                "adaptation_state": novelty_decision.state.value,
+                "novelty_score": novelty_decision.novelty_score,
+                "velocity_excess": novelty_decision.velocity_excess,
+                "tilt_excess": novelty_decision.tilt_excess,
+                "reward_drop": novelty_decision.reward_drop,
+                "actor_update_enabled": adaptation_enabled,
+                "adaptation_episode": self.active_episode,
+                "rollback_reason": rollback_reason or self.last_rollback_reason,
+            },
+        )
+
+    def record_critic_update(self) -> None:
+        self.counters.record_critic_update()
+
+    def record_actor_update(self, *, step: int) -> None:
+        self.counters.record_actor_update(step=step, adaptation_episode=self.active_episode)
 
 
 def main() -> int:
@@ -20,6 +205,8 @@ def main() -> int:
         raise ValueError(f"--residual-checkpoint is required for mode {args.mode}")
     if "HeldoutBoxes" not in args.task:
         raise ValueError("the online demonstration must use the held-out task")
+    if args.updates_per_second <= 0.0 or args.actor_updates_per_second <= 0.0:
+        raise ValueError("critic and actor update frequencies must be positive")
     if args.video:
         args.enable_cameras = True
 
@@ -41,8 +228,9 @@ def main() -> int:
         import rl_training.tasks  # noqa: F401
         from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
-        from rl_training.online_adaptation.metrics import RollingMetrics
+        from rl_training.online_adaptation.metrics import AdaptationPerformance, RollingMetrics
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
+        from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
         from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
         from rl_training.online_adaptation.runtime import (
@@ -117,6 +305,23 @@ def main() -> int:
             )
             reward_weights = RewardWeights()
             metrics = RollingMetrics(window=250)
+            novelty_gate = NoveltyGate(
+                NoveltyConfig(
+                    calibration_steps=args.novelty_calibration_steps,
+                    enter_threshold=args.novelty_enter_threshold,
+                    exit_threshold=args.novelty_exit_threshold,
+                    enter_count=args.novelty_enter_count,
+                    enter_window=args.novelty_enter_window,
+                    recovery_steps=args.novelty_recovery_steps,
+                    cooldown_steps=args.adaptation_cooldown_steps,
+                )
+            )
+            adaptation_performance = AdaptationPerformance(
+                window=args.rollback_window,
+                improvement_ratio=args.stable_improvement_ratio,
+                degradation_ratio=args.rollback_degradation_ratio,
+                patience=args.rollback_patience,
+            )
             stable_manager = StableStateManager()
             stable_manager.checkpoint(online_agent.updater)
             before_parameters = {
@@ -127,30 +332,101 @@ def main() -> int:
             shared_lock = threading.Lock()
             update_lock = threading.Lock()
             paused_event = threading.Event()
+            actor_gate_event = threading.Event()
+            commands: queue.SimpleQueue[AdaptationCommand] = queue.SimpleQueue()
             update_errors: list[BaseException] = []
-            accepted_updates = 0
-            rollbacks = 0
+            counters = RuntimeCounters()
+            adaptation_episode = 0
+            active_episode = 0
+            current_step = 0
             last_update: dict[str, float | int | bool] = {}
+            last_rollback_reason = ""
 
             def updater_loop() -> None:
-                nonlocal accepted_updates
-                period = 1.0 / max(args.updates_per_second, 1e-6)
+                nonlocal last_rollback_reason
+                critic_period = 1.0 / args.updates_per_second
+                actor_period = 1.0 / args.actor_updates_per_second
+                next_critic = time.perf_counter()
+                next_actor = next_critic
+                checkpointed_episode = 0
                 try:
-                    while not stop_event.is_set():
-                        started = time.perf_counter()
-                        if online_agent.should_update(
+                    while not stop_event.is_set() or not commands.empty():
+                        while True:
+                            try:
+                                command = commands.get_nowait()
+                            except queue.Empty:
+                                break
+                            with update_lock:
+                                if command.kind == "start_episode":
+                                    stable_manager.checkpoint(online_agent.updater)
+                                    checkpointed_episode = command.episode
+                                    with shared_lock:
+                                        episode_is_active = active_episode == command.episode
+                                    if episode_is_active:
+                                        actor_gate_event.set()
+                                elif command.kind == "checkpoint":
+                                    if command.episode == checkpointed_episode:
+                                        stable_manager.checkpoint(online_agent.updater)
+                                elif command.kind == "rollback":
+                                    if command.episode == checkpointed_episode and stable_manager.rollback(
+                                        online_agent.updater
+                                    ):
+                                        online_agent.publisher.publish(
+                                            online_agent.updater.actor, online_agent.updater.version
+                                        )
+                                    checkpointed_episode = 0
+                                    actor_gate_event.clear()
+                                    with shared_lock:
+                                        last_rollback_reason = command.reason
+
+                        now = time.perf_counter()
+                        with shared_lock:
+                            episode_snapshot = active_episode
+                            step_snapshot = current_step
+                        actor_due = (
+                            now >= next_actor
+                            and checkpointed_episode > 0
+                            and checkpointed_episode == episode_snapshot
+                            and online_agent.should_update_actor(
+                                len(online_agent.adaptation_replay),
+                                args.adaptation_min_replay_size,
+                                paused_event.is_set(),
+                                actor_gate_event.is_set(),
+                            )
+                        )
+                        stats = None
+                        if actor_due:
+                            with update_lock:
+                                stats = online_agent.updater.update(
+                                    critic_batch=online_agent.sample_critic_batch(),
+                                    actor_batch=online_agent.sample_actor_batch(),
+                                    update_actor=True,
+                                )
+                                if stats.accepted and stats.actor_updated:
+                                    online_agent.publisher.publish(online_agent.updater.actor, stats.version)
+                            next_actor = now + actor_period
+                            next_critic = max(next_critic + critic_period, now)
+                        elif now >= next_critic and online_agent.should_update(
                             len(online_agent.replay), args.min_replay_size, paused_event.is_set()
                         ):
                             with update_lock:
-                                stats = online_agent.updater.update(online_agent.sample_update_batch())
-                                if stats.accepted:
-                                    online_agent.publisher.publish(online_agent.updater.actor, stats.version)
+                                stats = online_agent.updater.update(
+                                    critic_batch=online_agent.sample_critic_batch(),
+                                    update_actor=False,
+                                )
+                            next_critic = now + critic_period
+
+                        if stats is not None:
                             with shared_lock:
                                 last_update.clear()
                                 last_update.update(asdict(stats))
-                                if stats.accepted:
-                                    accepted_updates += 1
-                        stop_event.wait(max(0.0, period - (time.perf_counter() - started)))
+                                if stats.accepted and stats.critic_updated:
+                                    counters.record_critic_update()
+                                if stats.accepted and stats.actor_updated:
+                                    counters.record_actor_update(
+                                        step=step_snapshot, adaptation_episode=episode_snapshot
+                                    )
+                        stop_event.wait(0.001)
                 except BaseException as error:
                     update_errors.append(error)
                     stop_event.set()
@@ -179,9 +455,12 @@ def main() -> int:
             fell = False
             heldout_steps = 0
             executed_steps = 0
+            novelty_decision = novelty_gate.observe(0.0, 0.0, False, 0.0, paused=True)
 
             for step in range(1, args.max_steps + 1):
                 executed_steps = step
+                with shared_lock:
+                    current_step = step
                 if update_errors:
                     raise RuntimeError("background SAC updater failed") from update_errors[0]
                 loop_started = time.perf_counter()
@@ -225,13 +504,93 @@ def main() -> int:
                 signals = adapter.reward_signals()
                 reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)
                 done_column = done.reshape(-1, 1)
-                online_agent.finish_step(next_frame, next_base_action, reward, done_column)
-
                 velocity_error = float(
                     torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
                 )
                 tilt_rms = float(torch.linalg.norm(signals.projected_gravity_xy, dim=-1).mean())
                 nonfoot_contact = int(signals.nonfoot_contact.any().item())
+                rollback_reason = ""
+                safety_reason = ""
+                if active_episode > 0:
+                    if control_timed_out:
+                        safety_reason = "control_timeout"
+                    elif paused_now:
+                        safety_reason = decision.reasons[0] if decision.reasons else "safety_pause"
+                    elif done.any().item():
+                        safety_reason = "environment_termination"
+                if safety_reason:
+                    episode_to_rollback = active_episode
+                    novelty_decision = novelty_gate.force_cooldown()
+                    actor_gate_event.clear()
+                    online_agent.clear_adaptation_replay()
+                    adaptation_performance.start_episode()
+                    with shared_lock:
+                        active_episode = 0
+                        counters.record_rollback(safety_reason)
+                    commands.put(AdaptationCommand("rollback", episode_to_rollback, safety_reason))
+                    rollback_reason = safety_reason
+                else:
+                    novelty_decision = novelty_gate.observe(
+                        velocity_error,
+                        tilt_rms,
+                        bool(nonfoot_contact),
+                        float(reward.mean()),
+                        paused=paused_now,
+                    )
+
+                if args.mode == "online" and novelty_decision.entered_adapting:
+                    actor_gate_event.clear()
+                    online_agent.clear_adaptation_replay()
+                    adaptation_performance.start_episode()
+                    adaptation_episode += 1
+                    with shared_lock:
+                        active_episode = adaptation_episode
+                        counters.record_novelty_entry()
+                    commands.put(AdaptationCommand("start_episode", adaptation_episode))
+
+                adaptation_enabled = (
+                    args.mode == "online"
+                    and novelty_decision.actor_update_enabled
+                    and active_episode > 0
+                    and not paused_now
+                )
+                online_agent.finish_step(
+                    next_frame,
+                    next_base_action,
+                    reward,
+                    done_column,
+                    adaptation_enabled=adaptation_enabled,
+                )
+
+                if adaptation_enabled:
+                    performance_decision = adaptation_performance.add(
+                        velocity_error=velocity_error,
+                        tilt_rms=tilt_rms,
+                        nonfoot_contact=nonfoot_contact,
+                    )
+                    if performance_decision is not None:
+                        if performance_decision.improved:
+                            commands.put(AdaptationCommand("checkpoint", active_episode))
+                        elif performance_decision.should_rollback:
+                            episode_to_rollback = active_episode
+                            rollback_reason = performance_decision.rollback_reason or "performance_degradation"
+                            novelty_decision = novelty_gate.force_cooldown()
+                            actor_gate_event.clear()
+                            online_agent.clear_adaptation_replay()
+                            with shared_lock:
+                                active_episode = 0
+                                counters.record_rollback(rollback_reason)
+                            commands.put(
+                                AdaptationCommand("rollback", episode_to_rollback, rollback_reason)
+                            )
+                elif novelty_decision.left_adapting and active_episode > 0:
+                    actor_gate_event.clear()
+                    online_agent.clear_adaptation_replay()
+                    with shared_lock:
+                        active_episode = 0
+
+                with shared_lock:
+                    counters.record_state(novelty_decision.state.value)
                 in_heldout = bool(adapter.heldout_mask().item())
                 if in_heldout:
                     heldout_steps += 1
@@ -243,22 +602,12 @@ def main() -> int:
                     nonfoot_contact=nonfoot_contact,
                 )
 
-                if args.mode == "online" and in_heldout and heldout_steps % 250 == 0:
-                    recent = metrics.heldout_records()[-250:]
-                    score = -sum(
-                        float(record["velocity_error"]) + float(record["tilt_rms"]) for record in recent
-                    ) / max(len(recent), 1)
-                    with update_lock:
-                        if stable_manager.observe(score, online_agent.updater):
-                            online_agent.publisher.publish(
-                                online_agent.updater.actor, online_agent.updater.version
-                            )
-                            rollbacks += 1
-
                 loop_ms = (time.perf_counter() - loop_started) * 1_000.0
                 with shared_lock:
                     update_snapshot = dict(last_update)
-                    updates_snapshot = accepted_updates
+                    counters_snapshot = asdict(counters)
+                    episode_snapshot = active_episode
+                    rollback_snapshot = rollback_reason or last_rollback_reason
                 record = {
                     "step": step,
                     "mode": args.mode,
@@ -268,7 +617,18 @@ def main() -> int:
                     "nonfoot_contact": nonfoot_contact,
                     "reward": float(reward.mean()),
                     "actor_version": online_agent.publisher.current()[1],
-                    "updates": updates_snapshot,
+                    "updates": counters_snapshot["actor_updates"],
+                    "critic_updates": counters_snapshot["critic_updates"],
+                    "actor_updates": counters_snapshot["actor_updates"],
+                    "adaptation_state": novelty_decision.state.value,
+                    "novelty_score": novelty_decision.novelty_score,
+                    "velocity_excess": novelty_decision.velocity_excess,
+                    "tilt_excess": novelty_decision.tilt_excess,
+                    "reward_drop": novelty_decision.reward_drop,
+                    "actor_update_enabled": actor_gate_event.is_set(),
+                    "adaptation_replay_size": len(online_agent.adaptation_replay),
+                    "adaptation_episode": episode_snapshot,
+                    "rollback_reason": rollback_snapshot,
                     "paused": paused_now,
                     "safety_reasons": list(decision.reasons),
                     "base_action_norm": float(base_action.norm()),
@@ -284,7 +644,8 @@ def main() -> int:
                 writer.add_scalar("run/tilt_rms", tilt_rms, step)
                 writer.add_scalar("run/control_compute_ms", control_ms, step)
                 writer.add_scalar("run/replay_size", len(online_agent.replay), step)
-                writer.add_scalar("run/updates", updates_snapshot, step)
+                writer.add_scalar("run/critic_updates", counters_snapshot["critic_updates"], step)
+                writer.add_scalar("run/actor_updates", counters_snapshot["actor_updates"], step)
 
                 previous_action = decision.action
                 previous_residual = decision.residual
@@ -316,8 +677,17 @@ def main() -> int:
                 "steps": executed_steps,
                 "reset_count": done_count,
                 "fell": fell,
-                "updates": accepted_updates,
-                "rollbacks": rollbacks,
+                "updates": counters.actor_updates,
+                "critic_updates": counters.critic_updates,
+                "actor_updates": counters.actor_updates,
+                "actor_updates_before_novelty": counters.actor_updates_before_novelty,
+                "actor_updates_after_novelty": counters.actor_updates_after_novelty,
+                "first_actor_update_step": counters.first_actor_update_step,
+                "novelty_entries": counters.novelty_entries,
+                "rollbacks": counters.rollbacks,
+                "performance_rollbacks": counters.performance_rollbacks,
+                "safety_rollbacks": counters.safety_rollbacks,
+                "adaptation_state_durations": counters.state_durations,
                 "actor_version": online_agent.updater.version,
                 "safety_fallbacks": safety_fallbacks,
                 "safety_violation": safety_violation,
