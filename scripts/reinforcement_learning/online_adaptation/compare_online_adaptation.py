@@ -25,6 +25,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--forward-speed", type=float, default=0.5)
     parser.add_argument("--min-heldout-samples", type=int, default=1)
     parser.add_argument("--control-timeout-ms", type=float, default=20.0)
+    parser.add_argument("--actor-updates-per-second", type=float, default=1.0)
+    parser.add_argument("--novelty-calibration-steps", type=int, default=256)
+    parser.add_argument("--novelty-enter-threshold", type=float, default=2.5)
+    parser.add_argument("--novelty-exit-threshold", type=float, default=1.0)
+    parser.add_argument("--novelty-enter-count", type=int, default=10)
+    parser.add_argument("--novelty-enter-window", type=int, default=20)
+    parser.add_argument("--novelty-recovery-steps", type=int, default=100)
+    parser.add_argument("--adaptation-min-replay-size", type=int, default=128)
+    parser.add_argument("--rollback-window", type=int, default=50)
+    parser.add_argument("--rollback-patience", type=int, default=2)
+    parser.add_argument("--rollback-degradation-ratio", type=float, default=0.10)
+    parser.add_argument("--stable-improvement-ratio", type=float, default=0.05)
+    parser.add_argument("--adaptation-cooldown-steps", type=int, default=100)
     parser.add_argument("--stochastic-control", action="store_true")
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--headless", action="store_true")
@@ -68,6 +81,32 @@ def _run_one(args: argparse.Namespace, output_dir: Path, mode: str, seed: int) -
         str(args.control_timeout_ms),
         "--run-dir",
         str(run_dir),
+        "--actor-updates-per-second",
+        str(args.actor_updates_per_second),
+        "--novelty-calibration-steps",
+        str(args.novelty_calibration_steps),
+        "--novelty-enter-threshold",
+        str(args.novelty_enter_threshold),
+        "--novelty-exit-threshold",
+        str(args.novelty_exit_threshold),
+        "--novelty-enter-count",
+        str(args.novelty_enter_count),
+        "--novelty-enter-window",
+        str(args.novelty_enter_window),
+        "--novelty-recovery-steps",
+        str(args.novelty_recovery_steps),
+        "--adaptation-min-replay-size",
+        str(args.adaptation_min_replay_size),
+        "--rollback-window",
+        str(args.rollback_window),
+        "--rollback-patience",
+        str(args.rollback_patience),
+        "--rollback-degradation-ratio",
+        str(args.rollback_degradation_ratio),
+        "--stable-improvement-ratio",
+        str(args.stable_improvement_ratio),
+        "--adaptation-cooldown-steps",
+        str(args.adaptation_cooldown_steps),
     ]
     if mode != "base":
         command.extend(("--residual-checkpoint", args.residual_checkpoint))

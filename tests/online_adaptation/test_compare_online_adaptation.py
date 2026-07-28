@@ -44,6 +44,19 @@ def test_run_one_passes_forward_speed_and_rejects_insufficient_heldout(tmp_path,
         control_timeout_ms=100.0,
         stochastic_control=False,
         min_heldout_samples=100,
+        actor_updates_per_second=1.0,
+        novelty_calibration_steps=256,
+        novelty_enter_threshold=2.5,
+        novelty_exit_threshold=1.0,
+        novelty_enter_count=10,
+        novelty_enter_window=20,
+        novelty_recovery_steps=100,
+        adaptation_min_replay_size=128,
+        rollback_window=50,
+        rollback_patience=2,
+        rollback_degradation_ratio=0.10,
+        stable_improvement_ratio=0.05,
+        adaptation_cooldown_steps=100,
     )
 
     result = compare._run_one(args, tmp_path, "online", 7)
@@ -52,6 +65,23 @@ def test_run_one_passes_forward_speed_and_rejects_insufficient_heldout(tmp_path,
     assert commands[0][commands[0].index("--forward-speed") + 1] == "0.3"
     assert "--control-timeout-ms" in commands[0]
     assert commands[0][commands[0].index("--control-timeout-ms") + 1] == "100.0"
+    expected_options = {
+        "--actor-updates-per-second": "1.0",
+        "--novelty-calibration-steps": "256",
+        "--novelty-enter-threshold": "2.5",
+        "--novelty-exit-threshold": "1.0",
+        "--novelty-enter-count": "10",
+        "--novelty-enter-window": "20",
+        "--novelty-recovery-steps": "100",
+        "--adaptation-min-replay-size": "128",
+        "--rollback-window": "50",
+        "--rollback-patience": "2",
+        "--rollback-degradation-ratio": "0.1",
+        "--stable-improvement-ratio": "0.05",
+        "--adaptation-cooldown-steps": "100",
+    }
+    for option, value in expected_options.items():
+        assert commands[0][commands[0].index(option) + 1] == value
     assert not result["passed"]
     assert not result["acceptance_passed"]
     assert result["heldout_coverage_passed"] is False
