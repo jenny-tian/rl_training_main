@@ -32,6 +32,10 @@ def compose_proprio_frame(
     return frame
 
 
+def base_x_position(root_pos_w: torch.Tensor) -> torch.Tensor:
+    return root_pos_w[:, 0:1]
+
+
 class Lite3IsaacLabAdapter:
     def __init__(
         self,
@@ -117,4 +121,7 @@ class Lite3IsaacLabAdapter:
         )
 
     def heldout_mask(self) -> torch.Tensor:
-        return self.robot.data.root_pos_w[:, 0:1] >= self.track_boundary_x
+        return base_x_position(self.robot.data.root_pos_w) >= self.track_boundary_x
+
+    def base_x(self) -> torch.Tensor:
+        return base_x_position(self.robot.data.root_pos_w)

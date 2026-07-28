@@ -612,6 +612,7 @@ def main() -> int:
                     "step": step,
                     "mode": args.mode,
                     "in_heldout": in_heldout,
+                    "base_x": float(adapter.base_x().mean()),
                     "velocity_error": velocity_error,
                     "tilt_rms": tilt_rms,
                     "nonfoot_contact": nonfoot_contact,
