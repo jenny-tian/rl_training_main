@@ -63,35 +63,45 @@ class SACUpdater:
             grad_norm=float("nan"),
             accepted=False,
             version=self.version,
+            critic_updated=False,
+            actor_updated=False,
         )
 
-    def update(self, batch: TransitionBatch) -> UpdateStats:
-        if not self._batch_is_finite(batch):
+    def update(
+        self,
+        critic_batch: TransitionBatch,
+        actor_batch: TransitionBatch | None = None,
+        *,
+        update_actor: bool = True,
+    ) -> UpdateStats:
+        if not self._batch_is_finite(critic_batch):
             return self._rejected_stats()
+        if update_actor and actor_batch is None:
+            actor_batch = critic_batch
 
         before = copy.deepcopy(self.state_dict())
         try:
             with torch.no_grad():
                 next_residual, next_log_prob, _ = self.actor.sample(
-                    batch.next_history,
-                    batch.next_frame,
-                    batch.next_base_action,
+                    critic_batch.next_history,
+                    critic_batch.next_frame,
+                    critic_batch.next_base_action,
                 )
                 target_q1, target_q2 = self.target_critic(
-                    batch.next_history,
-                    batch.next_frame,
-                    batch.next_base_action,
+                    critic_batch.next_history,
+                    critic_batch.next_frame,
+                    critic_batch.next_base_action,
                     next_residual,
                 )
-                target = batch.reward + (1.0 - batch.done) * self.config.gamma * (
+                target = critic_batch.reward + (1.0 - critic_batch.done) * self.config.gamma * (
                     torch.minimum(target_q1, target_q2) - self.alpha.detach() * next_log_prob
                 )
 
             q1, q2 = self.critic(
-                batch.history,
-                batch.current_frame,
-                batch.base_action,
-                batch.residual_action,
+                critic_batch.history,
+                critic_batch.current_frame,
+                critic_batch.base_action,
+                critic_batch.residual_action,
             )
             critic_loss = F.mse_loss(q1, target) + F.mse_loss(q2, target)
             if not torch.isfinite(critic_loss).item():
@@ -103,29 +113,46 @@ class SACUpdater:
                 raise FloatingPointError
             self.critic_optimizer.step()
 
-            self.critic.requires_grad_(False)
-            residual, log_prob, _ = self.actor.sample(batch.history, batch.current_frame, batch.base_action)
-            actor_q1, actor_q2 = self.critic(batch.history, batch.current_frame, batch.base_action, residual)
-            actor_loss = (self.alpha.detach() * log_prob - torch.minimum(actor_q1, actor_q2)).mean()
-            if not torch.isfinite(actor_loss).item():
-                raise FloatingPointError
-            self.actor_optimizer.zero_grad(set_to_none=True)
-            actor_loss.backward()
-            actor_grad_norm = torch.nn.utils.clip_grad_norm_(self.actor.parameters(), self.config.max_grad_norm)
-            if not torch.isfinite(actor_grad_norm).item() or not self._gradients_are_finite(self.actor):
-                raise FloatingPointError
-            self.actor_optimizer.step()
-            self.critic.requires_grad_(True)
+            actor_loss = torch.full((), float("nan"), device=q1.device)
+            alpha_loss = torch.full((), float("nan"), device=q1.device)
+            actor_grad_norm = torch.zeros((), device=q1.device)
+            if update_actor:
+                if actor_batch is None or not self._batch_is_finite(actor_batch):
+                    raise FloatingPointError
+                self.critic.requires_grad_(False)
+                residual, log_prob, _ = self.actor.sample(
+                    actor_batch.history,
+                    actor_batch.current_frame,
+                    actor_batch.base_action,
+                )
+                actor_q1, actor_q2 = self.critic(
+                    actor_batch.history,
+                    actor_batch.current_frame,
+                    actor_batch.base_action,
+                    residual,
+                )
+                actor_loss = (self.alpha.detach() * log_prob - torch.minimum(actor_q1, actor_q2)).mean()
+                if not torch.isfinite(actor_loss).item():
+                    raise FloatingPointError
+                self.actor_optimizer.zero_grad(set_to_none=True)
+                actor_loss.backward()
+                actor_grad_norm = torch.nn.utils.clip_grad_norm_(
+                    self.actor.parameters(), self.config.max_grad_norm
+                )
+                if not torch.isfinite(actor_grad_norm).item() or not self._gradients_are_finite(self.actor):
+                    raise FloatingPointError
+                self.actor_optimizer.step()
+                self.critic.requires_grad_(True)
 
-            alpha_loss = -(self.log_alpha * (log_prob + self.config.target_entropy).detach()).mean()
-            if not torch.isfinite(alpha_loss).item():
-                raise FloatingPointError
-            self.alpha_optimizer.zero_grad(set_to_none=True)
-            alpha_loss.backward()
-            if self.log_alpha.grad is None or not torch.isfinite(self.log_alpha.grad).all().item():
-                raise FloatingPointError
-            torch.nn.utils.clip_grad_norm_((self.log_alpha,), self.config.max_grad_norm)
-            self.alpha_optimizer.step()
+                alpha_loss = -(self.log_alpha * (log_prob + self.config.target_entropy).detach()).mean()
+                if not torch.isfinite(alpha_loss).item():
+                    raise FloatingPointError
+                self.alpha_optimizer.zero_grad(set_to_none=True)
+                alpha_loss.backward()
+                if self.log_alpha.grad is None or not torch.isfinite(self.log_alpha.grad).all().item():
+                    raise FloatingPointError
+                torch.nn.utils.clip_grad_norm_((self.log_alpha,), self.config.max_grad_norm)
+                self.alpha_optimizer.step()
 
             if not (
                 self._parameters_are_finite(self.actor)
@@ -146,7 +173,8 @@ class SACUpdater:
             self.load_state_dict(before)
             return self._rejected_stats()
 
-        self.version += 1
+        if update_actor:
+            self.version += 1
         grad_norm = max(float(critic_grad_norm.detach()), float(actor_grad_norm.detach()))
         return UpdateStats(
             critic_loss=float(critic_loss.detach()),
@@ -157,6 +185,8 @@ class SACUpdater:
             grad_norm=grad_norm,
             accepted=True,
             version=self.version,
+            critic_updated=True,
+            actor_updated=update_actor,
         )
 
     def state_dict(self) -> dict[str, Any]:

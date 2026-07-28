@@ -64,3 +64,5 @@ class UpdateStats:
     grad_norm: float
     accepted: bool
     version: int
+    critic_updated: bool = False
+    actor_updated: bool = False
