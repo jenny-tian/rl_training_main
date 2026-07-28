@@ -73,6 +73,12 @@ class RuntimeStepResult:
     record_fields: dict[str, Any]
 
 
+def resolve_track_boundary_x(env_cfg: Any) -> float:
+    if hasattr(env_cfg, "track_boundary_x"):
+        return float(env_cfg.track_boundary_x)
+    return float(getattr(env_cfg, "heldout_start_x", -7.0))
+
+
 class AdaptationRuntimeOrchestrator:
     """Pure runtime state machine for novelty-triggered actor updates."""
 
@@ -301,7 +307,7 @@ def main() -> int:
 
             adapter = Lite3IsaacLabAdapter(
                 wrapped_env.unwrapped,
-                track_boundary_x=float(getattr(env_cfg, "heldout_start_x", -7.0)),
+                track_boundary_x=resolve_track_boundary_x(env_cfg),
             )
             reward_weights = RewardWeights()
             metrics = RollingMetrics(window=250)

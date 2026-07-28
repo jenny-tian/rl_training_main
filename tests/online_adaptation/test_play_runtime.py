@@ -2,6 +2,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     AdaptationCommand,
     AdaptationRuntimeOrchestrator,
     RuntimeCounters,
+    resolve_track_boundary_x,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate
@@ -30,6 +31,25 @@ def make_orchestrator():
             patience=2,
         ),
     )
+
+
+class EnvCfg:
+    pass
+
+
+def test_resolve_track_boundary_prefers_metric_boundary_over_terrain_start():
+    cfg = EnvCfg()
+    cfg.heldout_start_x = -7.0
+    cfg.track_boundary_x = -7.35
+
+    assert resolve_track_boundary_x(cfg) == -7.35
+
+
+def test_resolve_track_boundary_falls_back_to_heldout_start_for_legacy_configs():
+    cfg = EnvCfg()
+    cfg.heldout_start_x = -6.5
+
+    assert resolve_track_boundary_x(cfg) == -6.5
 
 
 def test_runtime_counters_separate_pre_and_post_novelty_actor_updates():

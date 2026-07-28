@@ -13,7 +13,8 @@ from .rough_env_cfg import DeeproboticsLite3RoughEnvCfg
 @configclass
 class DeeproboticsLite3HeldoutBoxesEnvCfg(DeeproboticsLite3RoughEnvCfg):
     heldout_start_x: float = -7.0
-    track_boundary_x: float = -7.0
+    # Metrics boundary uses the root position when the front feet first reach the box field.
+    track_boundary_x: float = -7.35
 
     def __post_init__(self):
         super().__post_init__()
