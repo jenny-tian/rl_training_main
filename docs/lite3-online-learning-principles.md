@@ -359,6 +359,8 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
 如果残差 Actor 和 Critic 在进入方块道路时完全随机，单次连续行走中的几百条经验通常不足以获得稳定改善。因此采用两阶段流程。
 
+本节描述的是当前历史实验流程，不等价于“只会平地行走，再通过在线学习获得不平路能力”的严格实验。审计确认当前基础 PPO 的训练地形来源无法从 checkpoint 元数据追溯；45k residual 明确在随机粗糙地面和正反坡面上预训练，并且 seed 7 的 held-out 结果参与过 checkpoint 选择。因此这些产物只能用于验证在线更新基础设施，不能用于证明 flat-only 到台阶能力的因果增益。
+
 ### 10.1 源地形预训练
 
 残差 SAC 先在与基础 PPO 相同的源地形分布上预训练：
@@ -394,6 +396,10 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
 - [`heldout_boxes_env_cfg.py`](../source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/heldout_boxes_env_cfg.py)
 - [`heldout_boxes.py`](../source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/heldout_boxes.py)
+
+### 10.4 flat-only 目标的下一阶段隔离要求
+
+最终目标实验必须重新建立初始化和评测边界：基础 PPO 从 `Flat-Deeprobotics-Lite3-v0` 训练并携带可验证 provenance；residual 只能在 plane-only 环境预训练或保持零初始化；plane 断言采用 `terrain_type == "plane"` 且 `terrain_generator is None` 的正面检查。开发地形 seed 与封存测试 seed 必须分离，目标几何 seed 随评测 seed 改变。在线模式还需要跨 reset 保存完整 SAC、回放池和稳定快照，使机器狗能够通过多个受保护 episode 累积低台阶经验，并在回到平地后验证能力保持。
 
 ## 11. 三组对照实验
 
@@ -436,6 +442,17 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 | `online` / 45k | 2000 | 0 | 否 | 1554 | 0.295 / 0.291 | 0.068 / 0.073 | 4 | 否，更新均被回滚 |
 
 50k residual 自身不能通过 2000 步 frozen 安全基线。45k residual 可使 frozen 和 online 都安全跑满 2000 步，但 online 速度误差比 frozen 后半程高约 4.5%，两次性能回滚使最终参数恢复到初始值。因此当前结果证明了安全改进和在线更新路径有效，尚未证明在线学习带来最终性能收益。
+
+2026-07-29 在修正首次 Actor 更新因果边界、候选事务发布、episode 并发隔离和独立 Actor 事件流后，使用同一个 45k residual、seed 7、0.3 m/s、100 ms 控制期限得到：
+
+| 运行 | 步数 | reset / fall / safety violation | Actor 更新 / 事件 | episode 更新分布 | 性能回滚 | heldout 速度误差前/后半 | 最终参数变化 |
+|---|---:|---|---:|---|---:|---:|---|
+| `online_seed7_750_postupdate_drift_eventstream_20260729_cuda2` | 750 | 0 / 否 / 否 | 10 / 10 | 1: 10 | 0 | 0.282 / 0.287 | 是 |
+| `online_seed7_2000_postupdate_drift_eventstream_20260729_cuda2` | 2000 | 0 / 否 / 否 | 62 / 62 | 1: 25, 2: 37 | 2 | 0.293 / 0.334 | 是 |
+
+750 步运行中首次 Actor 更新发生在第 643 步，控制线程从第 644 步才启用性能评估。2000 步运行的两个 episode 分别从第 644 和 1196 步开始更新，在 rollback 前分别积累了 299 和 349 个更新后评估步，超过两个完整 50 步窗口。`metrics.jsonl` 严格保持一控制步一行；`actor_updates.jsonl` 对每次成功发布记录完整且有限的漂移标量，事件行数与 summary 更新计数逐项一致。
+
+这组结果通过了安全、更新因果、回滚时序和事件可审计性门槛，但没有通过性能门槛：2000 步 heldout 后半速度误差比前半高约 14.2%。它不能证明机器狗已通过在线学习获得台阶或不平路能力，也不能替代 flat-only 初始化下的 base / frozen / online 对照。
 
 ## 12. 参考资料及其与本实现的关系
 
@@ -576,13 +593,15 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - Isaac Lab 环境创建、PPO 加载和单步控制集成验证；
 - 源地形残差 SAC 正式预训练，256 环境、2000 步，产物位于 `lite3_deploy_base_residual_pretrain_256env_2000_20260727/latest.pt`；
 - 冻结残差连续行走验证，参数保持逐位不变；
-- 在线适应模块测试（109 通过，2 个 Isaac-only 用例在普通测试中跳过；使用当前 worktree `PYTHONPATH` 并关闭无关第三方 pytest 插件自动加载）；
+- 在线适应模块测试（157 通过，2 个 Isaac-only 用例在普通测试中跳过；使用当前 worktree `PYTHONPATH` 并关闭无关第三方 pytest 插件自动加载）；
 - 五种子资格入口改为每个种子独立 Isaac 进程，避免仿真单例重建卡死；
 - `/home/tjx/Lite3_rl_deploy` 官方部署 PPO 导入为 RSL-RL 兼容检查点，并通过五种子源地形资格测试；
 - seed 7、0.3 m/s heldout 单次连续行走在线演示曾跑满 2000 步并产生残差参数变化；当前 novelty-gated 正式对照仍在调试，不能视为最终通过结果。
 - held-out 指标边界已与实际轨道边界对齐，控制路径已在计时循环前预热，三种模式不再因 CUDA/GRU 首次调用产生伪 `control_timeout`。
 - 45k residual checkpoint 已在 seed 7 的 frozen 和 online 模式下分别安全跑满 2000 步；online 最终性能仍未达到验收门槛。
 - 性能退化窗口已改为首次成功 Actor 更新后启用；每个成功发布版本记录固定诊断 batch 上的动作与参数漂移标量，并在发布前拒绝旧 episode 候选和非有限诊断。
+- Actor 候选的 episode 检查、gate 状态和双缓冲发布已形成原子边界；回放清空由 updater 命令线程串行执行，旧 episode 命令不会破坏新 episode。
+- `metrics.jsonl` 保持一控制步一行，`actor_updates.jsonl` 逐次持久化并 flush 成功发布事件；750/2000 步 GPU 回归中的事件数与 Actor 更新数完全一致。
 
 尚未完成实证验证：
 
@@ -606,6 +625,9 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 9. Actor 更新已记录相对 episode reference Actor 的动作和参数漂移，但这些指标仅用于观测，尚未加入 KL、动作或参数锚定；当前仍只能通过限幅和事后回滚控制策略漂移。
 10. SAC target 使用一步 return，transition 只保存 `done`，尚未显式区分真实终止和时间截断。
 11. 当前安全层是硬阈值、动作投影和基础 PPO 回退，没有 reach-avoid value 或独立恢复策略；这在仿真阶段是明确取舍，不应被描述为完整 learned safety。
+12. 当前基础 PPO checkpoint 缺少平地训练 provenance，45k residual 已见过 rough 和 slopes；它们不满足 flat-only 初始化要求。
+13. seed 7 的 HeldoutBoxes 表现参与过 45k/50k checkpoint 选择，且当前目标 terrain generator 固定 seed 7；需要独立开发/封存几何 seed 才能形成严格 held-out 结论。
+14. 当前脚本在环境终止后结束，尚未跨 reset 持久化完整 SAC、回放池和稳定快照；因此还不能通过多个受保护 episode 累积低台阶学习。
 
 ## 15. 真机迁移边界
 
