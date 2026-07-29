@@ -21,7 +21,13 @@ def make_batch(value: float = 0.0) -> TransitionBatch:
         next_history=torch.full((4, 3, 2), value),
         next_frame=torch.full((4, 2), value),
         next_base_action=torch.full((4, 1), value),
-        done=torch.zeros(4, 1),
+        terminated=torch.zeros(4, 1),
+        truncated=torch.zeros(4, 1),
+        bootstrap_mask=torch.ones(4, 1),
+        discount=torch.full((4, 1), 0.99),
+        safety_mask=torch.ones(4, 1),
+        curriculum_stage_id=torch.zeros(4, 1, dtype=torch.int64),
+        episode_id=torch.zeros(4, 1, dtype=torch.int64),
     )
 
 

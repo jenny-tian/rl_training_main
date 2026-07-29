@@ -465,7 +465,11 @@ def main() -> int:
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
-        from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
+        from rl_training.online_adaptation.rsl_rl_compat import (
+            freeze_rsl_rl_models,
+            prepare_rsl_rl_agent_cfg,
+            split_rsl_rl_endings,
+        )
         from rl_training.online_adaptation.runtime import (
             as_torch_device,
             safety_violation_occurred,
@@ -804,12 +808,12 @@ def main() -> int:
                     safety_violation = True
 
                 with torch.inference_mode():
-                    next_observation, _, done, _ = wrapped_env.step(decision.action)
+                    next_observation, _, done, extras = wrapped_env.step(decision.action)
                     next_base_action = base_policy(next_observation)
                 next_frame = adapter.frame(decision.action)
                 signals = adapter.reward_signals()
                 reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)
-                done_column = done.reshape(-1, 1)
+                terminated, truncated, bootstrap_mask = split_rsl_rl_endings(done, extras)
                 velocity_error = float(
                     torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
                 )
@@ -885,11 +889,18 @@ def main() -> int:
                     and not paused_now
                 )
                 adaptation_enabled = performance_monitoring_enabled and not final_step_cutoff
+                curriculum_stage_id = torch.zeros_like(terminated, dtype=torch.int64)
                 online_agent.finish_step(
-                    next_frame,
-                    next_base_action,
-                    reward,
-                    done_column,
+                    next_frame=next_frame,
+                    next_base_action=next_base_action,
+                    reward=reward,
+                    terminated=terminated,
+                    truncated=truncated,
+                    bootstrap_mask=bootstrap_mask,
+                    discount=torch.full_like(reward, online_agent.updater.config.gamma),
+                    safety_mask=(~decision.paused.bool()).reshape(-1, 1),
+                    curriculum_stage_id=curriculum_stage_id,
+                    episode_id=torch.full_like(curriculum_stage_id, active_episode),
                     adaptation_enabled=adaptation_enabled,
                 )
 

@@ -104,7 +104,7 @@ class SACUpdater:
                     critic_batch.next_base_action,
                     next_residual,
                 )
-                target = critic_batch.reward + (1.0 - critic_batch.done) * self.config.gamma * (
+                target = critic_batch.reward + critic_batch.bootstrap_mask * critic_batch.discount * (
                     torch.minimum(target_q1, target_q2) - self.alpha.detach() * next_log_prob
                 )
 

@@ -25,8 +25,38 @@ def make_batch(reward_value=1.0):
         next_history=torch.randn(32, 25, 49),
         next_frame=torch.randn(32, 49),
         next_base_action=torch.randn(32, 12),
-        done=torch.zeros(32, 1),
+        terminated=torch.zeros(32, 1),
+        truncated=torch.zeros(32, 1),
+        bootstrap_mask=torch.ones(32, 1),
+        discount=torch.full((32, 1), 0.99),
+        safety_mask=torch.ones(32, 1),
+        curriculum_stage_id=torch.zeros(32, 1, dtype=torch.int64),
+        episode_id=torch.zeros(32, 1, dtype=torch.int64),
     )
+
+
+class ConstantActor(torch.nn.Module):
+    def __init__(self, log_prob: float):
+        super().__init__()
+        self.value = torch.nn.Parameter(torch.tensor(0.0))
+        self.log_prob = log_prob
+
+    def sample(self, history, current_frame, base_action, deterministic=False):
+        batch_size, action_dim = base_action.shape
+        residual = self.value.expand(batch_size, action_dim) * 0.0
+        log_prob = self.value.expand(batch_size, 1) * 0.0 + self.log_prob
+        return residual, log_prob, residual
+
+
+class ConstantTwinCritic(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.q1_value = torch.nn.Parameter(torch.tensor(0.0))
+        self.q2_value = torch.nn.Parameter(torch.tensor(0.0))
+
+    def forward(self, history, current_frame, base_action, residual_action):
+        batch_size = history.shape[0]
+        return self.q1_value.expand(batch_size, 1), self.q2_value.expand(batch_size, 1)
 
 
 def assert_state_dict_equal(actual, expected):
@@ -56,6 +86,41 @@ def test_sac_update_changes_version_and_target_parameters():
     assert stats.actor_updated
     assert stats.version == 1
     assert any(not torch.equal(a, b) for a, b in zip(before, updater.target_critic.parameters()))
+
+
+def test_critic_target_uses_bootstrap_mask_and_per_transition_discount():
+    updater = SACUpdater(
+        ConstantActor(log_prob=2.0),
+        ConstantTwinCritic(),
+        SACConfig(gamma=0.01, critic_lr=0.0),
+    )
+    with torch.no_grad():
+        updater.target_critic.q1_value.fill_(10.0)
+        updater.target_critic.q2_value.fill_(12.0)
+    batch = TransitionBatch(
+        history=torch.zeros(3, 1, 1),
+        current_frame=torch.zeros(3, 1),
+        base_action=torch.zeros(3, 1),
+        residual_action=torch.zeros(3, 1),
+        reward=torch.ones(3, 1),
+        next_history=torch.zeros(3, 1, 1),
+        next_frame=torch.zeros(3, 1),
+        next_base_action=torch.zeros(3, 1),
+        terminated=torch.tensor([[1.0], [0.0], [0.0]]),
+        truncated=torch.tensor([[0.0], [1.0], [0.0]]),
+        bootstrap_mask=torch.tensor([[0.0], [1.0], [1.0]]),
+        discount=torch.tensor([[0.2], [0.5], [0.8]]),
+        safety_mask=torch.tensor([[1.0], [0.0], [1.0]]),
+        curriculum_stage_id=torch.tensor([[3], [4], [5]], dtype=torch.int64),
+        episode_id=torch.tensor([[30], [40], [50]], dtype=torch.int64),
+    )
+
+    stats = updater.update(batch, update_actor=False)
+
+    expected_target = torch.tensor([[1.0], [5.0], [7.4]])
+    expected_loss = 2.0 * expected_target.square().mean()
+    assert stats.accepted
+    assert stats.critic_loss == pytest.approx(expected_loss.item())
 
 
 def test_nonfinite_batch_is_rejected_without_version_change():

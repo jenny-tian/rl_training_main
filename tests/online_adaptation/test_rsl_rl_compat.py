@@ -1,7 +1,49 @@
+import pytest
 import torch
 from types import SimpleNamespace
 
-from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
+from rl_training.online_adaptation import rsl_rl_compat
+from rl_training.online_adaptation.rsl_rl_compat import (
+    freeze_rsl_rl_models,
+    prepare_rsl_rl_agent_cfg,
+)
+
+
+def test_split_rsl_rl_endings_marks_terminal_rows_without_bootstrap():
+    terminated, truncated, bootstrap_mask = rsl_rl_compat.split_rsl_rl_endings(
+        torch.tensor([True, False]),
+        {"time_outs": torch.tensor([False, False])},
+    )
+
+    assert torch.equal(terminated, torch.tensor([[True], [False]]))
+    assert torch.equal(truncated, torch.tensor([[False], [False]]))
+    assert torch.equal(bootstrap_mask, torch.tensor([[False], [True]]))
+
+
+def test_split_rsl_rl_endings_marks_timeout_as_bootstrapping_truncation():
+    terminated, truncated, bootstrap_mask = rsl_rl_compat.split_rsl_rl_endings(
+        torch.tensor([True]),
+        {"time_outs": torch.tensor([True])},
+    )
+
+    assert torch.equal(terminated, torch.tensor([[False]]))
+    assert torch.equal(truncated, torch.tensor([[True]]))
+    assert torch.equal(bootstrap_mask, torch.tensor([[True]]))
+
+
+@pytest.mark.parametrize(
+    "extras",
+    [
+        {},
+        {"time_outs": [False]},
+        {"time_outs": torch.tensor([False, False])},
+        {"time_outs": torch.tensor([0.5])},
+        {"time_outs": torch.tensor([float("nan")])},
+    ],
+)
+def test_split_rsl_rl_endings_rejects_missing_or_malformed_time_outs(extras):
+    with pytest.raises(RuntimeError, match="time_outs"):
+        rsl_rl_compat.split_rsl_rl_endings(torch.tensor([True]), extras)
 
 
 def test_prepare_rsl_rl_agent_cfg_uses_installed_version_converter():

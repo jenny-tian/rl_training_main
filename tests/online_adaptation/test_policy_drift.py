@@ -25,7 +25,13 @@ def make_batch(value=0.0, dtype=torch.float32):
         next_history=torch.zeros(4, 3, 2, dtype=dtype),
         next_frame=torch.zeros(4, 2, dtype=dtype),
         next_base_action=torch.zeros(4, 1, dtype=dtype),
-        done=torch.zeros(4, 1, dtype=dtype),
+        terminated=torch.zeros(4, 1, dtype=dtype),
+        truncated=torch.zeros(4, 1, dtype=dtype),
+        bootstrap_mask=torch.ones(4, 1, dtype=dtype),
+        discount=torch.full((4, 1), 0.99, dtype=dtype),
+        safety_mask=torch.ones(4, 1, dtype=dtype),
+        curriculum_stage_id=torch.zeros(4, 1, dtype=torch.int64),
+        episode_id=torch.zeros(4, 1, dtype=torch.int64),
     )
 
 

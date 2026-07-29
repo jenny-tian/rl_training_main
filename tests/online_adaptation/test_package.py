@@ -1,9 +1,24 @@
+import ast
 import sys
 import torch
 from dataclasses import fields
+from inspect import signature
 from pathlib import Path
+from typing import get_type_hints
 
 import tomllib
+
+
+ROOT = Path(__file__).resolve().parents[2]
+ENDING_KEYWORDS = {
+    "terminated",
+    "truncated",
+    "bootstrap_mask",
+    "discount",
+    "safety_mask",
+    "curriculum_stage_id",
+    "episode_id",
+}
 
 
 def test_extension_registers_root_and_ui_modules():
@@ -34,10 +49,33 @@ def test_transition_batch_contract():
         next_history=torch.zeros(4, 25, 49),
         next_frame=torch.zeros(4, 49),
         next_base_action=torch.zeros(4, 12),
-        done=torch.zeros(4, 1),
+        terminated=torch.zeros(4, 1),
+        truncated=torch.zeros(4, 1),
+        bootstrap_mask=torch.ones(4, 1),
+        discount=torch.full((4, 1), 0.99),
+        safety_mask=torch.ones(4, 1),
+        curriculum_stage_id=torch.zeros(4, 1, dtype=torch.int64),
+        episode_id=torch.zeros(4, 1, dtype=torch.int64),
     )
 
     assert batch.history.shape == (4, 25, 49)
+    assert [field.name for field in fields(TransitionBatch)] == [
+        "history",
+        "current_frame",
+        "base_action",
+        "residual_action",
+        "reward",
+        "next_history",
+        "next_frame",
+        "next_base_action",
+        "terminated",
+        "truncated",
+        "bootstrap_mask",
+        "discount",
+        "safety_mask",
+        "curriculum_stage_id",
+        "episode_id",
+    ]
     assert [field.name for field in fields(SafetyState)] == [
         "projected_gravity_xy",
         "base_height",
@@ -51,3 +89,52 @@ def test_transition_batch_contract():
         "control_timed_out",
     ]
     assert len(fields(RewardSignals)) == 10
+
+
+def test_finish_step_signature_uses_explicit_tensor_annotations():
+    from rl_training.online_adaptation.agent import OnlineAdaptationAgent
+
+    method_signature = signature(OnlineAdaptationAgent.finish_step)
+    type_hints = get_type_hints(OnlineAdaptationAgent.finish_step)
+    tensor_parameters = [
+        "next_frame",
+        "next_base_action",
+        "reward",
+        "terminated",
+        "truncated",
+        "bootstrap_mask",
+        "discount",
+        "safety_mask",
+        "curriculum_stage_id",
+        "episode_id",
+    ]
+
+    assert list(method_signature.parameters) == ["self", *tensor_parameters, "adaptation_enabled"]
+    assert {name: type_hints.get(name) for name in tensor_parameters} == {
+        name: torch.Tensor for name in tensor_parameters
+    }
+    assert type_hints.get("adaptation_enabled") is bool
+    assert method_signature.parameters["adaptation_enabled"].default is False
+    assert type_hints["return"] is type(None)
+
+
+def test_all_finish_step_callers_supply_explicit_ending_keywords():
+    missing_by_caller = []
+    for source_root in (ROOT / "source", ROOT / "scripts", ROOT / "tests"):
+        for path in source_root.rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                if not (
+                    isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "finish_step"
+                ):
+                    continue
+                supplied = {keyword.arg for keyword in node.keywords if keyword.arg is not None}
+                missing = ENDING_KEYWORDS - supplied
+                if missing:
+                    missing_by_caller.append(
+                        f"{path.relative_to(ROOT)}:{node.lineno} missing {sorted(missing)}"
+                    )
+
+    assert missing_by_caller == []

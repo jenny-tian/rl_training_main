@@ -153,12 +153,18 @@ class OnlineAdaptationAgent:
         next_frame: torch.Tensor,
         next_base_action: torch.Tensor,
         reward: torch.Tensor,
-        done: torch.Tensor,
+        terminated: torch.Tensor,
+        truncated: torch.Tensor,
+        bootstrap_mask: torch.Tensor,
+        discount: torch.Tensor,
+        safety_mask: torch.Tensor,
+        curriculum_stage_id: torch.Tensor,
+        episode_id: torch.Tensor,
         adaptation_enabled: bool = False,
     ) -> None:
         if self._pending is None:
             raise RuntimeError("begin_step must be called before finish_step")
-        reset_mask = done.squeeze(-1).bool()
+        reset_mask = (terminated.bool() | truncated.bool()).squeeze(-1)
         next_history = self.history.preview(next_frame, reset_mask=reset_mask)
         transition = dict(
             history=self._pending.history,
@@ -169,15 +175,25 @@ class OnlineAdaptationAgent:
             next_history=next_history,
             next_frame=next_frame,
             next_base_action=next_base_action,
-            done=done.float(),
-            valid_mask=self._pending.learning_mask,
+            terminated=terminated,
+            truncated=truncated,
+            bootstrap_mask=bootstrap_mask,
+            discount=discount,
+            safety_mask=safety_mask,
+            curriculum_stage_id=curriculum_stage_id,
+            episode_id=episode_id,
+            valid_mask=self._pending.learning_mask & safety_mask.bool(),
         )
-        self.replay.add_batch(**transition)
         if adaptation_enabled:
-            self.adaptation_replay.add_batch(**transition)
-        done_ids = torch.nonzero(reset_mask, as_tuple=False).squeeze(-1)
-        if done_ids.numel() > 0:
-            self.history.reset(done_ids)
+            ReplayBuffer.add_batch_atomically(
+                (self.replay, self.adaptation_replay),
+                **transition,
+            )
+        else:
+            self.replay.add_batch(**transition)
+        reset_ids = torch.nonzero(reset_mask, as_tuple=False).squeeze(-1)
+        if reset_ids.numel() > 0:
+            self.history.reset(reset_ids)
         self._pending = None
 
     def fallback_pending(self, safety_state: SafetyState) -> SafetyDecision:

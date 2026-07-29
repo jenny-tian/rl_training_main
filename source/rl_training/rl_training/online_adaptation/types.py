@@ -14,7 +14,13 @@ class TransitionBatch:
     next_history: torch.Tensor
     next_frame: torch.Tensor
     next_base_action: torch.Tensor
-    done: torch.Tensor
+    terminated: torch.Tensor
+    truncated: torch.Tensor
+    bootstrap_mask: torch.Tensor
+    discount: torch.Tensor
+    safety_mask: torch.Tensor
+    curriculum_stage_id: torch.Tensor
+    episode_id: torch.Tensor
 
 
 @dataclass(frozen=True)

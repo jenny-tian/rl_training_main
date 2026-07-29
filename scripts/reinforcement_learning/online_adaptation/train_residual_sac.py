@@ -35,7 +35,11 @@ def main() -> int:
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
-        from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, prepare_rsl_rl_agent_cfg
+        from rl_training.online_adaptation.rsl_rl_compat import (
+            freeze_rsl_rl_models,
+            prepare_rsl_rl_agent_cfg,
+            split_rsl_rl_endings,
+        )
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyLimits
         from rl_training.online_adaptation.terrain_guards import assert_heldout_terrains_disabled
@@ -121,13 +125,25 @@ def main() -> int:
                     deterministic=False,
                 )
                 with torch.inference_mode():
-                    next_observation, _, done, _ = wrapped_env.step(decision.action)
+                    next_observation, _, done, extras = wrapped_env.step(decision.action)
                     next_base_action = policy(next_observation)
                 next_frame = adapter.frame(decision.action)
                 signals = adapter.reward_signals()
                 reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)
-                done_column = done.reshape(-1, 1)
-                online_agent.finish_step(next_frame, next_base_action, reward, done_column)
+                terminated, truncated, bootstrap_mask = split_rsl_rl_endings(done, extras)
+                curriculum_stage_id = torch.zeros_like(terminated, dtype=torch.int64)
+                online_agent.finish_step(
+                    next_frame=next_frame,
+                    next_base_action=next_base_action,
+                    reward=reward,
+                    terminated=terminated,
+                    truncated=truncated,
+                    bootstrap_mask=bootstrap_mask,
+                    discount=torch.full_like(reward, online_agent.updater.config.gamma),
+                    safety_mask=(~decision.paused.bool()).reshape(-1, 1),
+                    curriculum_stage_id=curriculum_stage_id,
+                    episode_id=torch.zeros_like(curriculum_stage_id),
+                )
 
                 paused = online_agent.all_environments_paused(decision.paused)
                 if online_agent.should_update(len(online_agent.replay), args.min_replay_size, paused):
@@ -167,7 +183,7 @@ def main() -> int:
                     writer.add_scalar("eval/deterministic_residual_norm", float(deterministic_residual.norm()), step)
                     save_checkpoint(step)
 
-                done_mask = done_column.bool()
+                done_mask = terminated | truncated
                 previous_residual = torch.where(done_mask, torch.zeros_like(decision.residual), decision.residual)
                 previous_action = torch.where(done_mask, torch.zeros_like(decision.action), decision.action)
                 observation = next_observation

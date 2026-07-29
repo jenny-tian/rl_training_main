@@ -16,7 +16,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
 )
 
 
-def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02):
+def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02, replay_capacity=10_000):
     actor = ResidualActor(2, 1, 4, torch.tensor([0.2]))
     critic = TwinCritic(2, 1, 4)
     return OnlineAdaptationAgent(
@@ -33,6 +33,7 @@ def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02):
             action_dim=1,
             batch_size=1,
             residual_gain=residual_gain,
+            replay_capacity=replay_capacity,
         ),
         device="cpu",
     )
@@ -52,15 +53,79 @@ def publish_fixed_residual(agent, residual, version=0):
     agent.publisher.current = lambda: (actor, version)
 
 
+def ending_fields(**overrides):
+    fields = dict(
+        terminated=torch.zeros(1, 1),
+        truncated=torch.zeros(1, 1),
+        bootstrap_mask=torch.ones(1, 1),
+        discount=torch.full((1, 1), 0.99),
+        safety_mask=torch.ones(1, 1),
+        curriculum_stage_id=torch.zeros(1, 1, dtype=torch.int64),
+        episode_id=torch.zeros(1, 1, dtype=torch.int64),
+    )
+    fields.update(overrides)
+    return fields
+
+
+def finish_agent_step(
+    agent,
+    next_frame,
+    next_base_action,
+    reward,
+    *,
+    adaptation_enabled=False,
+    **ending_overrides,
+):
+    endings = ending_fields(**ending_overrides)
+    agent.finish_step(
+        next_frame=next_frame,
+        next_base_action=next_base_action,
+        reward=reward,
+        terminated=endings["terminated"],
+        truncated=endings["truncated"],
+        bootstrap_mask=endings["bootstrap_mask"],
+        discount=endings["discount"],
+        safety_mask=endings["safety_mask"],
+        curriculum_stage_id=endings["curriculum_stage_id"],
+        episode_id=endings["episode_id"],
+        adaptation_enabled=adaptation_enabled,
+    )
+
+
+def replay_state(replay):
+    return {
+        "size": replay._size,
+        "cursor": replay._cursor,
+        "storages": {
+            name: value.clone()
+            for name, value in vars(replay).items()
+            if isinstance(value, torch.Tensor)
+        },
+    }
+
+
+def assert_replay_state_equal(replay, expected):
+    assert replay._size == expected["size"]
+    assert replay._cursor == expected["cursor"]
+    for name, expected_storage in expected["storages"].items():
+        torch.testing.assert_close(
+            getattr(replay, name),
+            expected_storage,
+            rtol=0,
+            atol=0,
+            equal_nan=True,
+        )
+
+
 def accumulate_residual_memory(agent, steps=3):
     frame = torch.zeros(1, 2)
     base_action = torch.zeros(1, 1)
     for _ in range(steps):
         agent.begin_step(frame, base_action, safety_state(), deterministic=True)
-        agent.finish_step(
+        finish_agent_step(
+            agent,
             frame,
             base_action,
-            torch.zeros(1, 1),
             torch.zeros(1, 1),
         )
 
@@ -84,11 +149,11 @@ def finish_transition(agent, *, adaptation_enabled):
     frame = torch.zeros(1, 2)
     action = torch.zeros(1, 1)
     agent.begin_step(frame, action, safety_state(), deterministic=True)
-    agent.finish_step(
+    finish_agent_step(
+        agent,
         frame,
         action,
         torch.ones(1, 1),
-        torch.zeros(1, 1),
         adaptation_enabled=adaptation_enabled,
     )
 
@@ -276,10 +341,10 @@ def test_set_residual_gain_takes_effect_on_next_begin_step():
     base_action = torch.zeros(1, 1)
 
     first = agent.begin_step(frame, base_action, safety_state(), deterministic=True)
-    agent.finish_step(
+    finish_agent_step(
+        agent,
         frame,
         base_action,
-        torch.zeros(1, 1),
         torch.zeros(1, 1),
     )
     agent.set_residual_gain(0.5)
@@ -288,6 +353,161 @@ def test_set_residual_gain_takes_effect_on_next_begin_step():
     assert torch.equal(first.residual, torch.zeros_like(base_action))
     assert agent.residual_gain == 0.5
     assert torch.equal(second.residual, torch.tensor([[0.06]]))
+
+
+def test_finish_step_resets_history_on_termination_without_truncation():
+    agent = make_agent()
+    frame = torch.tensor([[1.0, 2.0]])
+    agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
+
+    finish_agent_step(
+        agent,
+        torch.tensor([[3.0, 4.0]]),
+        torch.zeros(1, 1),
+        torch.ones(1, 1),
+        terminated=torch.ones(1, 1),
+        truncated=torch.zeros(1, 1),
+        bootstrap_mask=torch.zeros(1, 1),
+    )
+
+    assert torch.equal(agent.history.snapshot(), torch.zeros(1, 3, 2))
+
+
+def test_finish_step_resets_history_on_truncation_even_when_bootstrapping():
+    agent = make_agent()
+    frame = torch.tensor([[1.0, 2.0]])
+    agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
+
+    finish_agent_step(
+        agent,
+        torch.tensor([[3.0, 4.0]]),
+        torch.zeros(1, 1),
+        torch.ones(1, 1),
+        truncated=torch.ones(1, 1),
+        bootstrap_mask=torch.ones(1, 1),
+    )
+
+    assert torch.equal(agent.history.snapshot(), torch.zeros(1, 3, 2))
+
+
+def test_finish_step_does_not_reset_history_from_bootstrap_mask_alone():
+    agent = make_agent()
+    frame = torch.tensor([[1.0, 2.0]])
+    agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
+
+    finish_agent_step(
+        agent,
+        torch.tensor([[3.0, 4.0]]),
+        torch.zeros(1, 1),
+        torch.ones(1, 1),
+        bootstrap_mask=torch.zeros(1, 1),
+    )
+
+    assert torch.count_nonzero(agent.history.snapshot()).item() > 0
+
+
+def test_finish_step_routes_all_explicit_fields_to_both_replays():
+    agent = make_agent()
+    frame = torch.tensor([[1.0, 2.0]])
+    agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
+    explicit_fields = ending_fields(
+        terminated=torch.ones(1, 1),
+        truncated=torch.zeros(1, 1),
+        bootstrap_mask=torch.zeros(1, 1),
+        discount=torch.full((1, 1), 0.75),
+        safety_mask=torch.ones(1, 1),
+        curriculum_stage_id=torch.tensor([[7]], dtype=torch.int64),
+        episode_id=torch.tensor([[11]], dtype=torch.int64),
+    )
+
+    finish_agent_step(
+        agent,
+        torch.tensor([[3.0, 4.0]]),
+        torch.tensor([[0.5]]),
+        torch.tensor([[2.0]]),
+        **explicit_fields,
+        adaptation_enabled=True,
+    )
+
+    for replay in (agent.replay, agent.adaptation_replay):
+        sampled = replay.sample(1, "cpu")
+        for name, expected in explicit_fields.items():
+            torch.testing.assert_close(getattr(sampled, name), expected)
+
+
+def test_finish_step_excludes_safety_invalid_rows_from_both_replays():
+    agent = make_agent()
+    frame = torch.zeros(1, 2)
+    agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
+
+    finish_agent_step(
+        agent,
+        frame,
+        torch.zeros(1, 1),
+        torch.ones(1, 1),
+        safety_mask=torch.zeros(1, 1),
+        adaptation_enabled=True,
+    )
+
+    assert len(agent.replay) == 0
+    assert len(agent.adaptation_replay) == 0
+
+
+def test_finish_step_rolls_back_both_replays_when_second_commit_fails_and_retries_once(monkeypatch):
+    agent = make_agent(replay_capacity=3)
+    finish_transition(agent, adaptation_enabled=True)
+    finish_transition(agent, adaptation_enabled=True)
+    frame = torch.tensor([[1.0, 2.0]])
+    agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
+    history_before = agent.history.snapshot()
+    replay_before = replay_state(agent.replay)
+    adaptation_before = replay_state(agent.adaptation_replay)
+    original_second_commit = agent.adaptation_replay._commit_prepared
+
+    def commit_then_fail(prepared):
+        original_second_commit(prepared)
+        raise RuntimeError("injected second replay commit failure")
+
+    monkeypatch.setattr(agent.adaptation_replay, "_commit_prepared", commit_then_fail)
+    endings = ending_fields(
+        terminated=torch.ones(1, 1),
+        truncated=torch.zeros(1, 1),
+        bootstrap_mask=torch.zeros(1, 1),
+    )
+
+    with pytest.raises(RuntimeError, match="injected second replay commit failure"):
+        finish_agent_step(
+            agent,
+            torch.tensor([[3.0, 4.0]]),
+            torch.zeros(1, 1),
+            torch.full((1, 1), 2.0),
+            **endings,
+            adaptation_enabled=True,
+        )
+
+    assert_replay_state_equal(agent.replay, replay_before)
+    assert_replay_state_equal(agent.adaptation_replay, adaptation_before)
+    assert agent._pending is not None
+    assert torch.equal(agent.history.snapshot(), history_before)
+
+    monkeypatch.setattr(agent.adaptation_replay, "_commit_prepared", original_second_commit)
+    finish_agent_step(
+        agent,
+        torch.tensor([[3.0, 4.0]]),
+        torch.zeros(1, 1),
+        torch.full((1, 1), 2.0),
+        **endings,
+        adaptation_enabled=True,
+    )
+
+    assert len(agent.replay) == 3
+    assert len(agent.adaptation_replay) == 3
+    assert agent.replay._cursor == 0
+    assert agent.adaptation_replay._cursor == 0
+    assert agent.replay._reward[2].item() == 2.0
+    assert agent.adaptation_replay._reward[2].item() == 2.0
+    assert agent._pending is None
+    assert torch.equal(agent.history.snapshot(), torch.zeros(1, 3, 2))
 
 
 @pytest.mark.parametrize(
@@ -394,11 +614,11 @@ def test_timeout_after_rollback_fallback_pauses_and_excludes_transition_from_rep
         online_agent=agent,
         timed_out_state=timed_out_state,
     )
-    agent.finish_step(
+    finish_agent_step(
+        agent,
         frame,
         base_action,
         torch.ones(1, 1),
-        torch.zeros(1, 1),
         adaptation_enabled=True,
     )
 
