@@ -96,6 +96,38 @@ def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
     }
 
 
+def transition_episode_publication(
+    *,
+    shared_lock: Any,
+    actor_gate_event: Any,
+    read_active_episode: Callable[[], int],
+    write_active_episode: Callable[[int], None],
+    next_episode: int,
+    after_transition: Callable[[int], None] | None = None,
+) -> int:
+    with shared_lock:
+        previous_episode = read_active_episode()
+        actor_gate_event.clear()
+        write_active_episode(next_episode)
+        if after_transition is not None:
+            after_transition(previous_episode)
+        return previous_episode
+
+
+def enable_actor_gate_if_active(
+    *,
+    shared_lock: Any,
+    actor_gate_event: Any,
+    read_active_episode: Callable[[], int],
+    adaptation_episode: int,
+) -> bool:
+    with shared_lock:
+        if read_active_episode() != adaptation_episode:
+            return False
+        actor_gate_event.set()
+        return True
+
+
 def cutoff_before_final_step(
     *,
     step: int,
@@ -109,19 +141,6 @@ def cutoff_before_final_step(
     return active_episode, True
 
 
-def close_after_final_step(
-    *,
-    cutoff_applied: bool,
-    active_episode: int,
-    enqueue_command: Callable[[AdaptationCommand], None],
-) -> int:
-    if not cutoff_applied or active_episode <= 0:
-        return active_episode
-    if active_episode > 0:
-        enqueue_command(AdaptationCommand("end_episode", active_episode))
-    return 0
-
-
 def apply_adaptation_command(
     command: AdaptationCommand,
     *,
@@ -132,15 +151,14 @@ def apply_adaptation_command(
     drift_monitor: ActorDriftMonitor,
     actor_gate_event: Any,
     clear_adaptation_replay: Callable[[], None],
-    episode_is_active: Callable[[int], bool],
+    enable_actor_if_episode_active: Callable[[int], bool],
 ) -> tuple[int, str | None]:
     if command.kind == "start_episode":
         clear_adaptation_replay()
         stable_manager.checkpoint(updater)
         drift_monitor.start_episode(updater.actor, adaptation_episode=command.episode)
         checkpointed_episode = command.episode
-        if episode_is_active(command.episode):
-            actor_gate_event.set()
+        enable_actor_if_episode_active(command.episode)
     elif command.kind == "checkpoint":
         if command.episode == checkpointed_episode:
             stable_manager.checkpoint(updater)
@@ -501,6 +519,13 @@ def main() -> int:
             last_update: dict[str, Any] = {}
             last_rollback_reason = ""
 
+            def read_active_episode() -> int:
+                return active_episode
+
+            def write_active_episode(episode: int) -> None:
+                nonlocal active_episode
+                active_episode = episode
+
             def updater_loop() -> None:
                 nonlocal last_rollback_reason
                 critic_period = 1.0 / args.updates_per_second
@@ -516,9 +541,13 @@ def main() -> int:
                             except queue.Empty:
                                 break
                             with update_lock:
-                                def command_episode_is_active(episode: int) -> bool:
-                                    with shared_lock:
-                                        return active_episode == episode
+                                def enable_actor_if_episode_active(episode: int) -> bool:
+                                    return enable_actor_gate_if_active(
+                                        shared_lock=shared_lock,
+                                        actor_gate_event=actor_gate_event,
+                                        read_active_episode=read_active_episode,
+                                        adaptation_episode=episode,
+                                    )
 
                                 checkpointed_episode, command_rollback_reason = apply_adaptation_command(
                                     command,
@@ -529,7 +558,7 @@ def main() -> int:
                                     drift_monitor=actor_drift_monitor,
                                     actor_gate_event=actor_gate_event,
                                     clear_adaptation_replay=online_agent.clear_adaptation_replay,
-                                    episode_is_active=command_episode_is_active,
+                                    enable_actor_if_episode_active=enable_actor_if_episode_active,
                                 )
                                 if command_rollback_reason is not None:
                                     with shared_lock:
@@ -718,14 +747,20 @@ def main() -> int:
                     elif done.any().item():
                         safety_reason = "environment_termination"
                 if safety_reason:
-                    episode_to_rollback = active_episode
+                    transition_episode_publication(
+                        shared_lock=shared_lock,
+                        actor_gate_event=actor_gate_event,
+                        read_active_episode=read_active_episode,
+                        write_active_episode=write_active_episode,
+                        next_episode=0,
+                        after_transition=lambda episode: commands.put(
+                            AdaptationCommand("rollback", episode, safety_reason)
+                        ),
+                    )
                     novelty_decision = novelty_gate.force_cooldown()
-                    actor_gate_event.clear()
                     adaptation_performance.start_episode()
                     with shared_lock:
-                        active_episode = 0
                         counters.record_rollback(safety_reason)
-                    commands.put(AdaptationCommand("rollback", episode_to_rollback, safety_reason))
                     rollback_reason = safety_reason
                 else:
                     novelty_decision = novelty_gate.observe(
@@ -741,13 +776,20 @@ def main() -> int:
                     and novelty_decision.entered_adapting
                     and not final_step_cutoff
                 ):
-                    actor_gate_event.clear()
-                    adaptation_performance.start_episode()
                     adaptation_episode += 1
+                    transition_episode_publication(
+                        shared_lock=shared_lock,
+                        actor_gate_event=actor_gate_event,
+                        read_active_episode=read_active_episode,
+                        write_active_episode=write_active_episode,
+                        next_episode=adaptation_episode,
+                        after_transition=lambda _previous_episode: commands.put(
+                            AdaptationCommand("start_episode", adaptation_episode)
+                        ),
+                    )
+                    adaptation_performance.start_episode()
                     with shared_lock:
-                        active_episode = adaptation_episode
                         counters.record_novelty_entry()
-                    commands.put(AdaptationCommand("start_episode", adaptation_episode))
 
                 performance_monitoring_enabled = (
                     args.mode == "online"
@@ -779,33 +821,46 @@ def main() -> int:
                         if performance_decision.improved:
                             commands.put(AdaptationCommand("checkpoint", active_episode))
                         elif performance_decision.should_rollback:
-                            episode_to_rollback = active_episode
                             rollback_reason = performance_decision.rollback_reason or "performance_degradation"
-                            novelty_decision = novelty_gate.force_cooldown()
-                            actor_gate_event.clear()
-                            with shared_lock:
-                                active_episode = 0
-                                counters.record_rollback(rollback_reason)
-                            commands.put(
-                                AdaptationCommand("rollback", episode_to_rollback, rollback_reason)
+                            transition_episode_publication(
+                                shared_lock=shared_lock,
+                                actor_gate_event=actor_gate_event,
+                                read_active_episode=read_active_episode,
+                                write_active_episode=write_active_episode,
+                                next_episode=0,
+                                after_transition=lambda episode: commands.put(
+                                    AdaptationCommand("rollback", episode, rollback_reason)
+                                ),
                             )
+                            novelty_decision = novelty_gate.force_cooldown()
+                            with shared_lock:
+                                counters.record_rollback(rollback_reason)
                             adaptation_performance.start_episode()
                 elif novelty_decision.left_adapting and active_episode > 0:
-                    episode_to_end = active_episode
-                    actor_gate_event.clear()
+                    transition_episode_publication(
+                        shared_lock=shared_lock,
+                        actor_gate_event=actor_gate_event,
+                        read_active_episode=read_active_episode,
+                        write_active_episode=write_active_episode,
+                        next_episode=0,
+                        after_transition=lambda episode: commands.put(
+                            AdaptationCommand("end_episode", episode)
+                        ),
+                    )
                     adaptation_performance.start_episode()
-                    with shared_lock:
-                        active_episode = 0
-                    commands.put(AdaptationCommand("end_episode", episode_to_end))
 
                 if final_step_cutoff and active_episode > 0:
+                    transition_episode_publication(
+                        shared_lock=shared_lock,
+                        actor_gate_event=actor_gate_event,
+                        read_active_episode=read_active_episode,
+                        write_active_episode=write_active_episode,
+                        next_episode=0,
+                        after_transition=lambda episode: commands.put(
+                            AdaptationCommand("end_episode", episode)
+                        ),
+                    )
                     adaptation_performance.start_episode()
-                    with shared_lock:
-                        active_episode = close_after_final_step(
-                            cutoff_applied=final_step_cutoff,
-                            active_episode=active_episode,
-                            enqueue_command=commands.put,
-                        )
 
                 with shared_lock:
                     counters.record_state(novelty_decision.state.value)

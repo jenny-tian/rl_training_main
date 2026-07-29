@@ -2,12 +2,13 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     AdaptationCommand,
     AdaptationRuntimeOrchestrator,
     RuntimeCounters,
+    enable_actor_gate_if_active,
     policy_drift_record,
     apply_adaptation_command,
-    close_after_final_step,
     cutoff_before_final_step,
     record_update_result,
     resolve_track_boundary_x,
+    transition_episode_publication,
     warm_up_control_path,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
@@ -118,6 +119,58 @@ class FakeUpdater:
     version = 7
 
 
+class EventLock:
+    def __init__(self, events):
+        self.events = events
+
+    def __enter__(self):
+        self.events.append("lock_enter")
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.events.append("lock_exit")
+
+
+def test_episode_transition_clears_gate_writes_state_and_enqueues_under_one_lock():
+    events = []
+    active = {"episode": 4}
+
+    previous = transition_episode_publication(
+        shared_lock=EventLock(events),
+        actor_gate_event=type("Gate", (), {"clear": lambda self: events.append("gate_clear")})(),
+        read_active_episode=lambda: events.append("read") or active["episode"],
+        write_active_episode=lambda episode: events.append(("write", episode))
+        or active.__setitem__("episode", episode),
+        next_episode=0,
+        after_transition=lambda episode: events.append(("enqueue_end", episode)),
+    )
+
+    assert previous == 4
+    assert active["episode"] == 0
+    assert events == [
+        "lock_enter",
+        "read",
+        "gate_clear",
+        ("write", 0),
+        ("enqueue_end", 4),
+        "lock_exit",
+    ]
+
+
+def test_actor_gate_enable_checks_episode_and_sets_gate_under_one_lock():
+    events = []
+    gate = type("Gate", (), {"set": lambda self: events.append("gate_set")})()
+
+    enabled = enable_actor_gate_if_active(
+        shared_lock=EventLock(events),
+        actor_gate_event=gate,
+        read_active_episode=lambda: events.append("read") or 3,
+        adaptation_episode=3,
+    )
+
+    assert enabled
+    assert events == ["lock_enter", "read", "gate_set", "lock_exit"]
+
+
 def make_update_stats(**changes):
     values = {
         "critic_loss": 1.0,
@@ -177,7 +230,7 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
         clear_adaptation_replay=lambda: replay_clears.append(2),
-        episode_is_active=lambda episode: episode == 2,
+        enable_actor_if_episode_active=lambda episode: gate.set() or episode == 2,
     )
 
     checkpointed_episode, rollback_reason = apply_adaptation_command(
@@ -189,7 +242,7 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
         clear_adaptation_replay=lambda: replay_clears.append(1),
-        episode_is_active=lambda episode: episode == 2,
+        enable_actor_if_episode_active=lambda episode: False,
     )
 
     assert checkpointed_episode == 2
@@ -218,7 +271,7 @@ def test_old_end_does_not_clear_new_episode_gate_or_reference():
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
         clear_adaptation_replay=lambda: replay_clears.append(2),
-        episode_is_active=lambda episode: episode == 2,
+        enable_actor_if_episode_active=lambda episode: gate.set() or episode == 2,
     )
 
     checkpointed_episode, rollback_reason = apply_adaptation_command(
@@ -230,7 +283,7 @@ def test_old_end_does_not_clear_new_episode_gate_or_reference():
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
         clear_adaptation_replay=lambda: replay_clears.append(1),
-        episode_is_active=lambda episode: episode == 2,
+        enable_actor_if_episode_active=lambda episode: False,
     )
 
     assert checkpointed_episode == 2
@@ -258,7 +311,7 @@ def test_start_command_clears_replay_before_enabling_actor_gate():
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
         clear_adaptation_replay=lambda: events.append("clear"),
-        episode_is_active=lambda episode: episode == 3,
+        enable_actor_if_episode_active=lambda episode: gate.set() or episode == 3,
     )
 
     assert checkpointed_episode == 3
@@ -281,7 +334,7 @@ def test_inactive_start_command_installs_lifecycle_without_enabling_gate():
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
         clear_adaptation_replay=lambda: replay_clears.append(3),
-        episode_is_active=lambda episode: False,
+        enable_actor_if_episode_active=lambda episode: False,
     )
 
     assert checkpointed_episode == 3
@@ -309,7 +362,7 @@ def test_matching_rollback_and_end_commands_clear_only_their_replay():
             drift_monitor=drift_monitor,
             actor_gate_event=gate,
             clear_adaptation_replay=lambda: replay_clears.append(2),
-            episode_is_active=lambda episode: False,
+            enable_actor_if_episode_active=lambda episode: False,
         )
 
         assert checkpointed_episode == 0
@@ -352,19 +405,6 @@ def test_final_step_cutoff_closes_gate_without_active_episode():
     assert active_episode == 0
     assert not gate.is_set()
     assert commands == []
-
-
-def test_post_final_step_close_ends_episode_if_safety_did_not_rollback():
-    commands = []
-
-    active_episode = close_after_final_step(
-        cutoff_applied=True,
-        active_episode=4,
-        enqueue_command=commands.append,
-    )
-
-    assert active_episode == 0
-    assert commands == [AdaptationCommand("end_episode", 4)]
 
 
 def test_stale_update_result_preserves_current_log_and_counters():
