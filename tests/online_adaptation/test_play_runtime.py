@@ -35,6 +35,26 @@ def make_orchestrator():
     )
 
 
+def enter_adapting(runtime):
+    for step in range(1, 6):
+        runtime.observe_step(
+            step=step,
+            velocity_error=0.10,
+            tilt_rms=0.02,
+            nonfoot_contact=0,
+            reward=1.0,
+        )
+    runtime.observe_step(step=6, velocity_error=0.50, tilt_rms=0.02, nonfoot_contact=0, reward=0.2)
+    result = runtime.observe_step(
+        step=7,
+        velocity_error=0.50,
+        tilt_rms=0.02,
+        nonfoot_contact=0,
+        reward=0.2,
+    )
+    assert result.commands == (AdaptationCommand("start_episode", 1),)
+
+
 class EnvCfg:
     pass
 
@@ -141,9 +161,21 @@ def test_runtime_counters_separate_pre_and_post_novelty_actor_updates():
     assert counters.actor_updates == 2
     assert counters.actor_updates_before_novelty == 1
     assert counters.actor_updates_after_novelty == 1
+    assert counters.actor_updates_by_episode == {1: 1}
     assert counters.first_actor_update_step == 100
     assert counters.novelty_entries == 1
     assert counters.state_durations == {"calibrating": 1, "adapting": 1}
+
+
+def test_runtime_counters_isolate_actor_updates_by_episode():
+    counters = RuntimeCounters()
+    counters.record_actor_update(step=100, adaptation_episode=1)
+    counters.record_actor_update(step=101, adaptation_episode=1)
+    counters.record_actor_update(step=200, adaptation_episode=2)
+
+    assert counters.actor_updates_for_episode(1) == 2
+    assert counters.actor_updates_for_episode(2) == 1
+    assert counters.actor_updates_for_episode(3) == 0
 
 
 def test_runtime_counters_record_distinct_rollback_reasons():
@@ -208,38 +240,138 @@ def test_runtime_orchestrator_gates_actor_until_persistent_novelty():
     assert second.commands == (AdaptationCommand("start_episode", 1),)
     assert all("adaptation_state" in row for row in rows)
     assert all("novelty_score" in row for row in rows)
+    assert all("performance_evaluation_enabled" in row for row in rows)
 
 
-def test_runtime_orchestrator_requests_performance_rollback():
+def test_runtime_does_not_roll_back_before_first_actor_update():
     runtime = make_orchestrator()
-    for step in range(1, 6):
+    enter_adapting(runtime)
+
+    results = [
         runtime.observe_step(
             step=step,
-            velocity_error=0.10,
-            tilt_rms=0.02,
+            velocity_error=0.80,
+            tilt_rms=0.20,
             nonfoot_contact=0,
-            reward=1.0,
-            paused=False,
+            reward=0.1,
         )
-    runtime.observe_step(step=6, velocity_error=0.50, tilt_rms=0.02, nonfoot_contact=0, reward=0.2)
-    runtime.observe_step(step=7, velocity_error=0.50, tilt_rms=0.02, nonfoot_contact=0, reward=0.2)
+        for step in range(8, 16)
+    ]
+
+    assert runtime.active_episode == 1
+    assert runtime.counters.performance_rollbacks == 0
+    assert all(not result.commands for result in results)
+    assert not runtime.adaptation_performance.evaluation_enabled
+
+
+def test_runtime_rolls_back_after_two_complete_post_update_windows():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
     runtime.observe_step(step=8, velocity_error=0.20, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
     runtime.observe_step(step=9, velocity_error=0.20, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
-    runtime.observe_step(step=10, velocity_error=0.30, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
-    runtime.observe_step(
+    runtime.record_actor_update(step=9)
+
+    runtime.observe_step(step=10, velocity_error=0.50, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
+    first = runtime.observe_step(
         step=11,
-        velocity_error=0.30,
+        velocity_error=0.50,
         tilt_rms=0.10,
         nonfoot_contact=0,
         reward=0.2,
     )
-    runtime.observe_step(step=12, velocity_error=0.30, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
-    runtime.observe_step(step=13, velocity_error=0.30, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
-    rollback = runtime.observe_step(step=14, velocity_error=0.30, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
+    runtime.observe_step(step=12, velocity_error=0.50, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
+    second = runtime.observe_step(
+        step=13,
+        velocity_error=0.50,
+        tilt_rms=0.10,
+        nonfoot_contact=0,
+        reward=0.2,
+    )
 
-    assert rollback.commands == (AdaptationCommand("rollback", 1, "performance_degradation"),)
-    assert rollback.clear_adaptation_replay
-    assert rollback.record_fields["rollback_reason"] == "performance_degradation"
-    assert rollback.record_fields["adaptation_state"] == "cooldown"
+    assert not first.commands
+    assert first.record_fields["performance_evaluation_enabled"]
+    assert second.commands == (AdaptationCommand("rollback", 1, "performance_degradation"),)
+    assert second.clear_adaptation_replay
+    assert second.record_fields["rollback_reason"] == "performance_degradation"
+    assert second.record_fields["adaptation_state"] == "cooldown"
+    assert not second.record_fields["performance_evaluation_enabled"]
+    assert not runtime.adaptation_performance.evaluation_enabled
     assert runtime.counters.rollbacks == 1
     assert runtime.counters.performance_rollbacks == 1
+
+
+def test_old_episode_update_does_not_enable_current_episode():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+    runtime.active_episode = 2
+    runtime.adaptation_episode = 2
+    runtime.adaptation_performance.start_episode()
+    runtime.counters.record_actor_update(step=10, adaptation_episode=1)
+
+    runtime.observe_step(step=11, velocity_error=0.20, tilt_rms=0.10, nonfoot_contact=0, reward=0.2)
+    result = runtime.observe_step(
+        step=12,
+        velocity_error=0.20,
+        tilt_rms=0.10,
+        nonfoot_contact=0,
+        reward=0.2,
+    )
+
+    assert not runtime.adaptation_performance.evaluation_enabled
+    assert not result.record_fields["performance_evaluation_enabled"]
+
+
+def test_leaving_adapting_resets_performance_without_end_episode_command():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+    runtime.adaptation_performance.mark_actor_updated()
+
+    runtime.observe_step(step=8, velocity_error=0.10, tilt_rms=0.02, nonfoot_contact=0, reward=1.0)
+    result = runtime.observe_step(
+        step=9,
+        velocity_error=0.10,
+        tilt_rms=0.02,
+        nonfoot_contact=0,
+        reward=1.0,
+    )
+
+    assert runtime.active_episode == 0
+    assert result.clear_adaptation_replay
+    assert not result.commands
+    assert not runtime.adaptation_performance.evaluation_enabled
+    assert not result.record_fields["performance_evaluation_enabled"]
+
+
+def test_safety_rollback_remains_active_before_actor_update():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+
+    result = runtime.observe_step(
+        step=8,
+        velocity_error=0.50,
+        tilt_rms=0.20,
+        nonfoot_contact=1,
+        reward=0.1,
+        paused=True,
+        safety_reasons=("excessive_tilt",),
+    )
+
+    assert result.commands == (AdaptationCommand("rollback", 1, "excessive_tilt"),)
+    assert not result.record_fields["performance_evaluation_enabled"]
+
+
+def test_control_timeout_rollback_remains_active_before_actor_update():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+
+    result = runtime.observe_step(
+        step=8,
+        velocity_error=0.50,
+        tilt_rms=0.20,
+        nonfoot_contact=0,
+        reward=0.1,
+        control_timed_out=True,
+    )
+
+    assert result.commands == (AdaptationCommand("rollback", 1, "control_timeout"),)
+    assert not result.record_fields["performance_evaluation_enabled"]

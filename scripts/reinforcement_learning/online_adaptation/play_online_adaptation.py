@@ -38,6 +38,7 @@ class RuntimeCounters:
     performance_rollbacks: int = 0
     safety_rollbacks: int = 0
     state_durations: dict[str, int] = field(default_factory=dict)
+    actor_updates_by_episode: dict[int, int] = field(default_factory=dict)
 
     def record_state(self, state: str) -> None:
         self.state_durations[state] = self.state_durations.get(state, 0) + 1
@@ -49,10 +50,16 @@ class RuntimeCounters:
         self.actor_updates += 1
         if adaptation_episode > 0:
             self.actor_updates_after_novelty += 1
+            self.actor_updates_by_episode[adaptation_episode] = (
+                self.actor_updates_by_episode.get(adaptation_episode, 0) + 1
+            )
         else:
             self.actor_updates_before_novelty += 1
         if self.first_actor_update_step is None:
             self.first_actor_update_step = step
+
+    def actor_updates_for_episode(self, adaptation_episode: int) -> int:
+        return self.actor_updates_by_episode.get(adaptation_episode, 0)
 
     def record_novelty_entry(self) -> None:
         self.novelty_entries += 1
@@ -190,6 +197,8 @@ class AdaptationRuntimeOrchestrator:
         )
 
         if adaptation_enabled:
+            if self.counters.actor_updates_for_episode(self.active_episode) > 0:
+                self.adaptation_performance.mark_actor_updated()
             performance_decision = self.adaptation_performance.add(
                 velocity_error=velocity_error,
                 tilt_rms=tilt_rms,
@@ -207,9 +216,11 @@ class AdaptationRuntimeOrchestrator:
                     self.last_rollback_reason = rollback_reason
                     clear_adaptation_replay = True
                     commands.append(AdaptationCommand("rollback", episode_to_rollback, rollback_reason))
+                    self.adaptation_performance.start_episode()
         elif novelty_decision.left_adapting and self.active_episode > 0:
             self.active_episode = 0
             clear_adaptation_replay = True
+            self.adaptation_performance.start_episode()
 
         self.counters.record_state(novelty_decision.state.value)
         return RuntimeStepResult(
@@ -226,6 +237,7 @@ class AdaptationRuntimeOrchestrator:
                 "actor_update_enabled": adaptation_enabled,
                 "adaptation_episode": self.active_episode,
                 "rollback_reason": rollback_reason or self.last_rollback_reason,
+                "performance_evaluation_enabled": self.adaptation_performance.evaluation_enabled,
             },
         )
 
