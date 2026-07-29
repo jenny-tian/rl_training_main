@@ -6,7 +6,12 @@ from dataclasses import replace
 
 from rl_training.online_adaptation.metrics import AdaptationPerformanceDecision
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
-from rl_training.online_adaptation.sac import SACConfig, SACUpdater, StableStateManager
+from rl_training.online_adaptation.sac import (
+    CandidateActorRejected,
+    SACConfig,
+    SACUpdater,
+    StableStateManager,
+)
 from rl_training.online_adaptation.types import TransitionBatch
 
 
@@ -65,6 +70,9 @@ def test_nonfinite_batch_is_rejected_without_version_change():
 def test_candidate_validator_rejection_restores_the_full_pre_update_state():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    warmup_stats = updater.update(make_batch())
+    assert warmup_stats.accepted
+    assert warmup_stats.version == 1
     before = copy.deepcopy(updater.state_dict())
     seen = []
 
@@ -74,11 +82,11 @@ def test_candidate_validator_rejection_restores_the_full_pre_update_state():
 
     stats = updater.update(make_batch(), candidate_validator=validator)
 
-    assert seen == [(actor, 1)]
+    assert seen == [(actor, 2)]
     assert not stats.accepted
     assert not stats.critic_updated
     assert not stats.actor_updated
-    assert stats.version == 0
+    assert stats.version == 1
     assert stats.rejection_reason == "nonfinite_policy_drift"
     assert_state_dict_equal(updater.state_dict(), before)
 
@@ -110,6 +118,20 @@ def test_candidate_validator_exception_restores_the_full_pre_update_state():
         raise RuntimeError("validator failed")
 
     with pytest.raises(RuntimeError, match="validator failed"):
+        updater.update(make_batch(), candidate_validator=validator)
+
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
+def test_candidate_actor_rejected_exception_propagates_and_restores_state():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    before = copy.deepcopy(updater.state_dict())
+
+    def validator(candidate, version):
+        raise CandidateActorRejected("validator rejected via exception")
+
+    with pytest.raises(CandidateActorRejected, match="validator rejected via exception"):
         updater.update(make_batch(), candidate_validator=validator)
 
     assert_state_dict_equal(updater.state_dict(), before)

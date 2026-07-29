@@ -85,9 +85,9 @@ class SACUpdater:
         update_actor: bool = True,
         candidate_validator: CandidateActorValidator | None = None,
     ) -> UpdateStats:
-        before = copy.deepcopy(self.state_dict())
         if not self._batch_is_finite(critic_batch):
             return self._rejected_stats("nonfinite_batch")
+        before = copy.deepcopy(self.state_dict())
         if update_actor and actor_batch is None:
             actor_batch = critic_batch
 
@@ -191,16 +191,14 @@ class SACUpdater:
         if update_actor and candidate_validator is not None:
             try:
                 rejection_reason = candidate_validator(self.actor, self.version + 1)
-                if rejection_reason is not None:
-                    raise CandidateActorRejected(rejection_reason)
-            except CandidateActorRejected as error:
-                self.critic.requires_grad_(True)
-                self.load_state_dict(before)
-                return self._rejected_stats(str(error))
             except BaseException:
                 self.critic.requires_grad_(True)
                 self.load_state_dict(before)
                 raise
+            if rejection_reason is not None:
+                self.critic.requires_grad_(True)
+                self.load_state_dict(before)
+                return self._rejected_stats(rejection_reason)
 
         if update_actor:
             self.version += 1
