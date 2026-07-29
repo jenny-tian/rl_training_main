@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import torch
 
 from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
@@ -5,7 +7,10 @@ from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
 from rl_training.online_adaptation.safety import SafetyLimits
 from rl_training.online_adaptation.types import SafetyState
-from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import actor_version_for_record
+from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
+    actor_version_for_record,
+    enforce_control_timeout_fallback,
+)
 
 
 def make_agent():
@@ -122,3 +127,34 @@ def test_fallback_pending_marks_residual_actor_version_as_unused():
 
     assert fallback.actor_version is None
     assert actor_version_for_record(fallback) is None
+
+
+def test_timeout_after_rollback_fallback_pauses_and_excludes_transition_from_replay():
+    agent = make_agent()
+    frame = torch.zeros(1, 2)
+    base_action = torch.zeros(1, 1)
+    normal_state = safety_state()
+    agent.begin_step(frame, base_action, normal_state, deterministic=True)
+    agent.fallback_pending(normal_state)
+    timed_out_state = replace(
+        normal_state,
+        control_timed_out=torch.ones_like(normal_state.control_timed_out),
+    )
+
+    decision = enforce_control_timeout_fallback(
+        online_agent=agent,
+        timed_out_state=timed_out_state,
+    )
+    agent.finish_step(
+        frame,
+        base_action,
+        torch.ones(1, 1),
+        torch.zeros(1, 1),
+        adaptation_enabled=True,
+    )
+
+    assert decision.paused.all()
+    assert "control_timeout" in decision.reasons
+    assert decision.actor_version is None
+    assert len(agent.replay) == 0
+    assert len(agent.adaptation_replay) == 0

@@ -136,6 +136,10 @@ def enforce_prepared_rollback_fallback(
     return online_agent.fallback_pending(safety_state), True
 
 
+def enforce_control_timeout_fallback(*, online_agent: Any, timed_out_state: Any) -> Any:
+    return online_agent.fallback_pending(timed_out_state)
+
+
 def transition_episode_publication(
     *,
     shared_lock: Any,
@@ -779,8 +783,10 @@ def main() -> int:
                 if control_ms > args.control_timeout_ms:
                     control_timed_out = True
                     timed_out_state = replace(safety_state, control_timed_out=torch.ones_like(timeout))
-                    if not rollback_fallback_used:
-                        decision = online_agent.fallback_pending(timed_out_state)
+                    decision = enforce_control_timeout_fallback(
+                        online_agent=online_agent,
+                        timed_out_state=timed_out_state,
+                    )
                     if device.type == "cuda":
                         torch.cuda.synchronize(device)
                     control_ms = (time.perf_counter() - control_started) * 1_000.0
