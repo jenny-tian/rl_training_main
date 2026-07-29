@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Callable
 import torch
 from dataclasses import dataclass, fields
 from pathlib import Path
@@ -11,6 +12,13 @@ from typing import Any
 from .metrics import AdaptationPerformanceDecision
 from .networks import ResidualActor, TwinCritic
 from .types import TransitionBatch, UpdateStats
+
+
+CandidateActorValidator = Callable[[ResidualActor, int], str | None]
+
+
+class CandidateActorRejected(RuntimeError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -54,7 +62,7 @@ class SACUpdater:
     def _parameters_are_finite(module: nn.Module) -> bool:
         return all(torch.isfinite(parameter).all().item() for parameter in module.parameters())
 
-    def _rejected_stats(self) -> UpdateStats:
+    def _rejected_stats(self, reason: str) -> UpdateStats:
         return UpdateStats(
             critic_loss=float("nan"),
             actor_loss=float("nan"),
@@ -66,6 +74,7 @@ class SACUpdater:
             version=self.version,
             critic_updated=False,
             actor_updated=False,
+            rejection_reason=reason,
         )
 
     def update(
@@ -74,13 +83,14 @@ class SACUpdater:
         actor_batch: TransitionBatch | None = None,
         *,
         update_actor: bool = True,
+        candidate_validator: CandidateActorValidator | None = None,
     ) -> UpdateStats:
+        before = copy.deepcopy(self.state_dict())
         if not self._batch_is_finite(critic_batch):
-            return self._rejected_stats()
+            return self._rejected_stats("nonfinite_batch")
         if update_actor and actor_batch is None:
             actor_batch = critic_batch
 
-        before = copy.deepcopy(self.state_dict())
         try:
             with torch.no_grad():
                 next_residual, next_log_prob, _ = self.actor.sample(
@@ -169,10 +179,22 @@ class SACUpdater:
                     target_parameter.lerp_(parameter, self.config.tau)
             if not self._parameters_are_finite(self.target_critic):
                 raise FloatingPointError
+            if update_actor and candidate_validator is not None:
+                rejection_reason = candidate_validator(self.actor, self.version + 1)
+                if rejection_reason is not None:
+                    raise CandidateActorRejected(rejection_reason)
+        except CandidateActorRejected as error:
+            self.critic.requires_grad_(True)
+            self.load_state_dict(before)
+            return self._rejected_stats(str(error))
         except FloatingPointError:
             self.critic.requires_grad_(True)
             self.load_state_dict(before)
-            return self._rejected_stats()
+            return self._rejected_stats("nonfinite_update")
+        except BaseException:
+            self.critic.requires_grad_(True)
+            self.load_state_dict(before)
+            raise
 
         if update_actor:
             self.version += 1
@@ -188,6 +210,7 @@ class SACUpdater:
             version=self.version,
             critic_updated=True,
             actor_updated=update_actor,
+            rejection_reason=None,
         )
 
     def state_dict(self) -> dict[str, Any]:

@@ -66,3 +66,4 @@ class UpdateStats:
     version: int
     critic_updated: bool = False
     actor_updated: bool = False
+    rejection_reason: str | None = None

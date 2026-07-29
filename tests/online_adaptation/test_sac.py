@@ -1,3 +1,6 @@
+import copy
+
+import pytest
 import torch
 from dataclasses import replace
 
@@ -21,6 +24,22 @@ def make_batch(reward_value=1.0):
     )
 
 
+def assert_state_dict_equal(actual, expected):
+    assert type(actual) is type(expected)
+    if isinstance(expected, dict):
+        assert actual.keys() == expected.keys()
+        for key in expected:
+            assert_state_dict_equal(actual[key], expected[key])
+    elif isinstance(expected, (list, tuple)):
+        assert len(actual) == len(expected)
+        for actual_item, expected_item in zip(actual, expected, strict=True):
+            assert_state_dict_equal(actual_item, expected_item)
+    elif isinstance(expected, torch.Tensor):
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0, equal_nan=True)
+    else:
+        assert actual == expected
+
+
 def test_sac_update_changes_version_and_target_parameters():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     critic = TwinCritic(49, 12, 64)
@@ -40,6 +59,60 @@ def test_nonfinite_batch_is_rejected_without_version_change():
     stats = updater.update(make_batch(float("nan")))
     assert not stats.accepted
     assert stats.version == 0
+    assert stats.rejection_reason == "nonfinite_batch"
+
+
+def test_candidate_validator_rejection_restores_the_full_pre_update_state():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    before = copy.deepcopy(updater.state_dict())
+    seen = []
+
+    def validator(candidate, version):
+        seen.append((candidate, version))
+        return "nonfinite_policy_drift"
+
+    stats = updater.update(make_batch(), candidate_validator=validator)
+
+    assert seen == [(actor, 1)]
+    assert not stats.accepted
+    assert not stats.critic_updated
+    assert not stats.actor_updated
+    assert stats.version == 0
+    assert stats.rejection_reason == "nonfinite_policy_drift"
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
+def test_critic_only_update_does_not_call_candidate_validator():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    called = False
+
+    def validator(candidate, version):
+        nonlocal called
+        called = True
+        raise AssertionError("critic-only updates must not validate actor candidates")
+
+    stats = updater.update(make_batch(), update_actor=False, candidate_validator=validator)
+
+    assert stats.accepted
+    assert stats.rejection_reason is None
+    assert stats.version == 0
+    assert not called
+
+
+def test_candidate_validator_exception_restores_the_full_pre_update_state():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    before = copy.deepcopy(updater.state_dict())
+
+    def validator(candidate, version):
+        raise RuntimeError("validator failed")
+
+    with pytest.raises(RuntimeError, match="validator failed"):
+        updater.update(make_batch(), candidate_validator=validator)
+
+    assert_state_dict_equal(updater.state_dict(), before)
 
 
 def test_critic_only_update_keeps_actor_and_version_unchanged():
@@ -54,6 +127,7 @@ def test_critic_only_update_keeps_actor_and_version_unchanged():
     assert stats.critic_updated
     assert not stats.actor_updated
     assert stats.version == 0
+    assert stats.rejection_reason is None
     assert all(torch.equal(before, after) for before, after in zip(actor_before, actor.parameters()))
     assert any(
         not torch.equal(before, after)
@@ -86,6 +160,7 @@ def test_nonfinite_actor_batch_rolls_back_the_preceding_critic_step():
     assert not stats.critic_updated
     assert not stats.actor_updated
     assert stats.version == 0
+    assert stats.rejection_reason == "nonfinite_update"
     assert all(
         torch.equal(before, after) for before, after in zip(critic_before, updater.critic.parameters())
     )
