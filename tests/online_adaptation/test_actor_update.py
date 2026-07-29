@@ -125,6 +125,43 @@ def test_inactive_episode_rejects_without_measuring_or_publishing(monkeypatch):
     assert publish_calls == []
 
 
+def test_episode_becoming_stale_at_final_publish_restores_complete_update_state(monkeypatch):
+    updater, publisher, monitor = make_components()
+    before = copy.deepcopy(updater.state_dict())
+    publish_calls = []
+    final_attempts = []
+
+    monkeypatch.setattr(publisher, "publish", lambda *args: publish_calls.append(args))
+
+    def reject_final_publish(candidate_actor, candidate_version):
+        final_attempts.append((candidate_actor, candidate_version))
+        return False
+
+    outcome = update_and_publish_actor(
+        updater=updater,
+        publisher=publisher,
+        drift_monitor=monitor,
+        critic_batch=make_batch(0.1),
+        actor_batch=make_batch(0.2),
+        adaptation_episode=1,
+        update_step=7,
+        episode_is_active=lambda: True,
+        final_publish_attempt=reject_final_publish,
+    )
+
+    assert len(final_attempts) == 1
+    assert publish_calls == []
+    assert not outcome.stats.accepted
+    assert not outcome.stats.critic_updated
+    assert not outcome.stats.actor_updated
+    assert outcome.stats.rejection_reason == "stale_adaptation_episode"
+    assert outcome.stats.version == before["version"]
+    assert outcome.policy_drift is None
+    assert_state_dict_equal(updater.state_dict(), before)
+    _, published_version = publisher.current()
+    assert published_version == before["version"]
+
+
 def test_monitor_floating_point_error_rejects_without_publishing(monkeypatch):
     updater, publisher, monitor = make_components()
     publish_calls = []

@@ -4,6 +4,8 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     RuntimeCounters,
     policy_drift_record,
     apply_adaptation_command,
+    close_after_final_step,
+    cutoff_before_final_step,
     record_update_result,
     resolve_track_boundary_x,
     warm_up_control_path,
@@ -165,6 +167,7 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
     publisher = FakePublisher()
     updater = FakeUpdater()
     gate = FakeEvent()
+    replay_clears = []
     checkpointed_episode, _ = apply_adaptation_command(
         AdaptationCommand("start_episode", 2),
         checkpointed_episode=0,
@@ -173,6 +176,7 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
         stable_manager=stable_manager,
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
+        clear_adaptation_replay=lambda: replay_clears.append(2),
         episode_is_active=lambda episode: episode == 2,
     )
 
@@ -184,6 +188,7 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
         stable_manager=stable_manager,
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
+        clear_adaptation_replay=lambda: replay_clears.append(1),
         episode_is_active=lambda episode: episode == 2,
     )
 
@@ -194,6 +199,7 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
     assert drift_monitor.cleared == []
     assert stable_manager.rollbacks == []
     assert publisher.published == []
+    assert replay_clears == [2]
 
 
 def test_old_end_does_not_clear_new_episode_gate_or_reference():
@@ -202,6 +208,7 @@ def test_old_end_does_not_clear_new_episode_gate_or_reference():
     publisher = FakePublisher()
     updater = FakeUpdater()
     gate = FakeEvent()
+    replay_clears = []
     checkpointed_episode, _ = apply_adaptation_command(
         AdaptationCommand("start_episode", 2),
         checkpointed_episode=0,
@@ -210,6 +217,7 @@ def test_old_end_does_not_clear_new_episode_gate_or_reference():
         stable_manager=stable_manager,
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
+        clear_adaptation_replay=lambda: replay_clears.append(2),
         episode_is_active=lambda episode: episode == 2,
     )
 
@@ -221,6 +229,7 @@ def test_old_end_does_not_clear_new_episode_gate_or_reference():
         stable_manager=stable_manager,
         drift_monitor=drift_monitor,
         actor_gate_event=gate,
+        clear_adaptation_replay=lambda: replay_clears.append(1),
         episode_is_active=lambda episode: episode == 2,
     )
 
@@ -228,6 +237,134 @@ def test_old_end_does_not_clear_new_episode_gate_or_reference():
     assert rollback_reason is None
     assert gate.is_set()
     assert drift_monitor.cleared == []
+    assert replay_clears == [2]
+
+
+def test_start_command_clears_replay_before_enabling_actor_gate():
+    events = []
+    stable_manager = FakeStableManager()
+    drift_monitor = FakeDriftMonitor()
+    gate = FakeEvent()
+    stable_manager.checkpoint = lambda updater: events.append("checkpoint")
+    drift_monitor.start_episode = lambda actor, *, adaptation_episode: events.append("reference")
+    gate.set = lambda: events.append("gate")
+
+    checkpointed_episode, rollback_reason = apply_adaptation_command(
+        AdaptationCommand("start_episode", 3),
+        checkpointed_episode=0,
+        updater=FakeUpdater(),
+        publisher=FakePublisher(),
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        clear_adaptation_replay=lambda: events.append("clear"),
+        episode_is_active=lambda episode: episode == 3,
+    )
+
+    assert checkpointed_episode == 3
+    assert rollback_reason is None
+    assert events == ["clear", "checkpoint", "reference", "gate"]
+
+
+def test_inactive_start_command_installs_lifecycle_without_enabling_gate():
+    stable_manager = FakeStableManager()
+    drift_monitor = FakeDriftMonitor()
+    replay_clears = []
+    gate = FakeEvent()
+
+    checkpointed_episode, rollback_reason = apply_adaptation_command(
+        AdaptationCommand("start_episode", 3),
+        checkpointed_episode=2,
+        updater=FakeUpdater(),
+        publisher=FakePublisher(),
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        clear_adaptation_replay=lambda: replay_clears.append(3),
+        episode_is_active=lambda episode: False,
+    )
+
+    assert checkpointed_episode == 3
+    assert rollback_reason is None
+    assert replay_clears == [3]
+    assert stable_manager.checkpoints == [FakeUpdater.version]
+    assert drift_monitor.started == [(FakeUpdater.actor, 3)]
+    assert not gate.is_set()
+
+
+def test_matching_rollback_and_end_commands_clear_only_their_replay():
+    for kind in ("rollback", "end_episode"):
+        stable_manager = FakeStableManager()
+        drift_monitor = FakeDriftMonitor()
+        gate = FakeEvent()
+        gate.set()
+        replay_clears = []
+
+        checkpointed_episode, _ = apply_adaptation_command(
+            AdaptationCommand(kind, 2, "performance_degradation"),
+            checkpointed_episode=2,
+            updater=FakeUpdater(),
+            publisher=FakePublisher(),
+            stable_manager=stable_manager,
+            drift_monitor=drift_monitor,
+            actor_gate_event=gate,
+            clear_adaptation_replay=lambda: replay_clears.append(2),
+            episode_is_active=lambda episode: False,
+        )
+
+        assert checkpointed_episode == 0
+        assert replay_clears == [2]
+        assert drift_monitor.cleared == [2]
+        assert not gate.is_set()
+
+
+def test_final_step_cutoff_preserves_episode_for_safety_handling():
+    gate = FakeEvent()
+    gate.set()
+    commands = []
+
+    active_episode, cutoff_applied = cutoff_before_final_step(
+        step=100,
+        max_steps=100,
+        active_episode=4,
+        actor_gate_event=gate,
+    )
+
+    assert cutoff_applied
+    assert active_episode == 4
+    assert not gate.is_set()
+    assert commands == []
+
+
+def test_final_step_cutoff_closes_gate_without_active_episode():
+    gate = FakeEvent()
+    gate.set()
+    commands = []
+
+    active_episode, cutoff_applied = cutoff_before_final_step(
+        step=100,
+        max_steps=100,
+        active_episode=0,
+        actor_gate_event=gate,
+    )
+
+    assert cutoff_applied
+    assert active_episode == 0
+    assert not gate.is_set()
+    assert commands == []
+
+
+def test_post_final_step_close_ends_episode_if_safety_did_not_rollback():
+    commands = []
+
+    active_episode = close_after_final_step(
+        cutoff_applied=True,
+        active_episode=4,
+        enqueue_command=commands.append,
+    )
+
+    assert active_episode == 0
+    assert commands == [AdaptationCommand("end_episode", 4)]
 
 
 def test_stale_update_result_preserves_current_log_and_counters():

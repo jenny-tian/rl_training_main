@@ -96,6 +96,32 @@ def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
     }
 
 
+def cutoff_before_final_step(
+    *,
+    step: int,
+    max_steps: int,
+    active_episode: int,
+    actor_gate_event: Any,
+) -> tuple[int, bool]:
+    if step != max_steps:
+        return active_episode, False
+    actor_gate_event.clear()
+    return active_episode, True
+
+
+def close_after_final_step(
+    *,
+    cutoff_applied: bool,
+    active_episode: int,
+    enqueue_command: Callable[[AdaptationCommand], None],
+) -> int:
+    if not cutoff_applied or active_episode <= 0:
+        return active_episode
+    if active_episode > 0:
+        enqueue_command(AdaptationCommand("end_episode", active_episode))
+    return 0
+
+
 def apply_adaptation_command(
     command: AdaptationCommand,
     *,
@@ -105,9 +131,11 @@ def apply_adaptation_command(
     stable_manager: Any,
     drift_monitor: ActorDriftMonitor,
     actor_gate_event: Any,
+    clear_adaptation_replay: Callable[[], None],
     episode_is_active: Callable[[int], bool],
 ) -> tuple[int, str | None]:
     if command.kind == "start_episode":
+        clear_adaptation_replay()
         stable_manager.checkpoint(updater)
         drift_monitor.start_episode(updater.actor, adaptation_episode=command.episode)
         checkpointed_episode = command.episode
@@ -122,6 +150,7 @@ def apply_adaptation_command(
         if stable_manager.rollback(updater):
             publisher.publish(updater.actor, updater.version)
         drift_monitor.clear_episode(adaptation_episode=command.episode)
+        clear_adaptation_replay()
         checkpointed_episode = 0
         actor_gate_event.clear()
         return checkpointed_episode, command.reason
@@ -129,6 +158,7 @@ def apply_adaptation_command(
         if command.episode != checkpointed_episode:
             return checkpointed_episode, None
         drift_monitor.clear_episode(adaptation_episode=command.episode)
+        clear_adaptation_replay()
         checkpointed_episode = 0
         actor_gate_event.clear()
     return checkpointed_episode, None
@@ -498,6 +528,7 @@ def main() -> int:
                                     stable_manager=stable_manager,
                                     drift_monitor=actor_drift_monitor,
                                     actor_gate_event=actor_gate_event,
+                                    clear_adaptation_replay=online_agent.clear_adaptation_replay,
                                     episode_is_active=command_episode_is_active,
                                 )
                                 if command_rollback_reason is not None:
@@ -529,6 +560,18 @@ def main() -> int:
                                 with shared_lock:
                                     return active_episode == episode_snapshot
 
+                            def publish_if_episode_is_still_active(
+                                candidate_actor: object, candidate_version: int
+                            ) -> bool:
+                                with shared_lock:
+                                    if (
+                                        active_episode != episode_snapshot
+                                        or not actor_gate_event.is_set()
+                                    ):
+                                        return False
+                                    online_agent.publisher.publish(candidate_actor, candidate_version)
+                                    return True
+
                             with update_lock:
                                 outcome = update_and_publish_actor(
                                     updater=online_agent.updater,
@@ -539,6 +582,7 @@ def main() -> int:
                                     adaptation_episode=episode_snapshot,
                                     update_step=step_snapshot,
                                     episode_is_active=episode_is_still_active,
+                                    final_publish_attempt=publish_if_episode_is_still_active,
                                 )
                             stats = outcome.stats
                             policy_drift = outcome.policy_drift
@@ -610,6 +654,12 @@ def main() -> int:
                 executed_steps = step
                 with shared_lock:
                     current_step = step
+                    active_episode, final_step_cutoff = cutoff_before_final_step(
+                        step=step,
+                        max_steps=args.max_steps,
+                        active_episode=active_episode,
+                        actor_gate_event=actor_gate_event,
+                    )
                 if update_errors:
                     raise RuntimeError("background SAC updater failed") from update_errors[0]
                 loop_started = time.perf_counter()
@@ -671,7 +721,6 @@ def main() -> int:
                     episode_to_rollback = active_episode
                     novelty_decision = novelty_gate.force_cooldown()
                     actor_gate_event.clear()
-                    online_agent.clear_adaptation_replay()
                     adaptation_performance.start_episode()
                     with shared_lock:
                         active_episode = 0
@@ -687,9 +736,12 @@ def main() -> int:
                         paused=paused_now,
                     )
 
-                if args.mode == "online" and novelty_decision.entered_adapting:
+                if (
+                    args.mode == "online"
+                    and novelty_decision.entered_adapting
+                    and not final_step_cutoff
+                ):
                     actor_gate_event.clear()
-                    online_agent.clear_adaptation_replay()
                     adaptation_performance.start_episode()
                     adaptation_episode += 1
                     with shared_lock:
@@ -697,12 +749,13 @@ def main() -> int:
                         counters.record_novelty_entry()
                     commands.put(AdaptationCommand("start_episode", adaptation_episode))
 
-                adaptation_enabled = (
+                performance_monitoring_enabled = (
                     args.mode == "online"
                     and novelty_decision.actor_update_enabled
                     and active_episode > 0
                     and not paused_now
                 )
+                adaptation_enabled = performance_monitoring_enabled and not final_step_cutoff
                 online_agent.finish_step(
                     next_frame,
                     next_base_action,
@@ -711,7 +764,7 @@ def main() -> int:
                     adaptation_enabled=adaptation_enabled,
                 )
 
-                if adaptation_enabled:
+                if performance_monitoring_enabled:
                     with shared_lock:
                         performance_episode = active_episode
                         successful_actor_updates = counters.actor_updates_for_episode(performance_episode)
@@ -730,7 +783,6 @@ def main() -> int:
                             rollback_reason = performance_decision.rollback_reason or "performance_degradation"
                             novelty_decision = novelty_gate.force_cooldown()
                             actor_gate_event.clear()
-                            online_agent.clear_adaptation_replay()
                             with shared_lock:
                                 active_episode = 0
                                 counters.record_rollback(rollback_reason)
@@ -741,11 +793,19 @@ def main() -> int:
                 elif novelty_decision.left_adapting and active_episode > 0:
                     episode_to_end = active_episode
                     actor_gate_event.clear()
-                    online_agent.clear_adaptation_replay()
                     adaptation_performance.start_episode()
                     with shared_lock:
                         active_episode = 0
                     commands.put(AdaptationCommand("end_episode", episode_to_end))
+
+                if final_step_cutoff and active_episode > 0:
+                    adaptation_performance.start_episode()
+                    with shared_lock:
+                        active_episode = close_after_final_step(
+                            cutoff_applied=final_step_cutoff,
+                            active_episode=active_episode,
+                            enqueue_command=commands.put,
+                        )
 
                 with shared_lock:
                     counters.record_state(novelty_decision.state.value)
