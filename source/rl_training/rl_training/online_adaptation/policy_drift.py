@@ -66,6 +66,8 @@ class ActorDriftMonitor:
 
         history, current_frame, base_action = self._diagnostic_inputs
         with torch.inference_mode():
+            if any(not torch.isfinite(parameter).all().item() for parameter in actor.parameters()):
+                raise FloatingPointError("non-finite policy drift")
             candidate_residual, _, _ = actor.sample(
                 history, current_frame, base_action, deterministic=True
             )
@@ -76,7 +78,7 @@ class ActorDriftMonitor:
             joint_mean_abs = delta.abs().mean(dim=0)
 
             reference_parameters = dict(self._reference_actor.named_parameters())
-            parameter_squared = torch.zeros((), device=delta.device)
+            parameter_squared = next(actor.parameters()).new_zeros(())
             for name, parameter in actor.named_parameters():
                 parameter_squared += (parameter - reference_parameters[name]).square().sum()
 

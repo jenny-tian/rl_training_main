@@ -15,17 +15,17 @@ def make_actor():
     )
 
 
-def make_batch(value=0.0):
+def make_batch(value=0.0, dtype=torch.float32):
     return TransitionBatch(
-        history=torch.full((4, 3, 2), value),
-        current_frame=torch.full((4, 2), value),
-        base_action=torch.full((4, 1), value),
-        residual_action=torch.zeros(4, 1),
-        reward=torch.zeros(4, 1),
-        next_history=torch.zeros(4, 3, 2),
-        next_frame=torch.zeros(4, 2),
-        next_base_action=torch.zeros(4, 1),
-        done=torch.zeros(4, 1),
+        history=torch.full((4, 3, 2), value, dtype=dtype),
+        current_frame=torch.full((4, 2), value, dtype=dtype),
+        base_action=torch.full((4, 1), value, dtype=dtype),
+        residual_action=torch.zeros(4, 1, dtype=dtype),
+        reward=torch.zeros(4, 1, dtype=dtype),
+        next_history=torch.zeros(4, 3, 2, dtype=dtype),
+        next_frame=torch.zeros(4, 2, dtype=dtype),
+        next_base_action=torch.zeros(4, 1, dtype=dtype),
+        done=torch.zeros(4, 1, dtype=dtype),
     )
 
 
@@ -74,6 +74,50 @@ def test_known_mean_layer_bias_change_has_positive_finite_drift():
     )
     assert all(value > 0.0 for value in values)
     assert all(torch.isfinite(torch.tensor(value)) for value in values)
+
+
+def test_float64_parameter_l2_stays_finite_for_large_finite_delta():
+    actor = make_actor().double()
+    batch = make_batch(dtype=torch.float64)
+    monitor = ActorDriftMonitor()
+    monitor.start_episode(actor, adaptation_episode=1)
+    with torch.no_grad():
+        actor.mean_layer.bias.fill_(1e20)
+
+    with torch.inference_mode():
+        candidate_action, _, _ = actor.sample(
+            batch.history, batch.current_frame, batch.base_action, deterministic=True
+        )
+    assert torch.isfinite(candidate_action).all()
+
+    drift = monitor.measure(
+        actor,
+        batch,
+        actor_version=1,
+        update_step=20,
+        adaptation_episode=1,
+    )
+
+    assert torch.isfinite(torch.tensor(drift.parameter_l2))
+    assert drift.parameter_l2 > 1e19
+
+
+@pytest.mark.parametrize("invalid_value", [float("nan"), float("inf")])
+def test_nonfinite_candidate_parameter_is_rejected(invalid_value):
+    actor = make_actor()
+    monitor = ActorDriftMonitor()
+    monitor.start_episode(actor, adaptation_episode=1)
+    with torch.no_grad():
+        actor.mean_layer.bias.fill_(invalid_value)
+
+    with pytest.raises(FloatingPointError, match="non-finite policy drift"):
+        monitor.measure(
+            actor,
+            make_batch(),
+            actor_version=1,
+            update_step=20,
+            adaptation_episode=1,
+        )
 
 
 def test_monitor_reuses_first_diagnostic_inputs_within_episode():
