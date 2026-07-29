@@ -114,18 +114,26 @@ def rollback_record_fields(current_reason: str, last_reason: str) -> dict[str, s
     }
 
 
-def enforce_pending_rollback_fallback(
+def prepare_rollback_fallback(
+    pending_completion: threading.Event | None,
+) -> tuple[threading.Event | None, bool]:
+    if pending_completion is None:
+        return None, False
+    if pending_completion.is_set():
+        return None, False
+    return pending_completion, True
+
+
+def enforce_prepared_rollback_fallback(
     *,
     online_agent: Any,
     decision: Any,
     safety_state: Any,
-    pending_completion: threading.Event | None,
-) -> tuple[Any, threading.Event | None, bool]:
-    if pending_completion is None:
-        return decision, None, False
-    if pending_completion.is_set():
-        return decision, None, False
-    return online_agent.fallback_pending(safety_state), pending_completion, True
+    fallback_required: bool,
+) -> tuple[Any, bool]:
+    if not fallback_required:
+        return decision, False
+    return online_agent.fallback_pending(safety_state), True
 
 
 def transition_episode_publication(
@@ -199,8 +207,9 @@ def apply_adaptation_command(
             if command.completion is not None:
                 command.completion.set()
             return checkpointed_episode, None
-        if stable_manager.rollback(updater):
-            publisher.publish(updater.actor, updater.version)
+        if not stable_manager.rollback(updater):
+            raise RuntimeError("stable rollback unavailable")
+        publisher.publish(updater.actor, updater.version)
         drift_monitor.clear_episode(adaptation_episode=command.episode)
         clear_adaptation_replay()
         checkpointed_episode = 0
@@ -741,6 +750,9 @@ def main() -> int:
                         active_episode=active_episode,
                         actor_gate_event=actor_gate_event,
                     )
+                pending_rollback_completion, rollback_fallback_required = prepare_rollback_fallback(
+                    pending_rollback_completion
+                )
                 loop_started = time.perf_counter()
                 control_started = time.perf_counter()
                 frame = adapter.frame(previous_action)
@@ -754,13 +766,11 @@ def main() -> int:
                     safety_state,
                     deterministic=not args.stochastic_control,
                 )
-                decision, pending_rollback_completion, rollback_fallback_used = (
-                    enforce_pending_rollback_fallback(
-                        online_agent=online_agent,
-                        decision=decision,
-                        safety_state=safety_state,
-                        pending_completion=pending_rollback_completion,
-                    )
+                decision, rollback_fallback_used = enforce_prepared_rollback_fallback(
+                    online_agent=online_agent,
+                    decision=decision,
+                    safety_state=safety_state,
+                    fallback_required=rollback_fallback_required,
                 )
                 if device.type == "cuda":
                     torch.cuda.synchronize(device)

@@ -8,9 +8,10 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     AdaptationRuntimeOrchestrator,
     RuntimeCounters,
     enable_actor_gate_if_active,
-    enforce_pending_rollback_fallback,
+    enforce_prepared_rollback_fallback,
     actor_version_for_record,
     policy_drift_record,
+    prepare_rollback_fallback,
     apply_adaptation_command,
     cutoff_before_final_step,
     record_update_result,
@@ -329,7 +330,37 @@ def test_rollback_exception_does_not_acknowledge_completion():
     assert not completion.is_set()
 
 
-def test_pending_rollback_forces_base_fallback_until_acknowledged():
+def test_unavailable_stable_rollback_raises_without_acknowledging_completion():
+    completion = threading.Event()
+    stable_manager = FakeStableManager()
+    stable_manager.rollback = lambda updater: False
+    publisher = FakePublisher()
+    drift_monitor = FakeDriftMonitor()
+    gate = FakeEvent()
+    gate.set()
+    replay_clears = []
+
+    with pytest.raises(RuntimeError, match="^stable rollback unavailable$"):
+        apply_adaptation_command(
+            AdaptationCommand("rollback", 2, "performance_degradation", completion),
+            checkpointed_episode=2,
+            updater=FakeUpdater(),
+            publisher=publisher,
+            stable_manager=stable_manager,
+            drift_monitor=drift_monitor,
+            actor_gate_event=gate,
+            clear_adaptation_replay=lambda: replay_clears.append(2),
+            enable_actor_if_episode_active=lambda episode: False,
+        )
+
+    assert not completion.is_set()
+    assert publisher.published == []
+    assert drift_monitor.cleared == []
+    assert replay_clears == []
+    assert gate.is_set()
+
+
+def test_step_start_snapshot_forces_fallback_even_if_ack_arrives_after_begin():
     pending = threading.Event()
     normal_decision = object()
     fallback_decision = object()
@@ -339,23 +370,26 @@ def test_pending_rollback_forces_base_fallback_until_acknowledged():
             assert safety_state == "safe"
             return fallback_decision
 
-    decision, pending_after_step, fallback_used = enforce_pending_rollback_fallback(
+    pending_after_step, fallback_required = prepare_rollback_fallback(pending)
+    decision = normal_decision
+    pending.set()
+    decision, fallback_used = enforce_prepared_rollback_fallback(
         online_agent=Agent(),
-        decision=normal_decision,
+        decision=decision,
         safety_state="safe",
-        pending_completion=pending,
+        fallback_required=fallback_required,
     )
 
     assert decision is fallback_decision
     assert pending_after_step is pending
     assert fallback_used
 
-    pending.set()
-    decision, pending_after_step, fallback_used = enforce_pending_rollback_fallback(
+    pending_after_step, fallback_required = prepare_rollback_fallback(pending)
+    decision, fallback_used = enforce_prepared_rollback_fallback(
         online_agent=Agent(),
         decision=normal_decision,
         safety_state="safe",
-        pending_completion=pending,
+        fallback_required=fallback_required,
     )
 
     assert decision is normal_decision
