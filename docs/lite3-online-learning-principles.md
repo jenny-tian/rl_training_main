@@ -351,6 +351,8 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
 2026-07-28 的长时探针发现，性能窗口从进入 `ADAPTING` 时就开始累计，但 Actor 需要等新异回放达到 128 条后才首次更新。这样会把更新前的地形自然变化计入退化耐心，导致 Actor 刚开始学习便被回滚。已确认的修正规则是：更新前只维护最近完整基线；当前 adaptation episode 首次成功 Actor 更新时清除跨越更新边界的部分窗口；只有更新后的完整窗口才允许累计性能退化。详细设计见 [`2026-07-28-lite3-post-update-performance-rollback-design.md`](superpowers/specs/2026-07-28-lite3-post-update-performance-rollback-design.md)。
 
+性能退化判定只在控制线程观察到当前 adaptation episode 的首次成功 Actor 更新后启用。首次更新边界保留最近一个完整更新前基线，清除跨越边界的部分窗口；随后只有完整更新后窗口可以保存稳定快照或累计退化。每个成功发布的 Actor 版本还记录固定诊断 batch 上的确定性残差 MSE、每关节绝对变化的均值与最大值、相对 episode reference Actor 的参数 L2，以及 episode、版本和更新步数。这些指标仅用于观测，不进入 loss、阈值或安全门控；旧 episode 候选和非有限诊断在发布前被拒绝。
+
 安全事件、控制超时或环境终止会立即关闭 Actor gate、清空新异回放池并请求回滚。安全阈值不会为了让某次演示通过而放宽；触发保护的 seed 必须如实计入报告。
 
 ## 10. 源地形预训练与未见地形隔离
@@ -580,6 +582,7 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - seed 7、0.3 m/s heldout 单次连续行走在线演示曾跑满 2000 步并产生残差参数变化；当前 novelty-gated 正式对照仍在调试，不能视为最终通过结果。
 - held-out 指标边界已与实际轨道边界对齐，控制路径已在计时循环前预热，三种模式不再因 CUDA/GRU 首次调用产生伪 `control_timeout`。
 - 45k residual checkpoint 已在 seed 7 的 frozen 和 online 模式下分别安全跑满 2000 步；online 最终性能仍未达到验收门槛。
+- 性能退化窗口已改为首次成功 Actor 更新后启用；每个成功发布版本记录固定诊断 batch 上的动作与参数漂移标量，并在发布前拒绝旧 episode 候选和非有限诊断。
 
 尚未完成实证验证：
 
@@ -600,7 +603,7 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 6. 当前残差限幅和奖励权重只完成了单种子连续道路验证，尚未通过十种子统计。
 7. 仿真奖励使用真实机身速度，真机部署前必须验证状态估计误差下的稳定性。
 8. 预训练 checkpoint 不包含源地形 replay，在线 Critic 无法执行 RLPD 式源/在线数据混合。
-9. Actor 更新没有相对 episode 初始稳定策略的 KL、动作或参数锚定；当前只能通过限幅和事后回滚控制策略漂移。
+9. Actor 更新已记录相对 episode reference Actor 的动作和参数漂移，但这些指标仅用于观测，尚未加入 KL、动作或参数锚定；当前仍只能通过限幅和事后回滚控制策略漂移。
 10. SAC target 使用一步 return，transition 只保存 `done`，尚未显式区分真实终止和时间截断。
 11. 当前安全层是硬阈值、动作投影和基础 PPO 回退，没有 reach-avoid value 或独立恢复策略；这在仿真阶段是明确取舍，不应被描述为完整 learned safety。
 

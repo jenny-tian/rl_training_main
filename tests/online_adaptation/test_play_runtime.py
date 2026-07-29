@@ -2,11 +2,16 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     AdaptationCommand,
     AdaptationRuntimeOrchestrator,
     RuntimeCounters,
+    policy_drift_record,
+    apply_adaptation_command,
+    record_update_result,
     resolve_track_boundary_x,
     warm_up_control_path,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate
+from rl_training.online_adaptation.policy_drift import PolicyDrift
+from rl_training.online_adaptation.types import UpdateStats
 import torch
 
 
@@ -57,6 +62,198 @@ def enter_adapting(runtime):
 
 class EnvCfg:
     pass
+
+
+class FakeEvent:
+    def __init__(self):
+        self.enabled = False
+
+    def set(self):
+        self.enabled = True
+
+    def clear(self):
+        self.enabled = False
+
+    def is_set(self):
+        return self.enabled
+
+
+class FakeStableManager:
+    def __init__(self):
+        self.checkpoints = []
+        self.rollbacks = []
+
+    def checkpoint(self, updater):
+        self.checkpoints.append(updater.version)
+
+    def rollback(self, updater):
+        self.rollbacks.append(updater.version)
+        return True
+
+
+class FakeDriftMonitor:
+    def __init__(self):
+        self.started = []
+        self.cleared = []
+
+    def start_episode(self, actor, *, adaptation_episode):
+        self.started.append((actor, adaptation_episode))
+
+    def clear_episode(self, *, adaptation_episode):
+        self.cleared.append(adaptation_episode)
+
+
+class FakePublisher:
+    def __init__(self):
+        self.published = []
+
+    def publish(self, actor, version):
+        self.published.append((actor, version))
+
+
+class FakeUpdater:
+    actor = object()
+    version = 7
+
+
+def make_update_stats(**changes):
+    values = {
+        "critic_loss": 1.0,
+        "actor_loss": 2.0,
+        "alpha_loss": 3.0,
+        "alpha": 0.2,
+        "mean_q": 4.0,
+        "grad_norm": 5.0,
+        "accepted": True,
+        "version": 7,
+        "critic_updated": True,
+        "actor_updated": True,
+        "rejection_reason": None,
+    }
+    values.update(changes)
+    return UpdateStats(**values)
+
+
+def test_policy_drift_record_is_flat_and_scalar_only():
+    drift = PolicyDrift(
+        residual_mse=0.01,
+        joint_abs_change_mean=0.02,
+        joint_abs_change_max=0.03,
+        parameter_l2=0.04,
+        adaptation_episode=2,
+        actor_version=9,
+        update_step=700,
+    )
+
+    record = policy_drift_record(drift)
+
+    assert record == {
+        "policy_residual_mse": 0.01,
+        "policy_joint_abs_change_mean": 0.02,
+        "policy_joint_abs_change_max": 0.03,
+        "policy_parameter_l2": 0.04,
+        "policy_drift_episode": 2,
+        "policy_drift_actor_version": 9,
+        "policy_drift_update_step": 700,
+    }
+    assert all(isinstance(value, (float, int)) for value in record.values())
+
+
+def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
+    stable_manager = FakeStableManager()
+    drift_monitor = FakeDriftMonitor()
+    publisher = FakePublisher()
+    updater = FakeUpdater()
+    gate = FakeEvent()
+    checkpointed_episode, _ = apply_adaptation_command(
+        AdaptationCommand("start_episode", 2),
+        checkpointed_episode=0,
+        updater=updater,
+        publisher=publisher,
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        episode_is_active=lambda episode: episode == 2,
+    )
+
+    checkpointed_episode, rollback_reason = apply_adaptation_command(
+        AdaptationCommand("rollback", 1, "performance_degradation"),
+        checkpointed_episode=checkpointed_episode,
+        updater=updater,
+        publisher=publisher,
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        episode_is_active=lambda episode: episode == 2,
+    )
+
+    assert checkpointed_episode == 2
+    assert rollback_reason is None
+    assert gate.is_set()
+    assert drift_monitor.started == [(updater.actor, 2)]
+    assert drift_monitor.cleared == []
+    assert stable_manager.rollbacks == []
+    assert publisher.published == []
+
+
+def test_old_end_does_not_clear_new_episode_gate_or_reference():
+    stable_manager = FakeStableManager()
+    drift_monitor = FakeDriftMonitor()
+    publisher = FakePublisher()
+    updater = FakeUpdater()
+    gate = FakeEvent()
+    checkpointed_episode, _ = apply_adaptation_command(
+        AdaptationCommand("start_episode", 2),
+        checkpointed_episode=0,
+        updater=updater,
+        publisher=publisher,
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        episode_is_active=lambda episode: episode == 2,
+    )
+
+    checkpointed_episode, rollback_reason = apply_adaptation_command(
+        AdaptationCommand("end_episode", 1),
+        checkpointed_episode=checkpointed_episode,
+        updater=updater,
+        publisher=publisher,
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        episode_is_active=lambda episode: episode == 2,
+    )
+
+    assert checkpointed_episode == 2
+    assert rollback_reason is None
+    assert gate.is_set()
+    assert drift_monitor.cleared == []
+
+
+def test_stale_update_result_preserves_current_log_and_counters():
+    counters = RuntimeCounters()
+    last_update = {"version": 8, "policy_drift_episode": 2}
+    stale_stats = make_update_stats(
+        accepted=False,
+        version=7,
+        critic_updated=False,
+        actor_updated=False,
+        rejection_reason="stale_adaptation_episode",
+    )
+
+    recorded = record_update_result(
+        stats=stale_stats,
+        policy_drift=None,
+        last_update=last_update,
+        counters=counters,
+        step=700,
+        adaptation_episode=1,
+    )
+
+    assert not recorded
+    assert last_update == {"version": 8, "policy_drift_episode": 2}
+    assert counters.critic_updates == 0
+    assert counters.actor_updates == 0
 
 
 def test_resolve_track_boundary_prefers_metric_boundary_over_terrain_start():
@@ -321,7 +518,7 @@ def test_old_episode_update_does_not_enable_current_episode():
     assert not result.record_fields["performance_evaluation_enabled"]
 
 
-def test_leaving_adapting_resets_performance_without_end_episode_command():
+def test_leaving_adapting_resets_performance_and_emits_end_episode_command():
     runtime = make_orchestrator()
     enter_adapting(runtime)
     runtime.adaptation_performance.mark_actor_updated()
@@ -337,7 +534,7 @@ def test_leaving_adapting_resets_performance_without_end_episode_command():
 
     assert runtime.active_episode == 0
     assert result.clear_adaptation_replay
-    assert not result.commands
+    assert result.commands == (AdaptationCommand("end_episode", 1),)
     assert not runtime.adaptation_performance.evaluation_enabled
     assert not result.record_fields["performance_evaluation_enabled"]
 

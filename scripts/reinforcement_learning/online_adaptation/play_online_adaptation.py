@@ -7,21 +7,25 @@ import queue
 import threading
 import time
 import traceback
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal
 
 from isaaclab.app import AppLauncher
 
+from rl_training.online_adaptation.actor_update import update_and_publish_actor
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyGate
+from rl_training.online_adaptation.policy_drift import ActorDriftMonitor, PolicyDrift
+from rl_training.online_adaptation.types import UpdateStats
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser
 
 
 @dataclass(frozen=True)
 class AdaptationCommand:
-    kind: Literal["start_episode", "checkpoint", "rollback"]
+    kind: Literal["start_episode", "checkpoint", "rollback", "end_episode"]
     episode: int
     reason: str = ""
 
@@ -78,6 +82,78 @@ class RuntimeStepResult:
     clear_adaptation_replay: bool
     commands: tuple[AdaptationCommand, ...]
     record_fields: dict[str, Any]
+
+
+def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
+    return {
+        "policy_residual_mse": drift.residual_mse,
+        "policy_joint_abs_change_mean": drift.joint_abs_change_mean,
+        "policy_joint_abs_change_max": drift.joint_abs_change_max,
+        "policy_parameter_l2": drift.parameter_l2,
+        "policy_drift_episode": drift.adaptation_episode,
+        "policy_drift_actor_version": drift.actor_version,
+        "policy_drift_update_step": drift.update_step,
+    }
+
+
+def apply_adaptation_command(
+    command: AdaptationCommand,
+    *,
+    checkpointed_episode: int,
+    updater: Any,
+    publisher: Any,
+    stable_manager: Any,
+    drift_monitor: ActorDriftMonitor,
+    actor_gate_event: Any,
+    episode_is_active: Callable[[int], bool],
+) -> tuple[int, str | None]:
+    if command.kind == "start_episode":
+        stable_manager.checkpoint(updater)
+        drift_monitor.start_episode(updater.actor, adaptation_episode=command.episode)
+        checkpointed_episode = command.episode
+        if episode_is_active(command.episode):
+            actor_gate_event.set()
+    elif command.kind == "checkpoint":
+        if command.episode == checkpointed_episode:
+            stable_manager.checkpoint(updater)
+    elif command.kind == "rollback":
+        if command.episode != checkpointed_episode:
+            return checkpointed_episode, None
+        if stable_manager.rollback(updater):
+            publisher.publish(updater.actor, updater.version)
+        drift_monitor.clear_episode(adaptation_episode=command.episode)
+        checkpointed_episode = 0
+        actor_gate_event.clear()
+        return checkpointed_episode, command.reason
+    elif command.kind == "end_episode":
+        if command.episode != checkpointed_episode:
+            return checkpointed_episode, None
+        drift_monitor.clear_episode(adaptation_episode=command.episode)
+        checkpointed_episode = 0
+        actor_gate_event.clear()
+    return checkpointed_episode, None
+
+
+def record_update_result(
+    *,
+    stats: UpdateStats,
+    policy_drift: PolicyDrift | None,
+    last_update: dict[str, Any],
+    counters: RuntimeCounters,
+    step: int,
+    adaptation_episode: int,
+) -> bool:
+    if stats.rejection_reason == "stale_adaptation_episode":
+        return False
+    last_update.clear()
+    last_update.update(asdict(stats))
+    if policy_drift is not None:
+        last_update.update(policy_drift_record(policy_drift))
+    if stats.accepted and stats.critic_updated:
+        counters.record_critic_update()
+    if stats.accepted and stats.actor_updated:
+        counters.record_actor_update(step=step, adaptation_episode=adaptation_episode)
+    return True
 
 
 def resolve_track_boundary_x(env_cfg: Any) -> float:
@@ -218,9 +294,11 @@ class AdaptationRuntimeOrchestrator:
                     commands.append(AdaptationCommand("rollback", episode_to_rollback, rollback_reason))
                     self.adaptation_performance.start_episode()
         elif novelty_decision.left_adapting and self.active_episode > 0:
+            episode_to_end = self.active_episode
             self.active_episode = 0
             clear_adaptation_replay = True
             self.adaptation_performance.start_episode()
+            commands.append(AdaptationCommand("end_episode", episode_to_end))
 
         self.counters.record_state(novelty_decision.state.value)
         return RuntimeStepResult(
@@ -373,6 +451,7 @@ def main() -> int:
                 patience=args.rollback_patience,
             )
             stable_manager = StableStateManager()
+            actor_drift_monitor = ActorDriftMonitor()
             stable_manager.checkpoint(online_agent.updater)
             before_parameters = {
                 key: value.detach().cpu().clone() for key, value in online_agent.updater.actor.state_dict().items()
@@ -389,7 +468,7 @@ def main() -> int:
             adaptation_episode = 0
             active_episode = 0
             current_step = 0
-            last_update: dict[str, float | int | bool] = {}
+            last_update: dict[str, Any] = {}
             last_rollback_reason = ""
 
             def updater_loop() -> None:
@@ -407,27 +486,23 @@ def main() -> int:
                             except queue.Empty:
                                 break
                             with update_lock:
-                                if command.kind == "start_episode":
-                                    stable_manager.checkpoint(online_agent.updater)
-                                    checkpointed_episode = command.episode
+                                def command_episode_is_active(episode: int) -> bool:
                                     with shared_lock:
-                                        episode_is_active = active_episode == command.episode
-                                    if episode_is_active:
-                                        actor_gate_event.set()
-                                elif command.kind == "checkpoint":
-                                    if command.episode == checkpointed_episode:
-                                        stable_manager.checkpoint(online_agent.updater)
-                                elif command.kind == "rollback":
-                                    if command.episode == checkpointed_episode and stable_manager.rollback(
-                                        online_agent.updater
-                                    ):
-                                        online_agent.publisher.publish(
-                                            online_agent.updater.actor, online_agent.updater.version
-                                        )
-                                    checkpointed_episode = 0
-                                    actor_gate_event.clear()
+                                        return active_episode == episode
+
+                                checkpointed_episode, command_rollback_reason = apply_adaptation_command(
+                                    command,
+                                    checkpointed_episode=checkpointed_episode,
+                                    updater=online_agent.updater,
+                                    publisher=online_agent.publisher,
+                                    stable_manager=stable_manager,
+                                    drift_monitor=actor_drift_monitor,
+                                    actor_gate_event=actor_gate_event,
+                                    episode_is_active=command_episode_is_active,
+                                )
+                                if command_rollback_reason is not None:
                                     with shared_lock:
-                                        last_rollback_reason = command.reason
+                                        last_rollback_reason = command_rollback_reason
 
                         now = time.perf_counter()
                         with shared_lock:
@@ -445,15 +520,28 @@ def main() -> int:
                             )
                         )
                         stats = None
+                        policy_drift = None
                         if actor_due:
+                            critic_batch = online_agent.sample_critic_batch()
+                            actor_batch = online_agent.sample_actor_batch()
+
+                            def episode_is_still_active() -> bool:
+                                with shared_lock:
+                                    return active_episode == episode_snapshot
+
                             with update_lock:
-                                stats = online_agent.updater.update(
-                                    critic_batch=online_agent.sample_critic_batch(),
-                                    actor_batch=online_agent.sample_actor_batch(),
-                                    update_actor=True,
+                                outcome = update_and_publish_actor(
+                                    updater=online_agent.updater,
+                                    publisher=online_agent.publisher,
+                                    drift_monitor=actor_drift_monitor,
+                                    critic_batch=critic_batch,
+                                    actor_batch=actor_batch,
+                                    adaptation_episode=episode_snapshot,
+                                    update_step=step_snapshot,
+                                    episode_is_active=episode_is_still_active,
                                 )
-                                if stats.accepted and stats.actor_updated:
-                                    online_agent.publisher.publish(online_agent.updater.actor, stats.version)
+                            stats = outcome.stats
+                            policy_drift = outcome.policy_drift
                             next_actor = now + actor_period
                             next_critic = max(next_critic + critic_period, now)
                         elif now >= next_critic and online_agent.should_update(
@@ -466,16 +554,16 @@ def main() -> int:
                                 )
                             next_critic = now + critic_period
 
-                        if stats is not None:
+                        if stats is not None and stats.rejection_reason != "stale_adaptation_episode":
                             with shared_lock:
-                                last_update.clear()
-                                last_update.update(asdict(stats))
-                                if stats.accepted and stats.critic_updated:
-                                    counters.record_critic_update()
-                                if stats.accepted and stats.actor_updated:
-                                    counters.record_actor_update(
-                                        step=step_snapshot, adaptation_episode=episode_snapshot
-                                    )
+                                record_update_result(
+                                    stats=stats,
+                                    policy_drift=policy_drift,
+                                    last_update=last_update,
+                                    counters=counters,
+                                    step=step_snapshot,
+                                    adaptation_episode=episode_snapshot,
+                                )
                         stop_event.wait(0.001)
                 except BaseException as error:
                     update_errors.append(error)
@@ -624,6 +712,11 @@ def main() -> int:
                 )
 
                 if adaptation_enabled:
+                    with shared_lock:
+                        performance_episode = active_episode
+                        successful_actor_updates = counters.actor_updates_for_episode(performance_episode)
+                    if successful_actor_updates > 0:
+                        adaptation_performance.mark_actor_updated()
                     performance_decision = adaptation_performance.add(
                         velocity_error=velocity_error,
                         tilt_rms=tilt_rms,
@@ -644,11 +737,15 @@ def main() -> int:
                             commands.put(
                                 AdaptationCommand("rollback", episode_to_rollback, rollback_reason)
                             )
+                            adaptation_performance.start_episode()
                 elif novelty_decision.left_adapting and active_episode > 0:
+                    episode_to_end = active_episode
                     actor_gate_event.clear()
                     online_agent.clear_adaptation_replay()
+                    adaptation_performance.start_episode()
                     with shared_lock:
                         active_episode = 0
+                    commands.put(AdaptationCommand("end_episode", episode_to_end))
 
                 with shared_lock:
                     counters.record_state(novelty_decision.state.value)
@@ -690,6 +787,10 @@ def main() -> int:
                     "actor_update_enabled": actor_gate_event.is_set(),
                     "adaptation_replay_size": len(online_agent.adaptation_replay),
                     "adaptation_episode": episode_snapshot,
+                    "performance_evaluation_enabled": adaptation_performance.evaluation_enabled,
+                    "actor_updates_in_episode": counters_snapshot["actor_updates_by_episode"].get(
+                        episode_snapshot, 0
+                    ),
                     "rollback_reason": rollback_snapshot,
                     "paused": paused_now,
                     "safety_reasons": list(decision.reasons),
@@ -744,6 +845,7 @@ def main() -> int:
                 "actor_updates": counters.actor_updates,
                 "actor_updates_before_novelty": counters.actor_updates_before_novelty,
                 "actor_updates_after_novelty": counters.actor_updates_after_novelty,
+                "actor_updates_by_episode": counters.actor_updates_by_episode,
                 "first_actor_update_step": counters.first_actor_update_step,
                 "novelty_entries": counters.novelty_entries,
                 "rollbacks": counters.rollbacks,
@@ -754,6 +856,7 @@ def main() -> int:
                 "safety_fallbacks": safety_fallbacks,
                 "safety_violation": safety_violation,
                 "parameter_changed": parameter_changed,
+                "last_update": dict(last_update),
                 **metrics.heldout_summary(),
             }
             (run_dir / "summary.json").write_text(
