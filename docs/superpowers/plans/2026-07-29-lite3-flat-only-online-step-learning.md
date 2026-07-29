@@ -450,7 +450,7 @@ class FlatOnlineProtocol:
     max_steps_per_episode: int = 2_000
 ```
 
-Use sealed seeds `(1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069, 1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123)`. Derive sealed step height with `(0.04, 0.05, 0.06)[seed % 3]`.
+Use sealed seeds `(1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069, 1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123)`. Derive sealed step height with `(0.04, 0.05, 0.06)[protocol.sealed_seeds.index(seed) % 3]`.
 
 - [ ] **Step 4: Add canonical JSON and SHA-256 methods**
 

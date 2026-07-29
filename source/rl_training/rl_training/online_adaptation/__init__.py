@@ -10,6 +10,14 @@ from .replay_buffer import ReplayBuffer
 from .reward import RewardWeights, compute_online_reward
 from .sac import SACConfig, SACUpdater, StableStateManager
 from .safety import SafetyFilter, SafetyLimits
+from .terrain_protocol import (
+    CurriculumStage,
+    FlatOnlineProtocol,
+    TerrainGeometry,
+    default_flat_online_protocol,
+    development_geometry,
+    sealed_geometry,
+)
 from .terrain_guards import assert_heldout_terrains_disabled, assert_plane_only_terrain, is_strict_flat_baseline_task
 from .types import RewardSignals, SafetyDecision, SafetyState, TransitionBatch, UpdateStats
 
@@ -31,6 +39,12 @@ __all__ = [
     "StableStateManager",
     "SafetyFilter",
     "SafetyLimits",
+    "TerrainGeometry",
+    "CurriculumStage",
+    "FlatOnlineProtocol",
+    "default_flat_online_protocol",
+    "development_geometry",
+    "sealed_geometry",
     "RewardWeights",
     "compute_online_reward",
     "RollingMetrics",
