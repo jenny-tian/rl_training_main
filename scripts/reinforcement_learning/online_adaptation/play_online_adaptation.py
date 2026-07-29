@@ -29,6 +29,7 @@ class AdaptationCommand:
     kind: Literal["start_episode", "checkpoint", "rollback", "end_episode"]
     episode: int
     reason: str = ""
+    completion: threading.Event | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass
@@ -102,6 +103,31 @@ def write_actor_update_event(stream: Any, event: dict[str, Any]) -> None:
     stream.flush()
 
 
+def actor_version_for_record(decision: Any) -> int | None:
+    return decision.actor_version
+
+
+def rollback_record_fields(current_reason: str, last_reason: str) -> dict[str, str]:
+    return {
+        "rollback_reason": current_reason,
+        "last_rollback_reason": last_reason,
+    }
+
+
+def enforce_pending_rollback_fallback(
+    *,
+    online_agent: Any,
+    decision: Any,
+    safety_state: Any,
+    pending_completion: threading.Event | None,
+) -> tuple[Any, threading.Event | None, bool]:
+    if pending_completion is None:
+        return decision, None, False
+    if pending_completion.is_set():
+        return decision, None, False
+    return online_agent.fallback_pending(safety_state), pending_completion, True
+
+
 def transition_episode_publication(
     *,
     shared_lock: Any,
@@ -170,6 +196,8 @@ def apply_adaptation_command(
             stable_manager.checkpoint(updater)
     elif command.kind == "rollback":
         if command.episode != checkpointed_episode:
+            if command.completion is not None:
+                command.completion.set()
             return checkpointed_episode, None
         if stable_manager.rollback(updater):
             publisher.publish(updater.actor, updater.version)
@@ -177,6 +205,8 @@ def apply_adaptation_command(
         clear_adaptation_replay()
         checkpointed_episode = 0
         actor_gate_event.clear()
+        if command.completion is not None:
+            command.completion.set()
         return checkpointed_episode, command.reason
     elif command.kind == "end_episode":
         if command.episode != checkpointed_episode:
@@ -377,7 +407,7 @@ class AdaptationRuntimeOrchestrator:
                 "reward_drop": novelty_decision.reward_drop,
                 "actor_update_enabled": adaptation_enabled,
                 "adaptation_episode": self.active_episode,
-                "rollback_reason": rollback_reason or self.last_rollback_reason,
+                **rollback_record_fields(rollback_reason, self.last_rollback_reason),
                 "performance_evaluation_enabled": self.adaptation_performance.evaluation_enabled,
             },
         )
@@ -535,6 +565,7 @@ def main() -> int:
             last_update: dict[str, Any] = {}
             actor_update_events_logged = 0
             last_rollback_reason = ""
+            pending_rollback_completion: threading.Event | None = None
 
             def read_active_episode() -> int:
                 return active_episode
@@ -710,8 +741,6 @@ def main() -> int:
                         active_episode=active_episode,
                         actor_gate_event=actor_gate_event,
                     )
-                if update_errors:
-                    raise RuntimeError("background SAC updater failed") from update_errors[0]
                 loop_started = time.perf_counter()
                 control_started = time.perf_counter()
                 frame = adapter.frame(previous_action)
@@ -725,6 +754,14 @@ def main() -> int:
                     safety_state,
                     deterministic=not args.stochastic_control,
                 )
+                decision, pending_rollback_completion, rollback_fallback_used = (
+                    enforce_pending_rollback_fallback(
+                        online_agent=online_agent,
+                        decision=decision,
+                        safety_state=safety_state,
+                        pending_completion=pending_rollback_completion,
+                    )
+                )
                 if device.type == "cuda":
                     torch.cuda.synchronize(device)
                 control_ms = (time.perf_counter() - control_started) * 1_000.0
@@ -732,11 +769,15 @@ def main() -> int:
                 if control_ms > args.control_timeout_ms:
                     control_timed_out = True
                     timed_out_state = replace(safety_state, control_timed_out=torch.ones_like(timeout))
-                    decision = online_agent.fallback_pending(timed_out_state)
+                    if not rollback_fallback_used:
+                        decision = online_agent.fallback_pending(timed_out_state)
                     if device.type == "cuda":
                         torch.cuda.synchronize(device)
                     control_ms = (time.perf_counter() - control_started) * 1_000.0
+                if rollback_fallback_used or control_timed_out:
                     safety_fallbacks += 1
+                if update_errors:
+                    raise RuntimeError("background SAC updater failed") from update_errors[0]
 
                 paused_now = bool(decision.paused.any().item())
                 if online_agent.all_environments_paused(decision.paused):
@@ -768,6 +809,14 @@ def main() -> int:
                     elif done.any().item():
                         safety_reason = "environment_termination"
                 if safety_reason:
+                    rollback_completion = threading.Event()
+                    pending_rollback_completion = rollback_completion
+                    rollback_command = AdaptationCommand(
+                        "rollback",
+                        active_episode,
+                        safety_reason,
+                        rollback_completion,
+                    )
                     transition_episode_publication(
                         shared_lock=shared_lock,
                         actor_gate_event=actor_gate_event,
@@ -775,13 +824,14 @@ def main() -> int:
                         write_active_episode=write_active_episode,
                         next_episode=0,
                         after_transition=lambda episode: commands.put(
-                            AdaptationCommand("rollback", episode, safety_reason)
+                            replace(rollback_command, episode=episode)
                         ),
                     )
                     novelty_decision = novelty_gate.force_cooldown()
                     adaptation_performance.start_episode()
                     with shared_lock:
                         counters.record_rollback(safety_reason)
+                        last_rollback_reason = safety_reason
                     rollback_reason = safety_reason
                 else:
                     novelty_decision = novelty_gate.observe(
@@ -843,6 +893,14 @@ def main() -> int:
                             commands.put(AdaptationCommand("checkpoint", active_episode))
                         elif performance_decision.should_rollback:
                             rollback_reason = performance_decision.rollback_reason or "performance_degradation"
+                            rollback_completion = threading.Event()
+                            pending_rollback_completion = rollback_completion
+                            rollback_command = AdaptationCommand(
+                                "rollback",
+                                active_episode,
+                                rollback_reason,
+                                rollback_completion,
+                            )
                             transition_episode_publication(
                                 shared_lock=shared_lock,
                                 actor_gate_event=actor_gate_event,
@@ -850,12 +908,13 @@ def main() -> int:
                                 write_active_episode=write_active_episode,
                                 next_episode=0,
                                 after_transition=lambda episode: commands.put(
-                                    AdaptationCommand("rollback", episode, rollback_reason)
+                                    replace(rollback_command, episode=episode)
                                 ),
                             )
                             novelty_decision = novelty_gate.force_cooldown()
                             with shared_lock:
                                 counters.record_rollback(rollback_reason)
+                                last_rollback_reason = rollback_reason
                             adaptation_performance.start_episode()
                 elif novelty_decision.left_adapting and active_episode > 0:
                     transition_episode_publication(
@@ -901,7 +960,7 @@ def main() -> int:
                     update_snapshot = dict(last_update)
                     counters_snapshot = asdict(counters)
                     episode_snapshot = active_episode
-                    rollback_snapshot = rollback_reason or last_rollback_reason
+                    last_rollback_snapshot = last_rollback_reason
                 record = {
                     "step": step,
                     "mode": args.mode,
@@ -911,7 +970,7 @@ def main() -> int:
                     "tilt_rms": tilt_rms,
                     "nonfoot_contact": nonfoot_contact,
                     "reward": float(reward.mean()),
-                    "actor_version": online_agent.publisher.current()[1],
+                    "actor_version": actor_version_for_record(decision),
                     "updates": counters_snapshot["actor_updates"],
                     "critic_updates": counters_snapshot["critic_updates"],
                     "actor_updates": counters_snapshot["actor_updates"],
@@ -927,7 +986,7 @@ def main() -> int:
                     "actor_updates_in_episode": counters_snapshot["actor_updates_by_episode"].get(
                         episode_snapshot, 0
                     ),
-                    "rollback_reason": rollback_snapshot,
+                    **rollback_record_fields(rollback_reason, last_rollback_snapshot),
                     "paused": paused_now,
                     "safety_reasons": list(decision.reasons),
                     "base_action_norm": float(base_action.norm()),
@@ -1003,6 +1062,7 @@ def main() -> int:
                 "safety_violation": safety_violation,
                 "parameter_changed": parameter_changed,
                 "last_update": dict(last_update),
+                "last_rollback_reason": last_rollback_reason,
                 **metrics.heldout_summary(),
             }
             (run_dir / "summary.json").write_text(

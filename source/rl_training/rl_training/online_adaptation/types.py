@@ -52,6 +52,7 @@ class SafetyDecision:
     paused: torch.Tensor
     projected: torch.Tensor
     reasons: tuple[str, ...]
+    actor_version: int | None = None
 
 
 @dataclass(frozen=True)

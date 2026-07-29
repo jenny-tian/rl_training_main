@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import torch
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .history import HistoryBuffer
 from .networks import ResidualActor, TwinCritic
@@ -30,7 +30,7 @@ class PendingStep:
     base_action: torch.Tensor
     residual_action: torch.Tensor
     learning_mask: torch.Tensor
-    actor_version: int
+    actor_version: int | None
 
 
 class OnlineAdaptationAgent:
@@ -89,7 +89,10 @@ class OnlineAdaptationAgent:
         actor, version = self.publisher.current()
         with torch.no_grad():
             residual, _, _ = actor.sample(history, frame, base_action, deterministic=deterministic)
-        decision = self.safety.project(base_action, residual, safety_state)
+        decision = replace(
+            self.safety.project(base_action, residual, safety_state),
+            actor_version=version,
+        )
         self._pending = PendingStep(
             history=history,
             frame=frame.detach().clone(),
@@ -136,10 +139,13 @@ class OnlineAdaptationAgent:
         """Replace the pending residual with the frozen-base fallback after a control timeout."""
         if self._pending is None:
             raise RuntimeError("begin_step must be called before fallback_pending")
-        fallback = self.safety.project(
-            self._pending.base_action,
-            torch.zeros_like(self._pending.residual_action),
-            safety_state,
+        fallback = replace(
+            self.safety.project(
+                self._pending.base_action,
+                torch.zeros_like(self._pending.residual_action),
+                safety_state,
+            ),
+            actor_version=None,
         )
         self._pending = PendingStep(
             history=self._pending.history,
@@ -147,7 +153,7 @@ class OnlineAdaptationAgent:
             base_action=self._pending.base_action,
             residual_action=fallback.residual.detach().clone(),
             learning_mask=(~fallback.paused).detach().clone(),
-            actor_version=self._pending.actor_version,
+            actor_version=None,
         )
         return fallback
 

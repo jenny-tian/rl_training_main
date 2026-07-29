@@ -5,6 +5,7 @@ from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
 from rl_training.online_adaptation.safety import SafetyLimits
 from rl_training.online_adaptation.types import SafetyState
+from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import actor_version_for_record
 
 
 def make_agent():
@@ -97,3 +98,27 @@ def test_actor_update_requires_gate_replay_and_unpaused_control():
     assert not should_update(128, 128, paused=True, actor_enabled=True)
     assert not should_update(128, 128, paused=False, actor_enabled=False)
     assert should_update(128, 128, paused=False, actor_enabled=True)
+
+
+def test_begin_step_decision_keeps_version_used_even_after_publisher_updates():
+    agent = make_agent()
+    frame = torch.zeros(1, 2)
+    base_action = torch.zeros(1, 1)
+
+    decision = agent.begin_step(frame, base_action, safety_state(), deterministic=True)
+    agent.publisher.publish(agent.updater.actor, version=4)
+
+    assert decision.actor_version == 0
+    assert actor_version_for_record(decision) == 0
+
+
+def test_fallback_pending_marks_residual_actor_version_as_unused():
+    agent = make_agent()
+    frame = torch.zeros(1, 2)
+    base_action = torch.zeros(1, 1)
+    agent.begin_step(frame, base_action, safety_state(), deterministic=True)
+
+    fallback = agent.fallback_pending(safety_state())
+
+    assert fallback.actor_version is None
+    assert actor_version_for_record(fallback) is None

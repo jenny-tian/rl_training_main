@@ -1,14 +1,20 @@
 import json
+import threading
+
+import pytest
 
 from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
     AdaptationCommand,
     AdaptationRuntimeOrchestrator,
     RuntimeCounters,
     enable_actor_gate_if_active,
+    enforce_pending_rollback_fallback,
+    actor_version_for_record,
     policy_drift_record,
     apply_adaptation_command,
     cutoff_before_final_step,
     record_update_result,
+    rollback_record_fields,
     resolve_track_boundary_x,
     transition_episode_publication,
     warm_up_control_path,
@@ -236,8 +242,9 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
         enable_actor_if_episode_active=lambda episode: gate.set() or episode == 2,
     )
 
+    completion = threading.Event()
     checkpointed_episode, rollback_reason = apply_adaptation_command(
-        AdaptationCommand("rollback", 1, "performance_degradation"),
+        AdaptationCommand("rollback", 1, "performance_degradation", completion),
         checkpointed_episode=checkpointed_episode,
         updater=updater,
         publisher=publisher,
@@ -256,6 +263,104 @@ def test_old_rollback_does_not_clear_new_episode_gate_or_reference():
     assert stable_manager.rollbacks == []
     assert publisher.published == []
     assert replay_clears == [2]
+    assert completion.is_set()
+
+
+def test_rollback_command_completion_does_not_affect_equality_or_repr():
+    command = AdaptationCommand(
+        "rollback",
+        1,
+        "performance_degradation",
+        threading.Event(),
+    )
+
+    assert command == AdaptationCommand("rollback", 1, "performance_degradation")
+    assert "completion" not in repr(command)
+
+
+def test_matching_rollback_acknowledges_only_after_restored_actor_is_published():
+    completion = threading.Event()
+    publisher = FakePublisher()
+
+    def publish(actor, version):
+        assert not completion.is_set()
+        publisher.published.append((actor, version))
+
+    publisher.publish = publish
+
+    checkpointed_episode, rollback_reason = apply_adaptation_command(
+        AdaptationCommand("rollback", 2, "performance_degradation", completion),
+        checkpointed_episode=2,
+        updater=FakeUpdater(),
+        publisher=publisher,
+        stable_manager=FakeStableManager(),
+        drift_monitor=FakeDriftMonitor(),
+        actor_gate_event=FakeEvent(),
+        clear_adaptation_replay=lambda: None,
+        enable_actor_if_episode_active=lambda episode: False,
+    )
+
+    assert checkpointed_episode == 0
+    assert rollback_reason == "performance_degradation"
+    assert publisher.published == [(FakeUpdater.actor, FakeUpdater.version)]
+    assert completion.is_set()
+
+
+def test_rollback_exception_does_not_acknowledge_completion():
+    completion = threading.Event()
+
+    class FailingPublisher:
+        def publish(self, actor, version):
+            raise RuntimeError("publish failed")
+
+    with pytest.raises(RuntimeError, match="publish failed"):
+        apply_adaptation_command(
+            AdaptationCommand("rollback", 2, "performance_degradation", completion),
+            checkpointed_episode=2,
+            updater=FakeUpdater(),
+            publisher=FailingPublisher(),
+            stable_manager=FakeStableManager(),
+            drift_monitor=FakeDriftMonitor(),
+            actor_gate_event=FakeEvent(),
+            clear_adaptation_replay=lambda: None,
+            enable_actor_if_episode_active=lambda episode: False,
+        )
+
+    assert not completion.is_set()
+
+
+def test_pending_rollback_forces_base_fallback_until_acknowledged():
+    pending = threading.Event()
+    normal_decision = object()
+    fallback_decision = object()
+
+    class Agent:
+        def fallback_pending(self, safety_state):
+            assert safety_state == "safe"
+            return fallback_decision
+
+    decision, pending_after_step, fallback_used = enforce_pending_rollback_fallback(
+        online_agent=Agent(),
+        decision=normal_decision,
+        safety_state="safe",
+        pending_completion=pending,
+    )
+
+    assert decision is fallback_decision
+    assert pending_after_step is pending
+    assert fallback_used
+
+    pending.set()
+    decision, pending_after_step, fallback_used = enforce_pending_rollback_fallback(
+        online_agent=Agent(),
+        decision=normal_decision,
+        safety_state="safe",
+        pending_completion=pending,
+    )
+
+    assert decision is normal_decision
+    assert pending_after_step is None
+    assert not fallback_used
 
 
 def test_old_end_does_not_clear_new_episode_gate_or_reference():
@@ -697,6 +802,13 @@ def test_runtime_counters_record_distinct_rollback_reasons():
     assert counters.safety_rollbacks == 1
 
 
+def test_rollback_record_fields_keep_current_event_separate_from_history():
+    assert rollback_record_fields("", "performance_degradation") == {
+        "rollback_reason": "",
+        "last_rollback_reason": "performance_degradation",
+    }
+
+
 def test_adaptation_command_defaults_to_no_reason():
     command = AdaptationCommand(kind="start_episode", episode=3)
 
@@ -806,6 +918,16 @@ def test_runtime_rolls_back_after_two_complete_post_update_windows():
     assert not runtime.adaptation_performance.evaluation_enabled
     assert runtime.counters.rollbacks == 1
     assert runtime.counters.performance_rollbacks == 1
+
+    normal = runtime.observe_step(
+        step=14,
+        velocity_error=0.10,
+        tilt_rms=0.02,
+        nonfoot_contact=0,
+        reward=1.0,
+    )
+    assert normal.record_fields["rollback_reason"] == ""
+    assert normal.record_fields["last_rollback_reason"] == "performance_degradation"
 
 
 def test_old_episode_update_does_not_enable_current_episode():
