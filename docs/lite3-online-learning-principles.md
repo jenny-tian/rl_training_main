@@ -6,7 +6,7 @@
 
 当前方案的核心是：保留已经训练好的 PPO 步态控制器，并在其动作上叠加一个受严格约束的残差 SAC 策略。残差策略在一次不重置的连续行走过程中采集新经验、执行梯度更新，并把更新后的网络参数用于同一次行走的后续控制。
 
-需要特别说明：截至 2026-07-28，NVIDIA 驱动与 Isaac Lab 已恢复可用，环境创建、冻结 PPO 推理、残差 SAC 梯度更新和单次连续行走脚本均已通过短程仿真验证。当前候选基础策略 `lite3_rl_deploy_policy_candidate.pt` 已通过五种子源地形资格测试：0 次跌倒，平均速度误差 0.103，小于 0.35 门槛。novelty-gated 在线适应机制已经实现并具备自动化测试，但 held-out 方块道路正式对照尚未通过最终验收。
+需要特别说明：截至 2026-07-29，NVIDIA 驱动与 Isaac Lab 已恢复可用，环境创建、冻结 PPO 推理、残差 SAC 梯度更新和单次连续行走脚本均已通过短程仿真验证。当前候选基础策略 `lite3_rl_deploy_policy_candidate.pt` 已通过五种子源地形资格测试：0 次跌倒，平均速度误差 0.103，小于 0.35 门槛。novelty-gated 在线适应机制已经实现并具备自动化测试，但 held-out 方块道路正式对照尚未通过最终验收。2023 至 2026 年的相关工作表明，当前方案还需要进一步处理策略漂移、offline-to-online 数据混合、Q 值校准和 timeout-aware target；这些缺口在第 12 节和第 14 节中明确列出。
 
 ## 2. 什么是这里的“真正在线学习”
 
@@ -349,6 +349,8 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
 第一个完整窗口建立 episode 参考；后续窗口比当前最佳值改善至少 5% 时保存完整 SAC 稳定快照；连续两个窗口比最佳值差 10% 以上时回滚。回滚恢复 Actor、Critic、目标 Critic、优化器、熵参数和 Actor 版本号，只影响残差模块，基础 PPO 不变。
 
+2026-07-28 的长时探针发现，性能窗口从进入 `ADAPTING` 时就开始累计，但 Actor 需要等新异回放达到 128 条后才首次更新。这样会把更新前的地形自然变化计入退化耐心，导致 Actor 刚开始学习便被回滚。已确认的修正规则是：更新前只维护最近完整基线；当前 adaptation episode 首次成功 Actor 更新时清除跨越更新边界的部分窗口；只有更新后的完整窗口才允许累计性能退化。详细设计见 [`2026-07-28-lite3-post-update-performance-rollback-design.md`](superpowers/specs/2026-07-28-lite3-post-update-performance-rollback-design.md)。
+
 安全事件、控制超时或环境终止会立即关闭 Actor gate、清空新异回放池并请求回滚。安全阈值不会为了让某次演示通过而放宽；触发保护的 seed 必须如实计入报告。
 
 ## 10. 源地形预训练与未见地形隔离
@@ -421,6 +423,18 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
 该结果说明：当前推荐演示速度下，在线版本在同一次连续行走中执行了 485 次 SAC 更新，Actor 版本从 742 增至 1227，`residual_before.pt` 与 `residual_after.pt` 不同，并且 heldout 后半段速度误差低于前半段。冻结残差对照虽未摔倒，但该 seed/速度下没有进入 heldout 统计区间，不能证明未见地形适应。
 
+上述记录早于 novelty gate、held-out 边界修正和控制路径预热，只能作为历史证据，不能作为当前配置的正式验收。2026-07-28 在修正后的 seed 7、0.3 m/s、100 ms 控制期限下得到：
+
+| 模式/检查点 | 步数 | reset | safety violation | heldout samples | 速度误差前/后半 | 倾角前/后半 | Actor 更新后次数 | 最终参数变化 |
+|---|---:|---:|---|---:|---:|---:|---:|---|
+| `base` | 2000 | 0 | 否 | 1562 | 0.297 / 0.284 | 0.040 / 0.107 | 0 | 否 |
+| `residual_frozen` / 50k | 1577 | 1 | 是 | 1121 | 0.298 / 0.198 | 0.048 / 0.055 | 0 | 否 |
+| `online` / 50k | 1202 | 1 | 是 | 746 | 0.287 / 0.283 | 0.038 / 0.077 | 15 | 是 |
+| `residual_frozen` / 45k | 2000 | 0 | 否 | 1554 | 0.301 / 0.279 | 0.062 / 0.150 | 0 | 否 |
+| `online` / 45k | 2000 | 0 | 否 | 1554 | 0.295 / 0.291 | 0.068 / 0.073 | 4 | 否，更新均被回滚 |
+
+50k residual 自身不能通过 2000 步 frozen 安全基线。45k residual 可使 frozen 和 online 都安全跑满 2000 步，但 online 速度误差比 frozen 后半程高约 4.5%，两次性能回滚使最终参数恢复到初始值。因此当前结果证明了安全改进和在线更新路径有效，尚未证明在线学习带来最终性能收益。
+
 ## 12. 参考资料及其与本实现的关系
 
 ### 12.1 直接采用的算法思想
@@ -457,7 +471,82 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
    DayDreamer 展示了世界模型在真实机器人在线学习中的样本效率。本项目没有实现世界模型或想象规划，而是选择计算和安全边界更简单的残差 SAC 路线。
 
-### 12.3 工程基础
+### 12.3 2023 至 2025 年的直接相关工作
+
+6. **DreamWaQ: Learning Robust Quadrupedal Locomotion With Implicit Terrain Imagination via Deep Reinforcement Learning**
+   I Made Aswin Nahrendra 等，ICRA 2023。
+   <https://arxiv.org/abs/2301.10602>
+
+   DreamWaQ 通过本体感知历史形成隐式地形表示，并在真实室外环境中验证长距离行走。它在部署时不更新策略权重，因此与本项目的 `residual_frozen` 历史条件策略属于重要对照，而不是“真正在线梯度更新”的证据。本项目现有 GRU frozen residual 已覆盖部分隐式适应能力，但尚不是对 DreamWaQ 训练方法的完整复现。
+
+7. **Efficient Online Reinforcement Learning with Offline Data (RLPD)**
+   Philip J. Ball 等，ICML 2023。
+   <https://arxiv.org/abs/2302.02948>
+
+   RLPD 表明，离线初始化后进行在线 RL 时，已有数据与新数据的混合方式会显著影响稳定性和样本效率。本项目目前只加载预训练 SAC 状态，不携带源地形 replay；在线 Critic 只从当前运行的全局 replay 采样。这是当前方案与成熟 offline-to-online 流程之间的明确缺口。
+
+8. **Cal-QL: Calibrated Offline RL Pre-Training for Efficient Online Fine-Tuning**
+   Mitsuhiko Nakamoto 等，NeurIPS 2023。
+   <https://arxiv.org/abs/2303.05479>
+
+   Cal-QL 强调离线 Critic 的数值尺度和校准对在线微调至关重要。本项目还没有 conservative/calibrated Q 初始化，也没有专门监控源地形 Q 值与在线 Q 值的尺度偏移。第一步应先记录 Q 分布和 target 偏差，再决定是否引入 Cal-QL/CQL 类目标。
+
+9. **Synaptic Motor Adaptation: A Three-Factor Learning Rule for Adaptive Robotic Control in Spiking Neural Networks**
+   Samuel Schmidgall、Joe Hays，2023。
+   <https://arxiv.org/abs/2306.01906>
+
+   该工作研究四足机器人实时参数可塑性，是少数比 RMA 更接近“运行中改变参数”的腿式适应方法。它采用元优化的局部突触学习规则和脉冲网络，不适合直接替换当前 SAC，但证明部署时权重适应需要专门设计更新规则，不能仅依赖通用离线超参数。
+
+10. **Grow Your Limits: Continuous Improvement with Real-World RL for Robotic Locomotion**
+    Laura Smith、Yunhao Cao、Sergey Levine，2023。
+    <https://arxiv.org/abs/2310.17634>
+
+    APRL 在真实四足机器人上使用策略正则化调节探索，使策略能够持续训练和适应动力学变化。它直接支持在 residual Actor 在线更新中加入相对稳定策略的行为锚定，并记录策略漂移，而不是只依靠事后性能回滚。
+
+11. **LoopSR: Looping Sim-and-Real for Lifelong Policy Adaptation of Legged Robots**
+    Peilin Wu 等，2024，IROS 2025。
+    <https://arxiv.org/abs/2409.17992>
+
+    LoopSR 使用真实轨迹估计数字孪生参数，再回到仿真中继续训练。它不执行同一控制回合内的在线梯度更新，但为真机阶段提供了更保守的长期适应路线：真实机器人负责采集，策略改进在可重放的仿真环境中完成。
+
+12. **Bridging Adaptivity and Safety: Learning Agile Collision-Free Locomotion Across Varied Physics**
+    Yichao Zhong 等，2025。
+    <https://arxiv.org/abs/2501.04276>
+
+    BAS 使用物理参数估计、恢复策略和 reach-avoid value 管理未知动力学下的安全切换。当前项目的硬阈值过滤和冻结 PPO 回退仍应保留为独立安全底线；learned safety 可以作为未来附加层，但不能替代硬安全控制器。
+
+13. **Fine-Tuning Hard-to-Simulate Objectives for Quadruped Locomotion: A Case Study on Total Power Saving**
+    Ruiqian Nai 等，ICRA 2025。
+    <https://arxiv.org/abs/2502.10956>
+
+    该工作先用真实数据学习难以仿真的目标模型，再在仿真中改进策略。对于未来 Lite3 功耗、噪声和硬件磨损目标，这比直接在真机上用稀疏、安全敏感奖励更新 Actor 更合适。
+
+### 12.4 2026 年预印本观察
+
+14. **Bridging the Gap: Enabling Soft Actor Critic for High Performance Legged Locomotion**
+    Gianluca Sabatini、Chenhao Li、Marco Hutter，2026 预印本。
+    <https://arxiv.org/abs/2605.24975>
+
+    该工作直接针对腿式 SAC，提出策略初始化、timeout-aware Critic target 和 multi-step return。当前实现已有预训练初始化，但仍使用一步 TD target，transition 只保存单个 `done`，没有明确区分 termination 与 truncation。由于该工作仍是新预印本，本项目应先独立验证这些机制，而不是把其结果视为已确立标准。
+
+15. **Residual Control for Fast Recovery from Dynamics Shifts**
+    Nethmi Jayasinghe 等，2026 预印本。
+    <https://arxiv.org/abs/2603.07775>
+
+    该工作保持名义策略冻结，通过受限残差通道和稳定性对齐门控制恢复。它不在部署时重新训练名义策略，但其残差幅度、方向一致性和性能条件门控与本项目安全 residual 架构高度相关，可作为后续残差发布约束的研究参考。
+
+### 12.5 文献对当前实现的分阶段结论
+
+近期工作不会被一次性照搬。当前项目按以下顺序吸收：
+
+1. 先修正首次 Actor 更新与性能回滚窗口的因果边界，并记录策略相对稳定快照的漂移。
+2. 再设计源地形 replay 持久化、源/在线批次混合、termination/truncation 区分和 timeout-aware target。
+3. 在单步 target 基线稳定后，独立评估 multi-step return 和 Q 值校准，避免同时改变多个 Critic 因素。
+4. 真机阶段优先考虑 LoopSR 和 hard-to-sim objective 的“真实数据回流仿真”路线；任何 learned safety 都只能叠加在硬安全控制器之上。
+
+完整分阶段设计见 [`2026-07-29-lite3-literature-aligned-online-adaptation-hardening-design.md`](superpowers/specs/2026-07-29-lite3-literature-aligned-online-adaptation-hardening-design.md)。
+
+### 12.6 工程基础
 
 - **Isaac Lab**：仿真环境、传感器、地形和任务配置。  
   <https://github.com/isaac-sim/IsaacLab>
@@ -485,10 +574,12 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - Isaac Lab 环境创建、PPO 加载和单步控制集成验证；
 - 源地形残差 SAC 正式预训练，256 环境、2000 步，产物位于 `lite3_deploy_base_residual_pretrain_256env_2000_20260727/latest.pt`；
 - 冻结残差连续行走验证，参数保持逐位不变；
-- 在线适应模块纯测试（102 通过，4 个 Isaac-only 用例在普通测试中跳过）；
+- 在线适应模块测试（109 通过，2 个 Isaac-only 用例在普通测试中跳过；使用当前 worktree `PYTHONPATH` 并关闭无关第三方 pytest 插件自动加载）；
 - 五种子资格入口改为每个种子独立 Isaac 进程，避免仿真单例重建卡死；
 - `/home/tjx/Lite3_rl_deploy` 官方部署 PPO 导入为 RSL-RL 兼容检查点，并通过五种子源地形资格测试；
 - seed 7、0.3 m/s heldout 单次连续行走在线演示曾跑满 2000 步并产生残差参数变化；当前 novelty-gated 正式对照仍在调试，不能视为最终通过结果。
+- held-out 指标边界已与实际轨道边界对齐，控制路径已在计时循环前预热，三种模式不再因 CUDA/GRU 首次调用产生伪 `control_timeout`。
+- 45k residual checkpoint 已在 seed 7 的 frozen 和 online 模式下分别安全跑满 2000 步；online 最终性能仍未达到验收门槛。
 
 尚未完成实证验证：
 
@@ -508,6 +599,10 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 5. 更新线程不能强制中断一次正在执行的反向传播；需要通过计算预算、独立进程或 watchdog 进一步加强超时隔离。
 6. 当前残差限幅和奖励权重只完成了单种子连续道路验证，尚未通过十种子统计。
 7. 仿真奖励使用真实机身速度，真机部署前必须验证状态估计误差下的稳定性。
+8. 预训练 checkpoint 不包含源地形 replay，在线 Critic 无法执行 RLPD 式源/在线数据混合。
+9. Actor 更新没有相对 episode 初始稳定策略的 KL、动作或参数锚定；当前只能通过限幅和事后回滚控制策略漂移。
+10. SAC target 使用一步 return，transition 只保存 `done`，尚未显式区分真实终止和时间截断。
+11. 当前安全层是硬阈值、动作投影和基础 PPO 回退，没有 reach-avoid value 或独立恢复策略；这在仿真阶段是明确取舍，不应被描述为完整 learned safety。
 
 ## 15. 真机迁移边界
 
