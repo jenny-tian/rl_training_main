@@ -1,4 +1,5 @@
 from scripts.reinforcement_learning.online_adaptation.cli import (
+    build_flat_baseline_manifest_parser,
     build_play_parser,
     build_qualify_parser,
     build_train_parser,
@@ -32,6 +33,35 @@ def test_qualification_parser_describes_strict_flat_baseline_task():
     parser = build_qualify_parser()
 
     assert parser.description == "Qualify a frozen Lite3 base policy on the strict-flat baseline task."
+
+
+def test_flat_baseline_manifest_parser_is_strict_and_repeatable():
+    args = build_flat_baseline_manifest_parser().parse_args(
+        [
+            "--checkpoint",
+            "policy.pt",
+            "--config",
+            "env.yaml",
+            "--config",
+            "agent.yaml",
+            "--seed",
+            "7",
+            "--num-envs",
+            "4096",
+            "--max-iterations",
+            "1500",
+            "--training-command-file",
+            "command.txt",
+            "--output",
+            "manifest.json",
+        ]
+    )
+
+    assert args.task == "Flat-Deeprobotics-Lite3-v0"
+    assert args.config == ["env.yaml", "agent.yaml"]
+    assert args.seed == 7
+    assert args.num_envs == 4096
+    assert args.max_iterations == 1500
 
 
 def test_play_defaults_configure_novelty_gated_actor_updates():

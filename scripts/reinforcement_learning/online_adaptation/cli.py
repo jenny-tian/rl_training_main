@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import argparse
 
-from isaaclab.app import AppLauncher
-
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
 STRICT_FLAT_BASELINE_TASK = "Flat-Deeprobotics-Lite3-v0"
 HELDOUT_TASK = "HeldoutBoxes-Deeprobotics-Lite3-v0"
 
 
 def _add_app_launcher_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
+    from isaaclab.app import AppLauncher
+
     AppLauncher.add_app_launcher_args(parser)
     return parser
 
@@ -41,6 +41,19 @@ def build_qualify_parser() -> argparse.ArgumentParser:
     parser.add_argument("--steps-per-seed", type=int, default=1_000)
     parser.add_argument("--max-mean-velocity-error", type=float, default=0.35)
     parser.add_argument("--output", default="logs/online_adaptation/base_qualification.json")
+    return parser
+
+
+def build_flat_baseline_manifest_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Record strict-flat Lite3 PPO baseline provenance.")
+    parser.add_argument("--checkpoint", required=True)
+    parser.add_argument("--config", action="append", required=True)
+    parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("--num-envs", type=int, required=True)
+    parser.add_argument("--max-iterations", type=int, required=True)
+    parser.add_argument("--training-command-file", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--task", default=STRICT_FLAT_BASELINE_TASK)
     return parser
 
 

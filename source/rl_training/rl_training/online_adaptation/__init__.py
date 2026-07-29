@@ -5,6 +5,7 @@ from .isaaclab_adapter import Lite3IsaacLabAdapter, compose_proprio_frame
 from .metrics import RollingMetrics
 from .networks import HistoryEncoder, ResidualActor, TwinCritic
 from .publisher import DoubleBufferedActorPublisher
+from .provenance import REQUIRED_VERSION_KEYS, build_flat_baseline_manifest, sha256_file, write_json_atomic
 from .replay_buffer import ReplayBuffer
 from .reward import RewardWeights, compute_online_reward
 from .sac import SACConfig, SACUpdater, StableStateManager
@@ -34,6 +35,10 @@ __all__ = [
     "compute_online_reward",
     "RollingMetrics",
     "DoubleBufferedActorPublisher",
+    "REQUIRED_VERSION_KEYS",
+    "sha256_file",
+    "build_flat_baseline_manifest",
+    "write_json_atomic",
     "Lite3IsaacLabAdapter",
     "compose_proprio_frame",
     "assert_heldout_terrains_disabled",
