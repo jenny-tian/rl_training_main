@@ -50,8 +50,22 @@ def assert_state_dict_equal(actual, expected):
         assert actual == expected
 
 
-def test_active_finite_candidate_is_diagnosed_and_published():
+def test_active_finite_candidate_is_diagnosed_before_publishing(monkeypatch):
     updater, publisher, monitor = make_components()
+    events = []
+    original_measure = monitor.measure
+    original_publish = publisher.publish
+
+    def measure(*args, **kwargs):
+        events.append("measure")
+        return original_measure(*args, **kwargs)
+
+    def publish(*args, **kwargs):
+        events.append("publish")
+        return original_publish(*args, **kwargs)
+
+    monkeypatch.setattr(monitor, "measure", measure)
+    monkeypatch.setattr(publisher, "publish", publish)
 
     outcome = update_and_publish_actor(
         updater=updater,
@@ -69,6 +83,7 @@ def test_active_finite_candidate_is_diagnosed_and_published():
     assert outcome.policy_drift is not None
     assert outcome.policy_drift.actor_version == outcome.stats.version
     assert outcome.policy_drift.update_step == 7
+    assert events == ["measure", "publish"]
     _, published_version = publisher.current()
     assert published_version == outcome.stats.version
     published_actor, _ = publisher.current()
@@ -80,8 +95,15 @@ def test_active_finite_candidate_is_diagnosed_and_published():
     )
 
 
-def test_inactive_episode_rejects_without_measuring_or_publishing():
+def test_inactive_episode_rejects_without_measuring_or_publishing(monkeypatch):
     updater, publisher, monitor = make_components()
+    publish_calls = []
+
+    def fail_if_measured(*args, **kwargs):
+        raise AssertionError("stale candidate must not be measured")
+
+    monkeypatch.setattr(monitor, "measure", fail_if_measured)
+    monkeypatch.setattr(publisher, "publish", lambda *args, **kwargs: publish_calls.append(args))
 
     outcome = update_and_publish_actor(
         updater=updater,
@@ -100,16 +122,18 @@ def test_inactive_episode_rejects_without_measuring_or_publishing():
     assert updater.version == 0
     _, published_version = publisher.current()
     assert published_version == 0
-    assert monitor._diagnostic_inputs is None
+    assert publish_calls == []
 
 
 def test_monitor_floating_point_error_rejects_without_publishing(monkeypatch):
     updater, publisher, monitor = make_components()
+    publish_calls = []
 
     def raise_nonfinite(*args, **kwargs):
         raise FloatingPointError("non-finite policy drift")
 
     monkeypatch.setattr(monitor, "measure", raise_nonfinite)
+    monkeypatch.setattr(publisher, "publish", lambda *args, **kwargs: publish_calls.append(args))
     outcome = update_and_publish_actor(
         updater=updater,
         publisher=publisher,
@@ -127,6 +151,7 @@ def test_monitor_floating_point_error_rejects_without_publishing(monkeypatch):
     assert updater.version == 0
     _, published_version = publisher.current()
     assert published_version == 0
+    assert publish_calls == []
 
 
 def test_unexpected_monitor_error_propagates_and_restores_updater(monkeypatch):
@@ -152,3 +177,43 @@ def test_unexpected_monitor_error_propagates_and_restores_updater(monkeypatch):
     assert_state_dict_equal(updater.state_dict(), before)
     _, published_version = publisher.current()
     assert published_version == 0
+
+
+def test_publish_failure_restores_updater_and_resynchronizes_publisher(monkeypatch):
+    updater, publisher, monitor = make_components()
+    before = copy.deepcopy(updater.state_dict())
+    published_before, published_version_before = publisher.current()
+    published_parameters_before = [parameter.detach().clone() for parameter in published_before.parameters()]
+    original_publish = publisher.publish
+    publish_calls = 0
+
+    def fail_once(training_actor, version):
+        nonlocal publish_calls
+        publish_calls += 1
+        original_publish(training_actor, version)
+        if publish_calls == 1:
+            raise RuntimeError("publish failed after swap")
+
+    monkeypatch.setattr(publisher, "publish", fail_once)
+    with pytest.raises(RuntimeError, match="publish failed after swap"):
+        update_and_publish_actor(
+            updater=updater,
+            publisher=publisher,
+            drift_monitor=monitor,
+            critic_batch=make_batch(0.1),
+            actor_batch=make_batch(0.2),
+            adaptation_episode=1,
+            update_step=7,
+            episode_is_active=lambda: True,
+        )
+
+    assert publish_calls == 2
+    assert_state_dict_equal(updater.state_dict(), before)
+    restored_published, restored_version = publisher.current()
+    assert restored_version == published_version_before
+    assert all(
+        torch.equal(restored_parameter, before_parameter)
+        for restored_parameter, before_parameter in zip(
+            restored_published.parameters(), published_parameters_before, strict=True
+        )
+    )

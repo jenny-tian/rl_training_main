@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -26,6 +27,7 @@ def update_and_publish_actor(
     update_step: int,
     episode_is_active: Callable[[], bool],
 ) -> ActorUpdateOutcome:
+    pre_update_state = copy.deepcopy(updater.state_dict())
     policy_drift: PolicyDrift | None = None
 
     def validate_candidate(candidate_actor, candidate_version: int) -> str | None:
@@ -50,10 +52,23 @@ def update_and_publish_actor(
         update_actor=True,
         candidate_validator=validate_candidate,
     )
+    if stats.accepted and policy_drift is None:
+        updater.load_state_dict(pre_update_state)
+        raise RuntimeError("accepted actor update has no policy drift")
+
     if stats.accepted and stats.actor_updated:
-        if policy_drift is None:
-            raise RuntimeError("accepted actor update has no policy drift")
-        publisher.publish(updater.actor, stats.version)
+        try:
+            publisher.publish(updater.actor, stats.version)
+        except BaseException as publication_error:
+            updater.load_state_dict(pre_update_state)
+            try:
+                publisher.publish(updater.actor, int(pre_update_state["version"]))
+            except BaseException as resync_error:
+                raise RuntimeError(
+                    "actor publication failed and publisher resynchronization failed: "
+                    f"publication_error={publication_error!r}; resync_error={resync_error!r}"
+                ) from resync_error
+            raise
         return ActorUpdateOutcome(stats=stats, policy_drift=policy_drift)
 
     return ActorUpdateOutcome(stats=stats, policy_drift=None)
