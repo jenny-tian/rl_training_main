@@ -9,7 +9,7 @@ from .replay_buffer import ReplayBuffer
 from .reward import RewardWeights, compute_online_reward
 from .sac import SACConfig, SACUpdater, StableStateManager
 from .safety import SafetyFilter, SafetyLimits
-from .terrain_guards import assert_heldout_terrains_disabled
+from .terrain_guards import assert_heldout_terrains_disabled, assert_plane_only_terrain, is_strict_flat_baseline_task
 from .types import RewardSignals, SafetyDecision, SafetyState, TransitionBatch, UpdateStats
 
 __all__ = [
@@ -37,5 +37,7 @@ __all__ = [
     "Lite3IsaacLabAdapter",
     "compose_proprio_frame",
     "assert_heldout_terrains_disabled",
+    "assert_plane_only_terrain",
+    "is_strict_flat_baseline_task",
     "evaluate_run",
 ]

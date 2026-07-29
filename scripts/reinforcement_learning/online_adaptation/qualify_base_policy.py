@@ -11,6 +11,7 @@ from pathlib import Path
 from isaaclab.app import AppLauncher
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_qualify_parser
+from rl_training.online_adaptation.terrain_guards import assert_plane_only_terrain, is_strict_flat_baseline_task
 
 
 def _write_report(path: Path, report: dict) -> None:
@@ -20,6 +21,9 @@ def _write_report(path: Path, report: dict) -> None:
 
 def _run_multi_seed(args) -> int:
     from rl_training.online_adaptation.qualification import build_qualification_report
+
+    if not is_strict_flat_baseline_task(args.task):
+        raise ValueError("base qualification requires task 'Flat-Deeprobotics-Lite3-v0'")
 
     output_path = Path(args.output)
     records: list[dict[str, float | int]] = []
@@ -71,8 +75,8 @@ def _run_multi_seed(args) -> int:
 def _run_single_seed(args) -> int:
     from rl_training.online_adaptation.qualification import build_qualification_report
 
-    if "HeldoutBoxes" in args.task:
-        raise ValueError("base qualification must use the source-only task")
+    if not is_strict_flat_baseline_task(args.task):
+        raise ValueError("base qualification requires task 'Flat-Deeprobotics-Lite3-v0'")
     if len(args.seeds) != 1:
         raise ValueError("single-seed worker requires exactly one seed")
 
@@ -93,6 +97,7 @@ def _run_single_seed(args) -> int:
 
         seed = args.seeds[0]
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
+        assert_plane_only_terrain(env_cfg.scene.terrain)
         env_cfg.seed = seed
         env_cfg.terminations.time_out = None
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
@@ -143,8 +148,8 @@ def _run_single_seed(args) -> int:
 
 def main() -> int:
     args = build_qualify_parser().parse_args()
-    if "HeldoutBoxes" in args.task:
-        raise ValueError("base qualification must use the source-only task")
+    if not is_strict_flat_baseline_task(args.task):
+        raise ValueError("base qualification requires task 'Flat-Deeprobotics-Lite3-v0'")
     if len(args.seeds) > 1:
         return _run_multi_seed(args)
     return _run_single_seed(args)

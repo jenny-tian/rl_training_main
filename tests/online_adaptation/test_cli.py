@@ -20,12 +20,18 @@ def test_train_can_resume_residual_checkpoint():
     assert args.resume_checkpoint == "residual.pt"
 
 
-def test_qualification_defaults_are_source_only_and_strict():
+def test_qualification_defaults_to_strict_flat_baseline():
     args = build_qualify_parser().parse_args(["--base-checkpoint", "base.pt"])
-    assert args.task == "OnlineAdapt-Deeprobotics-Lite3-v0"
+    assert args.task == "Flat-Deeprobotics-Lite3-v0"
     assert args.seeds == [7, 11, 19, 23, 31]
     assert args.steps_per_seed == 1_000
     assert args.max_mean_velocity_error == 0.35
+
+
+def test_qualification_parser_describes_strict_flat_baseline_task():
+    parser = build_qualify_parser()
+
+    assert parser.description == "Qualify a frozen Lite3 base policy on the strict-flat baseline task."
 
 
 def test_play_defaults_configure_novelty_gated_actor_updates():

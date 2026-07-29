@@ -5,6 +5,7 @@ import argparse
 from isaaclab.app import AppLauncher
 
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
+STRICT_FLAT_BASELINE_TASK = "Flat-Deeprobotics-Lite3-v0"
 HELDOUT_TASK = "HeldoutBoxes-Deeprobotics-Lite3-v0"
 
 
@@ -33,9 +34,9 @@ def build_train_parser() -> argparse.ArgumentParser:
 
 
 def build_qualify_parser() -> argparse.ArgumentParser:
-    parser = _parser("Qualify a frozen Lite3 base policy on source terrains.")
+    parser = _parser("Qualify a frozen Lite3 base policy on the strict-flat baseline task.")
     parser.add_argument("--base-checkpoint", required=True)
-    parser.add_argument("--task", default=SOURCE_TASK)
+    parser.add_argument("--task", default=STRICT_FLAT_BASELINE_TASK)
     parser.add_argument("--seeds", type=int, nargs="+", default=[7, 11, 19, 23, 31])
     parser.add_argument("--steps-per-seed", type=int, default=1_000)
     parser.add_argument("--max-mean-velocity-error", type=float, default=0.35)

@@ -121,12 +121,23 @@ pretraining explicitly rejects boxes and stairs. Evaluation is one continuous pa
 held-out box-height track, with no automatic reset after a fall. The current single-seed Lite3 demo is validated at
 `--forward-speed 0.3`; `0.5` remains a stress case that can still fail on seed 7.
 
-First qualify the base PPO checkpoint on source terrains:
+First train the base PPO policy on the strict flat task, then select a checkpoint only from that flat-only run:
 
 ```bash
-BASE_CHECKPOINT=logs/rsl_rl/deeprobotics_lite3_rough/2026-07-24_14-42-38/model_20.pt
+python scripts/reinforcement_learning/rsl_rl/train.py \
+  --task Flat-Deeprobotics-Lite3-v0 \
+  --num_envs 4096 --seed 42 --max_iterations 10000 \
+  --run_name flat_only_seed42 --headless
+
+FLAT_ROOT=logs/rsl_rl/deeprobotics_lite3_flat
+FLAT_RUN="$(find "$FLAT_ROOT" -maxdepth 1 -type d -name '*_flat_only_seed42' | sort | tail -1)"
+test -n "$FLAT_RUN" && test -d "$FLAT_RUN"
+BASE_CHECKPOINT="$(find "$FLAT_RUN" -maxdepth 1 -type f -name 'model_*.pt' | sort -V | tail -1)"
+test -n "$BASE_CHECKPOINT" && test -f "$BASE_CHECKPOINT"
+
 python scripts/reinforcement_learning/online_adaptation/qualify_base_policy.py \
   --base-checkpoint "$BASE_CHECKPOINT" --headless \
+  --task Flat-Deeprobotics-Lite3-v0 \
   --output logs/online_adaptation/base_qualification.json
 ```
 

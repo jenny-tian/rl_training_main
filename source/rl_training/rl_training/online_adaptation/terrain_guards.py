@@ -5,6 +5,20 @@ from typing import Any
 HELDOUT_TERRAIN_NAMES = ("boxes", "pyramid_stairs", "pyramid_stairs_inv")
 
 
+def is_strict_flat_baseline_task(task: str) -> bool:
+    return task == "Flat-Deeprobotics-Lite3-v0"
+
+
+def assert_plane_only_terrain(terrain_cfg: object) -> None:
+    terrain_type = getattr(terrain_cfg, "terrain_type", None)
+    terrain_generator = getattr(terrain_cfg, "terrain_generator", None)
+    if terrain_type != "plane" or terrain_generator is not None:
+        raise ValueError(
+            "strict plane-only initialization requires terrain_type='plane' "
+            "and terrain_generator=None"
+        )
+
+
 def deterministic_root_reset_params() -> dict[str, dict[str, tuple[float, float]]]:
     zero_range = (0.0, 0.0)
     return {
