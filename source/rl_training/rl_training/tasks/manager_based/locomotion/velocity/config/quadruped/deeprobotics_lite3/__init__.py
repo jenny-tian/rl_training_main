@@ -24,6 +24,16 @@ gym.register(
 )
 
 gym.register(
+    id="FlatOnline-Deeprobotics-Lite3-v0",
+    entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.flat_online_env_cfg:DeeproboticsLite3FlatOnlineEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3FlatPPORunnerCfg",
+    },
+)
+
+gym.register(
     id="Rough-Deeprobotics-Lite3-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
     disable_env_checker=True,

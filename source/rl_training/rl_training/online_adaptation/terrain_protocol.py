@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from numbers import Real
 
@@ -58,6 +59,104 @@ class TerrainGeometry:
         _validate_seed(self.seed)
         object.__setattr__(self, "step_height", step_height)
         object.__setattr__(self, "rough_amplitude", rough_amplitude)
+
+
+def apply_geometry_to_env_cfg(env_cfg: object, geometry: TerrainGeometry) -> None:
+    if not isinstance(geometry, TerrainGeometry):
+        raise TypeError("geometry must be a TerrainGeometry instance")
+
+    try:
+        terrain_generator = env_cfg.scene.terrain.terrain_generator
+    except AttributeError as error:
+        raise ValueError("env_cfg must define scene.terrain.terrain_generator") from error
+    if terrain_generator is None:
+        raise ValueError("env_cfg scene terrain_generator must not be None")
+    if not hasattr(terrain_generator, "seed"):
+        raise ValueError("terrain_generator must define a mutable seed")
+
+    sub_terrains = getattr(terrain_generator, "sub_terrains", None)
+    if not isinstance(sub_terrains, Mapping) or set(sub_terrains) != {"flat_online"}:
+        raise ValueError("terrain_generator must contain the sole 'flat_online' subterrain")
+
+    flat_online = sub_terrains["flat_online"]
+    missing_fields = [
+        name
+        for name in ("seed", "step_height", "rough_amplitude")
+        if not hasattr(flat_online, name)
+    ]
+    if missing_fields:
+        raise ValueError(
+            "flat_online subterrain must define mutable fields: "
+            + ", ".join(missing_fields)
+        )
+
+    assignments = (
+        ("flat_online.seed", flat_online, "seed", geometry.seed),
+        (
+            "flat_online.step_height",
+            flat_online,
+            "step_height",
+            geometry.step_height,
+        ),
+        (
+            "flat_online.rough_amplitude",
+            flat_online,
+            "rough_amplitude",
+            geometry.rough_amplitude,
+        ),
+        ("terrain_generator.seed", terrain_generator, "seed", geometry.seed),
+    )
+    snapshots = [
+        (name, target, attribute, getattr(target, attribute), value)
+        for name, target, attribute, value in assignments
+    ]
+    applied = []
+    for name, target, attribute, original, value in snapshots:
+        try:
+            setattr(target, attribute, value)
+        except Exception as error:
+            rollback_failures = []
+            rollback_targets = []
+            try:
+                if getattr(target, attribute) != original:
+                    rollback_targets.append((name, target, attribute, original))
+            except Exception as inspection_error:
+                rollback_failures.append((name, inspection_error))
+            rollback_targets.extend(reversed(applied))
+
+            for rollback_name, rollback_target, rollback_attribute, rollback_original in (
+                rollback_targets
+            ):
+                try:
+                    setattr(rollback_target, rollback_attribute, rollback_original)
+                except Exception as rollback_error:
+                    try:
+                        restored = (
+                            getattr(rollback_target, rollback_attribute) == rollback_original
+                        )
+                    except Exception as inspection_error:
+                        rollback_failures.append(
+                            (
+                                rollback_name,
+                                f"{rollback_error}; unable to verify restored value: "
+                                f"{inspection_error}",
+                            )
+                        )
+                    else:
+                        if not restored:
+                            rollback_failures.append((rollback_name, rollback_error))
+
+            message = f"failed to apply terrain geometry at {name}"
+            if rollback_failures:
+                details = ", ".join(
+                    f"{rollback_name}: {rollback_error}"
+                    for rollback_name, rollback_error in rollback_failures
+                )
+                message += f"; rollback failed for {details}"
+            else:
+                message += "; previous values restored"
+            raise ValueError(message) from error
+        applied.append((name, target, attribute, original))
 
 
 @dataclass(frozen=True)
