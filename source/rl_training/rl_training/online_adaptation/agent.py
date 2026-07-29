@@ -1,7 +1,10 @@
 from __future__ import annotations
 
-import torch
+import threading
 from dataclasses import dataclass, replace
+from numbers import Real
+
+import torch
 
 from .history import HistoryBuffer
 from .networks import ResidualActor, TwinCritic
@@ -21,6 +24,7 @@ class AgentConfig:
     min_replay_size: int = 256
     batch_size: int = 128
     updates_per_second: float = 5.0
+    residual_gain: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -31,6 +35,28 @@ class PendingStep:
     residual_action: torch.Tensor
     learning_mask: torch.Tensor
     actor_version: int | None
+
+
+def _validate_residual_gain(value: object) -> float:
+    error_message = "residual_gain must be a real finite scalar in [0, 1]"
+    if isinstance(value, torch.Tensor):
+        if value.ndim != 0 or value.dtype == torch.bool or value.is_complex():
+            raise ValueError(error_message)
+        try:
+            valid = torch.isfinite(value) & (value >= 0) & (value <= 1)
+            if not bool(valid.item()):
+                raise ValueError(error_message)
+            return float(value.item())
+        except (RuntimeError, TypeError, ValueError, OverflowError) as error:
+            raise ValueError(error_message) from error
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError(error_message)
+    try:
+        if value != value or value < 0 or value > 1:
+            raise ValueError(error_message)
+        return float(value)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise ValueError(error_message) from error
 
 
 class OnlineAdaptationAgent:
@@ -50,6 +76,8 @@ class OnlineAdaptationAgent:
             device = next(actor.parameters()).device
         self.device = torch.device(device)
         self.config = config
+        self._residual_gain_lock = threading.Lock()
+        self._residual_gain = _validate_residual_gain(config.residual_gain)
         self.history = HistoryBuffer(
             num_envs=num_envs,
             history_length=config.history_length,
@@ -75,6 +103,16 @@ class OnlineAdaptationAgent:
         self.publisher = DoubleBufferedActorPublisher(actor)
         self._pending: PendingStep | None = None
 
+    @property
+    def residual_gain(self) -> float:
+        with self._residual_gain_lock:
+            return self._residual_gain
+
+    def set_residual_gain(self, value: float) -> None:
+        validated = _validate_residual_gain(value)
+        with self._residual_gain_lock:
+            self._residual_gain = validated
+
     def begin_step(
         self,
         frame: torch.Tensor,
@@ -84,13 +122,20 @@ class OnlineAdaptationAgent:
     ) -> SafetyDecision:
         if self._pending is not None:
             raise RuntimeError("finish_step must be called before the next begin_step")
+        residual_gain = self.residual_gain
         self.history.append(frame)
         history = self.history.snapshot()
         actor, version = self.publisher.current()
         with torch.no_grad():
             residual, _, _ = actor.sample(history, frame, base_action, deterministic=deterministic)
+            residual = residual * residual_gain
         decision = replace(
-            self.safety.project(base_action, residual, safety_state),
+            self.safety.project(
+                base_action,
+                residual,
+                safety_state,
+                force_zero_residual=residual_gain == 0.0,
+            ),
             actor_version=version,
         )
         self._pending = PendingStep(

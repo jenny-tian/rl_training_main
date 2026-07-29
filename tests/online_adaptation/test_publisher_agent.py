@@ -1,11 +1,14 @@
 from dataclasses import replace
+from fractions import Fraction
 
+import numpy as np
+import pytest
 import torch
 
 from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
-from rl_training.online_adaptation.safety import SafetyLimits
+from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 from rl_training.online_adaptation.types import SafetyState
 from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
     actor_version_for_record,
@@ -13,17 +16,53 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
 )
 
 
-def make_agent():
+def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02):
     actor = ResidualActor(2, 1, 4, torch.tensor([0.2]))
     critic = TwinCritic(2, 1, 4)
     return OnlineAdaptationAgent(
         num_envs=1,
         actor=actor,
         critic=critic,
-        safety_limits=SafetyLimits(residual_limits=torch.tensor([0.2])),
-        config=AgentConfig(history_length=3, frame_dim=2, action_dim=1, batch_size=1),
+        safety_limits=SafetyLimits(
+            residual_limits=torch.tensor([0.2]),
+            residual_rate_limit=residual_rate_limit,
+        ),
+        config=AgentConfig(
+            history_length=3,
+            frame_dim=2,
+            action_dim=1,
+            batch_size=1,
+            residual_gain=residual_gain,
+        ),
         device="cpu",
     )
+
+
+class FixedResidualActor:
+    def __init__(self, residual):
+        self.residual = residual
+
+    def sample(self, history, frame, base_action, *, deterministic):
+        residual = torch.full_like(base_action, self.residual)
+        return residual, None, residual
+
+
+def publish_fixed_residual(agent, residual, version=0):
+    actor = FixedResidualActor(residual)
+    agent.publisher.current = lambda: (actor, version)
+
+
+def accumulate_residual_memory(agent, steps=3):
+    frame = torch.zeros(1, 2)
+    base_action = torch.zeros(1, 1)
+    for _ in range(steps):
+        agent.begin_step(frame, base_action, safety_state(), deterministic=True)
+        agent.finish_step(
+            frame,
+            base_action,
+            torch.zeros(1, 1),
+            torch.zeros(1, 1),
+        )
 
 
 def safety_state():
@@ -115,6 +154,210 @@ def test_begin_step_decision_keeps_version_used_even_after_publisher_updates():
 
     assert decision.actor_version == 0
     assert actor_version_for_record(decision) == 0
+
+
+def test_zero_residual_gain_suppresses_stochastic_actor_sample_exactly():
+    agent = make_agent(residual_gain=0.0)
+    base_action = torch.zeros(1, 1)
+
+    decision = agent.begin_step(
+        torch.randn(1, 2),
+        base_action,
+        safety_state(),
+        deterministic=False,
+    )
+
+    assert torch.equal(decision.residual, torch.zeros_like(base_action))
+
+
+def test_setting_zero_residual_gain_clears_accumulated_learned_residual_exactly():
+    agent = make_agent(residual_gain=1.0, residual_rate_limit=0.02)
+    publish_fixed_residual(agent, residual=0.2)
+    accumulate_residual_memory(agent)
+    assert agent.safety._previous_residual is not None
+    assert torch.count_nonzero(agent.safety._previous_residual).item() > 0
+
+    agent.set_residual_gain(0.0)
+    decision = agent.begin_step(
+        torch.zeros(1, 2),
+        torch.zeros(1, 1),
+        safety_state(),
+        deterministic=True,
+    )
+
+    assert torch.equal(decision.residual, torch.zeros(1, 1))
+    assert torch.equal(decision.action, torch.zeros(1, 1))
+
+
+def test_zero_residual_gain_retains_only_joint_projection_after_residual_memory():
+    agent = make_agent(residual_gain=1.0, residual_rate_limit=0.02)
+    publish_fixed_residual(agent, residual=0.2)
+    accumulate_residual_memory(agent)
+    agent.set_residual_gain(0.0)
+    base_action = torch.tensor([[2.0]])
+    state = safety_state()
+    expected = SafetyFilter(agent.safety.limits).project(
+        base_action,
+        torch.zeros_like(base_action),
+        state,
+        force_zero_residual=True,
+    )
+
+    decision = agent.begin_step(
+        torch.zeros(1, 2),
+        base_action,
+        state,
+        deterministic=True,
+    )
+
+    assert torch.equal(decision.action, expected.action)
+    assert torch.equal(decision.residual, expected.residual)
+    assert agent._pending is not None
+    assert torch.equal(agent._pending.residual_action, decision.residual)
+
+
+def test_zero_residual_gain_preserves_safety_valid_base_action():
+    agent = make_agent(residual_gain=0.0)
+    publish_fixed_residual(agent, residual=0.2)
+    base_action = torch.tensor([[0.25]])
+
+    decision = agent.begin_step(
+        torch.zeros(1, 2),
+        base_action,
+        safety_state(),
+        deterministic=False,
+    )
+
+    assert torch.equal(decision.action, base_action)
+
+
+def test_zero_residual_gain_still_projects_unsafe_base_action():
+    agent = make_agent(residual_gain=0.0)
+    publish_fixed_residual(agent, residual=0.2)
+    base_action = torch.tensor([[2.0]])
+    state = safety_state()
+    expected = SafetyFilter(agent.safety.limits).project(
+        base_action,
+        torch.zeros_like(base_action),
+        state,
+    )
+
+    decision = agent.begin_step(
+        torch.zeros(1, 2),
+        base_action,
+        state,
+        deterministic=False,
+    )
+
+    assert torch.equal(decision.action, expected.action)
+    assert torch.equal(decision.residual, expected.residual)
+    assert not torch.equal(decision.action, base_action)
+
+
+def test_half_residual_gain_scales_published_actor_sample_before_safety():
+    agent = make_agent(residual_gain=0.5, residual_rate_limit=1.0)
+    publish_fixed_residual(agent, residual=0.12, version=7)
+
+    decision = agent.begin_step(
+        torch.zeros(1, 2),
+        torch.zeros(1, 1),
+        safety_state(),
+        deterministic=True,
+    )
+
+    assert torch.equal(decision.residual, torch.tensor([[0.06]]))
+    assert decision.actor_version == 7
+
+
+def test_set_residual_gain_takes_effect_on_next_begin_step():
+    agent = make_agent(residual_gain=0.0, residual_rate_limit=1.0)
+    publish_fixed_residual(agent, residual=0.12)
+    frame = torch.zeros(1, 2)
+    base_action = torch.zeros(1, 1)
+
+    first = agent.begin_step(frame, base_action, safety_state(), deterministic=True)
+    agent.finish_step(
+        frame,
+        base_action,
+        torch.zeros(1, 1),
+        torch.zeros(1, 1),
+    )
+    agent.set_residual_gain(0.5)
+    second = agent.begin_step(frame, base_action, safety_state(), deterministic=True)
+
+    assert torch.equal(first.residual, torch.zeros_like(base_action))
+    assert agent.residual_gain == 0.5
+    assert torch.equal(second.residual, torch.tensor([[0.06]]))
+
+
+@pytest.mark.parametrize(
+    "invalid_gain",
+    [True, float("nan"), float("inf"), float("-inf"), -0.01, 1.01, "0.5", None],
+)
+def test_agent_rejects_invalid_config_residual_gain(invalid_gain):
+    with pytest.raises(ValueError, match="residual_gain"):
+        make_agent(residual_gain=invalid_gain)
+
+
+@pytest.mark.parametrize(
+    "invalid_gain",
+    [False, float("nan"), float("inf"), float("-inf"), -0.01, 1.01, "0.5", None],
+)
+def test_agent_rejects_invalid_runtime_residual_gain(invalid_gain):
+    agent = make_agent()
+
+    with pytest.raises(ValueError, match="residual_gain"):
+        agent.set_residual_gain(invalid_gain)
+
+
+@pytest.mark.parametrize(
+    "valid_gain",
+    [
+        torch.tensor(0.5),
+        torch.tensor(0, dtype=torch.int64),
+        torch.tensor(1, dtype=torch.int32),
+        np.float32(0.5),
+        np.longdouble("0.5"),
+    ],
+)
+def test_agent_accepts_real_numeric_scalar_residual_gain(valid_gain):
+    agent = make_agent(residual_gain=valid_gain)
+
+    assert agent.residual_gain == float(valid_gain)
+
+
+@pytest.mark.parametrize(
+    "invalid_gain",
+    [
+        torch.tensor(True),
+        torch.tensor(0.5 + 0.0j),
+        torch.tensor([0.5]),
+        torch.tensor(float("nan")),
+        torch.tensor(float("inf")),
+        torch.tensor(float("-inf")),
+        torch.tensor(-0.01),
+        torch.tensor(1.01),
+    ],
+)
+def test_agent_rejects_invalid_tensor_residual_gain(invalid_gain):
+    with pytest.raises(ValueError, match="residual_gain"):
+        make_agent(residual_gain=invalid_gain)
+
+
+@pytest.mark.parametrize(
+    "invalid_gain",
+    [
+        np.nextafter(np.longdouble(1), np.longdouble(2)),
+        np.nextafter(np.longdouble(0), np.longdouble(-1)),
+        Fraction(2**54 + 1, 2**54),
+        Fraction(-1, 2**1075),
+    ],
+)
+def test_agent_rejects_out_of_range_values_before_float_conversion(invalid_gain):
+    assert float(invalid_gain) in (0.0, 1.0)
+
+    with pytest.raises(ValueError, match="residual_gain"):
+        make_agent(residual_gain=invalid_gain)
 
 
 def test_fallback_pending_marks_residual_actor_version_as_unused():

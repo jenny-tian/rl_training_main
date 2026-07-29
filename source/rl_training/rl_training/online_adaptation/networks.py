@@ -45,8 +45,8 @@ class ResidualActor(nn.Module):
         )
         self.mean_layer = nn.Linear(128, action_dim)
         self.log_std_layer = nn.Linear(128, action_dim)
-        nn.init.uniform_(self.mean_layer.weight, -1e-4, 1e-4)
-        nn.init.uniform_(self.mean_layer.bias, -1e-4, 1e-4)
+        nn.init.zeros_(self.mean_layer.weight)
+        nn.init.zeros_(self.mean_layer.bias)
         if action_limits is None:
             action_limits = torch.ones(action_dim)
         if action_limits.shape != (action_dim,):
