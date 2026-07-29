@@ -48,6 +48,38 @@ def test_force_zero_residual_bypasses_learned_rate_limit_memory():
     assert torch.equal(forced.action, base_action)
 
 
+def test_force_zero_residual_preserves_only_joint_limit_correction_memory():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), residual_rate_limit=0.05)
+    )
+    learned_residual = torch.full((1, 12), 0.2)
+    for _ in range(4):
+        filt.project(torch.zeros(1, 12), learned_residual, state())
+
+    base_action = torch.zeros(1, 12)
+    base_action[:, 0] = 4.0
+    forced = filt.project(
+        base_action,
+        learned_residual,
+        state(),
+        force_zero_residual=True,
+    )
+
+    expected_residual = torch.zeros_like(learned_residual)
+    expected_residual[:, 0] = -0.08
+    assert torch.allclose(forced.residual, expected_residual, atol=1e-6)
+    assert torch.allclose(forced.action, base_action + expected_residual, atol=1e-6)
+
+    after = filt.project(
+        torch.zeros_like(base_action),
+        torch.zeros_like(learned_residual),
+        state(),
+    )
+    expected_after = torch.zeros_like(learned_residual)
+    expected_after[:, 0] = -0.03
+    assert torch.allclose(after.residual, expected_after, atol=1e-6)
+
+
 def test_unsafe_tilt_pauses_and_requires_stable_window_to_resume():
     filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2), stable_steps_to_resume=3))
     unsafe = filt.project(torch.ones(1, 12), torch.zeros(1, 12), state(tilt=0.8))
