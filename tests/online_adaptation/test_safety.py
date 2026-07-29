@@ -26,6 +26,28 @@ def test_rate_and_joint_target_projection():
     assert decision.projected.item()
 
 
+def test_force_zero_residual_bypasses_learned_rate_limit_memory():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), residual_rate_limit=0.05)
+    )
+    base_action = torch.zeros(1, 12)
+    learned_residual = torch.full((1, 12), 0.2)
+    for _ in range(4):
+        filt.project(base_action, learned_residual, state())
+
+    rate_limited = filt.project(base_action, torch.zeros_like(learned_residual), state())
+    forced = filt.project(
+        base_action,
+        torch.zeros_like(learned_residual),
+        state(),
+        force_zero_residual=True,
+    )
+
+    assert torch.allclose(rate_limited.residual, torch.full((1, 12), 0.15))
+    assert torch.equal(forced.residual, torch.zeros_like(learned_residual))
+    assert torch.equal(forced.action, base_action)
+
+
 def test_unsafe_tilt_pauses_and_requires_stable_window_to_resume():
     filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2), stable_steps_to_resume=3))
     unsafe = filt.project(torch.ones(1, 12), torch.zeros(1, 12), state(tilt=0.8))

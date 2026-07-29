@@ -121,10 +121,16 @@ def test_fallback_pending_marks_residual_actor_version_as_unused():
     agent = make_agent()
     frame = torch.zeros(1, 2)
     base_action = torch.zeros(1, 1)
-    agent.begin_step(frame, base_action, safety_state(), deterministic=True)
+    normal_state = safety_state()
+    learned_residual = torch.full_like(base_action, 0.2)
+    for _ in range(10):
+        agent.safety.project(base_action, learned_residual, normal_state)
+    agent.begin_step(frame, base_action, normal_state, deterministic=True)
 
-    fallback = agent.fallback_pending(safety_state())
+    fallback = agent.fallback_pending(normal_state)
 
+    assert torch.equal(fallback.residual, torch.zeros_like(base_action))
+    assert torch.equal(fallback.action, base_action)
     assert fallback.actor_version is None
     assert actor_version_for_record(fallback) is None
 

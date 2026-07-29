@@ -45,6 +45,8 @@ class SafetyFilter:
         base_action: torch.Tensor,
         raw_residual: torch.Tensor,
         state: SafetyState,
+        *,
+        force_zero_residual: bool = False,
     ) -> SafetyDecision:
         if base_action.shape != raw_residual.shape:
             raise ValueError(f"base and residual shapes differ: {base_action.shape} vs {raw_residual.shape}")
@@ -87,6 +89,8 @@ class SafetyFilter:
             torch.minimum(residual, self._previous_residual + self.limits.residual_rate_limit),
             self._previous_residual - self.limits.residual_rate_limit,
         )
+        if force_zero_residual:
+            residual = torch.zeros_like(residual)
         residual_guard = self._paused | contact_active | tilt_guard
         residual = torch.where(residual_guard, torch.zeros_like(residual), residual)
 

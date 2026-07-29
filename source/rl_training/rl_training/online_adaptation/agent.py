@@ -144,6 +144,7 @@ class OnlineAdaptationAgent:
                 self._pending.base_action,
                 torch.zeros_like(self._pending.residual_action),
                 safety_state,
+                force_zero_residual=True,
             ),
             actor_version=None,
         )
