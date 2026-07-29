@@ -1,0 +1,100 @@
+from __future__ import annotations
+
+import copy
+from dataclasses import dataclass
+
+import torch
+
+from .networks import ResidualActor
+from .types import TransitionBatch
+
+
+@dataclass(frozen=True)
+class PolicyDrift:
+    residual_mse: float
+    joint_abs_change_mean: float
+    joint_abs_change_max: float
+    parameter_l2: float
+    adaptation_episode: int
+    actor_version: int
+    update_step: int
+
+
+class ActorDriftMonitor:
+    def __init__(self) -> None:
+        self._reference_actor: ResidualActor | None = None
+        self._diagnostic_inputs: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None = None
+        self._adaptation_episode = 0
+
+    @property
+    def adaptation_episode(self) -> int:
+        return self._adaptation_episode
+
+    def start_episode(self, actor: ResidualActor, *, adaptation_episode: int) -> None:
+        if adaptation_episode <= 0:
+            raise ValueError("adaptation_episode must be positive")
+        self._reference_actor = copy.deepcopy(actor)
+        self._reference_actor.eval()
+        self._reference_actor.requires_grad_(False)
+        self._diagnostic_inputs = None
+        self._adaptation_episode = adaptation_episode
+
+    def clear_episode(self, *, adaptation_episode: int) -> None:
+        if adaptation_episode != self._adaptation_episode:
+            return
+        self._reference_actor = None
+        self._diagnostic_inputs = None
+        self._adaptation_episode = 0
+
+    def measure(
+        self,
+        actor: ResidualActor,
+        batch: TransitionBatch,
+        *,
+        actor_version: int,
+        update_step: int,
+        adaptation_episode: int,
+    ) -> PolicyDrift:
+        if self._reference_actor is None or adaptation_episode != self._adaptation_episode:
+            raise RuntimeError("no reference actor for adaptation episode")
+        if self._diagnostic_inputs is None:
+            self._diagnostic_inputs = (
+                batch.history.detach().clone(),
+                batch.current_frame.detach().clone(),
+                batch.base_action.detach().clone(),
+            )
+
+        history, current_frame, base_action = self._diagnostic_inputs
+        with torch.inference_mode():
+            candidate_residual, _, _ = actor.sample(
+                history, current_frame, base_action, deterministic=True
+            )
+            reference_residual, _, _ = self._reference_actor.sample(
+                history, current_frame, base_action, deterministic=True
+            )
+            delta = candidate_residual - reference_residual
+            joint_mean_abs = delta.abs().mean(dim=0)
+
+            reference_parameters = dict(self._reference_actor.named_parameters())
+            parameter_squared = torch.zeros((), device=delta.device)
+            for name, parameter in actor.named_parameters():
+                parameter_squared += (parameter - reference_parameters[name]).square().sum()
+
+            values = (
+                delta.square().mean(),
+                joint_mean_abs.mean(),
+                joint_mean_abs.max(),
+                parameter_squared.sqrt(),
+            )
+
+        if not all(torch.isfinite(value).item() for value in values):
+            raise FloatingPointError("non-finite policy drift")
+        return PolicyDrift(
+            residual_mse=float(values[0]),
+            joint_abs_change_mean=float(values[1]),
+            joint_abs_change_max=float(values[2]),
+            parameter_l2=float(values[3]),
+            adaptation_episode=adaptation_episode,
+            actor_version=actor_version,
+            update_step=update_step,
+        )
