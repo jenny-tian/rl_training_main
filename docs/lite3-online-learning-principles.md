@@ -449,10 +449,16 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 |---|---:|---|---:|---|---:|---:|---|
 | `online_seed7_750_postupdate_drift_eventstream_20260729_cuda2` | 750 | 0 / 否 / 否 | 10 / 10 | 1: 10 | 0 | 0.282 / 0.287 | 是 |
 | `online_seed7_2000_postupdate_drift_eventstream_20260729_cuda2` | 2000 | 0 / 否 / 否 | 62 / 62 | 1: 25, 2: 37 | 2 | 0.293 / 0.334 | 是 |
+| `online_seed7_750_forcedrollback_zeroresidual_20260729_cuda2` | 750 | 0 / 否 / 否 | 1 / 1 | 1: 1 | 1 | 0.282 / 0.300 | 否，更新被回滚 |
+| `online_seed7_2000_zeroresidual_controlvisible_20260729_cuda2` | 2000 | 0 / 否 / 否 | 75 / 75 | 1: 56, 2: 16, 3: 3 | 2 | 0.295 / 0.308 | 是 |
 
 750 步运行中首次 Actor 更新发生在第 643 步，控制线程从第 644 步才启用性能评估。2000 步运行的两个 episode 分别从第 644 和 1196 步开始更新，在 rollback 前分别积累了 299 和 349 个更新后评估步，超过两个完整 50 步窗口。`metrics.jsonl` 严格保持一控制步一行；`actor_updates.jsonl` 对每次成功发布记录完整且有限的漂移标量，事件行数与 summary 更新计数逐项一致。
 
 这组结果通过了安全、更新因果、回滚时序和事件可审计性门槛，但没有通过性能门槛：2000 步 heldout 后半速度误差比前半高约 14.2%。它不能证明机器狗已通过在线学习获得台阶或不平路能力，也不能替代 flat-only 初始化下的 base / frozen / online 对照。
+
+随后补充了控制可见回滚和残差立即清零。750 步强制回滚探针仅把窗口改为 10、耐心改为 1、退化阈值改为 0，用于验证控制路径：第 654 步触发回滚，第 655 步执行 `actor_version = null` 的冻结基础策略，残差范数从 0.910 降至 `4.79e-7`。最终默认参数 2000 步回归在第 1344 和 1734 步触发性能回滚，下一步残差范数分别为 `2.52e-7` 和 `4.03e-7`；这些浮点级残差来自关节目标安全投影，不是 learned Actor 输出。该运行 75 次 Actor 发布与 75 条事件完全对应，漂移值全部有限，且无 reset、跌倒或安全违规。
+
+最终 2000 步回归仍未达到性能门槛：heldout 后半速度误差 0.308，高于前半的 0.295，也高于历史 45k frozen 对照后半的 0.279。因此当前阶段的正式结论仍是“在线更新、回滚和审计基础设施可用”，不是“已经从平地在线学会台阶或不平路”。
 
 ## 12. 参考资料及其与本实现的关系
 
@@ -593,7 +599,7 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - Isaac Lab 环境创建、PPO 加载和单步控制集成验证；
 - 源地形残差 SAC 正式预训练，256 环境、2000 步，产物位于 `lite3_deploy_base_residual_pretrain_256env_2000_20260727/latest.pt`；
 - 冻结残差连续行走验证，参数保持逐位不变；
-- 在线适应模块测试（157 通过，2 个 Isaac-only 用例在普通测试中跳过；使用当前 worktree `PYTHONPATH` 并关闭无关第三方 pytest 插件自动加载）；
+- 在线适应模块测试（168 通过，2 个 Isaac-only 用例在普通测试中跳过；使用当前 worktree `PYTHONPATH` 并关闭无关第三方 pytest 插件自动加载）；
 - 五种子资格入口改为每个种子独立 Isaac 进程，避免仿真单例重建卡死；
 - `/home/tjx/Lite3_rl_deploy` 官方部署 PPO 导入为 RSL-RL 兼容检查点，并通过五种子源地形资格测试；
 - seed 7、0.3 m/s heldout 单次连续行走在线演示曾跑满 2000 步并产生残差参数变化；当前 novelty-gated 正式对照仍在调试，不能视为最终通过结果。
@@ -602,6 +608,7 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - 性能退化窗口已改为首次成功 Actor 更新后启用；每个成功发布版本记录固定诊断 batch 上的动作与参数漂移标量，并在发布前拒绝旧 episode 候选和非有限诊断。
 - Actor 候选的 episode 检查、gate 状态和双缓冲发布已形成原子边界；回放清空由 updater 命令线程串行执行，旧 episode 命令不会破坏新 episode。
 - `metrics.jsonl` 保持一控制步一行，`actor_updates.jsonl` 逐次持久化并 flush 成功发布事件；750/2000 步 GPU 回归中的事件数与 Actor 更新数完全一致。
+- 回滚请求与控制线程之间已有显式确认边界；确认前立即执行冻结基础策略，learned residual 不再受历史变化率记忆拖尾，同时保留关节限位安全投影。
 
 尚未完成实证验证：
 
