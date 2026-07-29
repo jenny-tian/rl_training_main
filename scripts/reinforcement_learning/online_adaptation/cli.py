@@ -5,6 +5,26 @@ import argparse
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
 STRICT_FLAT_BASELINE_TASK = "Flat-Deeprobotics-Lite3-v0"
 HELDOUT_TASK = "HeldoutBoxes-Deeprobotics-Lite3-v0"
+FORMAL_FLAT_REPLAY_TRANSITIONS = 100_000
+
+
+def _positive_int(value: str) -> int:
+    try:
+        parsed = int(value, 10)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("must be an exact positive integer") from error
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be an exact positive integer")
+    return parsed
+
+
+def _formal_transition_count(value: str) -> int:
+    parsed = _positive_int(value)
+    if parsed < FORMAL_FLAT_REPLAY_TRANSITIONS:
+        raise argparse.ArgumentTypeError(
+            f"formal collection requires at least {FORMAL_FLAT_REPLAY_TRANSITIONS} transitions"
+        )
+    return parsed
 
 
 def _add_app_launcher_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -14,8 +34,14 @@ def _add_app_launcher_args(parser: argparse.ArgumentParser) -> argparse.Argument
     return parser
 
 
-def _parser(description: str) -> argparse.ArgumentParser:
-    return _add_app_launcher_args(argparse.ArgumentParser(description=description))
+def _parser(
+    description: str,
+    *,
+    allow_abbrev: bool = True,
+) -> argparse.ArgumentParser:
+    return _add_app_launcher_args(
+        argparse.ArgumentParser(description=description, allow_abbrev=allow_abbrev)
+    )
 
 
 def build_train_parser() -> argparse.ArgumentParser:
@@ -54,6 +80,24 @@ def build_flat_baseline_manifest_parser() -> argparse.ArgumentParser:
     parser.add_argument("--training-command-file", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--task", default=STRICT_FLAT_BASELINE_TASK)
+    return parser
+
+
+def build_collect_flat_replay_parser() -> argparse.ArgumentParser:
+    parser = _parser(
+        description="Collect immutable strict-flat Lite3 transitions from a frozen PPO.",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--base-checkpoint", required=True)
+    parser.add_argument("--base-manifest", required=True)
+    parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--task", default=STRICT_FLAT_BASELINE_TASK)
+    parser.add_argument("--seed", type=_positive_int, default=42)
+    parser.add_argument(
+        "--transitions",
+        type=_formal_transition_count,
+        default=FORMAL_FLAT_REPLAY_TRANSITIONS,
+    )
     return parser
 
 

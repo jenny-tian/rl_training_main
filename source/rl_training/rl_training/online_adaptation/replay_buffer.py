@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Mapping
 from contextlib import ExitStack
 from dataclasses import dataclass
+from typing import Any
 
 import torch
 
@@ -24,6 +26,21 @@ class _ReplaySnapshot:
 
 
 class ReplayBuffer:
+    _SCHEMA_VERSION = 1
+    _METADATA_KEYS = frozenset(
+        {
+            "schema_version",
+            "capacity",
+            "history_length",
+            "frame_dim",
+            "action_dim",
+            "storage_dtype",
+            "size",
+            "cursor",
+            "frozen",
+        }
+    )
+
     def __init__(
         self,
         capacity: int,
@@ -53,31 +70,180 @@ class ReplayBuffer:
         self._action_dim = action_dim
         self._size = 0
         self._cursor = 0
+        self._storage_dtype = storage_dtype
+        self._frozen = False
         self._lock = threading.Lock()
-        self._history = torch.empty(capacity, history_length, frame_dim, dtype=storage_dtype, device="cpu")
-        self._current_frame = torch.empty(capacity, frame_dim, dtype=storage_dtype, device="cpu")
-        self._base_action = torch.empty(capacity, action_dim, dtype=storage_dtype, device="cpu")
-        self._residual_action = torch.empty(capacity, action_dim, dtype=storage_dtype, device="cpu")
-        self._reward = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
-        self._next_history = torch.empty_like(self._history)
-        self._next_frame = torch.empty_like(self._current_frame)
-        self._next_base_action = torch.empty_like(self._base_action)
-        self._terminated = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
-        self._truncated = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
-        self._bootstrap_mask = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
-        self._discount = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
-        self._safety_mask = torch.empty(capacity, 1, dtype=torch.float32, device="cpu")
-        self._curriculum_stage_id = torch.empty(capacity, 1, dtype=torch.int64, device="cpu")
-        self._episode_id = torch.empty(capacity, 1, dtype=torch.int64, device="cpu")
+        self._history = torch.zeros(capacity, history_length, frame_dim, dtype=storage_dtype, device="cpu")
+        self._current_frame = torch.zeros(capacity, frame_dim, dtype=storage_dtype, device="cpu")
+        self._base_action = torch.zeros(capacity, action_dim, dtype=storage_dtype, device="cpu")
+        self._residual_action = torch.zeros(capacity, action_dim, dtype=storage_dtype, device="cpu")
+        self._reward = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
+        self._next_history = torch.zeros_like(self._history)
+        self._next_frame = torch.zeros_like(self._current_frame)
+        self._next_base_action = torch.zeros_like(self._base_action)
+        self._terminated = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
+        self._truncated = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
+        self._bootstrap_mask = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
+        self._discount = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
+        self._safety_mask = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
+        self._curriculum_stage_id = torch.zeros(capacity, 1, dtype=torch.int64, device="cpu")
+        self._episode_id = torch.zeros(capacity, 1, dtype=torch.int64, device="cpu")
 
     def __len__(self) -> int:
         with self._lock:
             return self._size
 
+    @property
+    def frozen(self) -> bool:
+        with self._lock:
+            return self._frozen
+
+    def freeze(self) -> None:
+        with self._lock:
+            self._frozen = True
+
     def clear(self) -> None:
         with self._lock:
+            self._require_mutable_locked()
             self._size = 0
             self._cursor = 0
+
+    def state_dict(self) -> dict[str, Any]:
+        with self._lock:
+            state: dict[str, Any] = {
+                "schema_version": self._SCHEMA_VERSION,
+                "capacity": self.capacity,
+                "history_length": self._history_length,
+                "frame_dim": self._frame_dim,
+                "action_dim": self._action_dim,
+                "storage_dtype": str(self._storage_dtype).removeprefix("torch."),
+                "size": self._size,
+                "cursor": self._cursor,
+                "frozen": self._frozen,
+            }
+            state.update(
+                {
+                    name: storage.detach().to(device="cpu").clone()
+                    for name, storage in self._destinations().items()
+                }
+            )
+            return state
+
+    def load_state_dict(self, state: Mapping[str, Any]) -> None:
+        with self._lock:
+            self._require_mutable_locked()
+            metadata, prepared = self._validate_and_clone_state(state)
+            previous = {
+                name: getattr(self, f"_{name}") for name in self._destinations()
+            }
+            previous_size = self._size
+            previous_cursor = self._cursor
+            previous_frozen = self._frozen
+            try:
+                for name, storage in prepared.items():
+                    setattr(self, f"_{name}", storage)
+                self._size = metadata["size"]
+                self._cursor = metadata["cursor"]
+                self._frozen = metadata["frozen"]
+            except BaseException:
+                for name, storage in previous.items():
+                    setattr(self, f"_{name}", storage)
+                self._size = previous_size
+                self._cursor = previous_cursor
+                self._frozen = previous_frozen
+                raise
+
+    def _validate_and_clone_state(
+        self,
+        state: Mapping[str, Any],
+    ) -> tuple[dict[str, Any], dict[str, torch.Tensor]]:
+        if not isinstance(state, Mapping):
+            raise TypeError("replay state must be a mapping")
+        expected_keys = self._METADATA_KEYS | frozenset(self._destinations())
+        if set(state) != expected_keys:
+            missing = sorted(expected_keys.difference(state))
+            extra = sorted(set(state).difference(expected_keys))
+            raise ValueError(f"replay state keys mismatch: missing={missing}, extra={extra}")
+
+        expected_metadata = {
+            "schema_version": self._SCHEMA_VERSION,
+            "capacity": self.capacity,
+            "history_length": self._history_length,
+            "frame_dim": self._frame_dim,
+            "action_dim": self._action_dim,
+            "storage_dtype": str(self._storage_dtype).removeprefix("torch."),
+        }
+        for name, expected in expected_metadata.items():
+            value = state[name]
+            if type(value) is not type(expected) or value != expected:
+                raise ValueError(f"replay state {name} must equal {expected!r}")
+
+        size = state["size"]
+        cursor = state["cursor"]
+        frozen = state["frozen"]
+        if type(size) is not int or not 0 <= size <= self.capacity:
+            raise ValueError(f"replay state size must be between 0 and {self.capacity}")
+        if type(cursor) is not int or not 0 <= cursor < self.capacity:
+            raise ValueError(f"replay state cursor must be between 0 and {self.capacity - 1}")
+        if size < self.capacity and cursor != size:
+            raise ValueError("replay state cursor must equal size before the buffer is full")
+        if type(frozen) is not bool:
+            raise ValueError("replay state frozen must be a bool")
+
+        prepared: dict[str, torch.Tensor] = {}
+        destinations = self._destinations()
+        for name, destination in destinations.items():
+            value = state[name]
+            if not isinstance(value, torch.Tensor):
+                raise TypeError(f"replay state {name} must be a tensor")
+            if value.device.type != "cpu":
+                raise ValueError(f"replay state {name} must be on CPU")
+            if value.layout != torch.strided:
+                raise ValueError(f"replay state {name} must use strided layout")
+            if value.shape != destination.shape:
+                raise ValueError(
+                    f"replay state {name} must have shape {tuple(destination.shape)}, "
+                    f"got {tuple(value.shape)}"
+                )
+            if value.dtype != destination.dtype:
+                raise ValueError(
+                    f"replay state {name} must have dtype {destination.dtype}, got {value.dtype}"
+                )
+            if value.requires_grad:
+                raise ValueError(f"replay state {name} must be detached")
+            if not bool(torch.isfinite(value).all().item()):
+                raise ValueError(f"replay state {name} must contain only finite values")
+            prepared[name] = value.detach().clone()
+
+        for name in ("terminated", "truncated", "bootstrap_mask", "safety_mask"):
+            try:
+                self._validate_binary_tensor(name, prepared[name])
+            except ValueError as error:
+                raise ValueError(f"replay state {name} must contain only binary values") from error
+        discount = prepared["discount"]
+        if not bool(((discount >= 0) & (discount <= 1)).all().item()):
+            raise ValueError("replay state discount must be between 0 and 1")
+        for name in ("curriculum_stage_id", "episode_id"):
+            if bool((prepared[name] < 0).any().item()):
+                raise ValueError(f"replay state {name} must be nonnegative")
+        if bool(
+            (prepared["terminated"].bool() & prepared["truncated"].bool())
+            .any()
+            .item()
+        ):
+            raise ValueError("replay state terminated and truncated cannot both be true")
+        if bool(
+            (prepared["terminated"].bool() & prepared["bootstrap_mask"].bool())
+            .any()
+            .item()
+        ):
+            raise ValueError("replay state bootstrap_mask must be zero for terminated rows")
+
+        return {"size": size, "cursor": cursor, "frozen": frozen}, prepared
+
+    def _require_mutable_locked(self) -> None:
+        if self._frozen:
+            raise RuntimeError("replay buffer is frozen")
 
     def add_batch(
         self,
@@ -98,6 +264,8 @@ class ReplayBuffer:
         episode_id: torch.Tensor,
         valid_mask: torch.Tensor | None = None,
     ) -> None:
+        with self._lock:
+            self._require_mutable_locked()
         prepared = self._prepare_batch(
             history=history,
             current_frame=current_frame,
@@ -117,6 +285,7 @@ class ReplayBuffer:
             valid_mask=valid_mask,
         )
         with self._lock:
+            self._require_mutable_locked()
             self._commit_prepared(prepared)
 
     @classmethod
@@ -127,11 +296,18 @@ class ReplayBuffer:
     ) -> None:
         if len({id(buffer) for buffer in buffers}) != len(buffers):
             raise ValueError("atomic replay buffers must be distinct")
-        prepared = [(buffer, buffer._prepare_batch(**transition)) for buffer in buffers]
         lock_order = sorted(buffers, key=id)
         with ExitStack() as stack:
             for buffer in lock_order:
                 stack.enter_context(buffer._lock)
+            for buffer in buffers:
+                buffer._require_mutable_locked()
+        prepared = [(buffer, buffer._prepare_batch(**transition)) for buffer in buffers]
+        with ExitStack() as stack:
+            for buffer in lock_order:
+                stack.enter_context(buffer._lock)
+            for buffer in buffers:
+                buffer._require_mutable_locked()
             snapshots = [
                 (buffer, buffer._snapshot_for_commit(batch)) for buffer, batch in prepared
             ]
@@ -210,6 +386,9 @@ class ReplayBuffer:
 
         for name in ("terminated", "truncated", "bootstrap_mask", "safety_mask"):
             self._validate_binary_tensor(name, values[name])
+
+        if bool((terminated.bool() & truncated.bool()).any().item()):
+            raise ValueError("terminated and truncated cannot both be true")
 
         # A true termination has no successor value and therefore cannot bootstrap.
         if bool((terminated.bool() & bootstrap_mask.bool()).any().item()):
