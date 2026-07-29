@@ -97,12 +97,9 @@ def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
     }
 
 
-def drain_actor_update_events(
-    pending_actor_update_events: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    events = list(pending_actor_update_events)
-    pending_actor_update_events.clear()
-    return events
+def write_actor_update_event(stream: Any, event: dict[str, Any]) -> None:
+    stream.write(json.dumps(event, allow_nan=False) + "\n")
+    stream.flush()
 
 
 def transition_episode_publication(
@@ -196,13 +193,12 @@ def record_update_result(
     stats: UpdateStats,
     policy_drift: PolicyDrift | None,
     last_update: dict[str, Any],
-    pending_actor_update_events: list[dict[str, Any]],
     counters: RuntimeCounters,
     step: int,
     adaptation_episode: int,
-) -> bool:
+) -> dict[str, Any] | None:
     if stats.rejection_reason == "stale_adaptation_episode":
-        return False
+        return None
     update_record = asdict(stats)
     actor_event = None
     if stats.accepted and stats.actor_updated:
@@ -219,9 +215,8 @@ def record_update_result(
     if stats.accepted and stats.critic_updated:
         counters.record_critic_update()
     if stats.accepted and stats.actor_updated:
-        pending_actor_update_events.append(actor_event)
         counters.record_actor_update(step=step, adaptation_episode=adaptation_episode)
-    return True
+    return actor_event
 
 
 def resolve_track_boundary_x(env_cfg: Any) -> float:
@@ -443,6 +438,7 @@ def main() -> int:
         run_dir.mkdir(parents=True, exist_ok=True)
         writer = SummaryWriter(log_dir=str(run_dir))
         metrics_stream = (run_dir / "metrics.jsonl").open("w", encoding="utf-8")
+        actor_updates_stream = (run_dir / "actor_updates.jsonl").open("w", encoding="utf-8")
 
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
         env_cfg.seed = args.seed
@@ -537,7 +533,6 @@ def main() -> int:
             active_episode = 0
             current_step = 0
             last_update: dict[str, Any] = {}
-            pending_actor_update_events: list[dict[str, Any]] = []
             actor_update_events_logged = 0
             last_rollback_reason = ""
 
@@ -549,7 +544,7 @@ def main() -> int:
                 active_episode = episode
 
             def updater_loop() -> None:
-                nonlocal last_rollback_reason
+                nonlocal actor_update_events_logged, last_rollback_reason
                 critic_period = 1.0 / args.updates_per_second
                 actor_period = 1.0 / args.actor_updates_per_second
                 next_critic = time.perf_counter()
@@ -651,15 +646,18 @@ def main() -> int:
 
                         if stats is not None and stats.rejection_reason != "stale_adaptation_episode":
                             with shared_lock:
-                                record_update_result(
+                                actor_update_event = record_update_result(
                                     stats=stats,
                                     policy_drift=policy_drift,
                                     last_update=last_update,
-                                    pending_actor_update_events=pending_actor_update_events,
                                     counters=counters,
                                     step=step_snapshot,
                                     adaptation_episode=episode_snapshot,
                                 )
+                            if actor_update_event is not None:
+                                write_actor_update_event(actor_updates_stream, actor_update_event)
+                                with shared_lock:
+                                    actor_update_events_logged += 1
                         stop_event.wait(0.001)
                 except BaseException as error:
                     update_errors.append(error)
@@ -901,8 +899,6 @@ def main() -> int:
                 loop_ms = (time.perf_counter() - loop_started) * 1_000.0
                 with shared_lock:
                     update_snapshot = dict(last_update)
-                    actor_update_events = drain_actor_update_events(pending_actor_update_events)
-                    actor_update_events_logged += len(actor_update_events)
                     counters_snapshot = asdict(counters)
                     episode_snapshot = active_episode
                     rollback_snapshot = rollback_reason or last_rollback_reason
@@ -940,7 +936,6 @@ def main() -> int:
                     "loop_ms": loop_ms,
                     "replay_size": len(online_agent.replay),
                     "last_update": update_snapshot,
-                    "actor_update_events": actor_update_events,
                 }
                 metrics_stream.write(json.dumps(record, allow_nan=True) + "\n")
                 metrics_stream.flush()
@@ -968,27 +963,12 @@ def main() -> int:
                 raise RuntimeError("background SAC updater failed") from update_errors[0]
 
             with shared_lock:
-                shutdown_actor_update_events = drain_actor_update_events(pending_actor_update_events)
-                actor_update_events_logged += len(shutdown_actor_update_events)
                 actor_updates_completed = counters.actor_updates
-            if shutdown_actor_update_events:
-                metrics_stream.write(
-                    json.dumps(
-                        {
-                            "step": executed_steps,
-                            "mode": args.mode,
-                            "record_type": "shutdown_actor_events",
-                            "actor_update_events": shutdown_actor_update_events,
-                        },
-                        allow_nan=False,
-                    )
-                    + "\n"
-                )
-                metrics_stream.flush()
-            if actor_update_events_logged != actor_updates_completed:
+                actor_update_events_logged_snapshot = actor_update_events_logged
+            if actor_update_events_logged_snapshot != actor_updates_completed:
                 raise RuntimeError(
                     "Actor update event accounting mismatch: "
-                    f"logged={actor_update_events_logged}, updates={actor_updates_completed}"
+                    f"logged={actor_update_events_logged_snapshot}, updates={actor_updates_completed}"
                 )
 
             with update_lock:
@@ -1008,7 +988,7 @@ def main() -> int:
                 "updates": counters.actor_updates,
                 "critic_updates": counters.critic_updates,
                 "actor_updates": counters.actor_updates,
-                "actor_update_events_logged": actor_update_events_logged,
+                "actor_update_events_logged": actor_update_events_logged_snapshot,
                 "actor_updates_before_novelty": counters.actor_updates_before_novelty,
                 "actor_updates_after_novelty": counters.actor_updates_after_novelty,
                 "actor_updates_by_episode": counters.actor_updates_by_episode,
@@ -1034,6 +1014,7 @@ def main() -> int:
             stop_event.set()
             if updater_thread is not None and updater_thread.is_alive():
                 updater_thread.join(timeout=30.0)
+            actor_updates_stream.close()
             metrics_stream.close()
             writer.close()
             wrapped_env.close()

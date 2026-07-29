@@ -1,3 +1,5 @@
+import json
+
 from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
     AdaptationCommand,
     AdaptationRuntimeOrchestrator,
@@ -6,11 +8,11 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     policy_drift_record,
     apply_adaptation_command,
     cutoff_before_final_step,
-    drain_actor_update_events,
     record_update_result,
     resolve_track_boundary_x,
     transition_episode_publication,
     warm_up_control_path,
+    write_actor_update_event,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate
@@ -411,7 +413,6 @@ def test_final_step_cutoff_closes_gate_without_active_episode():
 def test_stale_update_result_preserves_current_log_and_counters():
     counters = RuntimeCounters()
     last_update = {"version": 8, "policy_drift_episode": 2}
-    pending_actor_update_events = []
     stale_stats = make_update_stats(
         accepted=False,
         version=7,
@@ -420,19 +421,17 @@ def test_stale_update_result_preserves_current_log_and_counters():
         rejection_reason="stale_adaptation_episode",
     )
 
-    recorded = record_update_result(
+    event = record_update_result(
         stats=stale_stats,
         policy_drift=None,
         last_update=last_update,
-        pending_actor_update_events=pending_actor_update_events,
         counters=counters,
         step=700,
         adaptation_episode=1,
     )
 
-    assert not recorded
+    assert event is None
     assert last_update == {"version": 8, "policy_drift_episode": 2}
-    assert pending_actor_update_events == []
     assert counters.critic_updates == 0
     assert counters.actor_updates == 0
 
@@ -440,60 +439,55 @@ def test_stale_update_result_preserves_current_log_and_counters():
 def test_critic_update_does_not_enqueue_actor_event():
     counters = RuntimeCounters()
     last_update = {}
-    pending_actor_update_events = []
 
-    record_update_result(
+    event = record_update_result(
         stats=make_update_stats(actor_updated=False),
         policy_drift=None,
         last_update=last_update,
-        pending_actor_update_events=pending_actor_update_events,
         counters=counters,
         step=701,
         adaptation_episode=1,
     )
 
-    assert pending_actor_update_events == []
+    assert event is None
     assert counters.critic_updates == 1
     assert counters.actor_updates == 0
 
 
-def test_actor_events_survive_intervening_critic_update_and_drain_once():
+def test_actor_updates_return_complete_events_across_intervening_critic_update():
     counters = RuntimeCounters()
     last_update = {}
-    pending_actor_update_events = []
     first_drift = PolicyDrift(0.01, 0.02, 0.03, 0.04, 1, 8, 702)
     second_drift = PolicyDrift(0.05, 0.06, 0.07, 0.08, 1, 9, 704)
 
-    record_update_result(
+    first_event = record_update_result(
         stats=make_update_stats(version=8),
         policy_drift=first_drift,
         last_update=last_update,
-        pending_actor_update_events=pending_actor_update_events,
         counters=counters,
         step=702,
         adaptation_episode=1,
     )
-    record_update_result(
+    critic_event = record_update_result(
         stats=make_update_stats(version=8, actor_updated=False),
         policy_drift=None,
         last_update=last_update,
-        pending_actor_update_events=pending_actor_update_events,
         counters=counters,
         step=703,
         adaptation_episode=1,
     )
-    record_update_result(
+    second_event = record_update_result(
         stats=make_update_stats(version=9),
         policy_drift=second_drift,
         last_update=last_update,
-        pending_actor_update_events=pending_actor_update_events,
         counters=counters,
         step=704,
         adaptation_episode=1,
     )
 
-    events = drain_actor_update_events(pending_actor_update_events)
+    events = [first_event, second_event]
 
+    assert critic_event is None
     assert [event["version"] for event in events] == [8, 9]
     assert [event["policy_drift_update_step"] for event in events] == [702, 704]
     assert all(event["accepted"] and event["actor_updated"] for event in events)
@@ -504,7 +498,53 @@ def test_actor_events_survive_intervening_critic_update_and_drain_once():
         if key.startswith("policy_") and isinstance(value, float)
     )
     assert len(events) == counters.actor_updates == 2
-    assert drain_actor_update_events(pending_actor_update_events) == []
+
+
+class RecordingEventStream:
+    def __init__(self):
+        self.data = ""
+        self.flush_count = 0
+
+    def write(self, value):
+        self.data += value
+
+    def flush(self):
+        self.flush_count += 1
+
+
+def test_actor_event_is_written_and_flushed_before_later_updater_failure():
+    stream = RecordingEventStream()
+    event = record_update_result(
+        stats=make_update_stats(version=8),
+        policy_drift=PolicyDrift(0.01, 0.02, 0.03, 0.04, 1, 8, 702),
+        last_update={},
+        counters=RuntimeCounters(),
+        step=702,
+        adaptation_episode=1,
+    )
+
+    write_actor_update_event(stream, event)
+    try:
+        raise RuntimeError("second updater iteration failed")
+    except RuntimeError:
+        pass
+
+    assert stream.flush_count == 1
+    assert json.loads(stream.data) == event
+
+
+def test_actor_event_serialization_rejects_nonfinite_values():
+    stream = RecordingEventStream()
+
+    try:
+        write_actor_update_event(stream, {"policy_residual_mse": float("nan")})
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("nonfinite Actor event must not be serialized")
+
+    assert stream.data == ""
+    assert stream.flush_count == 0
 
 
 def test_accepted_actor_update_requires_policy_drift():
@@ -515,7 +555,6 @@ def test_accepted_actor_update_requires_policy_drift():
             stats=make_update_stats(),
             policy_drift=None,
             last_update={},
-            pending_actor_update_events=[],
             counters=counters,
             step=705,
             adaptation_episode=1,
