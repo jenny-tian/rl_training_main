@@ -40,6 +40,7 @@ class AdaptationPerformance:
         self._records: list[tuple[float, float, float]] = []
         self._best_cost: float | None = None
         self._degradation_count = 0
+        self._evaluation_enabled = False
 
     @property
     def best_cost(self) -> float | None:
@@ -49,9 +50,21 @@ class AdaptationPerformance:
     def degradation_count(self) -> int:
         return self._degradation_count
 
+    @property
+    def evaluation_enabled(self) -> bool:
+        return self._evaluation_enabled
+
     def start_episode(self) -> None:
         self._records.clear()
         self._best_cost = None
+        self._degradation_count = 0
+        self._evaluation_enabled = False
+
+    def mark_actor_updated(self) -> None:
+        if self._evaluation_enabled:
+            return
+        self._evaluation_enabled = True
+        self._records.clear()
         self._degradation_count = 0
 
     def add(
@@ -74,7 +87,13 @@ class AdaptationPerformance:
         contact_rate = sum(record[2] for record in self._records) / count
         cost = velocity_mean + tilt_mean + 0.25 * contact_rate
         self._records.clear()
+        return self._decision_for_cost(cost)
 
+    def _decision_for_cost(self, cost: float) -> AdaptationPerformanceDecision:
+        if not self._evaluation_enabled:
+            self._best_cost = cost
+            self._degradation_count = 0
+            return AdaptationPerformanceDecision(cost, False, False, False, None)
         if self._best_cost is None:
             self._best_cost = cost
             return AdaptationPerformanceDecision(cost, False, False, False, None)
