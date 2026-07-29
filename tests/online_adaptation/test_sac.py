@@ -115,6 +115,20 @@ def test_candidate_validator_exception_restores_the_full_pre_update_state():
     assert_state_dict_equal(updater.state_dict(), before)
 
 
+def test_candidate_validator_floating_point_error_propagates_and_restores_state():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    before = copy.deepcopy(updater.state_dict())
+
+    def validator(candidate, version):
+        raise FloatingPointError("validator numerical failure")
+
+    with pytest.raises(FloatingPointError, match="validator numerical failure"):
+        updater.update(make_batch(), candidate_validator=validator)
+
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
 def test_critic_only_update_keeps_actor_and_version_unchanged():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
@@ -150,7 +164,7 @@ def test_full_update_accepts_a_separate_actor_batch():
 def test_nonfinite_actor_batch_rolls_back_the_preceding_critic_step():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
-    critic_before = [parameter.detach().clone() for parameter in updater.critic.parameters()]
+    before = copy.deepcopy(updater.state_dict())
     actor_batch = make_batch()
     actor_batch = replace(actor_batch, current_frame=torch.full_like(actor_batch.current_frame, float("nan")))
 
@@ -161,9 +175,7 @@ def test_nonfinite_actor_batch_rolls_back_the_preceding_critic_step():
     assert not stats.actor_updated
     assert stats.version == 0
     assert stats.rejection_reason == "nonfinite_update"
-    assert all(
-        torch.equal(before, after) for before, after in zip(critic_before, updater.critic.parameters())
-    )
+    assert_state_dict_equal(updater.state_dict(), before)
 
 
 def test_stable_state_rolls_back_after_sustained_degradation():

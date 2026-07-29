@@ -179,14 +179,6 @@ class SACUpdater:
                     target_parameter.lerp_(parameter, self.config.tau)
             if not self._parameters_are_finite(self.target_critic):
                 raise FloatingPointError
-            if update_actor and candidate_validator is not None:
-                rejection_reason = candidate_validator(self.actor, self.version + 1)
-                if rejection_reason is not None:
-                    raise CandidateActorRejected(rejection_reason)
-        except CandidateActorRejected as error:
-            self.critic.requires_grad_(True)
-            self.load_state_dict(before)
-            return self._rejected_stats(str(error))
         except FloatingPointError:
             self.critic.requires_grad_(True)
             self.load_state_dict(before)
@@ -195,6 +187,20 @@ class SACUpdater:
             self.critic.requires_grad_(True)
             self.load_state_dict(before)
             raise
+
+        if update_actor and candidate_validator is not None:
+            try:
+                rejection_reason = candidate_validator(self.actor, self.version + 1)
+                if rejection_reason is not None:
+                    raise CandidateActorRejected(rejection_reason)
+            except CandidateActorRejected as error:
+                self.critic.requires_grad_(True)
+                self.load_state_dict(before)
+                return self._rejected_stats(str(error))
+            except BaseException:
+                self.critic.requires_grad_(True)
+                self.load_state_dict(before)
+                raise
 
         if update_actor:
             self.version += 1
