@@ -6,6 +6,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     policy_drift_record,
     apply_adaptation_command,
     cutoff_before_final_step,
+    drain_actor_update_events,
     record_update_result,
     resolve_track_boundary_x,
     transition_episode_publication,
@@ -410,6 +411,7 @@ def test_final_step_cutoff_closes_gate_without_active_episode():
 def test_stale_update_result_preserves_current_log_and_counters():
     counters = RuntimeCounters()
     last_update = {"version": 8, "policy_drift_episode": 2}
+    pending_actor_update_events = []
     stale_stats = make_update_stats(
         accepted=False,
         version=7,
@@ -422,6 +424,7 @@ def test_stale_update_result_preserves_current_log_and_counters():
         stats=stale_stats,
         policy_drift=None,
         last_update=last_update,
+        pending_actor_update_events=pending_actor_update_events,
         counters=counters,
         step=700,
         adaptation_episode=1,
@@ -429,7 +432,99 @@ def test_stale_update_result_preserves_current_log_and_counters():
 
     assert not recorded
     assert last_update == {"version": 8, "policy_drift_episode": 2}
+    assert pending_actor_update_events == []
     assert counters.critic_updates == 0
+    assert counters.actor_updates == 0
+
+
+def test_critic_update_does_not_enqueue_actor_event():
+    counters = RuntimeCounters()
+    last_update = {}
+    pending_actor_update_events = []
+
+    record_update_result(
+        stats=make_update_stats(actor_updated=False),
+        policy_drift=None,
+        last_update=last_update,
+        pending_actor_update_events=pending_actor_update_events,
+        counters=counters,
+        step=701,
+        adaptation_episode=1,
+    )
+
+    assert pending_actor_update_events == []
+    assert counters.critic_updates == 1
+    assert counters.actor_updates == 0
+
+
+def test_actor_events_survive_intervening_critic_update_and_drain_once():
+    counters = RuntimeCounters()
+    last_update = {}
+    pending_actor_update_events = []
+    first_drift = PolicyDrift(0.01, 0.02, 0.03, 0.04, 1, 8, 702)
+    second_drift = PolicyDrift(0.05, 0.06, 0.07, 0.08, 1, 9, 704)
+
+    record_update_result(
+        stats=make_update_stats(version=8),
+        policy_drift=first_drift,
+        last_update=last_update,
+        pending_actor_update_events=pending_actor_update_events,
+        counters=counters,
+        step=702,
+        adaptation_episode=1,
+    )
+    record_update_result(
+        stats=make_update_stats(version=8, actor_updated=False),
+        policy_drift=None,
+        last_update=last_update,
+        pending_actor_update_events=pending_actor_update_events,
+        counters=counters,
+        step=703,
+        adaptation_episode=1,
+    )
+    record_update_result(
+        stats=make_update_stats(version=9),
+        policy_drift=second_drift,
+        last_update=last_update,
+        pending_actor_update_events=pending_actor_update_events,
+        counters=counters,
+        step=704,
+        adaptation_episode=1,
+    )
+
+    events = drain_actor_update_events(pending_actor_update_events)
+
+    assert [event["version"] for event in events] == [8, 9]
+    assert [event["policy_drift_update_step"] for event in events] == [702, 704]
+    assert all(event["accepted"] and event["actor_updated"] for event in events)
+    assert all(
+        torch.isfinite(torch.tensor(value))
+        for event in events
+        for key, value in event.items()
+        if key.startswith("policy_") and isinstance(value, float)
+    )
+    assert len(events) == counters.actor_updates == 2
+    assert drain_actor_update_events(pending_actor_update_events) == []
+
+
+def test_accepted_actor_update_requires_policy_drift():
+    counters = RuntimeCounters()
+
+    try:
+        record_update_result(
+            stats=make_update_stats(),
+            policy_drift=None,
+            last_update={},
+            pending_actor_update_events=[],
+            counters=counters,
+            step=705,
+            adaptation_episode=1,
+        )
+    except AssertionError as error:
+        assert "policy drift" in str(error).lower()
+    else:
+        raise AssertionError("accepted Actor update without policy drift must fail")
+
     assert counters.actor_updates == 0
 
 
