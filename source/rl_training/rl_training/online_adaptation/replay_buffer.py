@@ -3,7 +3,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Mapping
 from contextlib import ExitStack
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 import torch
@@ -23,6 +23,78 @@ class _ReplaySnapshot:
     cursor: int
     indices: torch.Tensor
     rows: dict[str, torch.Tensor]
+
+
+@dataclass(frozen=True)
+class StratifiedBatch:
+    transitions: TransitionBatch
+    source_is_flat: torch.Tensor
+    flat_fraction: float
+
+
+def concatenate_transition_batches(
+    batches: tuple[TransitionBatch, ...],
+) -> TransitionBatch:
+    if not batches:
+        raise ValueError("at least one transition batch is required")
+    values: dict[str, torch.Tensor] = {}
+    for field in fields(TransitionBatch):
+        tensors = tuple(getattr(batch, field.name) for batch in batches)
+        if any(not isinstance(tensor, torch.Tensor) or tensor.ndim == 0 for tensor in tensors):
+            raise ValueError(f"{field.name} must be a batched tensor")
+        first = tensors[0]
+        if any(
+            tensor.shape[1:] != first.shape[1:]
+            or tensor.dtype != first.dtype
+            or tensor.device != first.device
+            for tensor in tensors[1:]
+        ):
+            raise ValueError(f"{field.name} batch tensors are incompatible")
+        values[field.name] = torch.cat(tensors, dim=0)
+    batch_size = values["history"].shape[0]
+    if any(value.shape[0] != batch_size for value in values.values()):
+        raise ValueError("concatenated transition fields have inconsistent row counts")
+    return TransitionBatch(**values)
+
+
+def sample_stratified_batch(
+    *,
+    flat_replay: ReplayBuffer,
+    online_replay: ReplayBuffer,
+    batch_size: int,
+    flat_fraction: float,
+    device: str | torch.device,
+    generator: torch.Generator | None = None,
+) -> StratifiedBatch:
+    if not flat_replay.frozen:
+        raise ValueError("flat replay must be frozen before stratified sampling")
+    if type(batch_size) is not int or batch_size <= 0:
+        raise ValueError("batch_size must be a positive int")
+    if isinstance(flat_fraction, bool) or not isinstance(flat_fraction, (int, float)):
+        raise ValueError("flat_fraction must be a finite scalar in [0, 1]")
+    flat_fraction = float(flat_fraction)
+    if not 0.0 <= flat_fraction <= 1.0 or flat_fraction != flat_fraction:
+        raise ValueError("flat_fraction must be a finite scalar in [0, 1]")
+    flat_rows = round(batch_size * flat_fraction)
+    online_rows = batch_size - flat_rows
+    batches: list[TransitionBatch] = []
+    if flat_rows:
+        batches.append(flat_replay.sample(flat_rows, device, generator=generator))
+    if online_rows:
+        batches.append(online_replay.sample(online_rows, device, generator=generator))
+    transitions = concatenate_transition_batches(tuple(batches))
+    source_is_flat = torch.cat(
+        (
+            torch.ones(flat_rows, 1, dtype=torch.bool, device=device),
+            torch.zeros(online_rows, 1, dtype=torch.bool, device=device),
+        ),
+        dim=0,
+    )
+    return StratifiedBatch(
+        transitions=transitions,
+        source_is_flat=source_is_flat,
+        flat_fraction=flat_rows / batch_size,
+    )
 
 
 class ReplayBuffer:

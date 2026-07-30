@@ -8,6 +8,7 @@ import torch
 from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
+from rl_training.online_adaptation.replay_buffer import ReplayBuffer
 from rl_training.online_adaptation.sac import SACConfig
 from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 from rl_training.online_adaptation.types import SafetyState
@@ -17,9 +18,28 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
 )
 
 
-def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02, replay_capacity=10_000, n_step=1, gamma=0.99):
+def make_agent(
+    *,
+    residual_gain=1.0,
+    residual_rate_limit=0.02,
+    replay_capacity=10_000,
+    n_step=1,
+    gamma=0.99,
+    **config_overrides,
+):
     actor = ResidualActor(2, 1, 4, torch.tensor([0.2]))
     critic = TwinCritic(2, 1, 4)
+    config_values = {
+        "history_length": 3,
+        "frame_dim": 2,
+        "action_dim": 1,
+        "batch_size": 1,
+        "residual_gain": residual_gain,
+        "replay_capacity": replay_capacity,
+        "n_step": n_step,
+        "gamma": gamma,
+    }
+    config_values.update(config_overrides)
     return OnlineAdaptationAgent(
         num_envs=1,
         actor=actor,
@@ -28,19 +48,121 @@ def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02, replay_capacity=1
             residual_limits=torch.tensor([0.2]),
             residual_rate_limit=residual_rate_limit,
         ),
-        config=AgentConfig(
-            history_length=3,
-            frame_dim=2,
-            action_dim=1,
-            batch_size=1,
-            residual_gain=residual_gain,
-            replay_capacity=replay_capacity,
-            n_step=n_step,
-            gamma=gamma,
-        ),
+        config=AgentConfig(**config_values),
         sac_config=SACConfig(gamma=gamma),
         device="cpu",
     )
+
+
+def make_agent_transition(value, batch):
+    return {
+        "history": torch.full((batch, 3, 2), value),
+        "current_frame": torch.full((batch, 2), value),
+        "base_action": torch.full((batch, 1), value),
+        "residual_action": torch.zeros(batch, 1),
+        "reward": torch.full((batch, 1), value),
+        "next_history": torch.full((batch, 3, 2), value),
+        "next_frame": torch.full((batch, 2), value),
+        "next_base_action": torch.full((batch, 1), value),
+        "terminated": torch.zeros(batch, 1),
+        "truncated": torch.zeros(batch, 1),
+        "bootstrap_mask": torch.ones(batch, 1),
+        "discount": torch.full((batch, 1), 0.99),
+        "safety_mask": torch.ones(batch, 1),
+        "curriculum_stage_id": torch.zeros(batch, 1, dtype=torch.int64),
+        "episode_id": torch.zeros(batch, 1, dtype=torch.int64),
+    }
+
+
+def test_critic_sampling_schedules_flat_fraction_and_preserves_legacy_online_only():
+    agent = make_agent(
+        replay_capacity=20, batch_size=8, online_ready_size=4,
+        flat_fraction_initial=0.75, flat_fraction_ready=0.5,
+    )
+    flat = ReplayBuffer(capacity=20, history_length=3, frame_dim=2, action_dim=1)
+    flat.add_batch(**make_agent_transition(1.0, batch=20))
+    flat.freeze()
+    agent.flat_replay = flat
+    agent.replay.add_batch(**make_agent_transition(2.0, batch=3))
+
+    initial = agent.sample_critic_batch(torch.Generator().manual_seed(1))
+    assert initial.reward[:6].eq(1.0).all()
+    assert agent.last_flat_batch_fraction == pytest.approx(0.75)
+
+    agent.replay.add_batch(**make_agent_transition(2.0, batch=1))
+    ready = agent.sample_critic_batch(torch.Generator().manual_seed(1))
+    assert ready.reward[:4].eq(1.0).all()
+    assert agent.last_flat_batch_fraction == pytest.approx(0.5)
+    stats = agent.update(
+        update_actor=False, generator=torch.Generator().manual_seed(1)
+    )
+    assert stats.flat_batch_fraction == pytest.approx(0.5)
+    assert stats.n_step == 1
+
+    agent.flat_replay = None
+    online = agent.sample_critic_batch(torch.Generator().manual_seed(1))
+    assert online.reward.eq(2.0).all()
+    assert agent.last_flat_batch_fraction == 0.0
+
+
+def test_flat_prewarm_updates_only_critics_once_and_persists_progress():
+    agent = make_agent(
+        replay_capacity=20, batch_size=4, flat_critic_warmup_updates=2
+    )
+    flat = ReplayBuffer(capacity=20, history_length=3, frame_dim=2, action_dim=1)
+    flat.add_batch(**make_agent_transition(1.0, batch=20))
+    flat.freeze()
+    agent.flat_replay = flat
+    actor_before = {
+        key: value.detach().clone() for key, value in agent.updater.actor.state_dict().items()
+    }
+    critic_before = [value.detach().clone() for value in agent.updater.critic.parameters()]
+    alpha_before = agent.updater.log_alpha.detach().clone()
+    actor_optimizer_before = agent.updater.actor_optimizer.state_dict()
+
+    stats = agent.prewarm_critics_from_flat(torch.Generator().manual_seed(5))
+
+    assert len(stats) == 2
+    assert all(stat.critic_updated and not stat.actor_updated for stat in stats)
+    assert all(stat.flat_batch_fraction == 1.0 for stat in stats)
+    assert agent.flat_critic_warmup_complete
+    assert agent.flat_critic_warmup_update_count == 2
+    assert any(
+        not torch.equal(before, after)
+        for before, after in zip(critic_before, agent.updater.critic.parameters())
+    )
+    for key, expected in actor_before.items():
+        torch.testing.assert_close(agent.updater.actor.state_dict()[key], expected, rtol=0, atol=0)
+    torch.testing.assert_close(agent.updater.log_alpha, alpha_before, rtol=0, atol=0)
+    assert agent.updater.actor_optimizer.state_dict() == actor_optimizer_before
+    assert agent.prewarm_critics_from_flat() == ()
+    restored = make_agent(
+        replay_capacity=20, batch_size=4, flat_critic_warmup_updates=2
+    )
+    restored.load_state_dict(agent.state_dict())
+    assert restored.flat_critic_warmup_complete
+    assert restored.flat_critic_warmup_update_count == 2
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"flat_fraction_initial": -0.1},
+        {"flat_fraction_ready": 1.1},
+        {"online_ready_size": 0},
+        {"flat_critic_warmup_updates": -1},
+    ],
+)
+def test_agent_config_rejects_invalid_flat_replay_schedule(overrides):
+    with pytest.raises(ValueError):
+        AgentConfig(**overrides)
+
+
+def test_zero_flat_warmup_is_complete_on_initialization():
+    agent = make_agent(flat_critic_warmup_updates=0)
+
+    assert agent.flat_critic_warmup_complete
+    assert agent.prewarm_critics_from_flat() == ()
 
 
 def test_agent_requires_matching_nstep_and_sac_gamma():

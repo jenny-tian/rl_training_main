@@ -13,10 +13,10 @@ from .history import HistoryBuffer
 from .networks import ResidualActor, TwinCritic
 from .nstep import NStepAccumulator, RawTransition
 from .publisher import DoubleBufferedActorPublisher
-from .replay_buffer import ReplayBuffer
+from .replay_buffer import ReplayBuffer, sample_stratified_batch
 from .sac import SACConfig, SACUpdater
 from .safety import SafetyFilter, SafetyLimits
-from .types import SafetyDecision, SafetyState, TransitionBatch
+from .types import SafetyDecision, SafetyState, TransitionBatch, UpdateStats
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,28 @@ class AgentConfig:
     residual_gain: float = 1.0
     n_step: int = 1
     gamma: float = 0.99
+    flat_fraction_initial: float = 0.75
+    flat_fraction_ready: float = 0.50
+    online_ready_size: int = 1024
+    flat_critic_warmup_updates: int = 1000
+
+    def __post_init__(self) -> None:
+        for name in ("flat_fraction_initial", "flat_fraction_ready"):
+            value = getattr(self, name)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, Real)
+                or not torch.isfinite(torch.tensor(float(value))).item()
+                or not 0.0 <= float(value) <= 1.0
+            ):
+                raise ValueError(f"{name} must be a finite scalar in [0, 1]")
+        if type(self.online_ready_size) is not int or self.online_ready_size <= 0:
+            raise ValueError("online_ready_size must be a positive int")
+        if (
+            type(self.flat_critic_warmup_updates) is not int
+            or self.flat_critic_warmup_updates < 0
+        ):
+            raise ValueError("flat_critic_warmup_updates must be a nonnegative int")
 
 
 @dataclass(frozen=True)
@@ -109,6 +131,10 @@ class OnlineAdaptationAgent:
             action_dim=config.action_dim,
             storage_dtype=replay_storage_dtype,
         )
+        self.flat_replay: ReplayBuffer | None = None
+        self._last_flat_batch_fraction = 0.0
+        self.flat_critic_warmup_complete = config.flat_critic_warmup_updates == 0
+        self.flat_critic_warmup_update_count = 0
         self.safety = SafetyFilter(safety_limits)
         self.updater = SACUpdater(actor, critic, sac_config)
         self.publisher = DoubleBufferedActorPublisher(actor)
@@ -139,6 +165,8 @@ class OnlineAdaptationAgent:
             "nstep_adaptation_queues": self._mask_queue_state(
                 self._nstep_adaptation_queues
             ),
+            "flat_critic_warmup_complete": self.flat_critic_warmup_complete,
+            "flat_critic_warmup_update_count": self.flat_critic_warmup_update_count,
         }
 
     def load_state_dict(self, state: dict[str, Any]) -> None:
@@ -148,6 +176,16 @@ class OnlineAdaptationAgent:
         if state["config"] != self.config:
             raise ValueError("agent configuration differs from checkpoint")
         residual_gain = _validate_residual_gain(state["residual_gain"])
+        warmup_complete = state["flat_critic_warmup_complete"]
+        warmup_count = state["flat_critic_warmup_update_count"]
+        if type(warmup_complete) is not bool:
+            raise ValueError("flat critic warmup completion state must be boolean")
+        if (
+            type(warmup_count) is not int
+            or not 0 <= warmup_count <= self.config.flat_critic_warmup_updates
+            or warmup_complete != (warmup_count == self.config.flat_critic_warmup_updates)
+        ):
+            raise ValueError("flat critic warmup progress is inconsistent")
         valid_queues = self._validate_mask_queue_state(state["nstep_valid_queues"])
         adaptation_queues = self._validate_mask_queue_state(
             state["nstep_adaptation_queues"]
@@ -161,6 +199,8 @@ class OnlineAdaptationAgent:
             self._nstep_valid_queues = valid_queues
             self._nstep_adaptation_queues = adaptation_queues
             self.set_residual_gain(residual_gain)
+            self.flat_critic_warmup_complete = warmup_complete
+            self.flat_critic_warmup_update_count = warmup_count
         except BaseException:
             self.updater.load_state_dict(before["updater"])
             self.replay.load_state_dict(before["replay"])
@@ -173,6 +213,10 @@ class OnlineAdaptationAgent:
                 before["nstep_adaptation_queues"]
             )
             self.set_residual_gain(before["residual_gain"])
+            self.flat_critic_warmup_complete = before["flat_critic_warmup_complete"]
+            self.flat_critic_warmup_update_count = before[
+                "flat_critic_warmup_update_count"
+            ]
             raise
         self.publisher.publish(self.updater.actor, self.updater.version)
         self.history.reset()
@@ -459,10 +503,85 @@ class OnlineAdaptationAgent:
         return self.sample_critic_batch(generator=generator)
 
     def sample_critic_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
-        return self.replay.sample(self.config.batch_size, self.device, generator=generator)
+        if self.flat_replay is None:
+            self._last_flat_batch_fraction = 0.0
+            return self.replay.sample(
+                self.config.batch_size, self.device, generator=generator
+            )
+        requested_fraction = (
+            self.config.flat_fraction_ready
+            if len(self.replay) >= self.config.online_ready_size
+            else self.config.flat_fraction_initial
+        )
+        sampled = sample_stratified_batch(
+            flat_replay=self.flat_replay,
+            online_replay=self.replay,
+            batch_size=self.config.batch_size,
+            flat_fraction=requested_fraction,
+            device=self.device,
+            generator=generator,
+        )
+        self._last_flat_batch_fraction = sampled.flat_fraction
+        return sampled.transitions
+
+    @property
+    def last_flat_batch_fraction(self) -> float:
+        return self._last_flat_batch_fraction
 
     def sample_actor_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
         return self.adaptation_replay.sample(self.config.batch_size, self.device, generator=generator)
+
+    def update(
+        self,
+        critic_batch: TransitionBatch | None = None,
+        actor_batch: TransitionBatch | None = None,
+        *,
+        update_actor: bool = True,
+        generator: torch.Generator | None = None,
+    ):
+        if critic_batch is None:
+            critic_batch = self.sample_critic_batch(generator=generator)
+        stats = self.updater.update(
+            critic_batch=critic_batch,
+            actor_batch=actor_batch,
+            update_actor=update_actor,
+        )
+        return replace(
+            stats,
+            flat_batch_fraction=self.last_flat_batch_fraction,
+            n_step=self.config.n_step,
+        )
+
+    def prewarm_critics_from_flat(
+        self, generator: torch.Generator | None = None
+    ) -> tuple[UpdateStats, ...]:
+        if self.flat_critic_warmup_complete:
+            return ()
+        if self.flat_replay is None:
+            raise RuntimeError("flat replay must be loaded before critic prewarm")
+        if not self.flat_replay.frozen:
+            raise RuntimeError("flat replay must be frozen before critic prewarm")
+        results = []
+        remaining = (
+            self.config.flat_critic_warmup_updates
+            - self.flat_critic_warmup_update_count
+        )
+        for _ in range(remaining):
+            batch = self.flat_replay.sample(
+                self.config.batch_size, self.device, generator=generator
+            )
+            stats = self.updater.update(batch, update_actor=False)
+            stats = replace(
+                stats, flat_batch_fraction=1.0, n_step=self.config.n_step
+            )
+            if not stats.accepted:
+                raise RuntimeError(
+                    f"flat critic prewarm update rejected: {stats.rejection_reason}"
+                )
+            self.flat_critic_warmup_update_count += 1
+            results.append(stats)
+        self.flat_critic_warmup_complete = True
+        return tuple(results)
 
     def clear_adaptation_replay(self) -> None:
         self.adaptation_replay.clear()

@@ -4,7 +4,10 @@ from dataclasses import fields
 import pytest
 import torch
 
-from rl_training.online_adaptation.replay_buffer import ReplayBuffer
+from rl_training.online_adaptation.replay_buffer import (
+    ReplayBuffer,
+    sample_stratified_batch,
+)
 
 
 def make_transition(value: float, batch: int = 2):
@@ -29,6 +32,49 @@ def make_transition(value: float, batch: int = 2):
 
 def make_replay():
     return ReplayBuffer(capacity=1, history_length=3, frame_dim=2, action_dim=1)
+
+
+def filled_replay(value: float, count: int, *, frozen: bool = False):
+    replay = ReplayBuffer(
+        capacity=count, history_length=3, frame_dim=2, action_dim=1
+    )
+    replay.add_batch(**make_transition(value, batch=count))
+    if frozen:
+        replay.freeze()
+    return replay
+
+
+def test_stratified_batch_uses_requested_flat_fraction():
+    flat = filled_replay(value=1.0, count=20, frozen=True)
+    online = filled_replay(value=2.0, count=20)
+
+    sampled = sample_stratified_batch(
+        flat_replay=flat,
+        online_replay=online,
+        batch_size=8,
+        flat_fraction=0.75,
+        device="cpu",
+        generator=torch.Generator().manual_seed(7),
+    )
+
+    assert sampled.source_is_flat.sum().item() == 6
+    assert sampled.flat_fraction == pytest.approx(0.75)
+    assert torch.equal(sampled.transitions.reward[:6], torch.ones(6, 1))
+    assert torch.equal(sampled.transitions.reward[6:], torch.full((2, 1), 2.0))
+
+
+def test_stratified_batch_requires_frozen_flat_replay():
+    flat = filled_replay(value=1.0, count=4)
+    online = filled_replay(value=2.0, count=4)
+
+    with pytest.raises(ValueError, match="frozen"):
+        sample_stratified_batch(
+            flat_replay=flat,
+            online_replay=online,
+            batch_size=4,
+            flat_fraction=0.5,
+            device="cpu",
+        )
 
 
 STORAGE_KEYS = {
