@@ -315,6 +315,22 @@ def test_stable_state_can_roll_back_to_explicit_checkpoint():
     assert updater.version == 0
 
 
+def test_stable_state_manager_round_trip_restores_checkpoint_and_counters():
+    actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
+    updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())
+    manager = StableStateManager(patience=3, min_delta=0.02)
+    manager.observe(score=1.0, updater=updater)
+    manager.observe(score=0.5, updater=updater)
+    state = manager.state_dict()
+    restored = StableStateManager(patience=3, min_delta=0.02)
+
+    restored.load_state_dict(state)
+    updater.version = 9
+
+    assert restored.rollback(updater)
+    assert updater.version == 0
+
+
 def test_stable_state_manager_observes_adaptation_decisions():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     updater = SACUpdater(actor, TwinCritic(49, 12, 64), SACConfig())

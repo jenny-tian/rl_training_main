@@ -6,6 +6,7 @@ from collections import deque
 from dataclasses import dataclass
 from enum import Enum
 from math import isfinite, sqrt
+from typing import Any
 
 
 class NoveltyState(str, Enum):
@@ -155,6 +156,67 @@ class NoveltyGate:
         left_adapting = self._state is NoveltyState.ADAPTING
         self._enter_cooldown()
         return self._decision(left_adapting=left_adapting)
+
+    def state_dict(self) -> dict[str, Any]:
+        return {
+            "config": self.config,
+            "state": self._state.value,
+            "calibration_count": self._calibration_count,
+            "cooldown_count": self._cooldown_count,
+            "recovery_count": self._recovery_count,
+            "means": dict(self._means),
+            "variances": dict(self._variances),
+            "continuous_crossings": tuple(self._continuous_crossings),
+            "contacts": tuple(self._contacts),
+            "last_score": self._last_score,
+            "last_velocity_excess": self._last_velocity_excess,
+            "last_tilt_excess": self._last_tilt_excess,
+            "last_reward_drop": self._last_reward_drop,
+        }
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        expected_keys = set(self.state_dict())
+        if not isinstance(state, dict) or set(state) != expected_keys:
+            raise ValueError("novelty state has an unsupported schema")
+        if state["config"] != self.config:
+            raise ValueError("novelty configuration differs from checkpoint")
+        try:
+            novelty_state = NoveltyState(state["state"])
+        except (TypeError, ValueError) as error:
+            raise ValueError("novelty state value is invalid") from error
+        means = state["means"]
+        variances = state["variances"]
+        expected_metrics = {"velocity", "tilt", "reward"}
+        if set(means) != expected_metrics or set(variances) != expected_metrics:
+            raise ValueError("novelty baseline state is invalid")
+        scalar_values = [
+            *means.values(), *variances.values(), state["last_score"],
+            state["last_velocity_excess"], state["last_tilt_excess"],
+            state["last_reward_drop"],
+        ]
+        if any(not isinstance(value, (int, float)) or not isfinite(value) for value in scalar_values):
+            raise ValueError("novelty state contains non-finite values")
+        counts = (state["calibration_count"], state["cooldown_count"], state["recovery_count"])
+        if any(type(value) is not int or value < 0 for value in counts):
+            raise ValueError("novelty counters are invalid")
+        crossings = tuple(state["continuous_crossings"])
+        contacts = tuple(state["contacts"])
+        if len(crossings) > self.config.enter_window or len(contacts) > self.config.contact_window:
+            raise ValueError("novelty persistence windows are invalid")
+        self._state = novelty_state
+        self._calibration_count, self._cooldown_count, self._recovery_count = counts
+        self._means = dict(means)
+        self._variances = dict(variances)
+        self._continuous_crossings = deque(
+            (bool(value) for value in crossings), maxlen=self.config.enter_window
+        )
+        self._contacts = deque(
+            (bool(value) for value in contacts), maxlen=self.config.contact_window
+        )
+        self._last_score = float(state["last_score"])
+        self._last_velocity_excess = float(state["last_velocity_excess"])
+        self._last_tilt_excess = float(state["last_tilt_excess"])
+        self._last_reward_drop = float(state["last_reward_drop"])
 
     def _set_excesses(self, velocity_error: float, tilt_rms: float, reward: float) -> None:
         self._last_velocity_excess = self._positive_zscore(

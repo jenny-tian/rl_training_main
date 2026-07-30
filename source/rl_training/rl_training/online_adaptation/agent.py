@@ -5,6 +5,7 @@ from collections import deque
 from contextlib import ExitStack
 from dataclasses import dataclass, fields, replace
 from numbers import Real
+from typing import Any
 
 import torch
 
@@ -125,6 +126,91 @@ class OnlineAdaptationAgent:
         validated = _validate_residual_gain(value)
         with self._residual_gain_lock:
             self._residual_gain = validated
+
+    def state_dict(self) -> dict[str, Any]:
+        return {
+            "config": self.config,
+            "residual_gain": self.residual_gain,
+            "updater": self.updater.state_dict(),
+            "replay": self.replay.state_dict(),
+            "adaptation_replay": self.adaptation_replay.state_dict(),
+            "nstep": self._nstep.state_dict(),
+            "nstep_valid_queues": self._mask_queue_state(self._nstep_valid_queues),
+            "nstep_adaptation_queues": self._mask_queue_state(
+                self._nstep_adaptation_queues
+            ),
+        }
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        expected_keys = set(self.state_dict())
+        if not isinstance(state, dict) or set(state) != expected_keys:
+            raise ValueError("agent state has an unsupported schema")
+        if state["config"] != self.config:
+            raise ValueError("agent configuration differs from checkpoint")
+        residual_gain = _validate_residual_gain(state["residual_gain"])
+        valid_queues = self._validate_mask_queue_state(state["nstep_valid_queues"])
+        adaptation_queues = self._validate_mask_queue_state(
+            state["nstep_adaptation_queues"]
+        )
+        before = self.state_dict()
+        try:
+            self.updater.load_state_dict(state["updater"])
+            self.replay.load_state_dict(state["replay"])
+            self.adaptation_replay.load_state_dict(state["adaptation_replay"])
+            self._nstep.load_state_dict(state["nstep"])
+            self._nstep_valid_queues = valid_queues
+            self._nstep_adaptation_queues = adaptation_queues
+            self.set_residual_gain(residual_gain)
+        except BaseException:
+            self.updater.load_state_dict(before["updater"])
+            self.replay.load_state_dict(before["replay"])
+            self.adaptation_replay.load_state_dict(before["adaptation_replay"])
+            self._nstep.load_state_dict(before["nstep"])
+            self._nstep_valid_queues = self._validate_mask_queue_state(
+                before["nstep_valid_queues"]
+            )
+            self._nstep_adaptation_queues = self._validate_mask_queue_state(
+                before["nstep_adaptation_queues"]
+            )
+            self.set_residual_gain(before["residual_gain"])
+            raise
+        self.publisher.publish(self.updater.actor, self.updater.version)
+        self.history.reset()
+        self._pending = None
+        self.safety._previous_residual = None
+        self.safety._paused = None
+        self.safety._stable_steps = None
+        self.safety._contact_steps = None
+
+    @staticmethod
+    def _mask_queue_state(
+        queues: list[deque[torch.Tensor]],
+    ) -> tuple[tuple[torch.Tensor, ...], ...]:
+        return tuple(
+            tuple(mask.detach().to(device="cpu").clone() for mask in queue)
+            for queue in queues
+        )
+
+    def _validate_mask_queue_state(
+        self, state: object
+    ) -> list[deque[torch.Tensor]]:
+        if not isinstance(state, tuple) or len(state) != self._nstep.num_envs:
+            raise ValueError("agent n-step mask state must contain one queue per environment")
+        queues: list[deque[torch.Tensor]] = []
+        for queue in state:
+            if not isinstance(queue, tuple) or len(queue) >= self.config.n_step:
+                raise ValueError("agent n-step mask queues have invalid lengths")
+            loaded: deque[torch.Tensor] = deque()
+            for mask in queue:
+                if (
+                    not isinstance(mask, torch.Tensor)
+                    or mask.shape != (1, 1)
+                    or mask.requires_grad
+                ):
+                    raise ValueError("agent n-step masks must be detached [1, 1] tensors")
+                loaded.append(mask.detach().to(device=self.device).clone())
+            queues.append(loaded)
+        return queues
 
     def begin_step(
         self,

@@ -292,6 +292,31 @@ class StableStateManager:
         self._stable_state = copy.deepcopy(updater.state_dict())
         self._degradation_count = 0
 
+    def state_dict(self) -> dict[str, Any]:
+        return {
+            "patience": self.patience,
+            "min_delta": self.min_delta,
+            "best_score": self._best_score,
+            "stable_state": copy.deepcopy(self._stable_state),
+            "degradation_count": self._degradation_count,
+        }
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        expected_keys = {
+            "patience", "min_delta", "best_score", "stable_state",
+            "degradation_count",
+        }
+        if not isinstance(state, dict) or set(state) != expected_keys:
+            raise ValueError("stable manager state has an unsupported schema")
+        if state["patience"] != self.patience or state["min_delta"] != self.min_delta:
+            raise ValueError("stable manager configuration differs from checkpoint")
+        degradation_count = state["degradation_count"]
+        if type(degradation_count) is not int or not 0 <= degradation_count <= self.patience:
+            raise ValueError("stable manager degradation_count is invalid")
+        self._best_score = state["best_score"]
+        self._stable_state = copy.deepcopy(state["stable_state"])
+        self._degradation_count = degradation_count
+
     def rollback(self, updater: SACUpdater) -> bool:
         if self._stable_state is None:
             return False

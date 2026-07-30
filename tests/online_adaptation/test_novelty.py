@@ -169,6 +169,21 @@ def test_paused_observation_closes_actor_gate_without_leaving_adapting():
     assert not paused.actor_update_enabled
 
 
+def test_novelty_gate_state_round_trip_preserves_transition_progress():
+    gate = NoveltyGate(config())
+    calibrate(gate)
+    observe(gate)
+    first = observe(gate, velocity_error=1.0)
+    assert first.state is NoveltyState.MONITORING
+    restored = NoveltyGate(config())
+
+    restored.load_state_dict(gate.state_dict())
+    decision = observe(restored, velocity_error=1.0)
+
+    assert decision.state is NoveltyState.ADAPTING
+    assert decision.actor_update_enabled
+
+
 @pytest.mark.parametrize(
     "overrides",
     [
