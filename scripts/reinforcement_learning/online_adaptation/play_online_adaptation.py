@@ -119,7 +119,7 @@ def resolve_worker_geometry(
     return development_geometry(terrain_stage, terrain_seed)
 
 
-def split_worker_endings(step_result: tuple[Any, ...]):
+def split_worker_endings(step_result: tuple[Any, ...], *, target_semantics: str = "timeout-aware"):
     import torch
 
     if len(step_result) == 5:
@@ -158,6 +158,12 @@ def split_worker_endings(step_result: tuple[Any, ...]):
             ) from error
     else:
         raise RuntimeError("cannot distinguish termination from truncation")
+    if target_semantics == "legacy-done":
+        bootstrap_mask = 1.0 - (
+            resolved_terminated.bool() | resolved_truncated.bool()
+        ).to(dtype=torch.float32)
+    elif target_semantics != "timeout-aware":
+        raise ValueError("target_semantics must be legacy-done or timeout-aware")
     return (
         resolved_terminated,
         resolved_truncated,
@@ -502,17 +508,31 @@ class AdaptationRuntimeOrchestrator:
 
 def main() -> int:
     args = build_play_parser().parse_args()
-    protocol = default_flat_online_protocol()
+    default_protocol = default_flat_online_protocol()
+    protocol = replace(
+        default_protocol,
+        stages=tuple(
+            replace(stage, max_episodes=args.protocol_max_stage_episodes)
+            for stage in default_protocol.stages
+        ),
+        max_total_episodes=args.protocol_max_episodes,
+        max_total_steps=args.protocol_max_total_steps,
+    )
     if args.protocol_sha256 != protocol.sha256():
         raise ValueError("--protocol-sha256 does not match the runtime protocol")
-    geometry = resolve_worker_geometry(
-        args.terrain_stage, args.terrain_seed, evaluation_only=args.evaluation_only
+    geometry = (
+        TerrainGeometry(step_height=0.0, rough_amplitude=0.0, seed=args.terrain_seed)
+        if args.flat_retention_probe
+        else resolve_worker_geometry(
+            args.terrain_stage, args.terrain_seed, evaluation_only=args.evaluation_only
+        )
     )
     learning_enabled = args.mode == "online" and not args.evaluation_only
     if (
         args.mode != "base"
         and args.residual_checkpoint is None
         and args.experiment_checkpoint_in is None
+        and not (args.mode == "online" and args.flat_replay is not None)
     ):
         raise ValueError(
             f"--residual-checkpoint or --experiment-checkpoint-in is required for mode {args.mode}"
@@ -617,6 +637,10 @@ def main() -> int:
                 updates_per_second=args.updates_per_second,
                 residual_gain=0.0,
                 n_step=args.n_step,
+                flat_fraction_initial=args.flat_fraction_initial,
+                flat_fraction_ready=args.flat_fraction_ready,
+                flat_critic_warmup_updates=args.flat_critic_warmup_updates,
+                critic_replay_mode=args.critic_replay_mode,
             )
             safety_limits = SafetyLimits(residual_limits=normal_limits)
             online_agent = OnlineAdaptationAgent(
@@ -952,7 +976,9 @@ def main() -> int:
                 with torch.inference_mode():
                     step_result = wrapped_env.step(decision.action)
                     next_observation = step_result[0]
-                    terminated, truncated, bootstrap_mask = split_worker_endings(step_result)
+                    terminated, truncated, bootstrap_mask = split_worker_endings(
+                        step_result, target_semantics=args.target_semantics
+                    )
                     done = terminated | truncated
                     next_base_action = base_policy(next_observation)
                 next_frame = adapter.frame(decision.action)

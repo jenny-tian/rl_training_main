@@ -35,6 +35,7 @@ class AgentConfig:
     flat_fraction_ready: float = 0.50
     online_ready_size: int = 1024
     flat_critic_warmup_updates: int = 1000
+    critic_replay_mode: str = "dual"
 
     def __post_init__(self) -> None:
         for name in ("flat_fraction_initial", "flat_fraction_ready"):
@@ -53,6 +54,8 @@ class AgentConfig:
             or self.flat_critic_warmup_updates < 0
         ):
             raise ValueError("flat_critic_warmup_updates must be a nonnegative int")
+        if self.critic_replay_mode not in {"online-only", "dual"}:
+            raise ValueError("critic_replay_mode must be online-only or dual")
 
 
 @dataclass(frozen=True)
@@ -503,7 +506,7 @@ class OnlineAdaptationAgent:
         return self.sample_critic_batch(generator=generator)
 
     def sample_critic_batch(self, generator: torch.Generator | None = None) -> TransitionBatch:
-        if self.flat_replay is None:
+        if self.flat_replay is None or self.config.critic_replay_mode == "online-only":
             self._last_flat_batch_fraction = 0.0
             return self.replay.sample(
                 self.config.batch_size, self.device, generator=generator

@@ -57,7 +57,11 @@ class _PlayArgumentParser(argparse.ArgumentParser):
         if parsed.mode == "online" and parsed.experiment_checkpoint_out is None:
             self.error("--experiment-checkpoint-out is required for online mode")
         allowed_seeds = (
-            protocol.sealed_seeds if parsed.evaluation_only else protocol.development_seeds
+            (7, 11, 19, 23, 31)
+            if parsed.flat_retention_probe
+            else protocol.sealed_seeds
+            if parsed.evaluation_only
+            else protocol.development_seeds
         )
         if parsed.terrain_seed not in allowed_seeds:
             kind = "sealed" if parsed.evaluation_only else "development"
@@ -139,6 +143,35 @@ def build_collect_flat_replay_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def build_flat_online_curriculum_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Supervise the cross-reset Lite3 flat-online curriculum.",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--base-checkpoint", required=True)
+    parser.add_argument("--base-manifest", required=True)
+    parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--flat-replay", required=True)
+    parser.add_argument("--configuration")
+    parser.add_argument(
+        "--target-semantics", choices=("legacy-done", "timeout-aware"), default=None
+    )
+    parser.add_argument("--n-step", type=int, choices=(1, 3, 5), default=None)
+    parser.add_argument(
+        "--critic-replay-mode", choices=("online-only", "dual"), default=None
+    )
+    parser.add_argument("--flat-fraction-initial", type=_unit_interval_float, default=None)
+    parser.add_argument("--flat-fraction-ready", type=_unit_interval_float, default=None)
+    parser.add_argument("--flat-anchor-weight", type=_nonnegative_float, default=None)
+    parser.add_argument("--flat-critic-warmup-updates", type=int, default=None)
+    parser.add_argument("--max-episodes", type=_positive_int, default=None)
+    parser.add_argument("--max-total-steps", type=_positive_int, default=None)
+    parser.add_argument("--max-stage-episodes", type=_positive_int, default=None)
+    parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True)
+    return parser
+
+
 def build_play_parser() -> argparse.ArgumentParser:
     protocol = default_flat_online_protocol()
     parser = _add_app_launcher_args(
@@ -181,11 +214,26 @@ def build_play_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--terrain-seed", type=int, default=protocol.development_seeds[0])
     parser.add_argument("--protocol-sha256", default=protocol.sha256())
+    parser.add_argument("--protocol-max-episodes", type=_positive_int, default=100)
+    parser.add_argument("--protocol-max-total-steps", type=_positive_int, default=200_000)
+    parser.add_argument("--protocol-max-stage-episodes", type=_positive_int, default=20)
     parser.add_argument("--experiment-checkpoint-in")
     parser.add_argument("--experiment-checkpoint-out")
     parser.add_argument("--flat-replay")
     parser.add_argument("--flat-anchor-weight", type=_nonnegative_float, default=0.0)
     parser.add_argument("--n-step", type=int, choices=(1, 3, 5), default=1)
+    parser.add_argument(
+        "--target-semantics",
+        choices=("legacy-done", "timeout-aware"),
+        default="timeout-aware",
+    )
+    parser.add_argument(
+        "--critic-replay-mode", choices=("online-only", "dual"), default="dual"
+    )
+    parser.add_argument("--flat-fraction-initial", type=_unit_interval_float, default=0.75)
+    parser.add_argument("--flat-fraction-ready", type=_unit_interval_float, default=0.50)
+    parser.add_argument("--flat-critic-warmup-updates", type=int, default=1_000)
     parser.add_argument("--residual-gain", type=_unit_interval_float, default=0.0)
     parser.add_argument("--evaluation-only", action="store_true")
+    parser.add_argument("--flat-retention-probe", action="store_true")
     return parser
