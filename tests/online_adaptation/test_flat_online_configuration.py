@@ -14,9 +14,24 @@ from scripts.reinforcement_learning.online_adaptation.freeze_flat_online_configu
 )
 from scripts.reinforcement_learning.online_adaptation.select_flat_online_configuration import (
     QCalibrationRequired,
+    build_parser,
     q_calibration,
     select_best_candidate,
 )
+
+
+def test_selector_cli_accepts_plan_repeated_run_arguments():
+    target = build_parser().parse_args(
+        ["select-target", "--run", "one", "--run", "three", "--run", "five"]
+    )
+    final = build_parser().parse_args(
+        [
+            "select-final", "--target-configuration", "selected.json",
+            "--run", "online", "--run", "dual", "--run", "anchor",
+        ]
+    )
+    assert target.runs == ["one", "three", "five"]
+    assert final.runs == ["online", "dual", "anchor"]
 
 
 def candidate(name, **overrides):

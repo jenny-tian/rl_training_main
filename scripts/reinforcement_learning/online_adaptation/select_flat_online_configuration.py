@@ -123,15 +123,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(allow_abbrev=False)
     subparsers = parser.add_subparsers(dest="command", required=True)
     target = subparsers.add_parser("select-target")
-    target.add_argument("--n-step-1", required=True)
-    target.add_argument("--n-step-3", required=True)
-    target.add_argument("--n-step-5", required=True)
+    target.add_argument("--run", action="append", dest="runs")
+    target.add_argument("--n-step-1")
+    target.add_argument("--n-step-3")
+    target.add_argument("--n-step-5")
     target.add_argument("--output", default="selected_target_configuration.json")
     final = subparsers.add_parser("select-final")
     final.add_argument("--target-configuration", required=True)
-    final.add_argument("--online-only", required=True)
-    final.add_argument("--dual-without-anchor", required=True)
-    final.add_argument("--dual-with-anchor", required=True)
+    final.add_argument("--run", action="append", dest="runs")
+    final.add_argument("--online-only")
+    final.add_argument("--dual-without-anchor")
+    final.add_argument("--dual-with-anchor")
     final.add_argument("--output", default="selected_development_configuration.json")
     return parser
 
@@ -139,7 +141,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     if args.command == "select-target":
-        directories = (args.n_step_1, args.n_step_3, args.n_step_5)
+        named = (args.n_step_1, args.n_step_3, args.n_step_5)
+        if args.runs and any(named):
+            raise ValueError("use either repeated --run or named target run arguments")
+        directories = tuple(args.runs or named)
+        if len(directories) != 3 or any(path is None for path in directories):
+            raise ValueError("select-target requires exactly three run directories")
         candidates = [load_development_candidate(path) for path in directories]
         for expected_n_step, candidate in zip((1, 3, 5), candidates, strict=True):
             configuration = candidate.get("target_configuration", candidate)
@@ -151,7 +158,12 @@ def main() -> int:
                 raise ValueError("target candidates must be timeout-aware 1-, 3-, and 5-step runs")
         write_selection(candidates, args.output)
         return 0
-    directories = (args.online_only, args.dual_without_anchor, args.dual_with_anchor)
+    named = (args.online_only, args.dual_without_anchor, args.dual_with_anchor)
+    if args.runs and any(named):
+        raise ValueError("use either repeated --run or named final run arguments")
+    directories = tuple(args.runs or named)
+    if len(directories) != 3 or any(path is None for path in directories):
+        raise ValueError("select-final requires exactly three run directories")
     candidates = [load_development_candidate(path) for path in directories]
     target_hash = sha256_file(args.target_configuration)
     if any(candidate.get("target_configuration_sha256") != target_hash for candidate in candidates):
