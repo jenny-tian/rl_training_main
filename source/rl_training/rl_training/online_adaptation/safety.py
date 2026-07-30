@@ -105,6 +105,12 @@ class SafetyFilter:
         paused_projected_action = projected_action
         accepted_residual = projected_action - base_action
         accepted_residual = torch.where(self._paused, torch.zeros_like(accepted_residual), accepted_residual)
+        if force_zero_residual:
+            accepted_residual = torch.where(
+                accepted_residual.abs() <= 1.0e-6,
+                torch.zeros_like(accepted_residual),
+                accepted_residual,
+            )
         projected_action = base_action + accepted_residual
         projected_action = torch.where(self._paused, paused_projected_action, projected_action)
 

@@ -533,6 +533,7 @@ def main() -> int:
         and args.residual_checkpoint is None
         and args.experiment_checkpoint_in is None
         and not (args.mode == "online" and args.flat_replay is not None)
+        and not (args.mode == "residual_frozen" and args.residual_gain == 0.0)
     ):
         raise ValueError(
             f"--residual-checkpoint or --experiment-checkpoint-in is required for mode {args.mode}"
@@ -1202,6 +1203,9 @@ def main() -> int:
                     "safety_reasons": list(decision.reasons),
                     "base_action_norm": float(base_action.norm()),
                     "residual_action_norm": float(decision.residual.norm()),
+                    "base_final_action_max_abs_diff": float(
+                        (decision.action - base_action).abs().max()
+                    ),
                     "control_compute_ms": control_ms,
                     "loop_ms": loop_ms,
                     "replay_size": len(online_agent.replay),

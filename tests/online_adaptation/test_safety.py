@@ -48,6 +48,29 @@ def test_force_zero_residual_bypasses_learned_rate_limit_memory():
     assert torch.equal(forced.action, base_action)
 
 
+def test_force_zero_residual_removes_joint_round_trip_noise_exactly():
+    filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2)))
+    base_action = torch.full((1, 12), 0.12345)
+    noisy_state = state()
+    noisy_state = SafetyState(
+        **{
+            **noisy_state.__dict__,
+            "default_joint_pos": torch.full((1, 12), 0.1),
+            "action_scale": torch.full((1, 12), 0.3),
+        }
+    )
+
+    forced = filt.project(
+        base_action,
+        torch.zeros_like(base_action),
+        noisy_state,
+        force_zero_residual=True,
+    )
+
+    assert torch.equal(forced.residual, torch.zeros_like(base_action))
+    assert torch.equal(forced.action, base_action)
+
+
 def test_force_zero_residual_preserves_only_joint_limit_correction_memory():
     filt = SafetyFilter(
         SafetyLimits(residual_limits=torch.full((12,), 0.2), residual_rate_limit=0.05)

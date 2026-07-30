@@ -651,3 +651,48 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - 操作员全程监督。
 
 在完成上述措施和独立安全验证前，不应在真实 Lite3 上启用持续在线随机探索或梯度更新。
+
+## 16. 2026-07-30 flat-online 因果探针记录
+
+本节记录基础设施证据，也保留失败结果。基础设施探针不证明策略已经学会台阶或粗糙地形。
+
+### 16.1 自动化检查
+
+在 `feat/lite3-online-adaptation`、提交 `aa0c3c5` 后执行：
+
+```bash
+PYTHONPATH=source/rl_training:. PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
+  /home/tjx/anaconda3/envs/env_isaaclab/bin/pytest tests/online_adaptation -q
+PYTHONPATH=source/rl_training:. \
+  /home/tjx/anaconda3/envs/env_isaaclab/bin/python -m compileall -q \
+  source/rl_training/rl_training/online_adaptation \
+  scripts/reinforcement_learning/online_adaptation
+git diff --check
+```
+
+结果为 `655 passed, 5 skipped`；跳过项均为显式 Isaac-only 用例。`compileall` 和 `git diff --check` 无诊断。
+
+### 16.2 flat zero-authority GPU 探针
+
+使用 GPU 2、`FlatOnline-Deeprobotics-Lite3-v0`、确定性 `residual_frozen`、`residual_gain=0` 和 500 步上限。候选 PPO 为：
+
+```text
+/home/tjx/rl_training_main/logs/online_adaptation/candidates/lite3_rl_deploy_policy_candidate.pt
+sha256 da18d028eb1c53b7bf6a7457ef2bdb35ff3eab5ca5bedf38095d8fddd66a8ff3
+```
+
+直接环境 Python 首次因未加载 worktree `PYTHONPATH` 而在 SimulationApp 创建前失败；沙箱内重试又因 Vulkan/CUDA 上下文不可用失败。沙箱外并显式使用 worktree 包后，Isaac 成功启动。第二个独立证据目录为：
+
+```text
+/home/tjx/rl_training_main/logs/online_adaptation/flat_online_zero_authority_v2_20260730_cuda2
+episode_summary.json sha256 09006428a92eab6842c21b6aa22bdc94d0a3c93dec1b0a6ed723b284b31d6020
+metrics.jsonl         sha256 fbf649d954ec5ace47d90b320dda69b8c8182a23d53174ef305df7c3c582d31c
+```
+
+控制权限检查通过：14 条逐步记录的最大 residual norm 为严格 `0.0`，最大 `|final_action-base_action|` 为 `3.5762786865234375e-7`，小于 `1e-6`，且 Actor/Critic 更新均为零。完整 500 步稳定性检查失败：第 14 步发生 reset/fall，`safety_violation=true`，12 步处于 safety pause。
+
+失败的前置原因是现存资格文件来自旧 `OnlineAdapt-Deeprobotics-Lite3-v0`，不是新建的 `Flat-Deeprobotics-Lite3-v0` strict-flat baseline；仓库日志中也不存在新协议要求的 `flat_baseline_manifest.json`、`flat_replay.pt` 和 `flat_replay_manifest.json`。因此该旧 PPO 不能被声明为新协议下的 qualified flat PPO。
+
+### 16.3 未执行的后续 GPU 探针
+
+2 cm 三进程恢复探针以及 1/3/5-step、online-only/dual replay smoke 没有执行。它们需要先完成 strict-flat PPO 资格、不可变 flat replay 收集和初始 experiment checkpoint。缺少这些前置产物时继续运行会混入旧 rough/held-out 数据并破坏 flat-only 因果边界。当前证据只确认零 gain 控制路径的严格零权限语义，不确认跨 reset 学习、Q 值有限性、replay 混合比例或地形学习能力。
