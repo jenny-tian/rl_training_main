@@ -194,6 +194,13 @@ def make_update_stats(**changes):
         "critic_updated": True,
         "actor_updated": True,
         "rejection_reason": None,
+        "mean_target_q": 6.0,
+        "mean_td_error": 7.0,
+        "mean_flat_q": None,
+        "mean_online_q": None,
+        "flat_anchor_loss": None,
+        "flat_batch_fraction": 0.0,
+        "n_step": 1,
     }
     values.update(changes)
     return UpdateStats(**values)
@@ -630,6 +637,9 @@ def test_actor_updates_return_complete_events_across_intervening_critic_update()
     assert [event["version"] for event in events] == [8, 9]
     assert [event["policy_drift_update_step"] for event in events] == [702, 704]
     assert all(event["accepted"] and event["actor_updated"] for event in events)
+    assert all(event["mean_target_q"] == 6.0 for event in events)
+    assert all(event["mean_td_error"] == 7.0 for event in events)
+    assert all(event["n_step"] == 1 for event in events)
     assert all(
         torch.isfinite(torch.tensor(value))
         for event in events

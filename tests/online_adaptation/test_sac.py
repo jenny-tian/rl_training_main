@@ -1,8 +1,9 @@
 import copy
+import json
 
 import pytest
 import torch
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 from rl_training.online_adaptation.metrics import AdaptationPerformanceDecision
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
@@ -11,6 +12,7 @@ from rl_training.online_adaptation.sac import (
     SACConfig,
     SACUpdater,
     StableStateManager,
+    compute_sac_target,
 )
 from rl_training.online_adaptation.types import TransitionBatch
 
@@ -75,6 +77,26 @@ def assert_state_dict_equal(actual, expected):
         assert actual == expected
 
 
+def test_target_uses_saved_discount_and_bootstrap_mask():
+    batch = make_batch()
+    batch = replace(
+        batch,
+        reward=torch.tensor([[2.0], [2.0]]),
+        discount=torch.tensor([[0.9], [0.9**3]]),
+        bootstrap_mask=torch.tensor([[0.0], [1.0]]),
+    )
+
+    target = compute_sac_target(
+        reward=batch.reward,
+        discount=batch.discount,
+        bootstrap_mask=batch.bootstrap_mask,
+        next_q=torch.tensor([[10.0], [10.0]]),
+        alpha_log_prob=torch.zeros(2, 1),
+    )
+
+    torch.testing.assert_close(target, torch.tensor([[2.0], [2.0 + 0.9**3 * 10.0]]))
+
+
 def test_sac_update_changes_version_and_target_parameters():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     critic = TwinCritic(49, 12, 64)
@@ -121,6 +143,8 @@ def test_critic_target_uses_bootstrap_mask_and_per_transition_discount():
     expected_loss = 2.0 * expected_target.square().mean()
     assert stats.accepted
     assert stats.critic_loss == pytest.approx(expected_loss.item())
+    assert stats.mean_target_q == pytest.approx(expected_target.mean().item())
+    assert stats.mean_td_error == pytest.approx(expected_target.mean().item())
 
 
 def test_nonfinite_batch_is_rejected_without_version_change():
@@ -130,6 +154,9 @@ def test_nonfinite_batch_is_rejected_without_version_change():
     assert not stats.accepted
     assert stats.version == 0
     assert stats.rejection_reason == "nonfinite_batch"
+    json.dumps(asdict(stats), allow_nan=False)
+    assert stats.mean_target_q is None
+    assert stats.mean_td_error is None
 
 
 def test_candidate_validator_rejection_restores_the_full_pre_update_state():

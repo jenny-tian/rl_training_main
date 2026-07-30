@@ -74,3 +74,10 @@ class UpdateStats:
     critic_updated: bool = False
     actor_updated: bool = False
     rejection_reason: str | None = None
+    mean_target_q: float | None = None
+    mean_td_error: float | None = None
+    mean_flat_q: float | None = None
+    mean_online_q: float | None = None
+    flat_anchor_loss: float | None = None
+    flat_batch_fraction: float = 0.0
+    n_step: int = 1

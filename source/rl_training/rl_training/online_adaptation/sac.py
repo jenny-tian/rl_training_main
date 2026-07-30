@@ -32,6 +32,17 @@ class SACConfig:
     max_grad_norm: float = 1.0
 
 
+def compute_sac_target(
+    *,
+    reward: torch.Tensor,
+    discount: torch.Tensor,
+    bootstrap_mask: torch.Tensor,
+    next_q: torch.Tensor,
+    alpha_log_prob: torch.Tensor,
+) -> torch.Tensor:
+    return reward + bootstrap_mask * discount * (next_q - alpha_log_prob)
+
+
 class SACUpdater:
     def __init__(self, actor: ResidualActor, critic: TwinCritic, config: SACConfig):
         self.actor = actor
@@ -64,17 +75,24 @@ class SACUpdater:
 
     def _rejected_stats(self, reason: str) -> UpdateStats:
         return UpdateStats(
-            critic_loss=float("nan"),
-            actor_loss=float("nan"),
-            alpha_loss=float("nan"),
+            critic_loss=0.0,
+            actor_loss=0.0,
+            alpha_loss=0.0,
             alpha=float(self.alpha.detach()),
-            mean_q=float("nan"),
-            grad_norm=float("nan"),
+            mean_q=0.0,
+            grad_norm=0.0,
             accepted=False,
             version=self.version,
             critic_updated=False,
             actor_updated=False,
             rejection_reason=reason,
+            mean_target_q=None,
+            mean_td_error=None,
+            mean_flat_q=None,
+            mean_online_q=None,
+            flat_anchor_loss=None,
+            flat_batch_fraction=0.0,
+            n_step=1,
         )
 
     def update(
@@ -104,8 +122,12 @@ class SACUpdater:
                     critic_batch.next_base_action,
                     next_residual,
                 )
-                target = critic_batch.reward + critic_batch.bootstrap_mask * critic_batch.discount * (
-                    torch.minimum(target_q1, target_q2) - self.alpha.detach() * next_log_prob
+                target = compute_sac_target(
+                    reward=critic_batch.reward,
+                    discount=critic_batch.discount,
+                    bootstrap_mask=critic_batch.bootstrap_mask,
+                    next_q=torch.minimum(target_q1, target_q2),
+                    alpha_log_prob=self.alpha.detach() * next_log_prob,
                 )
 
             q1, q2 = self.critic(
@@ -215,6 +237,15 @@ class SACUpdater:
             critic_updated=True,
             actor_updated=update_actor,
             rejection_reason=None,
+            mean_target_q=float(target.mean().detach()),
+            mean_td_error=float(
+                (target - torch.minimum(q1, q2)).abs().mean().detach()
+            ),
+            mean_flat_q=None,
+            mean_online_q=None,
+            flat_anchor_loss=None,
+            flat_batch_fraction=0.0,
+            n_step=1,
         )
 
     def state_dict(self) -> dict[str, Any]:
