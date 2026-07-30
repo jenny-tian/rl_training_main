@@ -1,3 +1,5 @@
+import pytest
+
 from scripts.reinforcement_learning.online_adaptation.cli import (
     build_flat_baseline_manifest_parser,
     build_play_parser,
@@ -66,7 +68,8 @@ def test_flat_baseline_manifest_parser_is_strict_and_repeatable():
 
 def test_play_defaults_configure_novelty_gated_actor_updates():
     args = build_play_parser().parse_args(
-        ["--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt"]
+        ["--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt",
+         "--experiment-checkpoint-out", "experiment.pt"]
     )
 
     assert args.updates_per_second == 5.0
@@ -83,3 +86,42 @@ def test_play_defaults_configure_novelty_gated_actor_updates():
     assert args.rollback_degradation_ratio == 0.10
     assert args.stable_improvement_ratio == 0.05
     assert args.adaptation_cooldown_steps == 100
+
+
+def test_play_parser_accepts_curriculum_worker_arguments():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt",
+            "--terrain-stage", "step_2cm", "--terrain-seed", "101",
+            "--protocol-sha256", "HASH", "--experiment-checkpoint-in", "in.pt",
+            "--experiment-checkpoint-out", "out.pt", "--flat-replay", "flat.pt",
+            "--flat-anchor-weight", "2.0", "--n-step", "3",
+            "--residual-gain", "0.25",
+        ]
+    )
+    assert args.terrain_stage == "step_2cm"
+    assert args.terrain_seed == 101
+    assert args.n_step == 3
+    assert args.residual_gain == 0.25
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["--terrain-stage", "unknown", "--terrain-seed", "101"],
+        ["--terrain-stage", "step_2cm", "--terrain-seed", "1009"],
+    ],
+)
+def test_play_parser_rejects_invalid_training_geometry(arguments):
+    with pytest.raises(SystemExit):
+        build_play_parser().parse_args(
+            ["--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt",
+             "--experiment-checkpoint-out", "out.pt", *arguments]
+        )
+
+
+def test_play_parser_rejects_online_mode_without_checkpoint_output():
+    with pytest.raises(SystemExit):
+        build_play_parser().parse_args(
+            ["--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt"]
+        )

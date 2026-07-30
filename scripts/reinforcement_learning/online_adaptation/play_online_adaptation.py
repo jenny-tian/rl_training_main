@@ -19,6 +19,14 @@ from rl_training.online_adaptation.actor_update import update_and_publish_actor
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyGate
 from rl_training.online_adaptation.policy_drift import ActorDriftMonitor, PolicyDrift
+from rl_training.online_adaptation.rsl_rl_compat import split_rsl_rl_endings
+from rl_training.online_adaptation.terrain_protocol import (
+    TerrainGeometry,
+    apply_geometry_to_env_cfg,
+    default_flat_online_protocol,
+    development_geometry,
+    sealed_geometry,
+)
 from rl_training.online_adaptation.types import UpdateStats
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser
@@ -101,6 +109,66 @@ def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
 def write_actor_update_event(stream: Any, event: dict[str, Any]) -> None:
     stream.write(json.dumps(event, allow_nan=False) + "\n")
     stream.flush()
+
+
+def resolve_worker_geometry(
+    terrain_stage: str, terrain_seed: int, *, evaluation_only: bool
+) -> TerrainGeometry:
+    if evaluation_only:
+        return sealed_geometry(terrain_seed)
+    return development_geometry(terrain_stage, terrain_seed)
+
+
+def split_worker_endings(step_result: tuple[Any, ...]):
+    import torch
+
+    if len(step_result) == 5:
+        terminated = step_result[2]
+        truncated = step_result[3]
+        if (
+            not isinstance(terminated, torch.Tensor)
+            or not isinstance(truncated, torch.Tensor)
+            or terminated.shape != truncated.shape
+            or terminated.is_complex()
+            or truncated.is_complex()
+            or not bool(torch.isfinite(terminated).all().item())
+            or not bool(torch.isfinite(truncated).all().item())
+            or not bool(((terminated == 0) | (terminated == 1)).all().item())
+            or not bool(((truncated == 0) | (truncated == 1)).all().item())
+            or bool((terminated.bool() & truncated.bool()).any().item())
+        ):
+            raise RuntimeError("cannot distinguish termination from truncation")
+        done = terminated.bool() | truncated.bool()
+        try:
+            resolved_terminated, resolved_truncated, bootstrap_mask = (
+                split_rsl_rl_endings(done, {"time_outs": truncated})
+            )
+        except RuntimeError as error:
+            raise RuntimeError(
+                "cannot distinguish termination from truncation"
+            ) from error
+    elif len(step_result) == 4:
+        try:
+            resolved_terminated, resolved_truncated, bootstrap_mask = (
+                split_rsl_rl_endings(step_result[2], step_result[3])
+            )
+        except RuntimeError as error:
+            raise RuntimeError(
+                "cannot distinguish termination from truncation"
+            ) from error
+    else:
+        raise RuntimeError("cannot distinguish termination from truncation")
+    return (
+        resolved_terminated,
+        resolved_truncated,
+        bootstrap_mask.to(dtype=torch.float32),
+    )
+
+
+def write_episode_summary(path: str | Path, summary: dict[str, Any]) -> None:
+    serialized = json.dumps(summary, indent=2, allow_nan=False) + "\n"
+    with Path(path).open("x", encoding="utf-8") as stream:
+        stream.write(serialized)
 
 
 def actor_version_for_record(decision: Any) -> int | None:
@@ -434,10 +502,23 @@ class AdaptationRuntimeOrchestrator:
 
 def main() -> int:
     args = build_play_parser().parse_args()
-    if args.mode != "base" and args.residual_checkpoint is None:
-        raise ValueError(f"--residual-checkpoint is required for mode {args.mode}")
-    if "HeldoutBoxes" not in args.task:
-        raise ValueError("the online demonstration must use the held-out task")
+    protocol = default_flat_online_protocol()
+    if args.protocol_sha256 != protocol.sha256():
+        raise ValueError("--protocol-sha256 does not match the runtime protocol")
+    geometry = resolve_worker_geometry(
+        args.terrain_stage, args.terrain_seed, evaluation_only=args.evaluation_only
+    )
+    learning_enabled = args.mode == "online" and not args.evaluation_only
+    if (
+        args.mode != "base"
+        and args.residual_checkpoint is None
+        and args.experiment_checkpoint_in is None
+    ):
+        raise ValueError(
+            f"--residual-checkpoint or --experiment-checkpoint-in is required for mode {args.mode}"
+        )
+    if args.task != "FlatOnline-Deeprobotics-Lite3-v0":
+        raise ValueError("the curriculum worker must use the FlatOnline Lite3 task")
     if args.updates_per_second <= 0.0 or args.actor_updates_per_second <= 0.0:
         raise ValueError("critic and actor update frequencies must be positive")
     if args.video:
@@ -460,11 +541,16 @@ def main() -> int:
 
         import rl_training.tasks  # noqa: F401
         from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
+        from rl_training.online_adaptation.checkpointing import (
+            load_experiment_checkpoint,
+            save_experiment_checkpoint,
+        )
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.metrics import AdaptationPerformance, RollingMetrics
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
+        from rl_training.online_adaptation.replay_buffer import ReplayBuffer
         from rl_training.online_adaptation.rsl_rl_compat import (
             freeze_rsl_rl_models,
             prepare_rsl_rl_agent_cfg,
@@ -477,6 +563,7 @@ def main() -> int:
         )
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
+        from rl_training.online_adaptation.provenance import sha256_file
 
         failure_writer = write_failure_record
 
@@ -488,6 +575,7 @@ def main() -> int:
         actor_updates_stream = (run_dir / "actor_updates.jsonl").open("w", encoding="utf-8")
 
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
+        apply_geometry_to_env_cfg(env_cfg, geometry)
         env_cfg.seed = args.seed
         env_cfg.scene.num_envs = 1
         env_cfg.terminations.time_out = None
@@ -508,6 +596,10 @@ def main() -> int:
                 disable_logger=True,
             )
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
+        online_agent = None
+        novelty_gate = None
+        stable_manager = None
+        checkpoint_saved = False
         try:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
             runner.load(args.base_checkpoint)
@@ -523,6 +615,8 @@ def main() -> int:
                 replay_capacity=args.replay_capacity,
                 min_replay_size=args.min_replay_size,
                 updates_per_second=args.updates_per_second,
+                residual_gain=0.0,
+                n_step=args.n_step,
             )
             safety_limits = SafetyLimits(residual_limits=normal_limits)
             online_agent = OnlineAdaptationAgent(
@@ -531,10 +625,37 @@ def main() -> int:
                 critic=critic,
                 safety_limits=safety_limits,
                 config=runtime_config,
-                sac_config=SACConfig(),
+                sac_config=SACConfig(flat_anchor_weight=args.flat_anchor_weight),
                 device=device,
             )
-            if args.residual_checkpoint is not None and args.mode != "base":
+            if args.flat_replay is not None:
+                flat_state = torch.load(
+                    args.flat_replay, map_location="cpu", weights_only=False
+                )
+                flat_replay = ReplayBuffer(
+                    capacity=int(flat_state["capacity"]),
+                    history_length=int(flat_state["history_length"]),
+                    frame_dim=int(flat_state["frame_dim"]),
+                    action_dim=int(flat_state["action_dim"]),
+                    storage_dtype=getattr(torch, flat_state["storage_dtype"]),
+                )
+                flat_replay.load_state_dict(flat_state)
+                if not flat_replay.frozen:
+                    raise ValueError("--flat-replay must contain a frozen replay state")
+                online_agent.flat_replay = flat_replay
+            restored_experiment = None
+            if args.experiment_checkpoint_in is not None:
+                restored_experiment = load_experiment_checkpoint(
+                    args.experiment_checkpoint_in,
+                    expected_protocol_sha256=protocol.sha256(),
+                    map_location=device,
+                )
+                online_agent.load_state_dict(restored_experiment["agent"])
+            if (
+                args.residual_checkpoint is not None
+                and args.mode != "base"
+                and restored_experiment is None
+            ):
                 online_agent.updater.load(args.residual_checkpoint, map_location=device)
                 online_agent.publisher.publish(online_agent.updater.actor, online_agent.updater.version)
 
@@ -563,7 +684,13 @@ def main() -> int:
             )
             stable_manager = StableStateManager()
             actor_drift_monitor = ActorDriftMonitor()
-            stable_manager.checkpoint(online_agent.updater)
+            if restored_experiment is not None:
+                novelty_gate.load_state_dict(restored_experiment["novelty_gate"])
+                stable_manager.load_state_dict(restored_experiment["stable_manager"])
+            if learning_enabled and online_agent.flat_replay is not None:
+                online_agent.prewarm_critics_from_flat()
+            if restored_experiment is None:
+                stable_manager.checkpoint(online_agent.updater)
             before_parameters = {
                 key: value.detach().cpu().clone() for key, value in online_agent.updater.actor.state_dict().items()
             }
@@ -649,6 +776,14 @@ def main() -> int:
                         if actor_due:
                             critic_batch = online_agent.sample_critic_batch()
                             actor_batch = online_agent.sample_actor_batch()
+                            flat_anchor_batch = (
+                                None
+                                if online_agent.flat_replay is None
+                                else online_agent.flat_replay.sample(
+                                    online_agent.config.batch_size,
+                                    online_agent.device,
+                                )
+                            )
 
                             def episode_is_still_active() -> bool:
                                 with shared_lock:
@@ -673,12 +808,17 @@ def main() -> int:
                                     drift_monitor=actor_drift_monitor,
                                     critic_batch=critic_batch,
                                     actor_batch=actor_batch,
+                                    flat_anchor_batch=flat_anchor_batch,
                                     adaptation_episode=episode_snapshot,
                                     update_step=step_snapshot,
                                     episode_is_active=episode_is_still_active,
                                     final_publish_attempt=publish_if_episode_is_still_active,
                                 )
-                            stats = outcome.stats
+                            stats = replace(
+                                outcome.stats,
+                                flat_batch_fraction=online_agent.last_flat_batch_fraction,
+                                n_step=online_agent.config.n_step,
+                            )
                             policy_drift = outcome.policy_drift
                             next_actor = now + actor_period
                             next_critic = max(next_critic + critic_period, now)
@@ -686,10 +826,7 @@ def main() -> int:
                             len(online_agent.replay), args.min_replay_size, paused_event.is_set()
                         ):
                             with update_lock:
-                                stats = online_agent.updater.update(
-                                    critic_batch=online_agent.sample_critic_batch(),
-                                    update_actor=False,
-                                )
+                                stats = online_agent.update(update_actor=False)
                             next_critic = now + critic_period
 
                         if stats is not None and stats.rejection_reason != "stale_adaptation_episode":
@@ -711,7 +848,7 @@ def main() -> int:
                     update_errors.append(error)
                     stop_event.set()
 
-            if args.mode == "online":
+            if learning_enabled:
                 updater_thread = threading.Thread(target=updater_loop, name="lite3-sac-updater", daemon=False)
                 updater_thread.start()
 
@@ -721,6 +858,10 @@ def main() -> int:
                 "reward": asdict(reward_weights),
                 "continuous_no_reset": True,
                 "heldout_mask_usage": "metrics_only",
+                "terrain_stage": args.terrain_stage,
+                "terrain_seed": args.terrain_seed,
+                "protocol_sha256": protocol.sha256(),
+                "geometry": asdict(geometry),
             }
             (run_dir / "config.json").write_text(
                 json.dumps(config, indent=2, default=str) + "\n", encoding="utf-8"
@@ -739,6 +880,7 @@ def main() -> int:
                 deterministic=not args.stochastic_control,
                 device=device,
             )
+            online_agent.set_residual_gain(args.residual_gain)
             previous_residual = torch.zeros_like(previous_action)
             safety_fallbacks = 0
             safety_violation = False
@@ -808,12 +950,14 @@ def main() -> int:
                     safety_violation = True
 
                 with torch.inference_mode():
-                    next_observation, _, done, extras = wrapped_env.step(decision.action)
+                    step_result = wrapped_env.step(decision.action)
+                    next_observation = step_result[0]
+                    terminated, truncated, bootstrap_mask = split_worker_endings(step_result)
+                    done = terminated | truncated
                     next_base_action = base_policy(next_observation)
                 next_frame = adapter.frame(decision.action)
                 signals = adapter.reward_signals()
                 reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)
-                terminated, truncated, bootstrap_mask = split_rsl_rl_endings(done, extras)
                 velocity_error = float(
                     torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
                 )
@@ -863,7 +1007,7 @@ def main() -> int:
                     )
 
                 if (
-                    args.mode == "online"
+                    learning_enabled
                     and novelty_decision.entered_adapting
                     and not final_step_cutoff
                 ):
@@ -883,13 +1027,27 @@ def main() -> int:
                         counters.record_novelty_entry()
 
                 performance_monitoring_enabled = (
-                    args.mode == "online"
+                    learning_enabled
                     and novelty_decision.actor_update_enabled
                     and active_episode > 0
                     and not paused_now
                 )
                 adaptation_enabled = performance_monitoring_enabled and not final_step_cutoff
-                curriculum_stage_id = torch.zeros_like(terminated, dtype=torch.int64)
+                curriculum_stage_id = torch.full_like(
+                    terminated,
+                    next(
+                        index
+                        for index, stage in enumerate(protocol.stages)
+                        if stage.name == args.terrain_stage
+                    ),
+                    dtype=torch.int64,
+                )
+                actor_invalid = decision.paused.bool().reshape(-1, 1)
+                if control_timed_out or rollback_fallback_used:
+                    actor_invalid = torch.ones_like(actor_invalid)
+                bootstrap_mask = torch.where(
+                    actor_invalid, torch.zeros_like(bootstrap_mask), bootstrap_mask
+                )
                 online_agent.finish_step(
                     next_frame=next_frame,
                     next_base_action=next_base_action,
@@ -898,7 +1056,7 @@ def main() -> int:
                     truncated=truncated,
                     bootstrap_mask=bootstrap_mask,
                     discount=torch.full_like(reward, online_agent.updater.config.gamma),
-                    safety_mask=(~decision.paused.bool()).reshape(-1, 1),
+                    safety_mask=(~actor_invalid).to(dtype=torch.float32),
                     curriculum_stage_id=curriculum_stage_id,
                     episode_id=torch.full_like(curriculum_stage_id, active_episode),
                     adaptation_enabled=adaptation_enabled,
@@ -1062,6 +1220,17 @@ def main() -> int:
                     key: value.detach().cpu().clone()
                     for key, value in online_agent.updater.actor.state_dict().items()
                 }
+                if learning_enabled:
+                    save_experiment_checkpoint(
+                        args.experiment_checkpoint_out,
+                        {
+                            "protocol_sha256": protocol.sha256(),
+                            "agent": online_agent.state_dict(),
+                            "novelty_gate": novelty_gate.state_dict(),
+                            "stable_manager": stable_manager.state_dict(),
+                        },
+                    )
+                    checkpoint_saved = True
             torch.save(after_parameters, run_dir / "residual_after.pt")
             parameter_changed = any(
                 not torch.equal(before_parameters[key], after_parameters[key]) for key in before_parameters
@@ -1090,8 +1259,31 @@ def main() -> int:
                 "parameter_changed": parameter_changed,
                 "last_update": dict(last_update),
                 "last_rollback_reason": last_rollback_reason,
+                "terrain_stage": args.terrain_stage,
+                "terrain_seed": args.terrain_seed,
+                "protocol_sha256": protocol.sha256(),
+                "residual_gain": online_agent.residual_gain,
+                "flat_batch_fraction": online_agent.last_flat_batch_fraction,
+                "experiment_checkpoint_in_sha256": (
+                    None
+                    if args.experiment_checkpoint_in is None
+                    else sha256_file(args.experiment_checkpoint_in)
+                ),
+                "experiment_checkpoint_out_sha256": (
+                    None
+                    if not learning_enabled
+                    else sha256_file(args.experiment_checkpoint_out)
+                ),
                 **metrics.heldout_summary(),
             }
+            episode_summary = {
+                **summary,
+                "passed": not fell and not safety_violation,
+                "completion_boundary": resolve_track_boundary_x(env_cfg),
+                "interaction_steps": executed_steps,
+                "contacts": metrics.heldout_summary().get("heldout_nonfoot_contacts", 0),
+            }
+            write_episode_summary(run_dir / "episode_summary.json", episode_summary)
             (run_dir / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=True) + "\n", encoding="utf-8"
             )
@@ -1101,6 +1293,22 @@ def main() -> int:
             stop_event.set()
             if updater_thread is not None and updater_thread.is_alive():
                 updater_thread.join(timeout=30.0)
+            if (
+                learning_enabled
+                and not checkpoint_saved
+                and online_agent is not None
+                and novelty_gate is not None
+                and stable_manager is not None
+            ):
+                save_experiment_checkpoint(
+                    args.experiment_checkpoint_out,
+                    {
+                        "protocol_sha256": protocol.sha256(),
+                        "agent": online_agent.state_dict(),
+                        "novelty_gate": novelty_gate.state_dict(),
+                        "stable_manager": stable_manager.state_dict(),
+                    },
+                )
             actor_updates_stream.close()
             metrics_stream.close()
             writer.close()

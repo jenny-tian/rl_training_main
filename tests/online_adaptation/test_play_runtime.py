@@ -20,6 +20,9 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     transition_episode_publication,
     warm_up_control_path,
     write_actor_update_event,
+    resolve_worker_geometry,
+    split_worker_endings,
+    write_episode_summary,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate
@@ -204,6 +207,33 @@ def make_update_stats(**changes):
     }
     values.update(changes)
     return UpdateStats(**values)
+
+
+def test_worker_geometry_uses_development_or_sealed_protocol_paths():
+    development = resolve_worker_geometry("step_2cm", 101, evaluation_only=False)
+    sealed = resolve_worker_geometry("step_2cm", 1009, evaluation_only=True)
+    assert development.step_height == 0.02
+    assert development.seed == 101
+    assert sealed.seed == 1009
+
+
+def test_worker_endings_support_gymnasium_and_reject_ambiguous_rsl_rows():
+    terminated, truncated, bootstrap = split_worker_endings(
+        (None, None, torch.tensor([True]), torch.tensor([False]), {})
+    )
+    assert terminated.item() and not truncated.item() and not bootstrap.item()
+    with pytest.raises(RuntimeError, match="cannot distinguish termination from truncation"):
+        split_worker_endings((None, None, torch.tensor([True]), {}))
+
+
+def test_episode_summary_is_strict_json_and_immutable(tmp_path):
+    path = tmp_path / "episode_summary.json"
+    write_episode_summary(path, {"steps": 10, "gain": 0.25})
+    assert json.loads(path.read_text()) == {"steps": 10, "gain": 0.25}
+    with pytest.raises(FileExistsError):
+        write_episode_summary(path, {"steps": 11})
+    with pytest.raises(ValueError):
+        write_episode_summary(tmp_path / "invalid.json", {"cost": float("nan")})
 
 
 def test_policy_drift_record_is_flat_and_scalar_only():

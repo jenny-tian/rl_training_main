@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import argparse
 
+from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
 STRICT_FLAT_BASELINE_TASK = "Flat-Deeprobotics-Lite3-v0"
 HELDOUT_TASK = "HeldoutBoxes-Deeprobotics-Lite3-v0"
+FLAT_ONLINE_TASK = "FlatOnline-Deeprobotics-Lite3-v0"
 FORMAL_FLAT_REPLAY_TRANSITIONS = 100_000
 
 
@@ -25,6 +28,41 @@ def _formal_transition_count(value: str) -> int:
             f"formal collection requires at least {FORMAL_FLAT_REPLAY_TRANSITIONS} transitions"
         )
     return parsed
+
+
+def _unit_interval_float(value: str) -> float:
+    try:
+        parsed = float(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("must be a finite scalar in [0, 1]") from error
+    if not 0.0 <= parsed <= 1.0:
+        raise argparse.ArgumentTypeError("must be a finite scalar in [0, 1]")
+    return parsed
+
+
+def _nonnegative_float(value: str) -> float:
+    try:
+        parsed = float(value)
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("must be finite and nonnegative") from error
+    if parsed != parsed or parsed == float("inf") or parsed < 0.0:
+        raise argparse.ArgumentTypeError("must be finite and nonnegative")
+    return parsed
+
+
+class _PlayArgumentParser(argparse.ArgumentParser):
+    def parse_args(self, args=None, namespace=None):
+        parsed = super().parse_args(args=args, namespace=namespace)
+        protocol = default_flat_online_protocol()
+        if parsed.mode == "online" and parsed.experiment_checkpoint_out is None:
+            self.error("--experiment-checkpoint-out is required for online mode")
+        allowed_seeds = (
+            protocol.sealed_seeds if parsed.evaluation_only else protocol.development_seeds
+        )
+        if parsed.terrain_seed not in allowed_seeds:
+            kind = "sealed" if parsed.evaluation_only else "development"
+            self.error(f"--terrain-seed must be a {kind} seed")
+        return parsed
 
 
 def _add_app_launcher_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -102,11 +140,16 @@ def build_collect_flat_replay_parser() -> argparse.ArgumentParser:
 
 
 def build_play_parser() -> argparse.ArgumentParser:
-    parser = _parser("Run the single-pass Lite3 online-adaptation demonstration.")
+    protocol = default_flat_online_protocol()
+    parser = _add_app_launcher_args(
+        _PlayArgumentParser(
+            description="Run the single-pass Lite3 online-adaptation demonstration."
+        )
+    )
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--residual-checkpoint")
     parser.add_argument("--mode", choices=("base", "residual_frozen", "online"), default="online")
-    parser.add_argument("--task", default=HELDOUT_TASK)
+    parser.add_argument("--task", default=FLAT_ONLINE_TASK)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--forward-speed", type=float, default=0.5)
     parser.add_argument("--max-steps", type=int, default=2_000)
@@ -131,4 +174,18 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument("--stochastic-control", action="store_true")
     parser.add_argument("--video", action="store_true")
     parser.add_argument("--video-length", type=int, default=0, help="0 records the complete requested pass")
+    parser.add_argument(
+        "--terrain-stage",
+        choices=tuple(stage.name for stage in protocol.stages),
+        default=protocol.stages[0].name,
+    )
+    parser.add_argument("--terrain-seed", type=int, default=protocol.development_seeds[0])
+    parser.add_argument("--protocol-sha256", default=protocol.sha256())
+    parser.add_argument("--experiment-checkpoint-in")
+    parser.add_argument("--experiment-checkpoint-out")
+    parser.add_argument("--flat-replay")
+    parser.add_argument("--flat-anchor-weight", type=_nonnegative_float, default=0.0)
+    parser.add_argument("--n-step", type=int, choices=(1, 3, 5), default=1)
+    parser.add_argument("--residual-gain", type=_unit_interval_float, default=0.0)
+    parser.add_argument("--evaluation-only", action="store_true")
     return parser
