@@ -2,7 +2,10 @@ import pytest
 import torch
 
 from rl_training.online_adaptation.networks import ResidualActor
-from rl_training.online_adaptation.policy_drift import ActorDriftMonitor
+from rl_training.online_adaptation.policy_drift import (
+    ActorDriftMonitor,
+    calibrate_drift_threshold,
+)
 from rl_training.online_adaptation.types import TransitionBatch
 
 
@@ -33,6 +36,22 @@ def make_batch(value=0.0, dtype=torch.float32):
         curriculum_stage_id=torch.zeros(4, 1, dtype=torch.int64),
         episode_id=torch.zeros(4, 1, dtype=torch.int64),
     )
+
+
+def test_calibrate_drift_threshold_uses_quantile_and_multiplier():
+    samples = torch.tensor([0.1, 0.2, 0.3, 0.4])
+
+    threshold = calibrate_drift_threshold(samples, quantile=0.75, multiplier=2.0)
+
+    assert threshold == pytest.approx(float(torch.quantile(samples, 0.75) * 2.0))
+
+
+@pytest.mark.parametrize(
+    "samples", [torch.tensor([]), torch.tensor([-0.1]), torch.tensor([float("nan")])]
+)
+def test_calibrate_drift_threshold_rejects_invalid_samples(samples):
+    with pytest.raises(ValueError, match="samples"):
+        calibrate_drift_threshold(samples)
 
 
 def test_identical_actor_has_zero_policy_drift_and_call_metadata():

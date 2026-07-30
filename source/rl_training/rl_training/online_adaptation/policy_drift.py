@@ -9,6 +9,32 @@ from .networks import ResidualActor
 from .types import TransitionBatch
 
 
+def calibrate_drift_threshold(
+    samples: torch.Tensor, quantile: float = 0.99, multiplier: float = 1.25
+) -> float:
+    if not isinstance(samples, torch.Tensor) or samples.numel() == 0:
+        raise ValueError("samples must be a nonempty tensor")
+    if samples.dtype == torch.bool or samples.is_complex():
+        raise ValueError("samples must be finite and nonnegative")
+    values = samples.detach().reshape(-1).to(dtype=torch.float64, device="cpu")
+    if not bool(torch.isfinite(values).all().item()) or bool((values < 0).any().item()):
+        raise ValueError("samples must be finite and nonnegative")
+    if (
+        isinstance(quantile, bool)
+        or not isinstance(quantile, (int, float))
+        or not 0.0 <= float(quantile) <= 1.0
+    ):
+        raise ValueError("quantile must be in [0, 1]")
+    if (
+        isinstance(multiplier, bool)
+        or not isinstance(multiplier, (int, float))
+        or not torch.isfinite(torch.tensor(float(multiplier))).item()
+        or multiplier <= 0.0
+    ):
+        raise ValueError("multiplier must be finite and positive")
+    return float(torch.quantile(values, float(quantile)) * float(multiplier))
+
+
 @dataclass(frozen=True)
 class PolicyDrift:
     residual_mse: float
