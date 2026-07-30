@@ -8,6 +8,7 @@ import torch
 from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
+from rl_training.online_adaptation.sac import SACConfig
 from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 from rl_training.online_adaptation.types import SafetyState
 from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
@@ -16,7 +17,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
 )
 
 
-def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02, replay_capacity=10_000):
+def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02, replay_capacity=10_000, n_step=1, gamma=0.99):
     actor = ResidualActor(2, 1, 4, torch.tensor([0.2]))
     critic = TwinCritic(2, 1, 4)
     return OnlineAdaptationAgent(
@@ -34,9 +35,35 @@ def make_agent(*, residual_gain=1.0, residual_rate_limit=0.02, replay_capacity=1
             batch_size=1,
             residual_gain=residual_gain,
             replay_capacity=replay_capacity,
+            n_step=n_step,
+            gamma=gamma,
         ),
+        sac_config=SACConfig(gamma=gamma),
         device="cpu",
     )
+
+
+def test_agent_requires_matching_nstep_and_sac_gamma():
+    actor = ResidualActor(2, 1, 4, torch.tensor([0.2]))
+    critic = TwinCritic(2, 1, 4)
+
+    with pytest.raises(ValueError, match="gamma"):
+        OnlineAdaptationAgent(
+            num_envs=1,
+            actor=actor,
+            critic=critic,
+            safety_limits=SafetyLimits(
+                residual_limits=torch.tensor([0.2]),
+                residual_rate_limit=0.02,
+            ),
+            config=AgentConfig(
+                history_length=3,
+                frame_dim=2,
+                action_dim=1,
+                batch_size=1,
+                gamma=0.9,
+            ),
+        )
 
 
 class FixedResidualActor:
@@ -188,6 +215,73 @@ def test_agent_routes_only_adapting_transitions_to_adaptation_replay():
 
     assert len(agent.replay) == 2
     assert len(agent.adaptation_replay) == 1
+
+
+def test_agent_accumulates_nstep_before_replay_insertion():
+    agent = make_agent(n_step=3, gamma=0.9)
+    frame = torch.zeros(1, 2)
+    action = torch.zeros(1, 1)
+
+    for index in range(2):
+        agent.begin_step(frame + index, action, safety_state(), deterministic=True)
+        finish_agent_step(
+            agent,
+            frame + index + 1,
+            action,
+            torch.ones(1, 1),
+            adaptation_enabled=True,
+        )
+
+    assert len(agent.replay) == 0
+    assert len(agent.adaptation_replay) == 0
+
+    agent.begin_step(frame + 2, action, safety_state(), deterministic=True)
+    finish_agent_step(
+        agent,
+        frame + 3,
+        action,
+        torch.ones(1, 1),
+        adaptation_enabled=True,
+    )
+
+    assert len(agent.replay) == 1
+    assert len(agent.adaptation_replay) == 1
+    sampled = agent.replay.sample(1, "cpu")
+    assert sampled.reward.item() == pytest.approx(1.0 + 0.9 + 0.9**2)
+    assert sampled.discount.item() == pytest.approx(0.9**3)
+    torch.testing.assert_close(sampled.next_frame, frame + 3)
+
+
+def test_agent_routes_nstep_adaptation_replay_by_original_step():
+    frame = torch.zeros(1, 2)
+    action = torch.zeros(1, 1)
+
+    enabled_first = make_agent(n_step=3, gamma=0.9)
+    for adaptation_enabled in (True, False, False):
+        enabled_first.begin_step(frame, action, safety_state(), deterministic=True)
+        finish_agent_step(
+            enabled_first,
+            frame,
+            action,
+            torch.ones(1, 1),
+            adaptation_enabled=adaptation_enabled,
+        )
+
+    disabled_first = make_agent(n_step=3, gamma=0.9)
+    for adaptation_enabled in (False, True, True):
+        disabled_first.begin_step(frame, action, safety_state(), deterministic=True)
+        finish_agent_step(
+            disabled_first,
+            frame,
+            action,
+            torch.ones(1, 1),
+            adaptation_enabled=adaptation_enabled,
+        )
+
+    assert len(enabled_first.replay) == 1
+    assert len(enabled_first.adaptation_replay) == 1
+    assert len(disabled_first.replay) == 1
+    assert len(disabled_first.adaptation_replay) == 0
 
 
 def test_agent_clears_adaptation_replay_without_touching_global_replay():
@@ -407,7 +501,7 @@ def test_finish_step_does_not_reset_history_from_bootstrap_mask_alone():
 
 
 def test_finish_step_routes_all_explicit_fields_to_both_replays():
-    agent = make_agent()
+    agent = make_agent(gamma=0.75)
     frame = torch.tensor([[1.0, 2.0]])
     agent.begin_step(frame, torch.zeros(1, 1), safety_state(), deterministic=True)
     explicit_fields = ending_fields(
@@ -506,6 +600,60 @@ def test_finish_step_rolls_back_both_replays_when_second_commit_fails_and_retrie
     assert agent.adaptation_replay._cursor == 0
     assert agent.replay._reward[2].item() == 2.0
     assert agent.adaptation_replay._reward[2].item() == 2.0
+    assert agent._pending is None
+    assert torch.equal(agent.history.snapshot(), torch.zeros(1, 3, 2))
+
+
+def test_distinct_nstep_masks_roll_back_both_replays_on_second_commit_failure(monkeypatch):
+    agent = make_agent(n_step=5, gamma=0.99, replay_capacity=4)
+    frame = torch.zeros(1, 2)
+    action = torch.zeros(1, 1)
+    agent.begin_step(frame, action, safety_state(), deterministic=True)
+    finish_agent_step(
+        agent,
+        frame,
+        action,
+        torch.ones(1, 1),
+        adaptation_enabled=False,
+    )
+    agent.begin_step(frame, action, safety_state(), deterministic=True)
+    history_before = agent.history.snapshot()
+    replay_before = replay_state(agent.replay)
+    adaptation_before = replay_state(agent.adaptation_replay)
+    original_second_commit = agent.adaptation_replay._commit_prepared
+
+    def commit_then_fail(prepared):
+        original_second_commit(prepared)
+        raise RuntimeError("injected distinct-mask commit failure")
+
+    monkeypatch.setattr(agent.adaptation_replay, "_commit_prepared", commit_then_fail)
+    with pytest.raises(RuntimeError, match="injected distinct-mask commit failure"):
+        finish_agent_step(
+            agent,
+            frame,
+            action,
+            torch.ones(1, 1),
+            truncated=torch.ones(1, 1),
+            adaptation_enabled=True,
+        )
+
+    assert_replay_state_equal(agent.replay, replay_before)
+    assert_replay_state_equal(agent.adaptation_replay, adaptation_before)
+    assert agent._pending is not None
+    assert torch.equal(agent.history.snapshot(), history_before)
+
+    monkeypatch.setattr(agent.adaptation_replay, "_commit_prepared", original_second_commit)
+    finish_agent_step(
+        agent,
+        frame,
+        action,
+        torch.ones(1, 1),
+        truncated=torch.ones(1, 1),
+        adaptation_enabled=True,
+    )
+
+    assert len(agent.replay) == 2
+    assert len(agent.adaptation_replay) == 1
     assert agent._pending is None
     assert torch.equal(agent.history.snapshot(), torch.zeros(1, 3, 2))
 
