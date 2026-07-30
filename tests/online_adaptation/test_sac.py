@@ -45,7 +45,7 @@ class ConstantActor(torch.nn.Module):
 
     def sample(self, history, current_frame, base_action, deterministic=False):
         batch_size, action_dim = base_action.shape
-        residual = self.value.expand(batch_size, action_dim) * 0.0
+        residual = self.value.expand(batch_size, action_dim)
         log_prob = self.value.expand(batch_size, 1) * 0.0 + self.log_prob
         return residual, log_prob, residual
 
@@ -108,6 +108,65 @@ def test_sac_update_changes_version_and_target_parameters():
     assert stats.actor_updated
     assert stats.version == 1
     assert any(not torch.equal(a, b) for a, b in zip(before, updater.target_critic.parameters()))
+
+
+def test_flat_anchor_penalizes_deterministic_residual_mean():
+    actor = ConstantActor(log_prob=0.0)
+    with torch.no_grad():
+        actor.value.fill_(0.1)
+    updater = SACUpdater(
+        actor, ConstantTwinCritic(), SACConfig(flat_anchor_weight=2.0)
+    )
+
+    stats = updater.update(
+        critic_batch=make_batch(),
+        actor_batch=make_batch(),
+        flat_anchor_batch=make_batch(),
+    )
+
+    assert stats.accepted
+    assert stats.flat_anchor_loss == pytest.approx(0.02)
+
+
+def test_zero_anchor_weight_matches_legacy_actor_loss():
+    first = SACUpdater(
+        ConstantActor(log_prob=0.5), ConstantTwinCritic(),
+        SACConfig(flat_anchor_weight=0.0),
+    )
+    second = copy.deepcopy(first)
+    batch = make_batch()
+    torch.manual_seed(123)
+    legacy = first.update(batch, batch)
+    torch.manual_seed(123)
+    anchored = second.update(batch, batch, flat_anchor_batch=batch)
+
+    assert anchored.actor_loss == pytest.approx(legacy.actor_loss)
+    assert anchored.flat_anchor_loss == 0.0
+
+
+@pytest.mark.parametrize("weight", [-0.1, float("nan"), float("inf")])
+def test_flat_anchor_weight_must_be_finite_and_nonnegative(weight):
+    with pytest.raises(ValueError, match="flat_anchor_weight"):
+        SACConfig(flat_anchor_weight=weight)
+
+
+def test_nonfinite_flat_anchor_batch_rolls_back_complete_update():
+    updater = SACUpdater(
+        ConstantActor(log_prob=0.0), ConstantTwinCritic(),
+        SACConfig(flat_anchor_weight=2.0),
+    )
+    before = copy.deepcopy(updater.state_dict())
+    flat_batch = make_batch()
+    flat_batch = replace(
+        flat_batch,
+        current_frame=torch.full_like(flat_batch.current_frame, float("nan")),
+    )
+
+    stats = updater.update(make_batch(), make_batch(), flat_batch)
+
+    assert not stats.accepted
+    assert stats.rejection_reason == "nonfinite_update"
+    assert_state_dict_equal(updater.state_dict(), before)
 
 
 def test_critic_target_uses_bootstrap_mask_and_per_transition_discount():

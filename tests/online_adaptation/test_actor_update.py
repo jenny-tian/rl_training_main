@@ -31,9 +31,11 @@ def make_batch(value: float = 0.0) -> TransitionBatch:
     )
 
 
-def make_components() -> tuple[SACUpdater, DoubleBufferedActorPublisher, ActorDriftMonitor]:
+def make_components(
+    config: SACConfig = SACConfig(),
+) -> tuple[SACUpdater, DoubleBufferedActorPublisher, ActorDriftMonitor]:
     actor = ResidualActor(2, 1, 4, torch.tensor([0.2]))
-    updater = SACUpdater(actor, TwinCritic(2, 1, 4), SACConfig())
+    updater = SACUpdater(actor, TwinCritic(2, 1, 4), config)
     publisher = DoubleBufferedActorPublisher(actor)
     monitor = ActorDriftMonitor()
     monitor.start_episode(actor, adaptation_episode=1)
@@ -223,7 +225,7 @@ def test_unexpected_monitor_error_propagates_and_restores_updater(monkeypatch):
 
 
 def test_publish_failure_restores_updater_and_resynchronizes_publisher(monkeypatch):
-    updater, publisher, monitor = make_components()
+    updater, publisher, monitor = make_components(SACConfig(flat_anchor_weight=2.0))
     before = copy.deepcopy(updater.state_dict())
     published_before, published_version_before = publisher.current()
     published_parameters_before = [parameter.detach().clone() for parameter in published_before.parameters()]
@@ -245,6 +247,7 @@ def test_publish_failure_restores_updater_and_resynchronizes_publisher(monkeypat
             drift_monitor=monitor,
             critic_batch=make_batch(0.1),
             actor_batch=make_batch(0.2),
+            flat_anchor_batch=make_batch(0.0),
             adaptation_episode=1,
             update_step=7,
             episode_is_active=lambda: True,

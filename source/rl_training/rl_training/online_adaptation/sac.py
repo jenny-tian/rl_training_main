@@ -4,6 +4,7 @@ import copy
 from collections.abc import Callable
 import torch
 from dataclasses import dataclass, fields
+from math import isfinite
 from pathlib import Path
 from torch import nn
 from torch.nn import functional as F
@@ -30,6 +31,16 @@ class SACConfig:
     alpha_lr: float = 3e-4
     target_entropy: float = -6.0
     max_grad_norm: float = 1.0
+    flat_anchor_weight: float = 0.0
+
+    def __post_init__(self) -> None:
+        if (
+            isinstance(self.flat_anchor_weight, bool)
+            or not isinstance(self.flat_anchor_weight, (int, float))
+            or not isfinite(self.flat_anchor_weight)
+            or self.flat_anchor_weight < 0.0
+        ):
+            raise ValueError("flat_anchor_weight must be finite and nonnegative")
 
 
 def compute_sac_target(
@@ -99,6 +110,7 @@ class SACUpdater:
         self,
         critic_batch: TransitionBatch,
         actor_batch: TransitionBatch | None = None,
+        flat_anchor_batch: TransitionBatch | None = None,
         *,
         update_actor: bool = True,
         candidate_validator: CandidateActorValidator | None = None,
@@ -149,8 +161,14 @@ class SACUpdater:
             actor_loss = torch.full((), float("nan"), device=q1.device)
             alpha_loss = torch.full((), float("nan"), device=q1.device)
             actor_grad_norm = torch.zeros((), device=q1.device)
+            flat_anchor_loss_value: torch.Tensor | None = None
             if update_actor:
                 if actor_batch is None or not self._batch_is_finite(actor_batch):
+                    raise FloatingPointError
+                if (
+                    flat_anchor_batch is not None
+                    and not self._batch_is_finite(flat_anchor_batch)
+                ):
                     raise FloatingPointError
                 self.critic.requires_grad_(False)
                 residual, log_prob, _ = self.actor.sample(
@@ -165,6 +183,17 @@ class SACUpdater:
                     residual,
                 )
                 actor_loss = (self.alpha.detach() * log_prob - torch.minimum(actor_q1, actor_q2)).mean()
+                if flat_anchor_batch is not None:
+                    _, _, flat_mean = self.actor.sample(
+                        flat_anchor_batch.history,
+                        flat_anchor_batch.current_frame,
+                        flat_anchor_batch.base_action,
+                        deterministic=True,
+                    )
+                    flat_anchor_loss_value = (
+                        self.config.flat_anchor_weight * flat_mean.square().mean()
+                    )
+                    actor_loss = actor_loss + flat_anchor_loss_value
                 if not torch.isfinite(actor_loss).item():
                     raise FloatingPointError
                 self.actor_optimizer.zero_grad(set_to_none=True)
@@ -243,7 +272,11 @@ class SACUpdater:
             ),
             mean_flat_q=None,
             mean_online_q=None,
-            flat_anchor_loss=None,
+            flat_anchor_loss=(
+                None
+                if flat_anchor_loss_value is None
+                else float(flat_anchor_loss_value.detach())
+            ),
             flat_batch_fraction=0.0,
             n_step=1,
         )

@@ -23,6 +23,7 @@ def update_and_publish_actor(
     drift_monitor: ActorDriftMonitor,
     critic_batch: TransitionBatch,
     actor_batch: TransitionBatch,
+    flat_anchor_batch: TransitionBatch | None = None,
     adaptation_episode: int,
     update_step: int,
     episode_is_active: Callable[[], bool],
@@ -50,6 +51,7 @@ def update_and_publish_actor(
     stats = updater.update(
         critic_batch,
         actor_batch,
+        flat_anchor_batch,
         update_actor=True,
         candidate_validator=validate_candidate,
     )
