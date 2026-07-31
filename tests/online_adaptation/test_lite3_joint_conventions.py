@@ -40,11 +40,19 @@ def test_extreme_actions_clip_to_targets_inside_soft_joint_bounds():
     assert torch.equal(clipped[1], upper)
     assert clipped.dtype == action.dtype
     assert clipped.device == action.device
+    assert targets.dtype == action.dtype
+    assert targets.device == action.device
 
     # Runtime-observed Isaac soft limits. The SafetyFilter reserves 0.02 rad
     # from each limit before projecting an action into a physical target.
-    soft_lower = torch.tensor((-0.51777, -2.6550798416, 0.51876) * 4, dtype=action.dtype)
-    soft_upper = torch.tensor((0.51777, 0.31086, 2.7806601524) * 4, dtype=action.dtype)
+    soft_lower = torch.tensor(
+        (-0.5177699327, -2.6550798416, 0.5353399515) * 4,
+        dtype=action.dtype,
+    )
+    soft_upper = torch.tensor(
+        (0.5177699327, 0.2990798950, 2.7806601524) * 4,
+        dtype=action.dtype,
+    )
     safety_margin = 0.02
     assert torch.all(targets > soft_lower + safety_margin)
     assert torch.all(targets < soft_upper - safety_margin)
