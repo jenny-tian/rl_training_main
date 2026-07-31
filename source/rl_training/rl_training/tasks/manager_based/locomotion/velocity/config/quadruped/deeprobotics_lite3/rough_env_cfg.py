@@ -6,6 +6,7 @@
 
 from isaaclab.utils import configclass
 
+from rl_training.lite3_joint_conventions import LITE3_SAFE_ACTION_CLIP_BY_PATTERN
 from rl_training.tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 # from isaaclab.sensors.ray_caster import GridPatternCfg
 ##
@@ -69,7 +70,7 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # ------------------------------Actions------------------------------
         # reduce action scale
         self.actions.joint_pos.scale = {".*_HipX_joint": 0.125, "^(?!.*_HipX_joint).*": 0.25}
-        self.actions.joint_pos.clip = {".*": (-100.0, 100.0)}
+        self.actions.joint_pos.clip = dict(LITE3_SAFE_ACTION_CLIP_BY_PATTERN)
         self.actions.joint_pos.joint_names = self.joint_names
 
         # ------------------------------Events------------------------------
