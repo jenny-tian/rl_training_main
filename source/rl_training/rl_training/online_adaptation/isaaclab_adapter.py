@@ -10,7 +10,10 @@ from .types import RewardSignals, SafetyState
 
 def select_joint_order(value: torch.Tensor, joint_ids: list[int] | torch.Tensor) -> torch.Tensor:
     """Select robot-state columns in the PPO action/observation joint order."""
-    return value[..., joint_ids]
+    if value.ndim < 2:
+        raise ValueError("joint tensor must have batch and joint dimensions")
+    indices = torch.as_tensor(joint_ids, dtype=torch.long, device=value.device)
+    return value.index_select(1, indices)
 
 
 def compose_proprio_frame(

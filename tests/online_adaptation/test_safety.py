@@ -29,6 +29,22 @@ def test_select_joint_order_maps_robot_storage_to_policy_action_order():
     assert torch.equal(ordered, torch.tensor([[10, 30, 50, 20, 40, 60]]))
 
 
+def test_select_joint_order_preserves_trailing_joint_limit_pair():
+    robot_order = torch.tensor(
+        [[[10, 11], [20, 21], [30, 31], [40, 41], [50, 51], [60, 61]]]
+    )
+    policy_joint_ids = [0, 2, 4, 1, 3, 5]
+
+    ordered = select_joint_order(robot_order, policy_joint_ids)
+
+    assert torch.equal(
+        ordered,
+        torch.tensor(
+            [[[10, 11], [30, 31], [50, 51], [20, 21], [40, 41], [60, 61]]]
+        ),
+    )
+
+
 def test_rate_and_joint_target_projection():
     filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2), residual_rate_limit=0.05))
     decision = filt.project(torch.zeros(1, 12), torch.ones(1, 12), state())
