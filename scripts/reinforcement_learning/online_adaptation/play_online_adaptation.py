@@ -15,6 +15,7 @@ from typing import Any, Literal
 
 from isaaclab.app import AppLauncher
 
+from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.online_adaptation.actor_update import update_and_publish_actor
 from rl_training.online_adaptation.metrics import AdaptationPerformance
 from rl_training.online_adaptation.novelty import NoveltyGate
@@ -358,7 +359,7 @@ def warm_up_control_path(
 
     with torch.inference_mode():
         frame = adapter.frame(previous_action)
-        base_action = base_policy(observation)
+        base_action = clip_lite3_policy_action(base_policy(observation))
         actor, _ = online_agent.publisher.current()
         history = torch.zeros(
             (frame.shape[0], online_agent.config.history_length, frame.shape[-1]),
@@ -932,7 +933,7 @@ def main() -> int:
                 control_started = time.perf_counter()
                 frame = adapter.frame(previous_action)
                 with torch.inference_mode():
-                    base_action = base_policy(observation)
+                    base_action = clip_lite3_policy_action(base_policy(observation))
                 timeout = torch.zeros(1, 1, dtype=torch.bool, device=device)
                 safety_state = adapter.safety_state(timeout)
                 decision = online_agent.begin_step(
@@ -981,7 +982,7 @@ def main() -> int:
                         step_result, target_semantics=args.target_semantics
                     )
                     done = terminated | truncated
-                    next_base_action = base_policy(next_observation)
+                    next_base_action = clip_lite3_policy_action(base_policy(next_observation))
                 next_frame = adapter.frame(decision.action)
                 signals = adapter.reward_signals()
                 reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)

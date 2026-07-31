@@ -31,6 +31,7 @@ def main() -> int:
         from isaaclab_tasks.utils import load_cfg_from_registry, parse_env_cfg
 
         import rl_training.tasks  # noqa: F401
+        from rl_training.lite3_joint_conventions import clip_lite3_policy_action
         from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
@@ -117,7 +118,7 @@ def main() -> int:
                 frame = adapter.frame(previous_action)
                 timeout = torch.zeros(args.num_envs, 1, dtype=torch.bool, device=device)
                 with torch.inference_mode():
-                    base_action = policy(observation)
+                    base_action = clip_lite3_policy_action(policy(observation))
                 decision = online_agent.begin_step(
                     frame,
                     base_action,
@@ -126,7 +127,7 @@ def main() -> int:
                 )
                 with torch.inference_mode():
                     next_observation, _, done, extras = wrapped_env.step(decision.action)
-                    next_base_action = policy(next_observation)
+                    next_base_action = clip_lite3_policy_action(policy(next_observation))
                 next_frame = adapter.frame(decision.action)
                 signals = adapter.reward_signals()
                 reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)

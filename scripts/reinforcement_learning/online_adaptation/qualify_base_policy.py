@@ -10,6 +10,7 @@ from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
+from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from scripts.reinforcement_learning.online_adaptation.cli import build_qualify_parser
 from rl_training.online_adaptation.terrain_guards import assert_plane_only_terrain, is_strict_flat_baseline_task
 
@@ -116,7 +117,7 @@ def _run_single_seed(args) -> int:
             falls = 0
             for _ in range(args.steps_per_seed):
                 with torch.inference_mode():
-                    action = policy(observation)
+                    action = clip_lite3_policy_action(policy(observation))
                     observation, _, done, _ = wrapped_env.step(action)
                 signals = adapter.reward_signals()
                 velocity_error_sum += float(

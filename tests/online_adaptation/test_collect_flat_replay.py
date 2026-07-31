@@ -294,15 +294,29 @@ def test_deterministic_base_action_uses_frozen_policy_intent_without_gradients()
 
     def policy(observation):
         calls.append((observation.clone(), torch.is_grad_enabled()))
-        return observation[:, :2] + 0.25
+        return observation[:, :12] + 0.25
 
-    observation = torch.tensor([[1.0, 2.0, 3.0]], requires_grad=True)
+    observation = torch.arange(12, dtype=torch.float32).unsqueeze(0).requires_grad_()
     action = collect_flat_replay.deterministic_base_action(policy, observation)
 
-    torch.testing.assert_close(action, torch.tensor([[1.25, 2.25]]), rtol=0, atol=0)
+    expected = torch.minimum(
+        observation.detach() + 0.25,
+        observation.new_tensor([3.97, 3.70, 5.83] * 4),
+    )
+    torch.testing.assert_close(action, expected, rtol=0, atol=0)
     assert action.requires_grad is False
     assert len(calls) == 1
     assert calls[0][1] is False
+
+
+def test_deterministic_base_action_clips_to_shared_lite3_bounds():
+    action = collect_flat_replay.deterministic_base_action(
+        lambda _observation: torch.tensor([[100.0, -100.0, 100.0] * 4]),
+        torch.zeros(1, 3),
+    )
+
+    assert action.max().item() == pytest.approx(5.83)
+    assert action.min().item() == pytest.approx(-7.93)
 
 
 def test_one_step_flat_transition_has_zero_residual_and_explicit_endings():
@@ -321,6 +335,29 @@ def test_one_step_flat_transition_has_zero_residual_and_explicit_endings():
     assert torch.equal(transition.terminated, values["terminated"])
     assert torch.equal(transition.truncated, values["truncated"])
     assert torch.equal(transition.bootstrap_mask, values["bootstrap_mask"])
+
+
+def test_safety_diagnostics_identifies_projection_pause_reasons_and_nonfinite_fields():
+    decision = argparse.Namespace(
+        paused=torch.tensor([[True]]),
+        projected=torch.tensor([[True]]),
+        reasons=("joint_velocity",),
+    )
+
+    diagnostics = collect_flat_replay.safety_diagnostics(
+        decision,
+        {
+            "base_action": torch.tensor([[1.0, float("nan")]]),
+            "reward": torch.tensor([[0.0]]),
+        },
+    )
+
+    assert diagnostics == {
+        "safety_paused_rows": 1,
+        "safety_projected_rows": 1,
+        "safety_reasons": ["joint_velocity"],
+        "nonfinite_fields": ["base_action"],
+    }
 
 
 def test_truncated_post_reset_next_state_is_dropped_and_collection_continues():

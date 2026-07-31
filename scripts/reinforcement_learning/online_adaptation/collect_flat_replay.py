@@ -16,6 +16,7 @@ from typing import Any, Iterator, TextIO
 
 import torch
 
+from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.online_adaptation.provenance import (
     sha256_file,
     snapshot_file,
@@ -234,7 +235,7 @@ def deterministic_base_action(
         raise RuntimeError("base PPO must return a batched action tensor")
     if not bool(torch.isfinite(action).all().item()):
         raise RuntimeError("base PPO returned a non-finite action")
-    return action.detach().clone()
+    return clip_lite3_policy_action(action).detach().clone()
 
 
 def build_one_step_flat_transition(
@@ -276,6 +277,18 @@ def build_one_step_flat_transition(
         curriculum_stage_id=curriculum_stage_id,
         episode_id=episode_id,
     )
+
+
+def safety_diagnostics(decision: Any, tensors: Mapping[str, torch.Tensor]) -> dict[str, object]:
+    """Return JSON-safe evidence explaining why a row failed the safety mask."""
+    return {
+        "safety_paused_rows": int(decision.paused.bool().sum().item()),
+        "safety_projected_rows": int(decision.projected.bool().sum().item()),
+        "safety_reasons": list(decision.reasons),
+        "nonfinite_fields": [
+            name for name, value in tensors.items() if not bool(torch.isfinite(value).all().item())
+        ],
+    }
 
 
 def store_flat_transition(
@@ -608,10 +621,11 @@ def _run_collection(args: Any, validated: ValidatedCollectionInputs) -> int:
             current_history = history.snapshot()
             base_action = deterministic_base_action(base_policy, observation)
             timeout = torch.zeros(1, 1, dtype=torch.bool, device=device)
+            safety_state = adapter.safety_state(timeout)
             decision = safety.project(
                 base_action,
                 torch.zeros_like(base_action),
-                adapter.safety_state(timeout),
+                safety_state,
                 force_zero_residual=True,
             )
             with torch.inference_mode():
@@ -629,20 +643,18 @@ def _run_collection(args: Any, validated: ValidatedCollectionInputs) -> int:
             done_mask = terminated | truncated
             next_history = history.preview(next_frame, reset_mask=done_mask.squeeze(-1))
 
+            diagnostic_tensors = {
+                "current_history": current_history,
+                "frame": frame,
+                "base_action": base_action,
+                "final_action": decision.action,
+                "reward": reward,
+                "next_history": next_history,
+                "next_frame": next_frame,
+                "next_base_action": next_base_action,
+            }
             finite_rows = torch.stack(
-                [
-                    torch.isfinite(value).reshape(1, -1).all(dim=1)
-                    for value in (
-                        current_history,
-                        frame,
-                        base_action,
-                        decision.action,
-                        reward,
-                        next_history,
-                        next_frame,
-                        next_base_action,
-                    )
-                ]
+                [torch.isfinite(value).reshape(1, -1).all(dim=1) for value in diagnostic_tensors.values()]
             ).all(dim=0, keepdim=True).T
             safety_mask = (~decision.paused.bool()) & (~decision.projected.bool()) & finite_rows
             transition = build_one_step_flat_transition(
@@ -665,6 +677,30 @@ def _run_collection(args: Any, validated: ValidatedCollectionInputs) -> int:
             safety_invalid_rows += stored.safety_invalid_rows
             falls += stored.falls
             truncated_rows += stored.truncated_rows
+            diagnostic_record = safety_diagnostics(decision, diagnostic_tensors)
+            diagnostic_record.update(
+                {
+                    "base_height_min": float(safety_state.base_height.amin().item()),
+                    "joint_velocity_max_abs": float(safety_state.joint_vel.abs().amax().item()),
+                    "projected_gravity_xy_norm_max": float(
+                        safety_state.projected_gravity_xy.norm(dim=-1).amax().item()
+                    ),
+                    "nonfoot_contact_rows": int(safety_state.nonfoot_contact.bool().sum().item()),
+                    "action_correction_max_abs": float(
+                        (decision.action - base_action).abs().amax().item()
+                    ),
+                }
+            )
+            if not bool(safety_mask.all().item()):
+                diagnostic_record["invalid_row_detail"] = {
+                    "joint_names": list(adapter.robot.joint_names),
+                    "base_action": base_action[0].detach().cpu().tolist(),
+                    "final_action": decision.action[0].detach().cpu().tolist(),
+                    "default_joint_pos": safety_state.default_joint_pos[0].detach().cpu().tolist(),
+                    "joint_lower": safety_state.joint_lower[0].detach().cpu().tolist(),
+                    "joint_upper": safety_state.joint_upper[0].detach().cpu().tolist(),
+                    "action_scale": safety_state.action_scale[0].detach().cpu().tolist(),
+                }
             write_metric(
                 metrics_stream,
                 {
@@ -673,6 +709,7 @@ def _run_collection(args: Any, validated: ValidatedCollectionInputs) -> int:
                     "safety_invalid_rows": safety_invalid_rows,
                     "truncated_rows": truncated_rows,
                     "transition_count": len(replay),
+                    **diagnostic_record,
                 },
             )
 
