@@ -3,7 +3,14 @@ from __future__ import annotations
 import torch
 from typing import Any
 
+from rl_training.lite3_joint_conventions import LITE3_POLICY_JOINT_NAMES
+
 from .types import RewardSignals, SafetyState
+
+
+def select_joint_order(value: torch.Tensor, joint_ids: list[int] | torch.Tensor) -> torch.Tensor:
+    """Select robot-state columns in the PPO action/observation joint order."""
+    return value[..., joint_ids]
 
 
 def compose_proprio_frame(
@@ -59,6 +66,14 @@ class Lite3IsaacLabAdapter:
         self.nonfoot_ids = self.contact_sensor.find_bodies(nonfoot_body_pattern)[0]
         self.contact_threshold = contact_threshold
         joint_pos = self.robot.data.joint_pos
+        self.joint_ids, joint_names = self.robot.find_joints(
+            list(LITE3_POLICY_JOINT_NAMES), preserve_order=True
+        )
+        if tuple(joint_names) != LITE3_POLICY_JOINT_NAMES:
+            raise ValueError(
+                "Lite3 robot joints do not match the frozen PPO joint order: "
+                f"expected {LITE3_POLICY_JOINT_NAMES}, got {tuple(joint_names)}"
+            )
         self.action_scale = torch.tensor(
             [0.125, 0.25, 0.25] * 4,
             device=joint_pos.device,
@@ -76,25 +91,25 @@ class Lite3IsaacLabAdapter:
         return compose_proprio_frame(
             robot.data.root_ang_vel_b,
             robot.data.projected_gravity_b,
-            robot.data.joint_pos - robot.data.default_joint_pos,
-            robot.data.joint_vel,
+            select_joint_order(robot.data.joint_pos - robot.data.default_joint_pos, self.joint_ids),
+            select_joint_order(robot.data.joint_vel, self.joint_ids),
             contacts,
             previous_action,
             command,
         )
 
     def safety_state(self, control_timed_out: torch.Tensor) -> SafetyState:
-        limits = self.robot.data.soft_joint_pos_limits
+        limits = select_joint_order(self.robot.data.soft_joint_pos_limits, self.joint_ids)
         nonfoot_forces = self.contact_sensor.data.net_forces_w[:, self.nonfoot_ids]
         return SafetyState(
             projected_gravity_xy=self.robot.data.projected_gravity_b[:, :2],
             base_height=self.robot.data.root_pos_w[:, 2:3],
-            joint_pos=self.robot.data.joint_pos,
-            joint_vel=self.robot.data.joint_vel,
+            joint_pos=select_joint_order(self.robot.data.joint_pos, self.joint_ids),
+            joint_vel=select_joint_order(self.robot.data.joint_vel, self.joint_ids),
             joint_lower=limits[..., 0],
             joint_upper=limits[..., 1],
-            default_joint_pos=self.robot.data.default_joint_pos,
-            action_scale=self.action_scale.expand_as(self.robot.data.joint_pos),
+            default_joint_pos=select_joint_order(self.robot.data.default_joint_pos, self.joint_ids),
+            action_scale=self.action_scale.expand(-1, len(self.joint_ids)),
             nonfoot_contact=(torch.linalg.norm(nonfoot_forces, dim=-1) > self.contact_threshold).any(
                 dim=1, keepdim=True
             ),
@@ -116,9 +131,10 @@ class Lite3IsaacLabAdapter:
             base_lin_vel_z=self.robot.data.root_lin_vel_b[:, 2:3],
             foot_slip=(foot_speed * contacts.float()).mean(dim=1, keepdim=True),
             foot_impact=foot_forces.max(dim=1, keepdim=True).values,
-            joint_power=torch.abs(self.robot.data.joint_vel * self.robot.data.applied_torque).mean(
-                dim=1, keepdim=True
-            ),
+            joint_power=torch.abs(
+                select_joint_order(self.robot.data.joint_vel, self.joint_ids)
+                * select_joint_order(self.robot.data.applied_torque, self.joint_ids)
+            ).mean(dim=1, keepdim=True),
             nonfoot_contact=(torch.linalg.norm(nonfoot_forces, dim=-1) > self.contact_threshold)
             .any(dim=1, keepdim=True)
             .float(),
