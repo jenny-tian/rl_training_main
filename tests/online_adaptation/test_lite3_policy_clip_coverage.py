@@ -15,7 +15,11 @@ def test_collector_clips_the_validated_deterministic_policy_action():
 
 def test_qualification_clips_policy_action_before_environment_step():
     source = _source("scripts/reinforcement_learning/online_adaptation/qualify_base_policy.py")
-    assert "action = clip_lite3_policy_action(policy(observation))" in source
+    assert "raw_action = policy(observation)" in source
+    assert "action = clip_lite3_policy_action(raw_action)" in source
+    assert source.index("action = clip_lite3_policy_action(raw_action)") < source.index(
+        "wrapped_env.step(decision.action)"
+    )
 
 
 def test_residual_trainer_clips_current_and_next_base_actions():

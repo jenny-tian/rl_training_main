@@ -95,6 +95,7 @@ def _run_single_seed(args) -> int:
         import rl_training.tasks  # noqa: F401
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.rsl_rl_compat import prepare_rsl_rl_agent_cfg
+        from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 
         seed = args.seeds[0]
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
@@ -111,14 +112,36 @@ def _run_single_seed(args) -> int:
             runner.load(args.base_checkpoint)
             policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
             adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped)
+            action_limits = torch.tensor([0.24, 0.20, 0.20] * 4, device=wrapped_env.unwrapped.device)
+            safety = SafetyFilter(SafetyLimits(residual_limits=action_limits))
             observation, _ = wrapped_env.reset()
             velocity_error_sum = 0.0
             sample_count = 0
             falls = 0
+            paused_rows = 0
+            projected_rows = 0
+            nonfinite_rows = 0
             for _ in range(args.steps_per_seed):
                 with torch.inference_mode():
-                    action = clip_lite3_policy_action(policy(observation))
-                    observation, _, done, _ = wrapped_env.step(action)
+                    raw_action = policy(observation)
+                finite_rows = torch.isfinite(raw_action).all(dim=-1, keepdim=True)
+                nonfinite_rows += int((~finite_rows).sum().item())
+                if not bool(finite_rows.all().item()):
+                    break
+                action = clip_lite3_policy_action(raw_action)
+                timeout = torch.zeros(
+                    action.shape[0], 1, dtype=torch.bool, device=action.device
+                )
+                decision = safety.project(
+                    action,
+                    torch.zeros_like(action),
+                    adapter.safety_state(timeout),
+                    force_zero_residual=True,
+                )
+                paused_rows += int(decision.paused.sum().item())
+                projected_rows += int(decision.projected.sum().item())
+                with torch.inference_mode():
+                    observation, _, done, _ = wrapped_env.step(decision.action)
                 signals = adapter.reward_signals()
                 velocity_error_sum += float(
                     torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
@@ -130,6 +153,9 @@ def _run_single_seed(args) -> int:
             record = {
                 "seed": seed,
                 "falls": falls,
+                "paused_rows": paused_rows,
+                "projected_rows": projected_rows,
+                "nonfinite_rows": nonfinite_rows,
                 "steps": sample_count,
                 "mean_velocity_error": velocity_error_sum / max(sample_count, 1),
             }

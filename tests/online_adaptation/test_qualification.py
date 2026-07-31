@@ -63,14 +63,23 @@ def _validation_index(function: ast.FunctionDef) -> int:
 
 def test_qualification_report_requires_zero_falls_and_error_gate():
     records = [
-        {"seed": 7, "falls": 0, "steps": 1000, "mean_velocity_error": 0.30},
-        {"seed": 11, "falls": 0, "steps": 1000, "mean_velocity_error": 0.34},
+        {
+            "seed": 7, "falls": 0, "paused_rows": 0, "projected_rows": 0,
+            "nonfinite_rows": 0, "steps": 1000, "mean_velocity_error": 0.30,
+        },
+        {
+            "seed": 11, "falls": 0, "paused_rows": 0, "projected_rows": 0,
+            "nonfinite_rows": 0, "steps": 1000, "mean_velocity_error": 0.34,
+        },
     ]
 
     report = build_qualification_report("source-task", "base.pt", records, 0.35)
 
     assert report["aggregate"] == {
         "falls": 0,
+        "paused_rows": 0,
+        "projected_rows": 0,
+        "nonfinite_rows": 0,
         "mean_velocity_error": 0.32,
         "max_mean_velocity_error": 0.35,
         "passed": True,
@@ -79,14 +88,55 @@ def test_qualification_report_requires_zero_falls_and_error_gate():
 
 def test_qualification_report_fails_if_any_seed_falls():
     records = [
-        {"seed": 7, "falls": 1, "steps": 91, "mean_velocity_error": 0.20},
-        {"seed": 11, "falls": 0, "steps": 1000, "mean_velocity_error": 0.20},
+        {
+            "seed": 7, "falls": 1, "paused_rows": 0, "projected_rows": 0,
+            "nonfinite_rows": 0, "steps": 91, "mean_velocity_error": 0.20,
+        },
+        {
+            "seed": 11, "falls": 0, "paused_rows": 0, "projected_rows": 0,
+            "nonfinite_rows": 0, "steps": 1000, "mean_velocity_error": 0.20,
+        },
     ]
 
     report = build_qualification_report("source-task", "base.pt", records, 0.35)
 
     assert report["aggregate"]["falls"] == 1
     assert report["aggregate"]["passed"] is False
+
+
+@pytest.mark.parametrize("field", ["paused_rows", "projected_rows", "nonfinite_rows"])
+def test_qualification_fails_on_any_safety_intervention(field):
+    record = {
+        "seed": 7,
+        "falls": 0,
+        "paused_rows": 0,
+        "projected_rows": 0,
+        "nonfinite_rows": 0,
+        "steps": 2000,
+        "mean_velocity_error": 0.1,
+    }
+    record[field] = 1
+
+    report = build_qualification_report("source-task", "base.pt", [record], 0.35)
+
+    assert report["aggregate"][field] == 1
+    assert report["aggregate"]["passed"] is False
+
+
+@pytest.mark.parametrize("value", [True, -1, 1.5, "0"])
+def test_qualification_rejects_invalid_safety_counts(value):
+    record = {
+        "seed": 7,
+        "falls": 0,
+        "paused_rows": value,
+        "projected_rows": 0,
+        "nonfinite_rows": 0,
+        "steps": 2000,
+        "mean_velocity_error": 0.1,
+    }
+
+    with pytest.raises(ValueError, match="paused_rows"):
+        build_qualification_report("source-task", "base.pt", [record], 0.35)
 
 
 @pytest.mark.parametrize(
