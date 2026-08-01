@@ -103,6 +103,7 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
         policy_observations = env_cfg.observations.policy
         curriculum = env_cfg.curriculum
         events = env_cfg.events
+        terminations = env_cfg.terminations
     except AttributeError as error:
         raise ValueError(
             "FlatOnline deployment requires deterministic command, observation, "
@@ -173,6 +174,22 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
             joint_reset_params.get(name),
             expected,
         )
+
+    for attribute in ("time_out", "terrain_out_of_bounds", "illegal_contact"):
+        if getattr(terminations, attribute, None) is None:
+            raise ValueError(
+                f"FlatOnline deployment requires terminations.{attribute}"
+            )
+    out_of_bounds_params = getattr(terminations.terrain_out_of_bounds, "params", None)
+    if not isinstance(out_of_bounds_params, Mapping):
+        raise ValueError(
+            "FlatOnline deployment requires terminations.terrain_out_of_bounds.params mapping"
+        )
+    _require_flat_online_value(
+        "terminations.terrain_out_of_bounds.params['distance_buffer']",
+        out_of_bounds_params.get("distance_buffer"),
+        0.5,
+    )
 
 
 def deterministic_root_reset_params() -> dict[str, dict[str, tuple[float, float]]]:

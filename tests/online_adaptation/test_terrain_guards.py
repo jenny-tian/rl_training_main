@@ -112,6 +112,11 @@ def _flat_online_deployment_env_cfg():
             randomize_reset_base=SimpleNamespace(params=deterministic_root_reset_params()),
             randomize_reset_joints=SimpleNamespace(params=deterministic_joint_reset_params()),
         ),
+        terminations=SimpleNamespace(
+            time_out=SimpleNamespace(),
+            terrain_out_of_bounds=SimpleNamespace(params={"distance_buffer": 0.5}),
+            illegal_contact=SimpleNamespace(),
+        ),
     )
 
 
@@ -127,6 +132,14 @@ def test_flat_online_deployment_guard_rejects_non_fixed_forward_command():
     cfg.commands.base_velocity.ranges.lin_vel_x = (0.4, 0.4)
 
     with pytest.raises(ValueError, match="lin_vel_x"):
+        terrain_guards.assert_flat_online_deployment_config(cfg)
+
+
+def test_flat_online_deployment_guard_rejects_oversized_out_of_bounds_buffer():
+    cfg = _flat_online_deployment_env_cfg()
+    cfg.terminations.terrain_out_of_bounds.params["distance_buffer"] = 3.0
+
+    with pytest.raises(ValueError, match="distance_buffer"):
         terrain_guards.assert_flat_online_deployment_config(cfg)
 
 

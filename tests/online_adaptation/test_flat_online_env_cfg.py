@@ -481,6 +481,7 @@ def test_flat_online_config_uses_fixed_forward_command_and_safety_terminations(
     assert command.ranges.heading == (0.0, 0.0)
     assert cfg.terminations.time_out is not None
     assert cfg.terminations.terrain_out_of_bounds is not None
+    assert cfg.terminations.terrain_out_of_bounds.params["distance_buffer"] == 0.5
     assert cfg.terminations.illegal_contact is not None
     assert (
         cfg.terminations.illegal_contact.params["sensor_cfg"].body_names

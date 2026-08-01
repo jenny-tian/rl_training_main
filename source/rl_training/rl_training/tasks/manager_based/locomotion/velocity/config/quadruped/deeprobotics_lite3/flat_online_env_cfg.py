@@ -65,5 +65,6 @@ class DeeproboticsLite3FlatOnlineEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
             link_name for link_name in self.link_names if not link_name.endswith("_FOOT")
         ]
+        self.terminations.terrain_out_of_bounds.params["distance_buffer"] = 0.5
 
         self.disable_zero_weight_rewards()
