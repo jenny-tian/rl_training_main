@@ -10,7 +10,7 @@ from isaaclab.app import AppLauncher
 from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.lite3_stability_contract import LITE3_MAX_PROJECTED_GRAVITY_XY
 from rl_training.online_adaptation.rsl_rl_compat import prepare_rsl_rl_agent_cfg, split_rsl_rl_endings
-from rl_training.online_adaptation.terrain_guards import assert_plane_only_terrain
+from rl_training.online_adaptation.terrain_guards import assert_flat_online_deployment_config
 from rl_training.online_adaptation.deployment_qualification import build_deployment_qualification_report
 from scripts.reinforcement_learning.online_adaptation.cli import (
     FLAT_ONLINE_TASK,
@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
 
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
         env_cfg.seed = args.seed
-        assert_plane_only_terrain(env_cfg.scene.terrain)
+        assert_flat_online_deployment_config(env_cfg)
         agent_cfg = prepare_rsl_rl_agent_cfg(load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point"))
         env = gym.make(args.task, cfg=env_cfg)
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)

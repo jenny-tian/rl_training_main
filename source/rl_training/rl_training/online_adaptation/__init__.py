@@ -18,7 +18,12 @@ from .terrain_protocol import (
     development_geometry,
     sealed_geometry,
 )
-from .terrain_guards import assert_heldout_terrains_disabled, assert_plane_only_terrain, is_strict_flat_baseline_task
+from .terrain_guards import (
+    assert_flat_online_deployment_config,
+    assert_heldout_terrains_disabled,
+    assert_plane_only_terrain,
+    is_strict_flat_baseline_task,
+)
 from .types import RewardSignals, SafetyDecision, SafetyState, TransitionBatch, UpdateStats
 
 __all__ = [
@@ -56,6 +61,7 @@ __all__ = [
     "Lite3IsaacLabAdapter",
     "compose_proprio_frame",
     "assert_heldout_terrains_disabled",
+    "assert_flat_online_deployment_config",
     "assert_plane_only_terrain",
     "is_strict_flat_baseline_task",
     "evaluate_run",

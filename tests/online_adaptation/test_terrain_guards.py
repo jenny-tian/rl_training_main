@@ -54,6 +54,118 @@ def test_plane_only_guard_rejects_non_strict_configuration(terrain_type, terrain
         terrain_guards.assert_plane_only_terrain(terrain_cfg)
 
 
+def _flat_online_deployment_env_cfg():
+    flat_online = SimpleNamespace(
+        proportion=1.0,
+        seed=0,
+        step_height=0.0,
+        rough_amplitude=0.0,
+    )
+    generator = SimpleNamespace(
+        seed=0,
+        curriculum=False,
+        size=(20.0, 4.0),
+        border_width=0.0,
+        num_rows=1,
+        num_cols=1,
+        use_cache=False,
+        sub_terrains={"flat_online": flat_online},
+    )
+    return SimpleNamespace(
+        scene=SimpleNamespace(
+            num_envs=1,
+            terrain=SimpleNamespace(
+                terrain_type="generator",
+                terrain_generator=generator,
+                max_init_terrain_level=0,
+            ),
+        ),
+        commands=SimpleNamespace(
+            base_velocity=SimpleNamespace(
+                resampling_time_range=(1.0e9, 1.0e9),
+                rel_standing_envs=0.0,
+                rel_heading_envs=0.0,
+                heading_command=False,
+                ranges=SimpleNamespace(
+                    lin_vel_x=(0.5, 0.5),
+                    lin_vel_y=(0.0, 0.0),
+                    ang_vel_z=(0.0, 0.0),
+                    heading=(0.0, 0.0),
+                ),
+            )
+        ),
+        observations=SimpleNamespace(policy=SimpleNamespace(enable_corruption=False)),
+        curriculum=SimpleNamespace(
+            terrain_levels=None,
+            gait_level=None,
+            command_levels=None,
+        ),
+        events=SimpleNamespace(
+            randomize_apply_external_force_torque=None,
+            randomize_push_robot=None,
+            randomize_rigid_body_material=None,
+            randomize_rigid_body_mass=None,
+            randomize_rigid_body_mass_base=None,
+            randomize_rigid_body_inertia=None,
+            randomize_com_positions=None,
+            randomize_actuator_gains=None,
+            randomize_reset_base=SimpleNamespace(params=deterministic_root_reset_params()),
+            randomize_reset_joints=SimpleNamespace(params=deterministic_joint_reset_params()),
+        ),
+    )
+
+
+def test_flat_online_deployment_guard_accepts_deterministic_generator_configuration():
+    guard = getattr(terrain_guards, "assert_flat_online_deployment_config", None)
+
+    assert guard is not None, "FlatOnline deployment guard is missing"
+    guard(_flat_online_deployment_env_cfg())
+
+
+def test_flat_online_deployment_guard_rejects_non_fixed_forward_command():
+    cfg = _flat_online_deployment_env_cfg()
+    cfg.commands.base_velocity.ranges.lin_vel_x = (0.4, 0.4)
+
+    with pytest.raises(ValueError, match="lin_vel_x"):
+        terrain_guards.assert_flat_online_deployment_config(cfg)
+
+
+def test_deployment_qualification_uses_flat_online_guard_before_gym_make():
+    source = (
+        ROOT / "scripts/reinforcement_learning/online_adaptation/qualify_flat_deployment.py"
+    ).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    main = next(
+        node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "main"
+    )
+    try_body = next(statement for statement in main.body if isinstance(statement, ast.Try)).body
+    parse_index = next(
+        index
+        for index, statement in enumerate(try_body)
+        if any(
+            isinstance(node, ast.Call) and ast.unparse(node.func) == "parse_env_cfg"
+            for node in ast.walk(statement)
+        )
+    )
+    make_index = next(
+        index
+        for index, statement in enumerate(try_body)
+        if any(
+            isinstance(node, ast.Call) and ast.unparse(node.func) == "gym.make"
+            for node in ast.walk(statement)
+        )
+    )
+    guard_indices = [
+        index
+        for index, statement in enumerate(try_body)
+        if ast.unparse(statement) == "assert_flat_online_deployment_config(env_cfg)"
+    ]
+
+    assert guard_indices == [parse_index + 2]
+    assert guard_indices[0] < make_index
+    assert "assert_plane_only_terrain" not in source
+
+
 @pytest.mark.parametrize(
     "task",
     [
