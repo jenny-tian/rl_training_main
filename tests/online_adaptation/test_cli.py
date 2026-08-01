@@ -4,6 +4,7 @@ from scripts.reinforcement_learning.online_adaptation.cli import (
     build_flat_baseline_manifest_parser,
     build_play_parser,
     build_qualify_parser,
+    build_deployment_qualify_parser,
     build_train_parser,
 )
 
@@ -35,6 +36,32 @@ def test_qualification_parser_describes_strict_flat_baseline_task():
     parser = build_qualify_parser()
 
     assert parser.description == "Qualify a frozen Lite3 base policy on the strict-flat baseline task."
+
+
+def test_deployment_qualification_defaults_match_formal_distribution():
+    args = build_deployment_qualify_parser().parse_args(["--base-checkpoint", "base.pt"])
+
+    assert args.task == "FlatOnline-Deeprobotics-Lite3-v0"
+    assert args.seed == 42
+    assert args.expected_episodes == 100
+    assert args.expected_steps == 100_000
+    assert args.max_projected_gravity_xy == 0.65
+    assert args.max_mean_velocity_error == 0.35
+
+
+def test_deployment_qualification_accepts_training_style_underscore_options():
+    args = build_deployment_qualify_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--expected_episodes", "3",
+            "--expected_steps", "3000",
+            "--max_projected_gravity_xy", "0.65",
+        ]
+    )
+
+    assert args.expected_episodes == 3
+    assert args.expected_steps == 3000
+    assert args.max_projected_gravity_xy == 0.65
 
 
 def test_flat_baseline_manifest_parser_is_strict_and_repeatable():

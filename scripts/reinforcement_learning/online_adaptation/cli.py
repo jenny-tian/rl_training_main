@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+from rl_training.lite3_stability_contract import LITE3_MAX_PROJECTED_GRAVITY_XY
 
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
 STRICT_FLAT_BASELINE_TASK = "Flat-Deeprobotics-Lite3-v0"
@@ -109,6 +110,21 @@ def build_qualify_parser() -> argparse.ArgumentParser:
     parser.add_argument("--steps-per-seed", type=int, default=1_000)
     parser.add_argument("--max-mean-velocity-error", type=float, default=0.35)
     parser.add_argument("--output", default="logs/online_adaptation/base_qualification.json")
+    return parser
+
+
+def build_deployment_qualify_parser() -> argparse.ArgumentParser:
+    parser = _parser(
+        "Qualify a frozen Lite3 base policy on the deployment-matched flat-online task."
+    )
+    parser.add_argument("--base-checkpoint", required=True)
+    parser.add_argument("--task", default=FLAT_ONLINE_TASK)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--expected-episodes", "--expected_episodes", dest="expected_episodes", type=_positive_int, default=100)
+    parser.add_argument("--expected-steps", "--expected_steps", dest="expected_steps", type=_positive_int, default=100_000)
+    parser.add_argument("--max-project-gravity-xy", "--max_projected_gravity_xy", dest="max_projected_gravity_xy", type=float, default=LITE3_MAX_PROJECTED_GRAVITY_XY)
+    parser.add_argument("--max-mean-velocity-error", type=float, default=0.35)
+    parser.add_argument("--output", default="logs/online_adaptation/base_qualification_deployment.json")
     return parser
 
 
