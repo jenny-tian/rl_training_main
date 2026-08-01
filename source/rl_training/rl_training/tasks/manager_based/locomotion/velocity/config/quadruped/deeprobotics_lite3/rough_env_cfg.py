@@ -7,6 +7,10 @@
 from isaaclab.utils import configclass
 
 from rl_training.lite3_joint_conventions import LITE3_SAFE_ACTION_CLIP_BY_PATTERN
+from rl_training.lite3_stability_contract import (
+    LITE3_MAX_PROJECTED_GRAVITY_XY,
+    LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY,
+)
 from rl_training.tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg
 # from isaaclab.sensors.ray_caster import GridPatternCfg
 ##
@@ -168,6 +172,13 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.joint_deviation_l1.params["asset_cfg"].joint_names = [".*HipX.*"]
         self.rewards.joint_power.weight = -8e-4
         self.rewards.flat_orientation_l2.weight = -20.0
+        self.rewards.tilt_guard_band.weight = -20.0
+        self.rewards.tilt_guard_band.params["guard_xy_norm"] = (
+            LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY
+        )
+        self.rewards.tilt_guard_band.params["max_xy_norm"] = (
+            LITE3_MAX_PROJECTED_GRAVITY_XY
+        )
 
         # add the following rewards to improve the gait
         self.rewards.feet_gait.weight = 0.5
@@ -204,6 +215,9 @@ class DeeproboticsLite3RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # ------------------------------Terminations------------------------------
         self.terminations.illegal_contact = None
+        self.terminations.bad_orientation_2.params["max_xy_norm"] = (
+            LITE3_MAX_PROJECTED_GRAVITY_XY
+        )
         # self.terminations.bad_orientation_2 = None
 
         # ------------------------------Curriculums------------------------------

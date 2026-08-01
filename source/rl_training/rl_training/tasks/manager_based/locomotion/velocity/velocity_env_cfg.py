@@ -386,6 +386,15 @@ class RewardsCfg:
     lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=0.0)
     ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=0.0)
     flat_orientation_l2 = RewTerm(func=mdp.flat_orientation_l2, weight=0.0)
+    tilt_guard_band = RewTerm(
+        func=mdp.tilt_guard_band,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "guard_xy_norm": 0.55,
+            "max_xy_norm": 0.65,
+        },
+    )
     base_height_l2 = RewTerm(
         func=mdp.base_height_l2,
         weight=0.0,
@@ -868,7 +877,7 @@ class TerminationsCfg:
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=""), "threshold": 1.0},
     )
 
-    bad_orientation_2 = DoneTerm(func=mdp.bad_orientation_2)
+    bad_orientation_2 = DoneTerm(func=mdp.bad_orientation_2, params={"max_xy_norm": None})
     
 
 

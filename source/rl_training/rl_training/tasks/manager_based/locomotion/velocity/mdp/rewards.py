@@ -17,6 +17,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor, RayCaster
 from isaaclab.utils.math import quat_apply_inverse, yaw_quat
+from rl_training.lite3_stability_contract import tilt_guard_band_penalty
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -1426,3 +1427,17 @@ def bad_orientation_penalty(
     asset: RigidObject = env.scene[asset_cfg.name]
     bad = (asset.data.projected_gravity_b[:, 2] > 0) | (asset.data.projected_gravity_b[:, :2].abs() > 0.7).any(-1)
     return bad.float()
+
+
+def tilt_guard_band(
+    env: ManagerBasedRLEnv,
+    guard_xy_norm: float,
+    max_xy_norm: float,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return tilt_guard_band_penalty(
+        asset.data.projected_gravity_b,
+        guard_xy_norm=guard_xy_norm,
+        max_xy_norm=max_xy_norm,
+    )

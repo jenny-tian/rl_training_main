@@ -10,6 +10,7 @@ import torch
 from typing import TYPE_CHECKING, Literal
 
 import isaaclab.utils.math as math_utils
+from rl_training.lite3_stability_contract import projected_gravity_xy_is_unsafe
 from isaaclab.assets import Articulation, RigidObject
 from isaaclab.managers import SceneEntityCfg
 
@@ -202,7 +203,9 @@ def _randomize_prop_by_op(
 
 
 def bad_orientation_2(
-    env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot") # type: ignore
+    env: ManagerBasedEnv,
+    max_xy_norm: float | None = None,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
     """Terminate when the asset's orientation is too far from the desired orientation limits.
 
@@ -210,4 +213,10 @@ def bad_orientation_2(
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
-    return (asset.data.projected_gravity_b[:, 2] > 0) | (asset.data.projected_gravity_b[:, :2].abs() > 0.7).any(-1)
+    if max_xy_norm is None:
+        return (asset.data.projected_gravity_b[:, 2] > 0) | (
+            asset.data.projected_gravity_b[:, :2].abs() > 0.7
+        ).any(-1)
+    return projected_gravity_xy_is_unsafe(
+        asset.data.projected_gravity_b, max_xy_norm=max_xy_norm
+    )
