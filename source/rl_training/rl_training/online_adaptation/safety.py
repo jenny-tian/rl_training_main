@@ -3,6 +3,10 @@ from __future__ import annotations
 import torch
 from dataclasses import dataclass
 
+from rl_training.lite3_stability_contract import (
+    LITE3_MAX_PROJECTED_GRAVITY_XY,
+    LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY,
+)
 from .types import SafetyDecision, SafetyState
 
 
@@ -10,8 +14,8 @@ from .types import SafetyDecision, SafetyState
 class SafetyLimits:
     residual_limits: torch.Tensor
     residual_rate_limit: float = 0.02
-    max_projected_gravity_xy: float = 0.65
-    residual_guard_projected_gravity_xy: float = 0.55
+    max_projected_gravity_xy: float = LITE3_MAX_PROJECTED_GRAVITY_XY
+    residual_guard_projected_gravity_xy: float = LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY
     min_base_height: float = 0.20
     max_joint_velocity: float = 30.0
     nonfoot_contact_grace_steps: int = 10

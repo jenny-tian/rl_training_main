@@ -1,5 +1,9 @@
 import torch
 
+from rl_training.lite3_stability_contract import (
+    LITE3_MAX_PROJECTED_GRAVITY_XY,
+    LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY,
+)
 from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 from rl_training.online_adaptation.isaaclab_adapter import select_joint_order
 from rl_training.online_adaptation.types import SafetyState
@@ -169,3 +173,13 @@ def test_high_tilt_margin_disables_residual_before_pause():
     assert not decision.paused.item()
     assert torch.equal(decision.action, torch.ones(1, 12))
     assert torch.equal(decision.residual, torch.zeros(1, 12))
+
+
+def test_safety_defaults_share_lite3_training_contract():
+    limits = SafetyLimits(residual_limits=torch.ones(12))
+
+    assert limits.max_projected_gravity_xy == LITE3_MAX_PROJECTED_GRAVITY_XY
+    assert (
+        limits.residual_guard_projected_gravity_xy
+        == LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY
+    )
