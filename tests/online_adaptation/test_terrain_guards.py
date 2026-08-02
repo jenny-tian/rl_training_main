@@ -86,6 +86,7 @@ def _flat_online_deployment_env_cfg():
                 rel_standing_envs=0.0,
                 rel_heading_envs=0.0,
                 heading_command=False,
+                command_acceleration_limits=(0.5, 0.5, 0.5),
                 ranges=SimpleNamespace(
                     lin_vel_x=(0.5, 0.5),
                     lin_vel_y=(0.0, 0.0),
@@ -132,6 +133,18 @@ def test_flat_online_deployment_guard_rejects_non_fixed_forward_command():
     cfg.commands.base_velocity.ranges.lin_vel_x = (0.4, 0.4)
 
     with pytest.raises(ValueError, match="lin_vel_x"):
+        terrain_guards.assert_flat_online_deployment_config(cfg)
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [None, (0.6, 0.5, 0.5), (0.5, 0.5), [0.5, 0.5, 0.5]],
+)
+def test_flat_online_deployment_guard_rejects_changed_command_ramp(invalid):
+    cfg = _flat_online_deployment_env_cfg()
+    cfg.commands.base_velocity.command_acceleration_limits = invalid
+
+    with pytest.raises(ValueError, match="command_acceleration_limits"):
         terrain_guards.assert_flat_online_deployment_config(cfg)
 
 

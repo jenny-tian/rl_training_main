@@ -366,6 +366,15 @@ def test_flat_online_registration_uses_manager_env_and_flat_ppo_runner():
     }
 
 
+def test_lite3_deployment_configs_enable_the_same_command_ramp():
+    for filename in ("flat_online_env_cfg.py", "heldout_boxes_env_cfg.py"):
+        source = (LITE3_CONFIG_DIR / filename).read_text(encoding="utf-8")
+        assert (
+            "self.commands.base_velocity.command_acceleration_limits = "
+            "(0.5, 0.5, 0.5)"
+        ) in source
+
+
 def test_flat_online_source_disables_inherited_dynamics_randomization():
     source = (LITE3_CONFIG_DIR / "flat_online_env_cfg.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -475,6 +484,7 @@ def test_flat_online_config_uses_fixed_forward_command_and_safety_terminations(
     assert command.rel_standing_envs == 0.0
     assert command.rel_heading_envs == 0.0
     assert command.heading_command is False
+    assert command.command_acceleration_limits == (0.5, 0.5, 0.5)
     assert command.ranges.lin_vel_x == (0.5, 0.5)
     assert command.ranges.lin_vel_y == (0.0, 0.0)
     assert command.ranges.ang_vel_z == (0.0, 0.0)

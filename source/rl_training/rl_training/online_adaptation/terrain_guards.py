@@ -25,6 +25,8 @@ def _require_flat_online_value(name: str, actual: object, expected: object) -> N
         matches = actual is expected
     elif expected is None:
         matches = actual is None
+    elif isinstance(expected, tuple):
+        matches = isinstance(actual, tuple) and actual == expected
     else:
         matches = actual == expected
     if not matches:
@@ -115,6 +117,7 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
         ("rel_standing_envs", 0.0),
         ("rel_heading_envs", 0.0),
         ("heading_command", False),
+        ("command_acceleration_limits", (0.5, 0.5, 0.5)),
     ):
         _require_flat_online_attribute(
             command, attribute, f"commands.base_velocity.{attribute}", expected
