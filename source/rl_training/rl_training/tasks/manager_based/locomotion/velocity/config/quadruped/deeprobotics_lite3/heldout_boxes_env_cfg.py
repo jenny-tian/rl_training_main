@@ -43,6 +43,7 @@ class DeeproboticsLite3HeldoutBoxesEnvCfg(DeeproboticsLite3RoughEnvCfg):
             },
         )
         self.scene.terrain.max_init_terrain_level = 0
+        self.scene.robot.init_state.pos = (0.0, 0.0, self.startup_base_height)
 
         self.commands.base_velocity.resampling_time_range = (1.0e9, 1.0e9)
         self.commands.base_velocity.rel_standing_envs = 0.0
@@ -69,7 +70,8 @@ class DeeproboticsLite3HeldoutBoxesEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.curriculum.command_levels = None
 
         self.events.randomize_apply_external_force_torque = None
-        self.events.randomize_reset_joints.params.update(deterministic_joint_reset_params())
+        self.events.randomize_reset_joints.func = mdp.reset_lite3_folded_joints
+        self.events.randomize_reset_joints.params = {}
         self.events.randomize_reset_base.params = deterministic_root_reset_params()
         self.events.randomize_push_robot = None
 

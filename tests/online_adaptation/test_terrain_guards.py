@@ -111,7 +111,10 @@ def _flat_online_deployment_env_cfg():
             randomize_com_positions=None,
             randomize_actuator_gains=None,
             randomize_reset_base=SimpleNamespace(params=deterministic_root_reset_params()),
-            randomize_reset_joints=SimpleNamespace(params=deterministic_joint_reset_params()),
+            randomize_reset_joints=SimpleNamespace(
+                params={},
+                func=SimpleNamespace(__name__="reset_lite3_folded_joints"),
+            ),
         ),
         terminations=SimpleNamespace(
             time_out=SimpleNamespace(),
@@ -156,7 +159,7 @@ def test_flat_online_deployment_guard_rejects_oversized_out_of_bounds_buffer():
         terrain_guards.assert_flat_online_deployment_config(cfg)
 
 
-def test_deployment_qualification_uses_flat_online_guard_before_gym_make():
+def test_deployment_qualification_uses_flat_online_guard_before_shared_factory():
     source = (
         ROOT / "scripts/reinforcement_learning/online_adaptation/qualify_flat_deployment.py"
     ).read_text(encoding="utf-8")
@@ -177,7 +180,8 @@ def test_deployment_qualification_uses_flat_online_guard_before_gym_make():
         index
         for index, statement in enumerate(try_body)
         if any(
-            isinstance(node, ast.Call) and ast.unparse(node.func) == "gym.make"
+            isinstance(node, ast.Call)
+            and ast.unparse(node.func) == "make_lite3_deployment_env"
             for node in ast.walk(statement)
         )
     )

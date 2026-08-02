@@ -171,11 +171,14 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
         raise ValueError(
             "FlatOnline deployment requires events.randomize_reset_joints.params mapping"
         )
-    for name, expected in deterministic_joint_reset_params().items():
-        _require_flat_online_value(
-            f"events.randomize_reset_joints.params[{name!r}]",
-            joint_reset_params.get(name),
-            expected,
+    _require_flat_online_value(
+        "events.randomize_reset_joints.params", joint_reset_params, {}
+    )
+    joint_reset_func = getattr(events.randomize_reset_joints, "func", None)
+    if getattr(joint_reset_func, "__name__", None) != "reset_lite3_folded_joints":
+        raise ValueError(
+            "FlatOnline deployment requires events.randomize_reset_joints.func="
+            "reset_lite3_folded_joints"
         )
 
     for attribute in ("time_out", "terrain_out_of_bounds", "illegal_contact"):

@@ -475,9 +475,8 @@ def test_flat_online_config_is_deterministic_without_curricula_or_disturbances(
     assert cfg.events.randomize_com_positions is None
     assert cfg.events.randomize_actuator_gains is None
     assert cfg.events.randomize_reset_base.params == deterministic_root_reset_params()
-    joint_reset = cfg.events.randomize_reset_joints.params
-    assert joint_reset["position_range"] == deterministic_joint_reset_params()["position_range"]
-    assert joint_reset["velocity_range"] == deterministic_joint_reset_params()["velocity_range"]
+    assert cfg.events.randomize_reset_joints.params == {}
+    assert cfg.events.randomize_reset_joints.func.__name__ == "reset_lite3_folded_joints"
     assert cfg.observations.policy.enable_corruption is False
 
 
