@@ -1,11 +1,11 @@
 from isaaclab.terrains import TerrainGeneratorCfg
 from isaaclab.utils import configclass
 
+from rl_training.assets.deeprobotics import DEEPROBOTICS_LITE3_CFG
 from rl_training.online_adaptation.terrain_guards import (
-    deterministic_joint_reset_params,
+    deterministic_rigid_body_material_params,
     deterministic_root_reset_params,
 )
-from rl_training.online_adaptation.deployment_startup import Lite3DeploymentStartupWrapper
 from rl_training.tasks.manager_based.locomotion.velocity import mdp
 from rl_training.tasks.manager_based.locomotion.velocity.terrains import FlatOnlineTrackCfg
 from rl_training.tasks.manager_based.locomotion.velocity.velocity_env_cfg import TerminationsCfg
@@ -15,7 +15,8 @@ from .rough_env_cfg import DeeproboticsLite3RoughEnvCfg
 
 @configclass
 class DeeproboticsLite3FlatOnlineEnvCfg(DeeproboticsLite3RoughEnvCfg):
-    startup_base_height: float = Lite3DeploymentStartupWrapper.DEFAULT_BELLY_DOWN_BASE_HEIGHT
+    startup_base_height: float = DEEPROBOTICS_LITE3_CFG.init_state.pos[2]
+
     def __post_init__(self):
         super().__post_init__()
 
@@ -56,14 +57,15 @@ class DeeproboticsLite3FlatOnlineEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.curriculum.gait_level = None
         self.curriculum.command_levels = None
 
-        self.events.randomize_rigid_body_material = None
+        self.events.randomize_rigid_body_material.params.update(
+            deterministic_rigid_body_material_params()
+        )
         self.events.randomize_rigid_body_mass = None
+        self.events.randomize_rigid_body_mass_base = None
         self.events.randomize_rigid_body_inertia = None
         self.events.randomize_com_positions = None
         self.events.randomize_actuator_gains = None
         self.events.randomize_apply_external_force_torque = None
-        self.events.randomize_reset_joints.func = mdp.reset_lite3_folded_joints
-        self.events.randomize_reset_joints.params = {}
         self.events.randomize_reset_base.params = deterministic_root_reset_params()
         self.events.randomize_push_robot = None
 

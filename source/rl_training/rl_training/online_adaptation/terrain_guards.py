@@ -148,7 +148,6 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
     for attribute in (
         "randomize_apply_external_force_torque",
         "randomize_push_robot",
-        "randomize_rigid_body_material",
         "randomize_rigid_body_mass",
         "randomize_rigid_body_mass_base",
         "randomize_rigid_body_inertia",
@@ -156,6 +155,42 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
         "randomize_actuator_gains",
     ):
         _require_flat_online_attribute(events, attribute, f"events.{attribute}", None)
+
+    material_event = getattr(events, "randomize_rigid_body_material", None)
+    if material_event is None:
+        raise ValueError(
+            "FlatOnline deployment requires events.randomize_rigid_body_material"
+        )
+    material_func = getattr(material_event, "func", None)
+    _require_flat_online_value(
+        "events.randomize_rigid_body_material.func",
+        getattr(material_func, "__name__", None),
+        "randomize_rigid_body_material",
+    )
+    material_params = getattr(material_event, "params", None)
+    if not isinstance(material_params, Mapping):
+        raise ValueError(
+            "FlatOnline deployment requires events.randomize_rigid_body_material.params mapping"
+        )
+    for key, expected in deterministic_rigid_body_material_params().items():
+        _require_flat_online_value(
+            f"events.randomize_rigid_body_material.params[{key!r}]",
+            material_params.get(key),
+            expected,
+        )
+    asset_cfg = material_params.get("asset_cfg")
+    _require_flat_online_attribute(
+        asset_cfg,
+        "name",
+        "events.randomize_rigid_body_material.params['asset_cfg'].name",
+        "robot",
+    )
+    _require_flat_online_attribute(
+        asset_cfg,
+        "body_names",
+        "events.randomize_rigid_body_material.params['asset_cfg'].body_names",
+        ".*",
+    )
 
     try:
         root_reset_params = events.randomize_reset_base.params
@@ -172,13 +207,15 @@ def assert_flat_online_deployment_config(env_cfg: object) -> None:
             "FlatOnline deployment requires events.randomize_reset_joints.params mapping"
         )
     _require_flat_online_value(
-        "events.randomize_reset_joints.params", joint_reset_params, {}
+        "events.randomize_reset_joints.params",
+        joint_reset_params,
+        deterministic_joint_reset_params(),
     )
     joint_reset_func = getattr(events.randomize_reset_joints, "func", None)
-    if getattr(joint_reset_func, "__name__", None) != "reset_lite3_folded_joints":
+    if getattr(joint_reset_func, "__name__", None) != "reset_joints_by_scale":
         raise ValueError(
             "FlatOnline deployment requires events.randomize_reset_joints.func="
-            "reset_lite3_folded_joints"
+            "reset_joints_by_scale"
         )
 
     for attribute in ("time_out", "terrain_out_of_bounds", "illegal_contact"):
@@ -217,6 +254,16 @@ def deterministic_root_reset_params() -> dict[str, dict[str, tuple[float, float]
             "pitch": zero_range,
             "yaw": zero_range,
         },
+    }
+
+
+def deterministic_rigid_body_material_params() -> dict[str, tuple[float, float] | int]:
+    """Return the fixed collision material used by Lite3 deployment tasks."""
+    return {
+        "static_friction_range": (0.65, 0.65),
+        "dynamic_friction_range": (0.55, 0.55),
+        "restitution_range": (0.0, 0.0),
+        "num_buckets": 1,
     }
 
 

@@ -9,6 +9,7 @@ import pytest
 from rl_training.online_adaptation import terrain_protocol
 from rl_training.online_adaptation.terrain_guards import (
     deterministic_joint_reset_params,
+    deterministic_rigid_body_material_params,
     deterministic_root_reset_params,
 )
 from rl_training.online_adaptation.terrain_protocol import TerrainGeometry
@@ -383,26 +384,61 @@ def test_lite3_deployment_configs_enable_startup_lifecycle():
         assert "startup_base_height" in source
 
 
-def test_flat_online_source_disables_inherited_dynamics_randomization():
-    source = (LITE3_CONFIG_DIR / "flat_online_env_cfg.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
-    disabled_events = {
-        ast.unparse(target)
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Assign)
-        and isinstance(node.value, ast.Constant)
-        and node.value.value is None
-        for target in node.targets
-        if ast.unparse(target).startswith("self.events.")
-    }
+def test_lite3_deployment_configs_use_default_standing_reset_without_folded_startup():
+    for filename in ("flat_online_env_cfg.py", "heldout_boxes_env_cfg.py"):
+        source = (LITE3_CONFIG_DIR / filename).read_text(encoding="utf-8")
+        assert "reset_lite3_folded_joints" not in source
+        assert "self.events.randomize_reset_joints" not in source
 
+
+def test_lite3_deployment_sources_keep_only_deterministic_material_initialization():
+    for filename in ("flat_online_env_cfg.py", "heldout_boxes_env_cfg.py"):
+        source = (LITE3_CONFIG_DIR / filename).read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        disabled_events = {
+            ast.unparse(target)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and isinstance(node.value, ast.Constant)
+            and node.value.value is None
+            for target in node.targets
+            if ast.unparse(target).startswith("self.events.")
+        }
+
+        assert "self.events.randomize_rigid_body_material" not in disabled_events
+        assert {
+            "self.events.randomize_rigid_body_mass",
+            "self.events.randomize_rigid_body_mass_base",
+            "self.events.randomize_rigid_body_inertia",
+            "self.events.randomize_com_positions",
+            "self.events.randomize_actuator_gains",
+        } <= disabled_events
+
+
+@pytest.mark.isaaclab
+@pytest.mark.parametrize(
+    ("module_name", "class_name"),
+    [
+        ("flat_online_env_cfg", "DeeproboticsLite3FlatOnlineEnvCfg"),
+        ("heldout_boxes_env_cfg", "DeeproboticsLite3HeldoutBoxesEnvCfg"),
+    ],
+)
+def test_lite3_deployment_configs_use_fixed_collision_material(module_name, class_name):
+    pytest.importorskip("pxr")
+    module = importlib.import_module(
+        "rl_training.tasks.manager_based.locomotion.velocity.config.quadruped."
+        f"deeprobotics_lite3.{module_name}"
+    )
+    cfg = getattr(module, class_name)()
+    event = cfg.events.randomize_rigid_body_material
+
+    assert event is not None
+    assert event.func.__name__ == "randomize_rigid_body_material"
     assert {
-        "self.events.randomize_rigid_body_material",
-        "self.events.randomize_rigid_body_mass",
-        "self.events.randomize_rigid_body_inertia",
-        "self.events.randomize_com_positions",
-        "self.events.randomize_actuator_gains",
-    } <= disabled_events
+        key: event.params[key] for key in deterministic_rigid_body_material_params()
+    } == deterministic_rigid_body_material_params()
+    assert event.params["asset_cfg"].name == "robot"
+    assert event.params["asset_cfg"].body_names == ".*"
 
 
 def test_flat_online_source_selects_all_non_foot_links_for_illegal_contacts():
@@ -468,15 +504,28 @@ def test_flat_online_config_is_deterministic_without_curricula_or_disturbances(
     assert cfg.curriculum.command_levels is None
     assert cfg.events.randomize_apply_external_force_torque is None
     assert cfg.events.randomize_push_robot is None
-    assert cfg.events.randomize_rigid_body_material is None
     assert cfg.events.randomize_rigid_body_mass is None
     assert cfg.events.randomize_rigid_body_mass_base is None
     assert cfg.events.randomize_rigid_body_inertia is None
     assert cfg.events.randomize_com_positions is None
     assert cfg.events.randomize_actuator_gains is None
+    material_event = cfg.events.randomize_rigid_body_material
+    assert material_event is not None
+    assert material_event.func.__name__ == "randomize_rigid_body_material"
+    assert {
+        key: material_event.params[key]
+        for key in deterministic_rigid_body_material_params()
+    } == deterministic_rigid_body_material_params()
+    assert material_event.params["asset_cfg"].name == "robot"
+    assert material_event.params["asset_cfg"].body_names == ".*"
     assert cfg.events.randomize_reset_base.params == deterministic_root_reset_params()
-    assert cfg.events.randomize_reset_joints.params == {}
-    assert cfg.events.randomize_reset_joints.func.__name__ == "reset_lite3_folded_joints"
+    assert cfg.scene.robot.init_state.pos == (0.0, 0.0, 0.375)
+    assert cfg.startup_base_height == 0.375
+    assert cfg.events.randomize_reset_joints.params == {
+        "position_range": (1.0, 1.0),
+        "velocity_range": (0.0, 0.0),
+    }
+    assert cfg.events.randomize_reset_joints.func.__name__ == "reset_joints_by_scale"
     assert cfg.observations.policy.enable_corruption is False
 
 

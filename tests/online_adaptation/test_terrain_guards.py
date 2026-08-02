@@ -104,7 +104,13 @@ def _flat_online_deployment_env_cfg():
         events=SimpleNamespace(
             randomize_apply_external_force_torque=None,
             randomize_push_robot=None,
-            randomize_rigid_body_material=None,
+            randomize_rigid_body_material=SimpleNamespace(
+                func=SimpleNamespace(__name__="randomize_rigid_body_material"),
+                params={
+                    "asset_cfg": SimpleNamespace(name="robot", body_names=".*"),
+                    **terrain_guards.deterministic_rigid_body_material_params(),
+                },
+            ),
             randomize_rigid_body_mass=None,
             randomize_rigid_body_mass_base=None,
             randomize_rigid_body_inertia=None,
@@ -112,8 +118,8 @@ def _flat_online_deployment_env_cfg():
             randomize_actuator_gains=None,
             randomize_reset_base=SimpleNamespace(params=deterministic_root_reset_params()),
             randomize_reset_joints=SimpleNamespace(
-                params={},
-                func=SimpleNamespace(__name__="reset_lite3_folded_joints"),
+                params=deterministic_joint_reset_params(),
+                func=SimpleNamespace(__name__="reset_joints_by_scale"),
             ),
         ),
         terminations=SimpleNamespace(
@@ -136,6 +142,31 @@ def test_flat_online_deployment_guard_rejects_non_fixed_forward_command():
     cfg.commands.base_velocity.ranges.lin_vel_x = (0.4, 0.4)
 
     with pytest.raises(ValueError, match="lin_vel_x"):
+        terrain_guards.assert_flat_online_deployment_config(cfg)
+
+
+@pytest.mark.parametrize(
+    ("key", "invalid"),
+    [
+        ("static_friction_range", (0.64, 0.65)),
+        ("dynamic_friction_range", (0.50, 0.55)),
+        ("restitution_range", (0.0, 0.1)),
+        ("num_buckets", 2),
+    ],
+)
+def test_flat_online_deployment_guard_rejects_changed_material(key, invalid):
+    cfg = _flat_online_deployment_env_cfg()
+    cfg.events.randomize_rigid_body_material.params[key] = invalid
+
+    with pytest.raises(ValueError, match=key):
+        terrain_guards.assert_flat_online_deployment_config(cfg)
+
+
+def test_flat_online_deployment_guard_rejects_wrong_material_function():
+    cfg = _flat_online_deployment_env_cfg()
+    cfg.events.randomize_rigid_body_material.func.__name__ = "wrong_material"
+
+    with pytest.raises(ValueError, match="randomize_rigid_body_material.func"):
         terrain_guards.assert_flat_online_deployment_config(cfg)
 
 
@@ -248,6 +279,20 @@ def test_deterministic_joint_reset_preserves_default_standing_pose():
     assert deterministic_joint_reset_params() == {
         "position_range": (1.0, 1.0),
         "velocity_range": (0.0, 0.0),
+    }
+
+
+def test_deterministic_rigid_body_material_uses_one_fixed_bucket():
+    helper = getattr(
+        terrain_guards, "deterministic_rigid_body_material_params", None
+    )
+
+    assert helper is not None, "deterministic material helper is missing"
+    assert helper() == {
+        "static_friction_range": (0.65, 0.65),
+        "dynamic_friction_range": (0.55, 0.55),
+        "restitution_range": (0.0, 0.0),
+        "num_buckets": 1,
     }
 
 
