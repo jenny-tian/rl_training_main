@@ -28,6 +28,7 @@ class FakeEnv:
         self.step_dt = 0.02
         self.steps = 0
         self.commands = torch.zeros(1, 3)
+        self.done_on_next_step = False
         self.state = State(
             FOLDED_JOINT_POS.clone(), torch.zeros(1, 12), torch.tensor([[0.25]]),
             torch.zeros(1, 2), torch.full((1, 12), -10.0), torch.full((1, 12), 10.0),
@@ -40,10 +41,12 @@ class FakeEnv:
 
     def step(self, action):
         self.steps += 1
+        done = self.done_on_next_step
+        self.done_on_next_step = False
         if self.steps >= 150:
             self.state.root_height[:] = 0.30
             self.state.foot_forces[:] = 10.0
-        return torch.zeros(1, 45), torch.zeros(1), torch.zeros(1, dtype=torch.bool), {}
+        return torch.zeros(1, 45), torch.zeros(1), torch.tensor([done]), {}
 
 
 def reader(env):
@@ -71,6 +74,18 @@ def test_wrapper_repeats_startup_after_outer_reset():
     wrapped.reset()
     assert env.steps == first_steps
     assert wrapped.startup_generation == 2
+
+
+def test_wrapper_repeats_startup_after_episode_done():
+    env = FakeEnv()
+    wrapped = Lite3DeploymentStartupWrapper(env, state_reader=reader)
+    wrapped.reset()
+    wrapped.consume_startup_generation()
+    env.done_on_next_step = True
+    _, _, done, extras = wrapped.step(torch.zeros(1, 12))
+    assert done.item()
+    assert extras["startup_generation"] == 2
+    assert wrapped.consume_startup_generation() == 2
 
 
 def test_wrapper_rejects_unsafe_joint_speed_with_phase_context():

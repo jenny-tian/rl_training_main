@@ -37,20 +37,19 @@ def main(argv: list[str] | None = None) -> int:
     try:
         import gymnasium as gym
         import torch
-        from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
         from isaaclab_tasks.utils import load_cfg_from_registry, parse_env_cfg
         from rsl_rl.runners import OnPolicyRunner
 
         import rl_training.tasks  # noqa: F401
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
+        from rl_training.online_adaptation.deployment_startup import make_lite3_deployment_env
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
         env_cfg.seed = args.seed
         assert_flat_online_deployment_config(env_cfg)
         agent_cfg = prepare_rsl_rl_agent_cfg(load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point"))
-        env = gym.make(args.task, cfg=env_cfg)
-        wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
+        wrapped_env = make_lite3_deployment_env(args.task, env_cfg, agent_cfg, gym_module=gym)
         try:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
             runner.load(args.base_checkpoint)
@@ -58,7 +57,10 @@ def main(argv: list[str] | None = None) -> int:
             adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped)
             limits = SafetyLimits(residual_limits=torch.tensor([0.24, 0.20, 0.20] * 4, device=wrapped_env.unwrapped.device))
             safety = SafetyFilter(limits)
-            observation, _ = wrapped_env.reset()
+            observation, reset_info = wrapped_env.reset()
+            generation = wrapped_env.consume_startup_generation()
+            if generation is None or reset_info.get("startup_generation") != generation:
+                raise RuntimeError("deployment startup handoff generation was not acknowledged")
             attempted = completed = timeouts = falls = premature = paused = projected = nonfinite = 0
             velocity_sum = 0.0
             velocity_samples = 0
@@ -94,7 +96,10 @@ def main(argv: list[str] | None = None) -> int:
                     timeouts += int(truncated.sum().item())
                 if bool((terminated | truncated).any().item()):
                     completed += int((terminated | truncated).sum().item())
-                    safety = SafetyFilter(limits)
+                    safety.reset_temporal_state()
+                    generation = wrapped_env.consume_startup_generation()
+                    if generation is None:
+                        raise RuntimeError("deployment startup reset did not produce a generation")
             record = {
                 "task": args.task, "seed": args.seed, "attempted_rows": attempted,
                 "completed_episodes": completed, "timeouts": timeouts, "falls": falls,

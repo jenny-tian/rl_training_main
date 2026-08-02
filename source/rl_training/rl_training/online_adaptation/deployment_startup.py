@@ -151,6 +151,14 @@ class Lite3DeploymentStartupWrapper:
         self._pending_generation = None
         return generation
 
+    def step(self, action):
+        observation, reward, done, extras = self.env.step(action)
+        if bool(torch.as_tensor(done).any().item()):
+            observation, reset_info = self.reset()
+            extras = dict(extras)
+            extras["startup_generation"] = reset_info["startup_generation"]
+        return observation, reward, done, extras
+
 
 def isaaclab_startup_state(env) -> SimpleNamespace:
     """Read the canonical Lite3 state required by the startup controller."""
@@ -172,13 +180,24 @@ def isaaclab_startup_state(env) -> SimpleNamespace:
     )
 
 
-def make_lite3_deployment_env(task: str, env_cfg, agent_cfg, *, gym_module=None, wrapper_cls=Lite3DeploymentStartupWrapper):
+def make_lite3_deployment_env(
+    task: str,
+    env_cfg,
+    agent_cfg,
+    *,
+    gym_module=None,
+    wrapper_cls=Lite3DeploymentStartupWrapper,
+    env_kwargs: dict | None = None,
+    env_transform: Callable[[object], object] | None = None,
+):
     """Construct the RSL environment and install the shared startup wrapper."""
     wrapper_cls.validate_task(task)
     if gym_module is None:
         import gymnasium as gym_module
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
-    env = gym_module.make(task, cfg=env_cfg)
+    env = gym_module.make(task, cfg=env_cfg, **(env_kwargs or {}))
+    if env_transform is not None:
+        env = env_transform(env)
     rsl_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
     return wrapper_cls(rsl_env, state_reader=isaaclab_startup_state)

@@ -30,3 +30,22 @@ def test_residual_trainer_clips_current_and_next_base_actions():
 def test_play_worker_clips_warmup_current_and_next_base_actions():
     source = _source("scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py")
     assert source.count("clip_lite3_policy_action(base_policy(") == 3
+
+
+def test_flat_deployment_qualification_uses_shared_startup_factory():
+    source = _source(
+        "scripts/reinforcement_learning/online_adaptation/qualify_flat_deployment.py"
+    )
+    assert "make_lite3_deployment_env" in source
+    assert "RslRlVecEnvWrapper" not in source
+    assert "consume_startup_generation" in source
+
+
+def test_flat_online_play_uses_shared_startup_factory_and_handoff_reset():
+    source = _source(
+        "scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py"
+    )
+    assert "make_lite3_deployment_env" in source
+    assert "RslRlVecEnvWrapper" not in source
+    assert "consume_startup_generation" in source
+    assert "reset_for_deployment_handoff" in source

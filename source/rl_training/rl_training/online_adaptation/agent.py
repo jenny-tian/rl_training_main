@@ -156,6 +156,12 @@ class OnlineAdaptationAgent:
         with self._residual_gain_lock:
             self._residual_gain = validated
 
+    def reset_for_deployment_handoff(self) -> None:
+        """Clear temporal control state after deterministic stand-up."""
+        self.history.reset()
+        self._pending = None
+        self.safety.reset_temporal_state()
+
     def state_dict(self) -> dict[str, Any]:
         return {
             "config": self.config,

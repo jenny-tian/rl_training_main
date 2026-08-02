@@ -558,7 +558,6 @@ def main() -> int:
 
         from rsl_rl.runners import OnPolicyRunner
 
-        from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
         from isaaclab_tasks.utils import load_cfg_from_registry, parse_env_cfg
 
         import rl_training.tasks  # noqa: F401
@@ -568,6 +567,7 @@ def main() -> int:
             save_experiment_checkpoint,
         )
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
+        from rl_training.online_adaptation.deployment_startup import make_lite3_deployment_env
         from rl_training.online_adaptation.metrics import AdaptationPerformance, RollingMetrics
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
@@ -608,16 +608,25 @@ def main() -> int:
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
         agent_cfg.seed = args.seed
         agent_cfg = prepare_rsl_rl_agent_cfg(agent_cfg)
-        env = gym.make(args.task, cfg=env_cfg, render_mode="rgb_array" if args.video else None)
-        if args.video:
-            env = gym.wrappers.RecordVideo(
+        def transform_video(env):
+            if not args.video:
+                return env
+            return gym.wrappers.RecordVideo(
                 env,
                 video_folder=str(run_dir / "videos"),
                 step_trigger=lambda step: step == 0,
                 video_length=args.video_length or args.max_steps,
                 disable_logger=True,
             )
-        wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
+
+        wrapped_env = make_lite3_deployment_env(
+            args.task,
+            env_cfg,
+            agent_cfg,
+            gym_module=gym,
+            env_kwargs={"render_mode": "rgb_array"} if args.video else {},
+            env_transform=transform_video,
+        )
         online_agent = None
         novelty_gate = None
         stable_manager = None
@@ -894,6 +903,10 @@ def main() -> int:
             )
 
             observation, _ = wrapped_env.reset()
+            generation = wrapped_env.consume_startup_generation()
+            if generation is None:
+                raise RuntimeError("deployment startup reset did not produce a generation")
+            online_agent.reset_for_deployment_handoff()
             previous_action = torch.zeros(1, 12, device=device)
             warm_up_control_path(
                 base_policy=base_policy,
