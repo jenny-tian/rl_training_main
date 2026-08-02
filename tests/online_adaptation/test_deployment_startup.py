@@ -98,8 +98,14 @@ def test_wrapper_rejects_unsafe_joint_speed_with_phase_context():
 
 def test_wrapper_handoff_ramps_standing_target_instead_of_repeating_a_jump():
     env = FakeEnv()
+    velocity_targets = []
     wrapped = Lite3DeploymentStartupWrapper(env, state_reader=reader)
+    wrapped = Lite3DeploymentStartupWrapper(
+        env,
+        state_reader=reader,
+        velocity_target_writer=lambda _env, target: velocity_targets.append(target.clone()),
+    )
     wrapped.reset()
-    # The final startup hold must be fed through the same clipped action path;
-    # this assertion documents that handoff actions are valid policy actions.
     assert env.steps >= 150
+    assert any(float(target.abs().max().item()) > 0.0 for target in velocity_targets)
+    assert torch.equal(velocity_targets[-1], torch.zeros_like(velocity_targets[-1]))

@@ -40,6 +40,7 @@ class Lite3DeploymentStartupWrapper:
         env,
         *,
         state_reader: Callable[[object], object],
+        velocity_target_writer: Callable[[object, torch.Tensor], None] | None = None,
         phase_duration: float = 1.5,
         handoff_contact_steps: int = 10,
         max_joint_velocity: float = 30.0,
@@ -47,6 +48,7 @@ class Lite3DeploymentStartupWrapper:
         self.env = env
         self.unwrapped = getattr(env, "unwrapped", env)
         self.state_reader = state_reader
+        self.velocity_target_writer = velocity_target_writer
         self.phase_duration = float(phase_duration)
         self.handoff_contact_steps = int(handoff_contact_steps)
         self.max_joint_velocity = float(max_joint_velocity)
@@ -70,6 +72,10 @@ class Lite3DeploymentStartupWrapper:
             value = getattr(term, name, None)
             if value is not None:
                 value.zero_()
+
+    def _write_velocity_target(self, target: torch.Tensor) -> None:
+        if self.velocity_target_writer is not None:
+            self.velocity_target_writer(self.unwrapped, target)
 
     def _step_count(self) -> int:
         dt = float(getattr(self.unwrapped, "step_dt", 0.02))
@@ -95,7 +101,7 @@ class Lite3DeploymentStartupWrapper:
         count = self._step_count()
         for index in range(count):
             elapsed = min((index + 1) * self.phase_duration / count, self.phase_duration)
-            target, _ = standup_targets(
+            target, velocity = standup_targets(
                 start_pos,
                 start_vel,
                 elapsed=elapsed,
@@ -104,6 +110,7 @@ class Lite3DeploymentStartupWrapper:
             )
             self._validate_state(self.state_reader(self.unwrapped), phase, elapsed)
             self._zero_commands()
+            self._write_velocity_target(velocity)
             _, _, done, _ = self.env.step(self._startup_action(target))
             if bool(torch.as_tensor(done).any().item()):
                 raise Lite3StartupError(f"phase {phase} at {elapsed:.3f}s terminated unexpectedly")
@@ -146,7 +153,7 @@ class Lite3DeploymentStartupWrapper:
             if contact_streak >= self.handoff_contact_steps:
                 self._validate_handoff()
                 break
-            target, _ = cubic_hermite_position(
+            target, target_velocity = cubic_hermite_position(
                 handoff_start_pos,
                 handoff_start_vel,
                 standing,
@@ -155,6 +162,7 @@ class Lite3DeploymentStartupWrapper:
                 duration=hold_duration,
             )
             self._zero_commands()
+            self._write_velocity_target(target_velocity)
             handoff_observation, _, done, handoff_step_info = self.env.step(self._startup_action(target))
             if bool(torch.as_tensor(done).any().item()):
                 raise Lite3StartupError("stand-up handoff hold terminated unexpectedly")
@@ -163,6 +171,7 @@ class Lite3DeploymentStartupWrapper:
                 f"stand-up handoff did not maintain all four feet above 1 N for "
                 f"{self.handoff_contact_steps} consecutive steps"
             )
+        self._write_velocity_target(torch.zeros_like(standing))
         self._set_startup_active(False)
         self.startup_generation += 1
         self._pending_generation = self.startup_generation
@@ -206,6 +215,17 @@ def isaaclab_startup_state(env) -> SimpleNamespace:
     )
 
 
+def isaaclab_startup_velocity_target(env, target: torch.Tensor) -> None:
+    """Write a canonical Lite3 velocity target to the articulation actuator buffers."""
+    from rl_training.lite3_joint_conventions import LITE3_POLICY_JOINT_NAMES
+
+    robot = env.scene["robot"]
+    joint_ids, joint_names = robot.find_joints(list(LITE3_POLICY_JOINT_NAMES), preserve_order=True)
+    if tuple(joint_names) != LITE3_POLICY_JOINT_NAMES:
+        raise ValueError("Lite3 startup velocity target could not resolve canonical joint order")
+    robot.set_joint_velocity_target(target, joint_ids=joint_ids)
+
+
 def make_lite3_deployment_env(
     task: str,
     env_cfg,
@@ -226,4 +246,8 @@ def make_lite3_deployment_env(
     if env_transform is not None:
         env = env_transform(env)
     rsl_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
-    return wrapper_cls(rsl_env, state_reader=isaaclab_startup_state)
+    return wrapper_cls(
+        rsl_env,
+        state_reader=isaaclab_startup_state,
+        velocity_target_writer=isaaclab_startup_velocity_target,
+    )

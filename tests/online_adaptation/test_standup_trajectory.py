@@ -28,6 +28,21 @@ def test_standup_targets_reaches_reference_folded_and_standing_poses():
     assert torch.allclose(phase_two_vel, torch.zeros_like(start), atol=1e-6)
 
 
+def test_second_phase_uses_reference_height_inverse_kinematics():
+    start = FOLDED_JOINT_POS.clone()
+    midpoint, midpoint_velocity = standup_targets(
+        start, torch.zeros_like(start), elapsed=0.75, phase_duration=1.5, phase=2
+    )
+    assert torch.allclose(midpoint[:, 1::3], midpoint[:, 4:5].expand(-1, 4), atol=1e-6)
+    assert torch.allclose(midpoint[:, 2::3], midpoint[:, 5:6].expand(-1, 4), atol=1e-6)
+    assert torch.all(midpoint[:, 1::3] > FOLDED_JOINT_POS[:, 1::3])
+    assert torch.all(midpoint[:, 1::3] < STANDING_JOINT_POS[:, 1::3])
+    assert torch.allclose(midpoint[0, 1::3], torch.full((4,), -1.0275187), atol=1e-5)
+    assert torch.allclose(midpoint[0, 2::3], torch.full((4,), 1.9806901), atol=1e-5)
+    assert torch.all(midpoint_velocity[:, 1::3] > 0.0)
+    assert torch.all(midpoint_velocity[:, 2::3] < 0.0)
+
+
 def test_standup_phase_does_not_overshoot_targets():
     start = torch.zeros(1, 12)
     folded, _ = standup_targets(start, torch.zeros_like(start), elapsed=0.75, phase_duration=1.5, phase=1)

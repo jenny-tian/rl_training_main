@@ -12,6 +12,10 @@ from .lite3_joint_conventions import (
 
 FOLDED_LEG_JOINT_POS = (0.0, -1.3545311211, 2.5494772717)
 STANDING_LEG_JOINT_POS = (0.0, -0.6535351663, 1.2710916139)
+FOLDED_BASE_HEIGHT = 0.12
+STANDING_BASE_HEIGHT = 0.33
+THIGH_LENGTH = 0.20
+SHANK_LENGTH = 0.21
 FOLDED_JOINT_POS = torch.tensor([FOLDED_LEG_JOINT_POS] * 4, dtype=torch.float32).reshape(1, -1)
 STANDING_JOINT_POS = torch.tensor([STANDING_LEG_JOINT_POS] * 4, dtype=torch.float32).reshape(1, -1)
 
@@ -28,6 +32,39 @@ def _validate_trajectory_tensor(value: torch.Tensor, name: str) -> None:
         raise ValueError(f"{name} must have at least one dimension")
     if not torch.isfinite(value).all():
         raise ValueError(f"{name} must contain only finite values")
+
+
+def _leg_joints_from_height(height: torch.Tensor) -> torch.Tensor:
+    """Map the reference Lite3 leg height to HipX/HipY/Knee joint positions."""
+    a = (THIGH_LENGTH * THIGH_LENGTH + height * height - SHANK_LENGTH * SHANK_LENGTH) / (
+        2.0 * height * THIGH_LENGTH
+    )
+    b = (THIGH_LENGTH * THIGH_LENGTH + SHANK_LENGTH * SHANK_LENGTH - height * height) / (
+        2.0 * THIGH_LENGTH * SHANK_LENGTH
+    )
+    hip_y = -torch.acos(a.clamp(-1.0, 1.0))
+    knee = torch.pi - torch.acos(b.clamp(-1.0, 1.0))
+    return torch.cat((torch.zeros_like(height), hip_y, knee), dim=-1)
+
+
+def _leg_joint_velocity_from_height(
+    height: torch.Tensor, height_velocity: torch.Tensor
+) -> torch.Tensor:
+    """Map a height velocity to the corresponding inverse-kinematics joint velocities."""
+    delta = 1.0e-6
+    a = (THIGH_LENGTH * THIGH_LENGTH + height * height - SHANK_LENGTH * SHANK_LENGTH) / (
+        2.0 * height * THIGH_LENGTH
+    )
+    b = (THIGH_LENGTH * THIGH_LENGTH + SHANK_LENGTH * SHANK_LENGTH - height * height) / (
+        2.0 * THIGH_LENGTH * SHANK_LENGTH
+    )
+    da_dh = (1.0 - (THIGH_LENGTH * THIGH_LENGTH - SHANK_LENGTH * SHANK_LENGTH) / height.square()) / (
+        2.0 * THIGH_LENGTH
+    )
+    db_dh = -height / (THIGH_LENGTH * SHANK_LENGTH)
+    hip_y_velocity = da_dh / torch.sqrt((1.0 - a.square()).clamp_min(delta)) * height_velocity
+    knee_velocity = db_dh / torch.sqrt((1.0 - b.square()).clamp_min(delta)) * height_velocity
+    return torch.cat((torch.zeros_like(height_velocity), hip_y_velocity, knee_velocity), dim=-1)
 
 
 def cubic_hermite_position(
@@ -76,10 +113,32 @@ def standup_targets(
         raise ValueError("start and start_velocity must have the same shape")
     if phase not in (1, 2):
         raise ValueError("phase must be 1 or 2")
-    target = (FOLDED_JOINT_POS if phase == 1 else STANDING_JOINT_POS).to(device=start.device, dtype=start.dtype)
-    phase_start = start if phase == 1 else FOLDED_JOINT_POS.to(device=start.device, dtype=start.dtype).expand_as(start)
-    phase_velocity = start_velocity if phase == 1 else torch.zeros_like(start)
-    return cubic_hermite_position(phase_start, phase_velocity, target.expand_as(start), torch.zeros_like(start), elapsed, phase_duration)
+    if phase == 1:
+        target = FOLDED_JOINT_POS.to(device=start.device, dtype=start.dtype)
+        return cubic_hermite_position(
+            start,
+            start_velocity,
+            target.expand_as(start),
+            torch.zeros_like(start),
+            elapsed,
+            phase_duration,
+        )
+
+    height_start = torch.full(
+        (*start.shape[:-1], 1), FOLDED_BASE_HEIGHT, device=start.device, dtype=start.dtype
+    )
+    height_end = torch.full_like(height_start, STANDING_BASE_HEIGHT)
+    height, height_velocity = cubic_hermite_position(
+        height_start,
+        torch.zeros_like(height_start),
+        height_end,
+        torch.zeros_like(height_end),
+        elapsed,
+        phase_duration,
+    )
+    leg_pos = _leg_joints_from_height(height)
+    leg_vel = _leg_joint_velocity_from_height(height, height_velocity)
+    return leg_pos.repeat(1, 4), leg_vel.repeat(1, 4)
 
 
 def physical_targets_to_policy_action(target: torch.Tensor) -> torch.Tensor:
