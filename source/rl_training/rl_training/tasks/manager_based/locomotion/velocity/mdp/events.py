@@ -220,3 +220,15 @@ def bad_orientation_2(
     return projected_gravity_xy_is_unsafe(
         asset.data.projected_gravity_b, max_xy_norm=max_xy_norm
     )
+
+
+def startup_aware_illegal_contact(env: ManagerBasedEnv, *args, **kwargs) -> torch.Tensor:
+    if bool(getattr(env, "startup_active", False)):
+        return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+    return illegal_contact(env, *args, **kwargs)
+
+
+def startup_aware_bad_orientation_2(env: ManagerBasedEnv, *args, **kwargs) -> torch.Tensor:
+    if bool(getattr(env, "startup_active", False)):
+        return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
+    return bad_orientation_2(env, *args, **kwargs)

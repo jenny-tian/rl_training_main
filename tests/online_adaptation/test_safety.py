@@ -183,3 +183,13 @@ def test_safety_defaults_share_lite3_training_contract():
         limits.residual_guard_projected_gravity_xy
         == LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY
     )
+
+
+def test_reset_temporal_state_clears_safety_history():
+    filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2)))
+    filt.project(torch.zeros(1, 12), torch.ones(1, 12), state())
+    filt.reset_temporal_state()
+    assert filt._previous_residual is None
+    assert filt._paused is None
+    assert filt._stable_steps is None
+    assert filt._contact_steps is None

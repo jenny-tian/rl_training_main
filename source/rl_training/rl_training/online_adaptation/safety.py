@@ -36,6 +36,13 @@ class SafetyFilter:
         self._stable_steps: torch.Tensor | None = None
         self._contact_steps: torch.Tensor | None = None
 
+    def reset_temporal_state(self) -> None:
+        """Clear pause, contact, and residual history at a deployment handoff."""
+        self._previous_residual = None
+        self._paused = None
+        self._stable_steps = None
+        self._contact_steps = None
+
     def _ensure_state(self, base_action: torch.Tensor) -> None:
         num_envs = base_action.shape[0]
         if self._previous_residual is None or self._previous_residual.shape != base_action.shape:
