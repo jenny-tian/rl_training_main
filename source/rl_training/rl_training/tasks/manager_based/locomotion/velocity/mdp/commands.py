@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Sequence
 from isaaclab.managers import CommandTerm, CommandTermCfg
 from isaaclab.utils import configclass
 
+from rl_training.command_slew import slew_toward
 import rl_training.tasks.manager_based.locomotion.velocity.mdp as mdp
 
 if TYPE_CHECKING:
@@ -31,6 +32,7 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
 
     def __init__(self, cfg: mdp.UniformThresholdVelocityCommandCfg, env: ManagerBasedEnv):
         super().__init__(cfg, env)
+        self.target_vel_command_b = self.vel_command_b.clone()
         # Additional metrics for TensorBoard.
         self.metrics["base_z"] = torch.zeros(self.num_envs, device=self.device)
         self.metrics["knee_pos"] = torch.zeros(self.num_envs, device=self.device)
@@ -49,6 +51,9 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
         if env_ids is None:
             env_ids = slice(None)
+        if self.cfg.command_acceleration_limits is not None:
+            self.vel_command_b[env_ids] = 0.0
+            self.target_vel_command_b[env_ids] = 0.0
 
         extras = {}
         for metric_name, metric_value in self.metrics.items():
@@ -94,6 +99,8 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
         self._metric_step_counter += 1
 
     def _resample_command(self, env_ids: Sequence[int]):
+        if self.cfg.command_acceleration_limits is not None:
+            previous = self.vel_command_b[env_ids].clone()
         super()._resample_command(env_ids)
         # set small commands to zero
         self.vel_command_b[env_ids, :2] *= (torch.norm(self.vel_command_b[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
@@ -104,9 +111,6 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
         # affected by curriculum narrowing.  This prevents catastrophic
         # forgetting of basic skills.
         n = len(env_ids)
-        if n == 0:
-            return
-
         r = torch.empty(n, device=self.device)
         # Assign each env a slot in [0, 1).  Slots are laid out as:
         #   [0,                          rel_zero_vel          ) -> zero velocity
@@ -176,12 +180,36 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
             if self.cfg.heading_command:
                 self.heading_target[ids_only_ang] = r_h.uniform_(*self.cfg.ranges.heading)
 
+        if self.cfg.command_acceleration_limits is not None:
+            self.target_vel_command_b[env_ids] = self.vel_command_b[env_ids]
+            self.vel_command_b[env_ids] = previous
+
+    def _update_command(self):
+        if self.cfg.command_acceleration_limits is None:
+            super()._update_command()
+            return
+
+        if self.cfg.heading_command:
+            raise ValueError("slew-limited heading commands are not supported")
+        target = self.target_vel_command_b.clone()
+        target[self.is_standing_env] = 0.0
+        max_delta = tuple(
+            float(limit) * float(self._env.step_dt)
+            for limit in self.cfg.command_acceleration_limits
+        )
+        self.vel_command_b.copy_(
+            slew_toward(self.vel_command_b, target, max_delta=max_delta)
+        )
+
 
 @configclass
 class UniformThresholdVelocityCommandCfg(mdp.UniformVelocityCommandCfg):
     """Configuration for the uniform threshold velocity command generator."""
 
     class_type: type = UniformThresholdVelocityCommand
+
+    command_acceleration_limits: tuple[float, float, float] | None = None
+    """Optional ``(x, y, yaw)`` command acceleration limits per second."""
 
     rel_zero_vel_envs: float = 0.07
     """Fraction of environments that always receive a zero-velocity command.
