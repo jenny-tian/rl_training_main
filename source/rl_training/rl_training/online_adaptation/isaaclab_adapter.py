@@ -66,6 +66,7 @@ class Lite3IsaacLabAdapter:
         self.robot = env.scene[robot_name]
         self.contact_sensor = env.scene.sensors[contact_sensor_name]
         self.foot_ids = self.contact_sensor.find_bodies(foot_body_pattern)[0]
+        self.robot_foot_ids = self.robot.find_bodies(foot_body_pattern)[0]
         self.nonfoot_ids = self.contact_sensor.find_bodies(nonfoot_body_pattern)[0]
         self.contact_threshold = contact_threshold
         joint_pos = self.robot.data.joint_pos
@@ -122,7 +123,9 @@ class Lite3IsaacLabAdapter:
     def reward_signals(self) -> RewardSignals:
         foot_forces = torch.linalg.norm(self.contact_sensor.data.net_forces_w[:, self.foot_ids], dim=-1)
         contacts = foot_forces > self.contact_threshold
-        foot_speed = torch.linalg.norm(self.robot.data.body_lin_vel_w[:, self.foot_ids, :2], dim=-1)
+        foot_speed = torch.linalg.norm(
+            self.robot.data.body_lin_vel_w[:, self.robot_foot_ids, :2], dim=-1
+        )
         command = self.env.command_manager.get_command("base_velocity")
         nonfoot_forces = self.contact_sensor.data.net_forces_w[:, self.nonfoot_ids]
         return RewardSignals(
