@@ -12,10 +12,35 @@ from typing import TYPE_CHECKING, Literal
 import isaaclab.utils.math as math_utils
 from rl_training.lite3_stability_contract import projected_gravity_xy_is_unsafe
 from isaaclab.assets import Articulation, RigidObject
+from isaaclab.envs.mdp import illegal_contact as _isaac_illegal_contact
 from isaaclab.managers import SceneEntityCfg
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
+
+
+def reset_lite3_folded_joints(
+    env: ManagerBasedEnv,
+    env_ids: torch.Tensor,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> None:
+    """Reset Lite3 joints to the reference 0.12 m folded pose."""
+    from rl_training.lite3_joint_conventions import LITE3_POLICY_JOINT_NAMES
+    from rl_training.standup_trajectory import FOLDED_JOINT_POS
+
+    asset: Articulation = env.scene[asset_cfg.name]
+    joint_ids, joint_names = asset.find_joints(
+        list(LITE3_POLICY_JOINT_NAMES), preserve_order=True
+    )
+    if tuple(joint_names) != LITE3_POLICY_JOINT_NAMES:
+        raise ValueError("Lite3 folded reset could not resolve canonical joint order")
+    positions = FOLDED_JOINT_POS.to(
+        device=asset.data.joint_pos.device, dtype=asset.data.joint_pos.dtype
+    ).expand(len(env_ids), -1)
+    velocities = torch.zeros_like(positions)
+    asset.write_joint_state_to_sim(
+        positions, velocities, joint_ids=joint_ids, env_ids=env_ids
+    )
 
 
 def randomize_rigid_body_inertia(
@@ -222,13 +247,21 @@ def bad_orientation_2(
     )
 
 
-def startup_aware_illegal_contact(env: ManagerBasedEnv, *args, **kwargs) -> torch.Tensor:
+def startup_aware_illegal_contact(
+    env: ManagerBasedEnv, threshold: float, sensor_cfg: SceneEntityCfg
+) -> torch.Tensor:
     if bool(getattr(env, "startup_active", False)):
         return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
-    return illegal_contact(env, *args, **kwargs)
+    return _isaac_illegal_contact(env, threshold=threshold, sensor_cfg=sensor_cfg)
 
 
-def startup_aware_bad_orientation_2(env: ManagerBasedEnv, *args, **kwargs) -> torch.Tensor:
+def startup_aware_bad_orientation_2(
+    env: ManagerBasedEnv,
+    max_xy_norm: float | None = None,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
     if bool(getattr(env, "startup_active", False)):
         return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
-    return bad_orientation_2(env, *args, **kwargs)
+    return bad_orientation_2(
+        env, max_xy_norm=max_xy_norm, asset_cfg=asset_cfg
+    )

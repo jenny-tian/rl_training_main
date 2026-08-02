@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 
 import torch
@@ -61,3 +62,33 @@ def test_training_termination_delegates_to_xy_norm_contract_when_configured():
 
     assert "projected_gravity_xy_is_unsafe(" in source
     assert "asset.data.projected_gravity_b, max_xy_norm=max_xy_norm" in source
+
+
+def test_startup_aware_termination_signatures_match_manager_params():
+    source = (
+        ROOT
+        / "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/events.py"
+    ).read_text(encoding="utf-8")
+    functions = {
+        node.name: node
+        for node in ast.parse(source).body
+        if isinstance(node, ast.FunctionDef)
+    }
+
+    illegal_contact = functions["startup_aware_illegal_contact"].args
+    bad_orientation = functions["startup_aware_bad_orientation_2"].args
+
+    assert [argument.arg for argument in illegal_contact.args] == [
+        "env",
+        "threshold",
+        "sensor_cfg",
+    ]
+    assert illegal_contact.vararg is None
+    assert illegal_contact.kwarg is None
+    assert [argument.arg for argument in bad_orientation.args] == [
+        "env",
+        "max_xy_norm",
+        "asset_cfg",
+    ]
+    assert bad_orientation.vararg is None
+    assert bad_orientation.kwarg is None

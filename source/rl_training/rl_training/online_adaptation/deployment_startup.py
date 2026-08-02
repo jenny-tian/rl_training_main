@@ -11,6 +11,7 @@ from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.standup_trajectory import (
     FOLDED_JOINT_POS,
     STANDING_JOINT_POS,
+    cubic_hermite_position,
     physical_targets_to_policy_action,
     standup_targets,
 )
@@ -128,15 +129,40 @@ class Lite3DeploymentStartupWrapper:
         self._advance_phase(folded, torch.zeros_like(start_vel), 2)
 
         standing = STANDING_JOINT_POS.to(device=start_pos.device, dtype=start_pos.dtype).expand_as(start_pos)
+        handoff_start = self.state_reader(self.unwrapped)
+        handoff_start_pos = handoff_start.joint_pos.detach().clone()
+        handoff_start_vel = handoff_start.joint_vel.detach().clone()
         handoff_observation = observation
         handoff_step_info = {}
-        for index in range(self.handoff_contact_steps):
-            self._validate_state(self.state_reader(self.unwrapped), 2, self.phase_duration + index * float(getattr(self.unwrapped, "step_dt", 0.02)))
+        contact_streak = 0
+        max_handoff_steps = self.handoff_contact_steps * 5
+        hold_duration = self.handoff_contact_steps * float(getattr(self.unwrapped, "step_dt", 0.02))
+        for index in range(max_handoff_steps):
+            state = self.state_reader(self.unwrapped)
+            elapsed = self.phase_duration + index * float(getattr(self.unwrapped, "step_dt", 0.02))
+            self._validate_state(state, 2, elapsed)
+            all_feet_in_contact = bool(torch.all(state.foot_forces > 1.0).item())
+            contact_streak = contact_streak + 1 if all_feet_in_contact else 0
+            if contact_streak >= self.handoff_contact_steps:
+                self._validate_handoff()
+                break
+            target, _ = cubic_hermite_position(
+                handoff_start_pos,
+                handoff_start_vel,
+                standing,
+                torch.zeros_like(standing),
+                elapsed=min((index + 1) * float(getattr(self.unwrapped, "step_dt", 0.02)), hold_duration),
+                duration=hold_duration,
+            )
             self._zero_commands()
-            handoff_observation, _, done, handoff_step_info = self.env.step(self._startup_action(standing))
+            handoff_observation, _, done, handoff_step_info = self.env.step(self._startup_action(target))
             if bool(torch.as_tensor(done).any().item()):
                 raise Lite3StartupError("stand-up handoff hold terminated unexpectedly")
-        self._validate_handoff()
+        else:
+            raise Lite3StartupError(
+                f"stand-up handoff did not maintain all four feet above 1 N for "
+                f"{self.handoff_contact_steps} consecutive steps"
+            )
         self._set_startup_active(False)
         self.startup_generation += 1
         self._pending_generation = self.startup_generation
