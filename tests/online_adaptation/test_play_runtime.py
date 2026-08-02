@@ -630,6 +630,32 @@ def test_critic_update_does_not_enqueue_actor_event():
     assert counters.actor_updates == 0
 
 
+def test_critic_only_update_makes_uncomputed_losses_json_null(tmp_path):
+    counters = RuntimeCounters()
+    last_update = {}
+
+    record_update_result(
+        stats=make_update_stats(
+            actor_loss=float("nan"),
+            alpha_loss=float("nan"),
+            actor_updated=False,
+        ),
+        policy_drift=None,
+        last_update=last_update,
+        counters=counters,
+        step=701,
+        adaptation_episode=0,
+    )
+
+    assert last_update["actor_loss"] is None
+    assert last_update["alpha_loss"] is None
+    output = tmp_path / "episode_summary.json"
+    write_episode_summary(output, {"last_update": last_update})
+    assert json.loads(output.read_text()) == {
+        "last_update": {**last_update, "actor_loss": None, "alpha_loss": None}
+    }
+
+
 def test_actor_updates_return_complete_events_across_intervening_critic_update():
     counters = RuntimeCounters()
     last_update = {}

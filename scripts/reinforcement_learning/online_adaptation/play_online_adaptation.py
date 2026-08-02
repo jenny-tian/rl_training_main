@@ -318,6 +318,10 @@ def record_update_result(
     if stats.rejection_reason == "stale_adaptation_episode":
         return None
     update_record = asdict(stats)
+    if not stats.actor_updated:
+        for field in ("actor_loss", "alpha_loss"):
+            if not math.isfinite(float(update_record[field])):
+                update_record[field] = None
     actor_event = None
     if stats.accepted and stats.actor_updated:
         assert policy_drift is not None, "accepted Actor update requires policy drift"
