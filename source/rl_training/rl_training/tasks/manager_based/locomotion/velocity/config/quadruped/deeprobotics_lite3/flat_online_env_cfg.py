@@ -5,6 +5,8 @@ from rl_training.online_adaptation.terrain_guards import (
     deterministic_joint_reset_params,
     deterministic_root_reset_params,
 )
+from rl_training.online_adaptation.deployment_startup import Lite3DeploymentStartupWrapper
+from rl_training.tasks.manager_based.locomotion.velocity import mdp
 from rl_training.tasks.manager_based.locomotion.velocity.terrains import FlatOnlineTrackCfg
 from rl_training.tasks.manager_based.locomotion.velocity.velocity_env_cfg import TerminationsCfg
 
@@ -13,6 +15,7 @@ from .rough_env_cfg import DeeproboticsLite3RoughEnvCfg
 
 @configclass
 class DeeproboticsLite3FlatOnlineEnvCfg(DeeproboticsLite3RoughEnvCfg):
+    startup_base_height: float = Lite3DeploymentStartupWrapper.DEFAULT_BELLY_DOWN_BASE_HEIGHT
     def __post_init__(self):
         super().__post_init__()
 
@@ -63,6 +66,8 @@ class DeeproboticsLite3FlatOnlineEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.events.randomize_push_robot = None
 
         self.terminations.illegal_contact = TerminationsCfg().illegal_contact
+        self.terminations.illegal_contact.func = mdp.startup_aware_illegal_contact
+        self.terminations.bad_orientation_2.func = mdp.startup_aware_bad_orientation_2
         self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
             link_name for link_name in self.link_names if not link_name.endswith("_FOOT")
         ]

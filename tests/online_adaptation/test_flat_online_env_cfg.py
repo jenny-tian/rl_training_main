@@ -375,6 +375,14 @@ def test_lite3_deployment_configs_enable_the_same_command_ramp():
         ) in source
 
 
+def test_lite3_deployment_configs_enable_startup_lifecycle():
+    for filename in ("flat_online_env_cfg.py", "heldout_boxes_env_cfg.py"):
+        source = (LITE3_CONFIG_DIR / filename).read_text(encoding="utf-8")
+        assert "startup_aware_illegal_contact" in source
+        assert "startup_aware_bad_orientation_2" in source
+        assert "startup_base_height" in source
+
+
 def test_flat_online_source_disables_inherited_dynamics_randomization():
     source = (LITE3_CONFIG_DIR / "flat_online_env_cfg.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
