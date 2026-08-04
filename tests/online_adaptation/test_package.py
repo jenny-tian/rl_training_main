@@ -88,7 +88,21 @@ def test_transition_batch_contract():
         "nonfoot_contact",
         "control_timed_out",
     ]
-    assert len(fields(RewardSignals)) == 10
+    assert [field.name for field in fields(RewardSignals)] == [
+        "base_lin_vel_xy",
+        "command_lin_vel_xy",
+        "base_ang_vel_z",
+        "command_ang_vel_z",
+        "projected_gravity_xy",
+        "base_lin_vel_z",
+        "foot_slip",
+        "foot_impact",
+        "joint_power",
+        "nonfoot_contact",
+        "foot_height",
+        "foot_contact",
+        "foot_edge_offset",
+    ]
 
 
 def test_finish_step_signature_uses_explicit_tensor_annotations():
