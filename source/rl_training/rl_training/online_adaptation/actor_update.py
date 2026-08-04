@@ -3,6 +3,8 @@ from __future__ import annotations
 import copy
 from collections.abc import Callable
 from dataclasses import dataclass, replace
+from math import isfinite
+from numbers import Real
 
 from .policy_drift import ActorDriftMonitor, PolicyDrift
 from .publisher import DoubleBufferedActorPublisher
@@ -16,6 +18,16 @@ class ActorUpdateOutcome:
     policy_drift: PolicyDrift | None
 
 
+def _validate_max_residual_mse(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise ValueError("max_residual_mse must be finite and nonnegative")
+    if not isfinite(float(value)) or float(value) < 0.0:
+        raise ValueError("max_residual_mse must be finite and nonnegative")
+    return float(value)
+
+
 def update_and_publish_actor(
     *,
     updater: SACUpdater,
@@ -24,11 +36,13 @@ def update_and_publish_actor(
     critic_batch: TransitionBatch,
     actor_batch: TransitionBatch,
     flat_anchor_batch: TransitionBatch | None = None,
+    max_residual_mse: float | None = None,
     adaptation_episode: int,
     update_step: int,
     episode_is_active: Callable[[], bool],
     final_publish_attempt: Callable[[object, int], bool] | None = None,
 ) -> ActorUpdateOutcome:
+    max_residual_mse = _validate_max_residual_mse(max_residual_mse)
     pre_update_state = copy.deepcopy(updater.state_dict())
     policy_drift: PolicyDrift | None = None
 
@@ -46,6 +60,11 @@ def update_and_publish_actor(
             )
         except FloatingPointError:
             return "nonfinite_policy_drift"
+        if (
+            max_residual_mse is not None
+            and policy_drift.residual_mse > max_residual_mse
+        ):
+            return "policy_residual_mse_limit"
         return None
 
     stats = updater.update(

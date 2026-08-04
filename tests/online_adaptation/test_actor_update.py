@@ -5,7 +5,7 @@ import torch
 
 from rl_training.online_adaptation.actor_update import update_and_publish_actor
 from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
-from rl_training.online_adaptation.policy_drift import ActorDriftMonitor
+from rl_training.online_adaptation.policy_drift import ActorDriftMonitor, PolicyDrift
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
 from rl_training.online_adaptation.sac import SACConfig, SACUpdater
 from rl_training.online_adaptation.types import TransitionBatch
@@ -58,6 +58,18 @@ def assert_state_dict_equal(actual, expected):
         assert actual == expected
 
 
+def make_drift(residual_mse: float) -> PolicyDrift:
+    return PolicyDrift(
+        residual_mse=residual_mse,
+        joint_abs_change_mean=0.0,
+        joint_abs_change_max=0.0,
+        parameter_l2=0.0,
+        adaptation_episode=1,
+        actor_version=1,
+        update_step=7,
+    )
+
+
 def test_active_finite_candidate_is_diagnosed_before_publishing(monkeypatch):
     updater, publisher, monitor = make_components()
     events = []
@@ -103,6 +115,81 @@ def test_active_finite_candidate_is_diagnosed_before_publishing(monkeypatch):
     )
 
 
+def test_policy_residual_mse_limit_rejects_candidate_before_publishing(monkeypatch):
+    updater, publisher, monitor = make_components()
+    before = copy.deepcopy(updater.state_dict())
+    publish_calls = []
+    monkeypatch.setattr(monitor, "measure", lambda *args, **kwargs: make_drift(0.5))
+    monkeypatch.setattr(
+        publisher, "publish", lambda *args, **kwargs: publish_calls.append(args)
+    )
+
+    outcome = update_and_publish_actor(
+        updater=updater,
+        publisher=publisher,
+        drift_monitor=monitor,
+        critic_batch=make_batch(0.1),
+        actor_batch=make_batch(0.2),
+        max_residual_mse=0.25,
+        adaptation_episode=1,
+        update_step=7,
+        episode_is_active=lambda: True,
+    )
+
+    assert not outcome.stats.accepted
+    assert outcome.stats.rejection_reason == "policy_residual_mse_limit"
+    assert outcome.policy_drift is None
+    assert publish_calls == []
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
+def test_policy_residual_mse_limit_allows_candidate_below_threshold(monkeypatch):
+    updater, publisher, monitor = make_components()
+    monkeypatch.setattr(monitor, "measure", lambda *args, **kwargs: make_drift(0.25))
+    publish_calls = []
+    original_publish = publisher.publish
+
+    def publish(*args, **kwargs):
+        publish_calls.append(args)
+        return original_publish(*args, **kwargs)
+
+    monkeypatch.setattr(publisher, "publish", publish)
+
+    outcome = update_and_publish_actor(
+        updater=updater,
+        publisher=publisher,
+        drift_monitor=monitor,
+        critic_batch=make_batch(0.1),
+        actor_batch=make_batch(0.2),
+        max_residual_mse=0.25,
+        adaptation_episode=1,
+        update_step=7,
+        episode_is_active=lambda: True,
+    )
+
+    assert outcome.stats.accepted
+    assert outcome.policy_drift is not None
+    assert len(publish_calls) == 1
+
+
+@pytest.mark.parametrize("limit", [-0.1, float("nan"), float("inf")])
+def test_policy_residual_mse_limit_must_be_finite_and_nonnegative(limit):
+    updater, publisher, monitor = make_components()
+
+    with pytest.raises(ValueError, match="max_residual_mse"):
+        update_and_publish_actor(
+            updater=updater,
+            publisher=publisher,
+            drift_monitor=monitor,
+            critic_batch=make_batch(0.1),
+            actor_batch=make_batch(0.2),
+            max_residual_mse=limit,
+            adaptation_episode=1,
+            update_step=7,
+            episode_is_active=lambda: True,
+        )
+
+
 def test_inactive_episode_rejects_without_measuring_or_publishing(monkeypatch):
     updater, publisher, monitor = make_components()
     publish_calls = []
@@ -131,6 +218,32 @@ def test_inactive_episode_rejects_without_measuring_or_publishing(monkeypatch):
     _, published_version = publisher.current()
     assert published_version == 0
     assert publish_calls == []
+
+
+def test_unstable_critic_update_is_not_published(monkeypatch):
+    updater, publisher, monitor = make_components(SACConfig(max_critic_loss=1e-9))
+    before = copy.deepcopy(updater.state_dict())
+    publish_calls = []
+    monkeypatch.setattr(
+        publisher, "publish", lambda *args, **kwargs: publish_calls.append(args)
+    )
+
+    outcome = update_and_publish_actor(
+        updater=updater,
+        publisher=publisher,
+        drift_monitor=monitor,
+        critic_batch=make_batch(0.1),
+        actor_batch=make_batch(0.2),
+        adaptation_episode=1,
+        update_step=7,
+        episode_is_active=lambda: True,
+    )
+
+    assert not outcome.stats.accepted
+    assert outcome.stats.rejection_reason == "critic_loss_limit"
+    assert outcome.policy_drift is None
+    assert publish_calls == []
+    assert_state_dict_equal(updater.state_dict(), before)
 
 
 def test_episode_becoming_stale_at_final_publish_restores_complete_update_state(monkeypatch):
