@@ -308,6 +308,7 @@ def test_development_no_update_control_uses_clean_initializer(tmp_path):
     assert _value(command, "--terrain-split") == "development"
     assert _value(command, "--terrain-seed") == "101"
     assert _value(command, "--residual-checkpoint") == args.initial_residual_checkpoint
+    assert _value(command, "--control-timeout-ms") == "50.0"
     assert "--experiment-checkpoint-in" not in command
     assert "--evaluation-only" in command
 

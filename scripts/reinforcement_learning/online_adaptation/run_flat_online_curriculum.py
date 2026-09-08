@@ -325,6 +325,7 @@ def build_retention_probe_command(
         ("--seed", seed),
         ("--max-steps", FLAT_RETENTION_STEPS),
         ("--forward-speed", getattr(args, "forward_speed", 0.5)),
+        ("--control-timeout-ms", getattr(args, "control_timeout_ms", 20.0)),
         ("--residual-gain", 0.0 if mode == "base" else SAFE_DEPLOYMENT_RESIDUAL_GAIN),
         ("--target-semantics", args.target_semantics),
         ("--n-step", args.n_step),

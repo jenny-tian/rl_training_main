@@ -75,6 +75,7 @@ def test_worker_command_contains_exact_stage_seed_budget_and_checkpoint_paths(tm
     assert command_value(command, "--terrain-seed") == "101"
     assert command_value(command, "--max-steps") == "2000"
     assert command_value(command, "--residual-gain") == "0.25"
+    assert command_value(command, "--control-timeout-ms") == "20.0"
     assert command_value(command, "--forward-speed") == "0.3"
     assert command_value(command, "--adapting-residual-gain") == "0.1"
     assert command_value(command, "--post-step-residual-gain") == "0.1"
