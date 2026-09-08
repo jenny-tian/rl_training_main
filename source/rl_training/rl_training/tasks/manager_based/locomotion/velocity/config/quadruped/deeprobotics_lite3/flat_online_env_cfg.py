@@ -45,6 +45,10 @@ class DeeproboticsLite3FlatOnlineEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.commands.base_velocity.rel_standing_envs = 0.0
         self.commands.base_velocity.rel_heading_envs = 0.0
         self.commands.base_velocity.heading_command = False
+        # Headless online workers do not need the remote arrow marker asset.
+        # Keeping this disabled avoids a network availability wait on every
+        # fresh physical episode while leaving video recording unchanged.
+        self.commands.base_velocity.debug_vis = False
         self.commands.base_velocity.command_acceleration_limits = (0.5, 0.5, 0.5)
         self.commands.base_velocity.ranges.lin_vel_x = (0.5, 0.5)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)

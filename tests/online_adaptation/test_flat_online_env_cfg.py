@@ -490,6 +490,15 @@ def test_flat_online_source_selects_all_non_foot_links_for_illegal_contacts():
     ]
 
 
+@pytest.mark.parametrize(
+    "filename", ("flat_online_env_cfg.py", "continuous_rough_env_cfg.py")
+)
+def test_online_worker_configs_disable_remote_velocity_arrow_markers(filename):
+    source = (LITE3_CONFIG_DIR / filename).read_text(encoding="utf-8")
+
+    assert "self.commands.base_velocity.debug_vis = False" in source
+
+
 @pytest.fixture(scope="module")
 def flat_online_env_cfg():
     pytest.importorskip("pxr")
@@ -564,6 +573,7 @@ def test_flat_online_config_uses_fixed_forward_command_and_safety_terminations(
     assert command.rel_standing_envs == 0.0
     assert command.rel_heading_envs == 0.0
     assert command.heading_command is False
+    assert command.debug_vis is False
     assert command.command_acceleration_limits == (0.5, 0.5, 0.5)
     assert command.ranges.lin_vel_x == (0.5, 0.5)
     assert command.ranges.lin_vel_y == (0.0, 0.0)
