@@ -51,7 +51,7 @@ def _args(tmp_path: Path, **overrides) -> Namespace:
         "stability_window": 10,
         "stability_min_success_rate": 0.8,
         "stability_min_consecutive_successes": 3,
-        "device": "cuda:0",
+        "physical_gpu": 0,
         "headless": True,
         "video": True,
         "sealed_evaluation": True,
@@ -116,7 +116,7 @@ def test_worker_environment_hides_gpu_two_and_three(monkeypatch):
     monkeypatch.setenv("NVIDIA_VISIBLE_DEVICES", "all")
     monkeypatch.setenv("DISPLAY", ":1")
 
-    environment = worker_environment()
+    environment = worker_environment(1)
 
     assert environment["CUDA_VISIBLE_DEVICES"] == "0,1"
     assert environment["NVIDIA_VISIBLE_DEVICES"] == "0,1"
@@ -134,7 +134,7 @@ def test_parser_rejects_gpu_two():
                 "--novelty-baseline", "novelty.json",
                 "--frozen-benchmark-dir", "frozen-benchmark",
                 "--output-dir", "run",
-                "--device", "cuda:2",
+                "--physical-gpu", "2",
             ]
         )
 
@@ -156,6 +156,7 @@ def test_training_command_keeps_fixed_development_geometry_and_checkpoint_chain(
     assert _value(first, "--terrain-rough-amplitude") == "0.04"
     assert _value(first, "--residual-frame-dim") == "49"
     assert _value(first, "--forward-speed") == "0.3"
+    assert _value(first, "--device") == "cuda:0"
     assert _value(first, "--residual-checkpoint") == args.initial_residual_checkpoint
     assert "--video" in first
     assert "--require-track-completion" in first

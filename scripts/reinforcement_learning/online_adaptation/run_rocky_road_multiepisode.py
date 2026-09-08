@@ -119,7 +119,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--stability-min-consecutive-successes", type=_positive_int, default=3
     )
-    parser.add_argument("--device", choices=("cuda:0", "cuda:1"), default="cuda:0")
+    parser.add_argument("--physical-gpu", type=int, choices=(0, 1), default=0)
     parser.add_argument("--headless", action="store_true", default=True)
     parser.add_argument("--video", action="store_true", default=True)
     parser.add_argument("--sealed-evaluation", action="store_true", default=True)
@@ -176,7 +176,7 @@ def _worker_args(
         adaptation_min_replay_size=128,
         stalled_actor_replay_stride=16,
         control_timeout_ms=args.control_timeout_ms,
-        device=args.device,
+        device=f"cuda:{args.physical_gpu}",
         headless=args.headless,
         video=args.video,
         target_semantics=configuration.target_semantics,
@@ -608,8 +608,9 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
         "stability_min_success_rate": args.stability_min_success_rate,
         "stability_min_consecutive_successes": args.stability_min_consecutive_successes,
         "video": args.video,
-        "device": args.device,
-        "visible_physical_gpus": [0, 1],
+        "physical_gpu": args.physical_gpu,
+        "logical_device": f"cuda:{args.physical_gpu}",
+        "visible_physical_gpus": list(range(args.physical_gpu + 1)),
         "sealed_evaluation": args.sealed_evaluation,
         "sealed_seeds": list(default_flat_online_protocol().sealed_seeds),
         "evaluation_interpretation": "reused_heldout_benchmark_not_blind_confirmatory",
@@ -819,24 +820,31 @@ def _append_jsonl(path: Path, record: Mapping[str, object]) -> None:
         os.fsync(stream.fileno())
 
 
-def worker_environment() -> dict[str, str]:
+def worker_environment(physical_gpu: int) -> dict[str, str]:
+    if physical_gpu not in {0, 1}:
+        raise ValueError("physical GPU must be 0 or 1")
     environment = dict(os.environ)
-    environment["CUDA_VISIBLE_DEVICES"] = "0,1"
-    environment["NVIDIA_VISIBLE_DEVICES"] = "0,1"
+    # AppLauncher forwards the numeric CUDA ordinal to Vulkan as activeGpu.
+    # Keep lower ordinals visible so physical GPU 1 remains ordinal 1, while
+    # always hiding the user-reserved physical GPUs 2 and 3.
+    visible = ",".join(str(index) for index in range(physical_gpu + 1))
+    environment["CUDA_VISIBLE_DEVICES"] = visible
+    environment["NVIDIA_VISIBLE_DEVICES"] = visible
     environment.pop("DISPLAY", None)
     return environment
 
 
 @contextmanager
-def gpu_run_lock(device: str):
-    ordinal = device.removeprefix("cuda:")
-    path = Path("/tmp") / f"lite3-rocky-multiepisode-gpu-{ordinal}.lock"
+def gpu_run_lock(physical_gpu: int):
+    path = Path("/tmp") / f"lite3-rocky-multiepisode-gpu-{physical_gpu}.lock"
     stream = path.open("w", encoding="ascii")
     try:
         try:
             fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
-            raise RuntimeError(f"another RockyRoad supervisor holds {device}") from error
+            raise RuntimeError(
+                f"another RockyRoad supervisor holds physical GPU {physical_gpu}"
+            ) from error
         stream.write(f"pid={os.getpid()}\n")
         stream.flush()
         yield
@@ -845,14 +853,14 @@ def gpu_run_lock(device: str):
         stream.close()
 
 
-def _run_logged(command: list[str], run_dir: Path) -> int:
+def _run_logged(command: list[str], run_dir: Path, *, physical_gpu: int) -> int:
     with (run_dir / "runtime.log").open("w", encoding="utf-8") as stream:
         result = subprocess.run(
             command,
             check=False,
             stdout=stream,
             stderr=subprocess.STDOUT,
-            env=worker_environment(),
+            env=worker_environment(physical_gpu),
         )
     return result.returncode
 
@@ -942,7 +950,7 @@ def _run_flat_mode(
             seed=seed,
             run_dir=run_dir,
         )
-        returncode = _run_logged(command, run_dir)
+        returncode = _run_logged(command, run_dir, physical_gpu=args.physical_gpu)
         if returncode not in {0, 1}:
             raise RuntimeError(f"flat {mode} probe failed for seed {seed}")
         summaries.append(_require_rollout_outputs(run_dir, video=args.video))
@@ -1116,7 +1124,9 @@ def _ensure_development_controls(
                 mode=mode,
                 run_dir=run_dir,
             )
-            returncode = _run_logged(command, run_dir)
+            returncode = _run_logged(
+                command, run_dir, physical_gpu=args.physical_gpu
+            )
             if returncode not in {0, 1}:
                 raise RuntimeError(f"development {mode} control failed")
             summary = _require_rollout_outputs(run_dir, video=args.video)
@@ -1178,7 +1188,7 @@ def _run_sealed_evaluation(
             terrain_seed=terrain_seed,
             run_dir=run_dir,
         )
-        returncode = _run_logged(command, run_dir)
+        returncode = _run_logged(command, run_dir, physical_gpu=args.physical_gpu)
         if returncode not in {0, 1}:
             raise RuntimeError(f"sealed evaluation failed for seed {terrain_seed}")
         summaries.append(_require_rollout_outputs(run_dir, video=args.video))
@@ -1364,7 +1374,9 @@ def run_experiment(args: argparse.Namespace) -> int:
             command = build_training_command(
                 args, configuration, output=output, episode=episode
             )
-            returncode = _run_logged(command, run_dir)
+            returncode = _run_logged(
+                command, run_dir, physical_gpu=args.physical_gpu
+            )
         request = EpisodeRequest(
             stage=args.terrain_stage,
             seed=args.terrain_seed,
@@ -1486,7 +1498,7 @@ def run_experiment(args: argparse.Namespace) -> int:
 
 def main() -> int:
     args = build_parser().parse_args()
-    with gpu_run_lock(args.device):
+    with gpu_run_lock(args.physical_gpu):
         return run_experiment(args)
 
 
