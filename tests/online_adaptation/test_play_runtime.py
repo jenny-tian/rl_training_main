@@ -3,6 +3,7 @@ import threading
 from argparse import Namespace
 
 import pytest
+from tensordict import TensorDict
 
 from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
     AdaptationCommand,
@@ -27,6 +28,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     close_active_episode_for_worker_boundary,
     cutoff_before_final_step,
     record_update_result,
+    replace_base_policy_group,
     rollback_record_fields,
     resolve_track_boundary_x,
     select_post_step_snapshot,
@@ -668,6 +670,64 @@ def test_terminal_step_uses_pre_reset_snapshot_instead_of_reset_state():
     assert selected.signals == "terminal-signals"
     torch.testing.assert_close(selected.frame, torch.tensor([[2.0]]))
     torch.testing.assert_close(selected.base_x, torch.tensor([[3.0]]))
+
+
+def test_terminal_policy_group_is_restored_in_rsl_observation_container():
+    terminal = PostStepSnapshot(
+        mask=torch.tensor([[True]]),
+        policy_observation=torch.tensor([[1.0, 2.0]]),
+        frame=torch.zeros(1, 1),
+        signals=object(),
+        base_x=torch.zeros(1, 1),
+    )
+    reset_observation = TensorDict(
+        {
+            "policy": torch.tensor([[10.0, 20.0]]),
+            "critic": torch.tensor([[30.0, 40.0, 50.0]]),
+        },
+        batch_size=[1],
+    )
+    reset = PostStepSnapshot(
+        mask=torch.tensor([[False]]),
+        policy_observation=reset_observation["policy"],
+        frame=torch.zeros(1, 1),
+        signals=object(),
+        base_x=torch.zeros(1, 1),
+    )
+
+    selected = select_post_step_snapshot(
+        done=torch.tensor([[True]]),
+        terminal=terminal,
+        post_reset=reset,
+    )
+    restored = replace_base_policy_group(
+        reset_observation,
+        selected.policy_observation,
+    )
+
+    assert isinstance(restored, TensorDict)
+    torch.testing.assert_close(restored["policy"], torch.tensor([[1.0, 2.0]]))
+    torch.testing.assert_close(
+        restored["critic"], torch.tensor([[30.0, 40.0, 50.0]])
+    )
+    torch.testing.assert_close(
+        reset_observation["policy"], torch.tensor([[10.0, 20.0]])
+    )
+
+    def grouped_policy(obs):
+        return obs["policy"].sum(dim=-1)
+
+    torch.testing.assert_close(grouped_policy(restored), torch.tensor([3.0]))
+
+
+def test_terminal_policy_group_must_match_reset_observation_schema():
+    reset_observation = TensorDict(
+        {"policy": torch.zeros(1, 2)},
+        batch_size=[1],
+    )
+
+    with pytest.raises(RuntimeError, match="must match"):
+        replace_base_policy_group(reset_observation, torch.zeros(1, 3))
 
 
 def test_terminal_snapshot_mask_must_match_done_rows():

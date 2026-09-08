@@ -134,6 +134,33 @@ class PostStepSnapshot:
     base_x: Any
 
 
+def replace_base_policy_group(observation: Any, policy_observation: Any) -> Any:
+    """Restore a terminal policy group in an RSL-RL observation container."""
+    import torch
+
+    if not isinstance(observation, Mapping):
+        raise RuntimeError("base policy observation must be a mapping")
+    reset_policy_observation = observation.get("policy")
+    if not isinstance(reset_policy_observation, torch.Tensor):
+        raise RuntimeError(
+            "base policy observation must contain a tensor 'policy' group"
+        )
+    if not isinstance(policy_observation, torch.Tensor):
+        raise RuntimeError("terminal policy observation must be a tensor")
+    if (
+        policy_observation.shape != reset_policy_observation.shape
+        or policy_observation.dtype != reset_policy_observation.dtype
+        or policy_observation.device != reset_policy_observation.device
+    ):
+        raise RuntimeError("terminal policy observation must match the reset policy group")
+    clone = getattr(observation, "clone", None)
+    if not callable(clone):
+        raise RuntimeError("base policy observation must support clone()")
+    restored = clone()
+    restored["policy"] = policy_observation.detach().clone()
+    return restored
+
+
 def select_post_step_snapshot(
     *, done: Any, terminal: PostStepSnapshot | None, post_reset: PostStepSnapshot
 ) -> PostStepSnapshot:
@@ -1606,7 +1633,7 @@ def main() -> int:
                     contact_diagnostics = adapter.contact_diagnostics()
                     post_reset_snapshot = PostStepSnapshot(
                         mask=torch.zeros_like(done, dtype=torch.bool).reshape(-1, 1),
-                        policy_observation=next_observation,
+                        policy_observation=next_observation["policy"],
                         frame=adapter.frame(decision.action),
                         signals=adapter.reward_signals(),
                         base_x=adapter.base_x(),
@@ -1616,7 +1643,15 @@ def main() -> int:
                         terminal=terminal_snapshot,
                         post_reset=post_reset_snapshot,
                     )
-                    next_base_action = clip_lite3_policy_action(base_policy(post_step_snapshot.policy_observation))
+                    base_policy_observation = next_observation
+                    if environment_done:
+                        # RSL-RL actors consume the grouped TensorDict, while the
+                        # pre-reset callback captures only the terminal policy group.
+                        base_policy_observation = replace_base_policy_group(
+                            next_observation,
+                            post_step_snapshot.policy_observation,
+                        )
+                    next_base_action = clip_lite3_policy_action(base_policy(base_policy_observation))
                 current_x = post_step_snapshot.base_x.detach().clone()
                 base_x_value = float(current_x.mean().item())
                 if track_completion is not None:
