@@ -97,6 +97,37 @@ def test_target_uses_saved_discount_and_bootstrap_mask():
     torch.testing.assert_close(target, torch.tensor([[2.0], [2.0 + 0.9**3 * 10.0]]))
 
 
+def test_configured_q_limits_clamp_bootstrapped_critic_target():
+    updater = SACUpdater(
+        ConstantActor(log_prob=0.0),
+        ConstantTwinCritic(),
+        SACConfig(critic_lr=0.0, target_q_min=-10.0, target_q_max=5.0),
+    )
+    with torch.no_grad():
+        updater.target_critic.q1_value.fill_(1_000.0)
+        updater.target_critic.q2_value.fill_(1_000.0)
+
+    stats = updater.update(make_batch(), update_actor=False)
+
+    assert stats.accepted
+    assert stats.mean_target_q == pytest.approx(5.0)
+    assert stats.mean_td_error == pytest.approx(5.0)
+
+
+def test_configured_huber_loss_bounds_large_td_penalty():
+    updater = SACUpdater(
+        ConstantActor(log_prob=0.0),
+        ConstantTwinCritic(),
+        SACConfig(critic_lr=0.0, critic_huber_delta=1.0),
+    )
+
+    stats = updater.update(make_batch(reward_value=3.0), update_actor=False)
+
+    assert stats.accepted
+    assert stats.critic_loss == pytest.approx(5.0)
+    assert stats.mean_td_error == pytest.approx(3.0)
+
+
 def test_sac_update_changes_version_and_target_parameters():
     actor = ResidualActor(49, 12, 64, torch.tensor([0.2] * 12))
     critic = TwinCritic(49, 12, 64)
@@ -144,10 +175,51 @@ def test_zero_anchor_weight_matches_legacy_actor_loss():
     assert anchored.flat_anchor_loss == 0.0
 
 
+def test_deterministic_actor_term_optimizes_mean_action_q():
+    baseline = SACUpdater(
+        ConstantActor(log_prob=0.5),
+        ConstantTwinCritic(),
+        SACConfig(critic_lr=0.0),
+    )
+    with torch.no_grad():
+        baseline.critic.q1_value.fill_(2.0)
+        baseline.critic.q2_value.fill_(2.0)
+    weighted = copy.deepcopy(baseline)
+    weighted.config = replace(weighted.config, deterministic_actor_weight=0.25)
+    batch = make_batch()
+
+    baseline_stats = baseline.update(batch)
+    weighted_stats = weighted.update(batch)
+
+    assert baseline_stats.accepted
+    assert weighted_stats.accepted
+    assert weighted_stats.actor_loss == pytest.approx(baseline_stats.actor_loss - 0.5)
+
+
 @pytest.mark.parametrize("weight", [-0.1, float("nan"), float("inf")])
 def test_flat_anchor_weight_must_be_finite_and_nonnegative(weight):
     with pytest.raises(ValueError, match="flat_anchor_weight"):
         SACConfig(flat_anchor_weight=weight)
+
+
+@pytest.mark.parametrize("weight", [-0.1, float("nan"), float("inf"), True])
+def test_deterministic_actor_weight_must_be_finite_and_nonnegative(weight):
+    with pytest.raises(ValueError, match="deterministic_actor_weight"):
+        SACConfig(deterministic_actor_weight=weight)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"target_q_min": float("nan")}, "target_q_min"),
+        ({"target_q_max": float("inf")}, "target_q_max"),
+        ({"target_q_min": 5.0, "target_q_max": 5.0}, "less than"),
+        ({"target_q_min": 6.0, "target_q_max": 5.0}, "less than"),
+    ],
+)
+def test_q_target_limits_must_be_finite_and_ordered(kwargs, message):
+    with pytest.raises(ValueError, match=message):
+        SACConfig(**kwargs)
 
 
 def test_nonfinite_flat_anchor_batch_rolls_back_complete_update():
@@ -167,6 +239,47 @@ def test_nonfinite_flat_anchor_batch_rolls_back_complete_update():
     assert not stats.accepted
     assert stats.rejection_reason == "nonfinite_update"
     assert_state_dict_equal(updater.state_dict(), before)
+
+
+@pytest.mark.parametrize(
+    ("config", "reason"),
+    [
+        (SACConfig(max_critic_loss=1.0), "critic_loss_limit"),
+        (SACConfig(max_mean_td_error=0.5), "mean_td_error_limit"),
+        (SACConfig(max_critic_grad_norm=0.5), "critic_grad_norm_limit"),
+    ],
+)
+def test_finite_but_unstable_critic_update_restores_complete_state(config, reason):
+    updater = SACUpdater(ConstantActor(log_prob=0.0), ConstantTwinCritic(), config)
+    before = copy.deepcopy(updater.state_dict())
+
+    stats = updater.update(make_batch(), update_actor=True)
+
+    assert not stats.accepted
+    assert not stats.critic_updated
+    assert not stats.actor_updated
+    assert stats.version == 0
+    assert stats.rejection_reason == reason
+    assert stats.critic_loss > 0.0
+    assert stats.mean_target_q == pytest.approx(1.0)
+    assert stats.mean_td_error == pytest.approx(1.0)
+    if reason == "critic_grad_norm_limit":
+        assert stats.grad_norm > config.max_critic_grad_norm
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("max_critic_loss", 0.0),
+        ("max_mean_td_error", float("nan")),
+        ("max_critic_grad_norm", float("inf")),
+        ("critic_huber_delta", 0.0),
+    ],
+)
+def test_critic_stability_limits_must_be_finite_and_positive(field, value):
+    with pytest.raises(ValueError, match=field):
+        SACConfig(**{field: value})
 
 
 def test_critic_target_uses_bootstrap_mask_and_per_transition_discount():

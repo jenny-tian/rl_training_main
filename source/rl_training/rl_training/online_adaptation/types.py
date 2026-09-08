@@ -49,6 +49,9 @@ class RewardSignals:
     foot_impact: torch.Tensor
     joint_power: torch.Tensor
     nonfoot_contact: torch.Tensor
+    foot_height: torch.Tensor
+    foot_contact: torch.Tensor
+    foot_edge_offset: torch.Tensor | None = None
 
 
 @dataclass(frozen=True)

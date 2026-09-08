@@ -7,6 +7,8 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from numbers import Real
 
+from .track_completion import FULL_TRACK_COMPLETION_MODE, PROGRESS_COST_VERSION
+
 
 MAX_PROTOCOL_INTEGER = 2**63 - 1
 
@@ -75,10 +77,19 @@ def apply_geometry_to_env_cfg(env_cfg: object, geometry: TerrainGeometry) -> Non
         raise ValueError("terrain_generator must define a mutable seed")
 
     sub_terrains = getattr(terrain_generator, "sub_terrains", None)
-    if not isinstance(sub_terrains, Mapping) or set(sub_terrains) != {"flat_online"}:
-        raise ValueError("terrain_generator must contain the sole 'flat_online' subterrain")
+    if not isinstance(sub_terrains, Mapping) or len(sub_terrains) != 1:
+        raise ValueError(
+            "terrain_generator must contain exactly one supported online subterrain; "
+            "the legacy configuration requires the sole 'flat_online' subterrain"
+        )
+    subterrain_name = next(iter(sub_terrains))
+    if subterrain_name not in {"flat_online", "continuous_rough", "grass", "rocky_road"}:
+        raise ValueError(
+            "terrain_generator must contain a sole 'flat_online' or "
+            "'continuous_rough' or 'grass' or 'rocky_road' subterrain"
+        )
 
-    flat_online = sub_terrains["flat_online"]
+    flat_online = sub_terrains[subterrain_name]
     missing_fields = [
         name
         for name in ("seed", "step_height", "rough_amplitude")
@@ -86,20 +97,20 @@ def apply_geometry_to_env_cfg(env_cfg: object, geometry: TerrainGeometry) -> Non
     ]
     if missing_fields:
         raise ValueError(
-            "flat_online subterrain must define mutable fields: "
+        f"{subterrain_name} subterrain must define mutable fields: "
             + ", ".join(missing_fields)
         )
 
     assignments = (
-        ("flat_online.seed", flat_online, "seed", geometry.seed),
+        (f"{subterrain_name}.seed", flat_online, "seed", geometry.seed),
         (
-            "flat_online.step_height",
+            f"{subterrain_name}.step_height",
             flat_online,
             "step_height",
             geometry.step_height,
         ),
         (
-            "flat_online.rough_amplitude",
+            f"{subterrain_name}.rough_amplitude",
             flat_online,
             "rough_amplitude",
             geometry.rough_amplitude,
@@ -184,6 +195,15 @@ class FlatOnlineProtocol:
     max_total_episodes: int = 100
     max_total_steps: int = 200_000
     max_steps_per_episode: int = 2_000
+    completion_mode: str = FULL_TRACK_COMPLETION_MODE
+    step_clearance_margin_m: float = 0.5
+    track_end_buffer_m: float = 0.5
+    progress_cost_version: str = PROGRESS_COST_VERSION
+    novelty_baseline_mode: str = "strict_flat_probe_frozen_v1"
+    progress_novelty_version: str = "forward_stall_v1"
+    progress_min_delta_m: float = 0.05
+    progress_stall_steps: int = 100
+    timeout_policy: str = "fallback_fail_episode_preserve_actor_v1"
 
     def __post_init__(self) -> None:
         self._validate()
@@ -205,6 +225,37 @@ class FlatOnlineProtocol:
         _validate_positive_integer(self.max_total_episodes, "max_total_episodes")
         _validate_positive_integer(self.max_total_steps, "max_total_steps")
         _validate_positive_integer(self.max_steps_per_episode, "max_steps_per_episode")
+        if not isinstance(self.completion_mode, str) or not self.completion_mode.strip():
+            raise ValueError("completion_mode must be a nonempty string")
+        if not isinstance(self.progress_cost_version, str) or not self.progress_cost_version.strip():
+            raise ValueError("progress_cost_version must be a nonempty string")
+        for name in (
+            "novelty_baseline_mode",
+            "progress_novelty_version",
+            "timeout_policy",
+        ):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError(f"{name} must be a nonempty string")
+        progress_delta = _normalize_nonnegative_real(
+            self.progress_min_delta_m, "progress_min_delta_m"
+        )
+        if progress_delta <= 0.0:
+            raise ValueError("progress_min_delta_m must be positive")
+        object.__setattr__(self, "progress_min_delta_m", progress_delta)
+        _validate_positive_integer(self.progress_stall_steps, "progress_stall_steps")
+        object.__setattr__(
+            self,
+            "step_clearance_margin_m",
+            _normalize_nonnegative_real(
+                self.step_clearance_margin_m, "step_clearance_margin_m"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "track_end_buffer_m",
+            _normalize_nonnegative_real(self.track_end_buffer_m, "track_end_buffer_m"),
+        )
         if sum(stage.max_episodes for stage in self.stages) > self.max_total_episodes:
             raise ValueError("stage episode budgets must not exceed max_total_episodes")
 

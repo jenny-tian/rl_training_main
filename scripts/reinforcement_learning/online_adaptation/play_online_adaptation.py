@@ -8,8 +8,9 @@ import queue
 import threading
 import time
 import traceback
-from collections.abc import Callable
-from dataclasses import asdict, dataclass, field, replace
+from collections.abc import Callable, Mapping
+from contextlib import contextmanager
+from dataclasses import asdict, dataclass, field, fields, replace
 from pathlib import Path
 from typing import Any, Literal
 
@@ -18,24 +19,41 @@ from isaaclab.app import AppLauncher
 from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.online_adaptation.actor_update import update_and_publish_actor
 from rl_training.online_adaptation.metrics import AdaptationPerformance
-from rl_training.online_adaptation.novelty import NoveltyGate
+from rl_training.online_adaptation.novelty import NoveltyGate, NoveltyState
 from rl_training.online_adaptation.policy_drift import ActorDriftMonitor, PolicyDrift
 from rl_training.online_adaptation.rsl_rl_compat import split_rsl_rl_endings
 from rl_training.online_adaptation.terrain_protocol import (
+    FlatOnlineProtocol,
     TerrainGeometry,
     apply_geometry_to_env_cfg,
     default_flat_online_protocol,
     development_geometry,
     sealed_geometry,
 )
+from rl_training.online_adaptation.track_completion import TrackCompletion
 from rl_training.online_adaptation.types import UpdateStats
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser
 
 
+def control_is_deterministic(
+    *,
+    stochastic_control: bool,
+    adapting_stochastic_control: bool,
+    learning_enabled: bool,
+    novelty_state: NoveltyState,
+) -> bool:
+    adapting_exploration = (
+        adapting_stochastic_control
+        and learning_enabled
+        and novelty_state is NoveltyState.ADAPTING
+    )
+    return not (stochastic_control or adapting_exploration)
+
+
 @dataclass(frozen=True)
 class AdaptationCommand:
-    kind: Literal["start_episode", "checkpoint", "rollback", "end_episode"]
+    kind: Literal["start_episode", "checkpoint", "rollback", "fall_reset", "end_episode"]
     episode: int
     reason: str = ""
     completion: threading.Event | None = field(default=None, compare=False, repr=False)
@@ -52,8 +70,11 @@ class RuntimeCounters:
     rollbacks: int = 0
     performance_rollbacks: int = 0
     safety_rollbacks: int = 0
+    fall_resets: int = 0
     state_durations: dict[str, int] = field(default_factory=dict)
     actor_updates_by_episode: dict[int, int] = field(default_factory=dict)
+    terrain_invalid_steps: int = 0
+    terrain_steps: int = 0
 
     def record_state(self, state: str) -> None:
         self.state_durations[state] = self.state_durations.get(state, 0) + 1
@@ -86,6 +107,15 @@ class RuntimeCounters:
         else:
             self.safety_rollbacks += 1
 
+    def record_fall_reset(self) -> None:
+        self.fall_resets += 1
+
+    def record_terrain_validity(self, terrain_valid: Any) -> None:
+        valid = bool(terrain_valid.bool().all().item())
+        self.terrain_steps += 1
+        if not valid:
+            self.terrain_invalid_steps += 1
+
 
 @dataclass(frozen=True)
 class RuntimeStepResult:
@@ -93,6 +123,97 @@ class RuntimeStepResult:
     clear_adaptation_replay: bool
     commands: tuple[AdaptationCommand, ...]
     record_fields: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class PostStepSnapshot:
+    mask: Any
+    policy_observation: Any
+    frame: Any
+    signals: Any
+    base_x: Any
+
+
+def select_post_step_snapshot(
+    *, done: Any, terminal: PostStepSnapshot | None, post_reset: PostStepSnapshot
+) -> PostStepSnapshot:
+    """Select pre-reset state for ended rows in the single-environment worker."""
+    import torch
+
+    done_column = torch.as_tensor(done).bool().reshape(-1, 1)
+    if not bool(done_column.any().item()):
+        return post_reset
+    if done_column.shape[0] != 1:
+        raise RuntimeError("online adaptation worker requires exactly one environment")
+    if terminal is None or not torch.equal(
+        torch.as_tensor(terminal.mask).bool().reshape(-1, 1), done_column
+    ):
+        raise RuntimeError("pre-reset terminal capture mask does not match done rows")
+    return terminal
+
+
+def clone_reward_signals(signals: Any) -> Any:
+    """Detach simulator-backed reward tensors before automatic reset mutates them."""
+    values: dict[str, Any] = {}
+    for item in fields(signals):
+        value = getattr(signals, item.name)
+        values[item.name] = (
+            None if value is None else value.detach().clone()
+        )
+    return replace(signals, **values)
+
+
+@dataclass(frozen=True)
+class TrackCompletionDecision:
+    reached: bool
+    passed: bool
+    should_stop: bool
+
+
+@dataclass
+class PostStepRecoveryRamp:
+    """Bound the residual intervention during the first steps after a step."""
+
+    transition_steps: int = 25
+    target_gain: float = 0.25
+    active: bool = False
+    elapsed_steps: int = 0
+    start_gain: float = 0.0
+
+    def __post_init__(self) -> None:
+        if type(self.transition_steps) is not int or self.transition_steps <= 0:
+            raise ValueError("transition_steps must be a positive integer")
+        if not math.isfinite(float(self.target_gain)) or not 0.0 <= self.target_gain <= 1.0:
+            raise ValueError("target_gain must be finite and in [0, 1]")
+
+    def step(self, *, reached: bool, current_gain: float) -> tuple[float, float, bool]:
+        """Return (effective gain, progress, recovery-mask-active)."""
+        if not reached:
+            return float(current_gain), 0.0, False
+        if not self.active:
+            self.active = True
+            self.elapsed_steps = 0
+            self.start_gain = float(current_gain)
+        self.elapsed_steps = min(self.elapsed_steps + 1, self.transition_steps)
+        progress = self.elapsed_steps / self.transition_steps
+        gain = self.start_gain + (self.target_gain - self.start_gain) * progress
+        return float(gain), float(progress), self.elapsed_steps < self.transition_steps
+
+
+def evaluate_track_completion_step(
+    completion: TrackCompletion,
+    *,
+    environment_done: bool,
+    safety_violation: bool,
+) -> TrackCompletionDecision:
+    if type(environment_done) is not bool or type(safety_violation) is not bool:
+        raise TypeError("environment_done and safety_violation must be bools")
+    passed = completion.reached and not environment_done and not safety_violation
+    return TrackCompletionDecision(
+        reached=completion.reached,
+        passed=passed,
+        should_stop=passed,
+    )
 
 
 def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
@@ -107,17 +228,67 @@ def policy_drift_record(drift: PolicyDrift) -> dict[str, float | int]:
     }
 
 
+def step_clearance_reward_active(
+    *,
+    learning_enabled: bool,
+    progress_stalled: bool,
+    base_x: float,
+    step_edge_x: float | None,
+    interaction_distance: float,
+) -> bool:
+    """Cover stalls immediately before or after the geometric step edge."""
+    if not learning_enabled or not progress_stalled or step_edge_x is None:
+        return False
+    return (
+        step_edge_x - interaction_distance
+        <= base_x
+        < step_edge_x + interaction_distance
+    )
+
+
+def actor_replay_transition_eligible(
+    *,
+    progress_stalled: bool,
+    steps_without_progress: int,
+    replay_size: int,
+    minimum_replay_size: int,
+    stalled_replay_stride: int,
+) -> bool:
+    if type(progress_stalled) is not bool:
+        raise TypeError("progress_stalled must be bool")
+    if type(replay_size) is not int or replay_size < 0:
+        raise ValueError("replay_size must be a nonnegative integer")
+    if type(minimum_replay_size) is not int or minimum_replay_size <= 0:
+        raise ValueError("minimum_replay_size must be a positive integer")
+    if type(steps_without_progress) is not int or steps_without_progress < 0:
+        raise ValueError("steps_without_progress must be a nonnegative integer")
+    if type(stalled_replay_stride) is not int or stalled_replay_stride <= 0:
+        raise ValueError("stalled_replay_stride must be a positive integer")
+    return (
+        not progress_stalled
+        or replay_size < minimum_replay_size
+        or steps_without_progress % stalled_replay_stride == 0
+    )
+
+
+def actor_update_options(args: Any) -> dict[str, float | None]:
+    """Return publication-gate options selected by the worker CLI."""
+    return {"max_residual_mse": args.max_policy_residual_mse}
+
+
 def write_actor_update_event(stream: Any, event: dict[str, Any]) -> None:
     stream.write(json.dumps(event, allow_nan=False) + "\n")
     stream.flush()
 
 
 def resolve_worker_geometry(
-    terrain_stage: str, terrain_seed: int, *, evaluation_only: bool
+    terrain_stage: str, terrain_seed: int, *, terrain_split: str
 ) -> TerrainGeometry:
-    if evaluation_only:
+    if terrain_split == "sealed":
         return sealed_geometry(terrain_seed)
-    return development_geometry(terrain_stage, terrain_seed)
+    if terrain_split == "development":
+        return development_geometry(terrain_stage, terrain_seed)
+    raise ValueError(f"unknown terrain split: {terrain_split}")
 
 
 def split_worker_endings(step_result: tuple[Any, ...], *, target_semantics: str = "timeout-aware"):
@@ -172,6 +343,39 @@ def split_worker_endings(step_result: tuple[Any, ...], *, target_semantics: str 
     )
 
 
+def termination_reasons_from_step_result(
+    step_result: tuple[Any, ...],
+) -> tuple[str, ...]:
+    """Extract Isaac Lab termination terms preserved in the step extras."""
+    if len(step_result) == 5:
+        extras = step_result[4]
+    elif len(step_result) == 4:
+        extras = step_result[3]
+    else:
+        return ()
+    if not isinstance(extras, Mapping):
+        return ()
+    log = extras.get("log", extras)
+    if not isinstance(log, Mapping):
+        return ()
+    prefix = "Episode_Termination/"
+    reasons: list[str] = []
+    for key, value in log.items():
+        if not isinstance(key, str) or not key.startswith(prefix):
+            continue
+        try:
+            scalar = value.item() if hasattr(value, "item") else value
+            active = float(scalar) >= 0.5
+        except (TypeError, ValueError):
+            continue
+        if active:
+            reasons.append(key[len(prefix) :])
+    return tuple(reasons)
+
+
+CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
+
+
 def write_episode_summary(path: str | Path, summary: dict[str, Any]) -> None:
     serialized = json.dumps(summary, indent=2, allow_nan=False) + "\n"
     with Path(path).open("x", encoding="utf-8") as stream:
@@ -197,6 +401,18 @@ def prepare_rollback_fallback(
     if pending_completion.is_set():
         return None, False
     return pending_completion, True
+
+
+def update_pause_event(
+    paused_event: Any, *, paused: bool, control_timed_out: bool
+) -> None:
+    """Latch physical safety pauses, but never latch an isolated timeout fallback."""
+    if control_timed_out:
+        paused_event.clear()
+    elif paused:
+        paused_event.set()
+    else:
+        paused_event.clear()
 
 
 def enforce_prepared_rollback_fallback(
@@ -231,6 +447,37 @@ def transition_episode_publication(
         if after_transition is not None:
             after_transition(previous_episode)
         return previous_episode
+
+
+def close_active_episode_for_worker_boundary(
+    *,
+    active_episode: int,
+    shared_lock: Any,
+    actor_gate_event: Any,
+    read_active_episode: Callable[[], int],
+    write_active_episode: Callable[[int], None],
+    enqueue_command: Callable[[AdaptationCommand], None],
+    novelty_gate: Any,
+    adaptation_performance: Any,
+) -> Any | None:
+    """Close worker-local adaptation state before a checkpointed boundary."""
+    if active_episode > 0:
+        transition_episode_publication(
+            shared_lock=shared_lock,
+            actor_gate_event=actor_gate_event,
+            read_active_episode=read_active_episode,
+            write_active_episode=write_active_episode,
+            next_episode=0,
+            after_transition=lambda episode: enqueue_command(
+                AdaptationCommand("end_episode", episode)
+            ),
+        )
+    else:
+        with shared_lock:
+            actor_gate_event.clear()
+            write_active_episode(0)
+    adaptation_performance.start_episode()
+    return novelty_gate.force_cooldown()
 
 
 def enable_actor_gate_if_active(
@@ -296,6 +543,22 @@ def apply_adaptation_command(
         if command.completion is not None:
             command.completion.set()
         return checkpointed_episode, command.reason
+    elif command.kind == "fall_reset":
+        # A fall ends the physical trial, but is not sufficient evidence that
+        # all previously learned residual behavior is bad. Preserve the live
+        # updater and only reset the episode-local adaptation state.
+        if command.episode != checkpointed_episode:
+            if command.completion is not None:
+                command.completion.set()
+            return checkpointed_episode, None
+        publisher.publish(updater.actor, updater.version)
+        drift_monitor.clear_episode(adaptation_episode=command.episode)
+        clear_adaptation_replay()
+        checkpointed_episode = 0
+        actor_gate_event.clear()
+        if command.completion is not None:
+            command.completion.set()
+        return checkpointed_episode, "fall_reset"
     elif command.kind == "end_episode":
         if command.episode != checkpointed_episode:
             return checkpointed_episode, None
@@ -345,6 +608,149 @@ def resolve_track_boundary_x(env_cfg: Any) -> float:
     if hasattr(env_cfg, "track_boundary_x"):
         return float(env_cfg.track_boundary_x)
     return float(getattr(env_cfg, "heldout_start_x", -7.0))
+
+
+def build_track_completion(
+    env_cfg: Any,
+    *,
+    stage_name: str,
+    initial_x: float,
+    protocol: FlatOnlineProtocol,
+) -> TrackCompletion:
+    """Build reset-relative completion geometry from the generated track cfg."""
+    try:
+        generator = env_cfg.scene.terrain.terrain_generator
+        track_length = generator.size[0]
+        sub_terrains = generator.sub_terrains
+        if "flat_online" in sub_terrains:
+            flat_online = sub_terrains["flat_online"]
+            step_length = flat_online.step_length
+        elif any(name in sub_terrains for name in ("continuous_rough", "grass", "rocky_road")):
+            flat_online = next(
+                sub_terrains[name]
+                for name in ("continuous_rough", "grass", "rocky_road")
+                if name in sub_terrains
+            )
+            step_length = (
+                flat_online.transition_length
+                if hasattr(flat_online, "transition_length")
+                else flat_online.step_length
+            )
+        else:
+            raise KeyError("no supported online terrain subterrain")
+        flat_length = flat_online.flat_length
+    except (AttributeError, KeyError, IndexError, TypeError) as error:
+        raise ValueError("env_cfg does not expose FlatOnline track geometry") from error
+    return TrackCompletion.start(
+        stage_name=stage_name,
+        initial_x=initial_x,
+        flat_length=flat_length,
+        step_length=step_length,
+        track_length=track_length,
+        step_clearance_margin_m=protocol.step_clearance_margin_m,
+        track_end_buffer_m=protocol.track_end_buffer_m,
+        completion_mode=protocol.completion_mode,
+        progress_cost_version=protocol.progress_cost_version,
+    )
+
+
+def start_control_timing(
+    *, device: Any, clock: Callable[[], float] = time.perf_counter
+) -> float:
+    """Return a control timestamp after draining asynchronous device work."""
+    if getattr(device, "type", None) == "cuda":
+        import torch
+
+        torch.cuda.synchronize(device)
+    return clock()
+
+
+@contextmanager
+def control_phase(
+    *, control_update_lock: Any, device: Any, clock: Callable[[], float] = time.perf_counter
+):
+    """Keep learner device work out of the measured control path."""
+    with control_update_lock:
+        yield start_control_timing(device=device, clock=clock)
+
+
+def prepare_control_inputs(
+    *, adapter: Any, previous_action: Any, device: Any
+) -> tuple[Any, Any, Any]:
+    """Materialize simulator-backed inputs before starting the control deadline."""
+    import torch
+
+    frame = adapter.frame(previous_action)
+    timeout = torch.zeros(frame.shape[0], 1, dtype=torch.bool, device=device)
+    safety_state = adapter.safety_state(timeout)
+    return frame, timeout, safety_state
+
+
+def validate_terrain_checkpoint_metadata(
+    saved_metadata: Mapping[str, object] | None,
+    current_metadata: Mapping[str, object],
+) -> None:
+    """Reject checkpoints whose terrain feature contract differs from runtime."""
+    current_source = current_metadata.get("terrain_feature_source")
+    if not isinstance(current_source, str):
+        raise ValueError("current terrain metadata has no valid feature source")
+    if saved_metadata is None:
+        if current_source != "geometry":
+            raise ValueError(
+                "experiment checkpoint lacks terrain metadata and cannot be resumed in height_scan mode"
+            )
+        return
+    if not isinstance(saved_metadata, Mapping):
+        raise ValueError("experiment checkpoint terrain metadata is invalid")
+    if dict(saved_metadata) != dict(current_metadata):
+        raise ValueError("experiment checkpoint terrain metadata differs from the current runtime")
+
+
+def pin_forward_command(env: Any, forward_speed: float) -> None:
+    """Keep the deployment command nonzero across resets and slew updates."""
+    import torch
+
+    command_manager = getattr(env, "command_manager", None)
+    if command_manager is None:
+        raise AttributeError("deployment environment has no command_manager")
+    command = command_manager.get_command("base_velocity")
+    if not isinstance(command, torch.Tensor) or command.ndim != 2 or command.shape[1] < 3:
+        raise ValueError("base_velocity command must be a batched tensor with at least 3 values")
+    with torch.no_grad():
+        command[:, 0].fill_(float(forward_speed))
+        command[:, 1:3].zero_()
+        term = command_manager.get_term("base_velocity")
+        for name in ("vel_command_b", "target_vel_command_b"):
+            value = getattr(term, name, None)
+            if isinstance(value, torch.Tensor) and value.ndim == 2 and value.shape[1] >= 3:
+                value[:, 0].fill_(float(forward_speed))
+                value[:, 1:3].zero_()
+        for name in ("is_standing_env", "is_heading_env"):
+            value = getattr(term, name, None)
+            if isinstance(value, torch.Tensor):
+                value.fill_(False)
+
+
+def normalized_forward_progress(
+    delta_x: Any,
+    *,
+    forward_speed: float,
+    step_dt: float,
+    valid_mask: Any | None = None,
+) -> Any:
+    """Convert reset-safe world-X progress to a bounded reward signal."""
+    import torch
+
+    if not isinstance(delta_x, torch.Tensor):
+        raise TypeError("delta_x must be a torch.Tensor")
+    nominal_step = max(abs(float(forward_speed)) * float(step_dt), 0.01)
+    progress = torch.nan_to_num(delta_x / nominal_step, nan=0.0, posinf=1.0, neginf=-1.0)
+    progress = progress.clamp(-1.0, 1.0)
+    if valid_mask is not None:
+        if not isinstance(valid_mask, torch.Tensor) or valid_mask.shape != progress.shape:
+            raise ValueError("valid_mask must match delta_x shape")
+        progress = torch.where(valid_mask.bool(), progress, torch.zeros_like(progress))
+    return progress
 
 
 def warm_up_control_path(
@@ -413,15 +819,14 @@ class AdaptationRuntimeOrchestrator:
         commands: list[AdaptationCommand] = []
         clear_adaptation_replay = False
         rollback_reason = ""
+        fall_reset_reason = ""
         safety_reason = ""
+        control_timeout_preserved_actor = self.active_episode > 0 and control_timed_out
 
-        if self.active_episode > 0:
-            if control_timed_out:
-                safety_reason = "control_timeout"
-            elif paused:
-                safety_reason = safety_reasons[0] if safety_reasons else "safety_pause"
-            elif done:
-                safety_reason = "environment_termination"
+        if done:
+            fall_reset_reason = "fall_reset"
+        elif self.active_episode > 0 and not control_timed_out and paused:
+            safety_reason = safety_reasons[0] if safety_reasons else "safety_pause"
 
         if safety_reason:
             episode_to_rollback = self.active_episode
@@ -433,16 +838,29 @@ class AdaptationRuntimeOrchestrator:
             rollback_reason = safety_reason
             clear_adaptation_replay = True
             commands.append(AdaptationCommand("rollback", episode_to_rollback, safety_reason))
+        elif fall_reset_reason:
+            episode_to_reset = self.active_episode
+            novelty_decision = self.novelty_gate.force_cooldown()
+            self.adaptation_performance.start_episode()
+            self.active_episode = 0
+            self.counters.record_fall_reset()
+            self.last_rollback_reason = fall_reset_reason
+            rollback_reason = fall_reset_reason
+            if episode_to_reset > 0:
+                clear_adaptation_replay = True
+                commands.append(
+                    AdaptationCommand("fall_reset", episode_to_reset, fall_reset_reason)
+                )
         else:
             novelty_decision = self.novelty_gate.observe(
                 velocity_error,
                 tilt_rms,
                 bool(nonfoot_contact),
                 reward,
-                paused=paused,
+                paused=paused or control_timed_out,
             )
 
-        if self.mode == "online" and novelty_decision.entered_adapting:
+        if self.mode == "online" and novelty_decision.entered_adapting and not done:
             self.adaptation_performance.start_episode()
             self.adaptation_episode += 1
             self.active_episode = self.adaptation_episode
@@ -501,6 +919,7 @@ class AdaptationRuntimeOrchestrator:
                 "adaptation_episode": self.active_episode,
                 **rollback_record_fields(rollback_reason, self.last_rollback_reason),
                 "performance_evaluation_enabled": self.adaptation_performance.evaluation_enabled,
+                "control_timeout_preserved_actor": control_timeout_preserved_actor,
             },
         )
 
@@ -514,12 +933,27 @@ class AdaptationRuntimeOrchestrator:
 def main() -> int:
     args = build_play_parser().parse_args()
     default_protocol = default_flat_online_protocol()
-    protocol = replace(
-        default_protocol,
-        stages=tuple(
+    if args.protocol_max_stage_episodes >= args.protocol_max_episodes:
+        try:
+            target_stage = next(
+                stage for stage in default_protocol.stages if stage.name == args.terrain_stage
+            )
+        except StopIteration as error:
+            raise ValueError(f"unknown target stage: {args.terrain_stage}") from error
+        stages = (
+            replace(
+                target_stage,
+                max_episodes=args.protocol_max_stage_episodes,
+            ),
+        )
+    else:
+        stages = tuple(
             replace(stage, max_episodes=args.protocol_max_stage_episodes)
             for stage in default_protocol.stages
-        ),
+        )
+    protocol = replace(
+        default_protocol,
+        stages=stages,
         max_total_episodes=args.protocol_max_episodes,
         max_total_steps=args.protocol_max_total_steps,
     )
@@ -529,9 +963,15 @@ def main() -> int:
         TerrainGeometry(step_height=0.0, rough_amplitude=0.0, seed=args.terrain_seed)
         if args.flat_retention_probe
         else resolve_worker_geometry(
-            args.terrain_stage, args.terrain_seed, evaluation_only=args.evaluation_only
+            args.terrain_stage, args.terrain_seed, terrain_split=args.terrain_split
         )
     )
+    if args.terrain_rough_amplitude is not None:
+        geometry = replace(
+            geometry,
+            step_height=0.0,
+            rough_amplitude=args.terrain_rough_amplitude,
+        )
     learning_enabled = args.mode == "online" and not args.evaluation_only
     if (
         args.mode != "base"
@@ -543,10 +983,17 @@ def main() -> int:
         raise ValueError(
             f"--residual-checkpoint or --experiment-checkpoint-in is required for mode {args.mode}"
         )
-    if args.task != "FlatOnline-Deeprobotics-Lite3-v0":
-        raise ValueError("the curriculum worker must use the FlatOnline Lite3 task")
+    if args.task not in {
+        "FlatOnline-Deeprobotics-Lite3-v0",
+        "ContinuousRough-Deeprobotics-Lite3-v0",
+        "Grass-Deeprobotics-Lite3-v0",
+        "RockyRoad-Deeprobotics-Lite3-v0",
+    }:
+        raise ValueError("the curriculum worker must use a supported Lite3 online terrain task")
     if args.updates_per_second <= 0.0 or args.actor_updates_per_second <= 0.0:
         raise ValueError("critic and actor update frequencies must be positive")
+    if args.residual_rate_limit <= 0.0:
+        raise ValueError("residual rate limit must be positive")
     if args.video:
         args.enable_cameras = True
 
@@ -570,15 +1017,23 @@ def main() -> int:
             load_experiment_checkpoint,
             save_experiment_checkpoint,
         )
-        from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
+        from rl_training.online_adaptation.isaaclab_adapter import (
+            Lite3IsaacLabAdapter,
+        )
+        from rl_training.online_adaptation.terrain_observation import HeightScanConfig
         from rl_training.online_adaptation.deployment_startup import make_lite3_deployment_env
         from rl_training.online_adaptation.metrics import AdaptationPerformance, RollingMetrics
         from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
         from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
+        from rl_training.online_adaptation.progress_novelty import ForwardProgressMonitor
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
-        from rl_training.online_adaptation.replay_buffer import ReplayBuffer
+        from rl_training.online_adaptation.replay_buffer import (
+            ReplayBuffer,
+            adapt_replay_state_frame_dim,
+        )
         from rl_training.online_adaptation.rsl_rl_compat import (
             freeze_rsl_rl_models,
+            load_frozen_rsl_rl_checkpoint,
             prepare_rsl_rl_agent_cfg,
             split_rsl_rl_endings,
         )
@@ -589,7 +1044,7 @@ def main() -> int:
         )
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
-        from rl_training.online_adaptation.provenance import sha256_file
+        from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 
         failure_writer = write_failure_record
 
@@ -609,6 +1064,8 @@ def main() -> int:
         env_cfg.commands.base_velocity.ranges.lin_vel_x = (args.forward_speed, args.forward_speed)
         env_cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
+        sim_dt = float(getattr(getattr(env_cfg, "sim", None), "dt", 0.02))
+        control_step_dt = sim_dt * float(getattr(env_cfg, "decimation", 1))
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
         agent_cfg.seed = args.seed
         agent_cfg = prepare_rsl_rl_agent_cfg(agent_cfg)
@@ -635,18 +1092,46 @@ def main() -> int:
         novelty_gate = None
         stable_manager = None
         checkpoint_saved = False
+        physical_handoff_prepared = False
         try:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
-            runner.load(args.base_checkpoint)
+            checkpoint_load = load_frozen_rsl_rl_checkpoint(runner, args.base_checkpoint)
             base_policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
             freeze_rsl_rl_models(runner)
 
             device = as_torch_device(wrapped_env.unwrapped.device)
             normal_limits = torch.tensor([0.24, 0.20, 0.20] * 4, device=device)
             actor_limits = torch.zeros_like(normal_limits) if args.mode == "base" else normal_limits
-            actor = ResidualActor(49, 12, 64, actor_limits).to(device)
-            critic = TwinCritic(49, 12, 64).to(device)
+            adapter_step_height = (
+                0.0
+                if args.flat_retention_probe and args.residual_frame_dim == 59
+                else (
+                    None
+                    if args.flat_retention_probe or args.terrain_feature_source == "proprio"
+                    else geometry.step_height
+                )
+            )
+            adapter = Lite3IsaacLabAdapter(
+                wrapped_env.unwrapped,
+                track_boundary_x=resolve_track_boundary_x(env_cfg),
+                step_height=adapter_step_height,
+                terrain_feature_source=args.terrain_feature_source,
+                height_scan_config=HeightScanConfig(
+                    rows=23,
+                    cols=15,
+                    min_valid_fraction=args.terrain_min_valid_fraction,
+                ),
+            )
+            frame_dim = adapter.frame_dim
+            if args.residual_frame_dim is not None and frame_dim != args.residual_frame_dim:
+                raise ValueError(
+                    "residual frame dimension differs from the requested runtime contract: "
+                    f"actual={frame_dim}, requested={args.residual_frame_dim}"
+                )
+            actor = ResidualActor(frame_dim, 12, 64, actor_limits).to(device)
+            critic = TwinCritic(frame_dim, 12, 64).to(device)
             runtime_config = AgentConfig(
+                frame_dim=frame_dim,
                 replay_capacity=args.replay_capacity,
                 min_replay_size=args.min_replay_size,
                 updates_per_second=args.updates_per_second,
@@ -657,20 +1142,33 @@ def main() -> int:
                 flat_critic_warmup_updates=args.flat_critic_warmup_updates,
                 critic_replay_mode=args.critic_replay_mode,
             )
-            safety_limits = SafetyLimits(residual_limits=normal_limits)
+            safety_limits = SafetyLimits(
+                residual_limits=normal_limits,
+                residual_rate_limit=args.residual_rate_limit,
+            )
             online_agent = OnlineAdaptationAgent(
                 num_envs=1,
                 actor=actor,
                 critic=critic,
                 safety_limits=safety_limits,
                 config=runtime_config,
-                sac_config=SACConfig(flat_anchor_weight=args.flat_anchor_weight),
+                sac_config=SACConfig(
+                    flat_anchor_weight=args.flat_anchor_weight,
+                    max_critic_loss=args.max_critic_loss,
+                    max_mean_td_error=args.max_mean_td_error,
+                    max_critic_grad_norm=args.max_critic_grad_norm,
+                    target_q_min=args.target_q_min,
+                    target_q_max=args.target_q_max,
+                    critic_huber_delta=args.critic_huber_delta,
+                    deterministic_actor_weight=args.deterministic_actor_weight,
+                ),
                 device=device,
             )
             if args.flat_replay is not None:
                 flat_state = torch.load(
                     args.flat_replay, map_location="cpu", weights_only=False
                 )
+                flat_state = adapt_replay_state_frame_dim(flat_state, frame_dim)
                 flat_replay = ReplayBuffer(
                     capacity=int(flat_state["capacity"]),
                     history_length=int(flat_state["history_length"]),
@@ -688,6 +1186,11 @@ def main() -> int:
                     args.experiment_checkpoint_in,
                     expected_protocol_sha256=protocol.sha256(),
                     map_location=device,
+                    restore_rng=learning_enabled,
+                )
+                validate_terrain_checkpoint_metadata(
+                    restored_experiment.get("terrain_metadata"),
+                    adapter.terrain_metadata(),
                 )
                 online_agent.load_state_dict(restored_experiment["agent"])
             if (
@@ -698,11 +1201,18 @@ def main() -> int:
                 online_agent.updater.load(args.residual_checkpoint, map_location=device)
                 online_agent.publisher.publish(online_agent.updater.actor, online_agent.updater.version)
 
-            adapter = Lite3IsaacLabAdapter(
-                wrapped_env.unwrapped,
-                track_boundary_x=resolve_track_boundary_x(env_cfg),
-            )
             reward_weights = RewardWeights()
+            reward_weights = replace(
+                reward_weights,
+                post_step_stability_weight=args.post_step_stability_weight,
+                post_step_progress_weight=args.post_step_progress_weight,
+                stall_penalty_weight=args.stall_penalty_weight,
+                completion_bonus=args.completion_bonus,
+                pre_step_clearance_weight=args.pre_step_clearance_weight,
+                pre_step_clearance_target=args.pre_step_clearance_target,
+                pre_step_foot_forward_weight=args.pre_step_foot_forward_weight,
+                pre_step_foot_forward_target=args.pre_step_foot_forward_target,
+            )
             metrics = RollingMetrics(window=250)
             novelty_gate = NoveltyGate(
                 NoveltyConfig(
@@ -715,6 +1225,10 @@ def main() -> int:
                     cooldown_steps=args.adaptation_cooldown_steps,
                 )
             )
+            progress_monitor = ForwardProgressMonitor(
+                min_delta_m=protocol.progress_min_delta_m,
+                stall_steps=protocol.progress_stall_steps,
+            )
             adaptation_performance = AdaptationPerformance(
                 window=args.rollback_window,
                 improvement_ratio=args.stable_improvement_ratio,
@@ -726,6 +1240,13 @@ def main() -> int:
             if restored_experiment is not None:
                 novelty_gate.load_state_dict(restored_experiment["novelty_gate"])
                 stable_manager.load_state_dict(restored_experiment["stable_manager"])
+            elif args.novelty_baseline_in is not None:
+                if sha256_file(args.novelty_baseline_in) != args.novelty_baseline_sha256:
+                    raise ValueError("novelty baseline checksum mismatch")
+                baseline_payload = json.loads(
+                    Path(args.novelty_baseline_in).read_text(encoding="utf-8")
+                )
+                novelty_gate.load_baseline(baseline_payload)
             if learning_enabled and online_agent.flat_replay is not None:
                 online_agent.prewarm_critics_from_flat()
             if restored_experiment is None:
@@ -737,6 +1258,7 @@ def main() -> int:
 
             shared_lock = threading.Lock()
             update_lock = threading.Lock()
+            control_update_lock = threading.Lock()
             paused_event = threading.Event()
             actor_gate_event = threading.Event()
             commands: queue.SimpleQueue[AdaptationCommand] = queue.SimpleQueue()
@@ -771,7 +1293,7 @@ def main() -> int:
                                 command = commands.get_nowait()
                             except queue.Empty:
                                 break
-                            with update_lock:
+                            with control_update_lock, update_lock:
                                 def enable_actor_if_episode_active(episode: int) -> bool:
                                     return enable_actor_gate_if_active(
                                         shared_lock=shared_lock,
@@ -840,7 +1362,7 @@ def main() -> int:
                                     online_agent.publisher.publish(candidate_actor, candidate_version)
                                     return True
 
-                            with update_lock:
+                            with control_update_lock, update_lock:
                                 outcome = update_and_publish_actor(
                                     updater=online_agent.updater,
                                     publisher=online_agent.publisher,
@@ -848,6 +1370,7 @@ def main() -> int:
                                     critic_batch=critic_batch,
                                     actor_batch=actor_batch,
                                     flat_anchor_batch=flat_anchor_batch,
+                                    **actor_update_options(args),
                                     adaptation_episode=episode_snapshot,
                                     update_step=step_snapshot,
                                     episode_is_active=episode_is_still_active,
@@ -864,7 +1387,7 @@ def main() -> int:
                         elif now >= next_critic and online_agent.should_update(
                             len(online_agent.replay), args.min_replay_size, paused_event.is_set()
                         ):
-                            with update_lock:
+                            with control_update_lock, update_lock:
                                 stats = online_agent.update(update_actor=False)
                             next_critic = now + critic_period
 
@@ -901,17 +1424,31 @@ def main() -> int:
                 "terrain_seed": args.terrain_seed,
                 "protocol_sha256": protocol.sha256(),
                 "geometry": asdict(geometry),
+                "terrain_metadata": adapter.terrain_metadata(),
+                "base_checkpoint_load": checkpoint_load,
+                "contact_termination": CONTACT_TERMINATION_PROTOCOL,
             }
             (run_dir / "config.json").write_text(
                 json.dumps(config, indent=2, default=str) + "\n", encoding="utf-8"
             )
 
             observation, _ = wrapped_env.reset()
+            adapter.reset_contact_diagnostics()
             generation = wrapped_env.consume_startup_generation()
             if generation is None:
                 raise RuntimeError("deployment startup reset did not produce a generation")
+            initial_x = float(adapter.base_x().mean().item())
+            track_completion = None
+            if args.require_track_completion and not args.flat_retention_probe:
+                track_completion = build_track_completion(
+                    env_cfg,
+                    stage_name=args.terrain_stage,
+                    initial_x=initial_x,
+                    protocol=protocol,
+                )
             online_agent.reset_for_deployment_handoff()
             previous_action = torch.zeros(1, 12, device=device)
+            pin_forward_command(wrapped_env.unwrapped, args.forward_speed)
             warm_up_control_path(
                 base_policy=base_policy,
                 online_agent=online_agent,
@@ -924,17 +1461,59 @@ def main() -> int:
                 device=device,
             )
             online_agent.set_residual_gain(args.residual_gain)
+            post_step_recovery = PostStepRecoveryRamp(
+                transition_steps=args.post_step_recovery_steps,
+                target_gain=args.post_step_residual_gain,
+            )
             previous_residual = torch.zeros_like(previous_action)
+            previous_x = adapter.base_x().detach().clone()
+            if not hasattr(wrapped_env.unwrapped, "add_pre_reset_callback"):
+                raise RuntimeError(
+                    "online adaptation environment must support pre-reset terminal capture"
+                )
+            terminal_snapshot: PostStepSnapshot | None = None
+            current_decision = None
+
+            def capture_terminal_state(env_ids: Any) -> None:
+                nonlocal terminal_snapshot
+                # The deployment wrapper performs an explicit standing reset
+                # after the manager environment's automatic reset.  Preserve
+                # the first callback, which is the actual terminal state.
+                if terminal_snapshot is not None:
+                    return
+                if current_decision is None:
+                    raise RuntimeError(
+                        "pre-reset capture occurred without an active decision"
+                    )
+                ids = torch.as_tensor(env_ids, dtype=torch.long, device=device)
+                captured_mask = torch.zeros(1, 1, dtype=torch.bool, device=device)
+                captured_mask[ids] = True
+                terminal_observation = wrapped_env.unwrapped.observation_manager.compute()
+                policy_observation = terminal_observation.get("policy")
+                if not isinstance(policy_observation, torch.Tensor):
+                    raise RuntimeError("terminal policy observation must be a tensor")
+                terminal_snapshot = PostStepSnapshot(
+                    mask=captured_mask,
+                    policy_observation=policy_observation.detach().clone(),
+                    frame=adapter.frame(current_decision.action).detach().clone(),
+                    signals=clone_reward_signals(adapter.reward_signals()),
+                    base_x=adapter.base_x().detach().clone(),
+                )
+
+            wrapped_env.unwrapped.add_pre_reset_callback(capture_terminal_state)
             safety_fallbacks = 0
             safety_violation = False
             done_count = 0
             fell = False
             heldout_steps = 0
             executed_steps = 0
+            completion_stop = False
+            post_step_checkpointed = False
             novelty_decision = novelty_gate.observe(0.0, 0.0, False, 0.0, paused=True)
 
             for step in range(1, args.max_steps + 1):
                 executed_steps = step
+                terminal_snapshot = None
                 with shared_lock:
                     current_step = step
                     active_episode, final_step_cutoff = cutoff_before_final_step(
@@ -947,62 +1526,176 @@ def main() -> int:
                     pending_rollback_completion
                 )
                 loop_started = time.perf_counter()
-                control_started = time.perf_counter()
-                frame = adapter.frame(previous_action)
-                with torch.inference_mode():
-                    base_action = clip_lite3_policy_action(base_policy(observation))
-                timeout = torch.zeros(1, 1, dtype=torch.bool, device=device)
-                safety_state = adapter.safety_state(timeout)
-                decision = online_agent.begin_step(
-                    frame,
-                    base_action,
-                    safety_state,
-                    deterministic=not args.stochastic_control,
+                pin_forward_command(wrapped_env.unwrapped, args.forward_speed)
+                frame, timeout, safety_state = prepare_control_inputs(
+                    adapter=adapter,
+                    previous_action=previous_action,
+                    device=device,
                 )
-                decision, rollback_fallback_used = enforce_prepared_rollback_fallback(
-                    online_agent=online_agent,
-                    decision=decision,
-                    safety_state=safety_state,
-                    fallback_required=rollback_fallback_required,
-                )
-                if device.type == "cuda":
-                    torch.cuda.synchronize(device)
-                control_ms = (time.perf_counter() - control_started) * 1_000.0
-                control_timed_out = False
-                if control_ms > args.control_timeout_ms:
-                    control_timed_out = True
-                    timed_out_state = replace(safety_state, control_timed_out=torch.ones_like(timeout))
-                    decision = enforce_control_timeout_fallback(
-                        online_agent=online_agent,
-                        timed_out_state=timed_out_state,
+                terrain_valid = adapter.terrain_valid
+                counters.record_terrain_validity(terrain_valid)
+                with control_phase(
+                    control_update_lock=control_update_lock,
+                    device=device,
+                ) as control_started:
+                    with torch.inference_mode():
+                        base_action = clip_lite3_policy_action(base_policy(observation))
+                    deterministic_control = control_is_deterministic(
+                        stochastic_control=args.stochastic_control,
+                        adapting_stochastic_control=args.adapting_stochastic_control,
+                        learning_enabled=learning_enabled,
+                        novelty_state=novelty_decision.state,
                     )
+                    decision = online_agent.begin_step(
+                        frame,
+                        base_action,
+                        safety_state,
+                        deterministic=deterministic_control,
+                        terrain_valid=terrain_valid,
+                    )
+                    decision, rollback_fallback_used = enforce_prepared_rollback_fallback(
+                        online_agent=online_agent,
+                        decision=decision,
+                        safety_state=safety_state,
+                        fallback_required=rollback_fallback_required,
+                    )
+                    current_decision = decision
                     if device.type == "cuda":
                         torch.cuda.synchronize(device)
                     control_ms = (time.perf_counter() - control_started) * 1_000.0
+                    control_timed_out = False
+                    if control_ms > args.control_timeout_ms:
+                        control_timed_out = True
+                        timed_out_state = replace(safety_state, control_timed_out=torch.ones_like(timeout))
+                        decision = enforce_control_timeout_fallback(
+                            online_agent=online_agent,
+                            timed_out_state=timed_out_state,
+                        )
+                        current_decision = decision
+                        if device.type == "cuda":
+                            torch.cuda.synchronize(device)
+                        control_ms = (time.perf_counter() - control_started) * 1_000.0
                 if rollback_fallback_used or control_timed_out:
                     safety_fallbacks += 1
                 if update_errors:
                     raise RuntimeError("background SAC updater failed") from update_errors[0]
 
                 paused_now = bool(decision.paused.any().item())
-                if online_agent.all_environments_paused(decision.paused):
-                    paused_event.set()
-                else:
-                    paused_event.clear()
+                update_pause_event(
+                    paused_event,
+                    paused=online_agent.all_environments_paused(decision.paused),
+                    control_timed_out=control_timed_out,
+                )
                 if safety_violation_occurred(decision.paused, control_timed_out):
                     safety_violation = True
 
                 with torch.inference_mode():
+                    # Capture the last pre-action state as well as the state seen
+                    # by the environment's pre-reset callback on termination.
+                    adapter.observe_nonfoot_contact()
                     step_result = wrapped_env.step(decision.action)
                     next_observation = step_result[0]
                     terminated, truncated, bootstrap_mask = split_worker_endings(
                         step_result, target_semantics=args.target_semantics
                     )
                     done = terminated | truncated
-                    next_base_action = clip_lite3_policy_action(base_policy(next_observation))
-                next_frame = adapter.frame(decision.action)
-                signals = adapter.reward_signals()
-                reward = compute_online_reward(signals, decision.residual, previous_residual, reward_weights)
+                    environment_done = bool(done.any().item())
+                    termination_reasons = termination_reasons_from_step_result(step_result)
+                    if not done.any().item():
+                        adapter.observe_nonfoot_contact()
+                    contact_diagnostics = adapter.contact_diagnostics()
+                    post_reset_snapshot = PostStepSnapshot(
+                        mask=torch.zeros_like(done, dtype=torch.bool).reshape(-1, 1),
+                        policy_observation=next_observation,
+                        frame=adapter.frame(decision.action),
+                        signals=adapter.reward_signals(),
+                        base_x=adapter.base_x(),
+                    )
+                    post_step_snapshot = select_post_step_snapshot(
+                        done=done,
+                        terminal=terminal_snapshot,
+                        post_reset=post_reset_snapshot,
+                    )
+                    next_base_action = clip_lite3_policy_action(base_policy(post_step_snapshot.policy_observation))
+                current_x = post_step_snapshot.base_x.detach().clone()
+                base_x_value = float(current_x.mean().item())
+                if track_completion is not None:
+                    track_completion.observe(base_x_value)
+                post_step_reached = bool(
+                    track_completion is not None and track_completion.past_step_edge
+                )
+                completion_boundary_reached = bool(
+                    track_completion is not None
+                    and track_completion.reached
+                    and not environment_done
+                    and not safety_violation
+                )
+                if learning_enabled and post_step_reached:
+                    (
+                        post_step_recovery_gain,
+                        post_step_recovery_progress,
+                        post_step_recovery_active,
+                    ) = post_step_recovery.step(
+                        reached=True,
+                        current_gain=online_agent.residual_gain,
+                    )
+                else:
+                    post_step_recovery_gain = online_agent.residual_gain
+                    post_step_recovery_progress = 0.0
+                    post_step_recovery_active = False
+                next_frame = post_step_snapshot.frame
+                signals = post_step_snapshot.signals
+                progress_valid = ~done.bool()
+                if paused_now or control_timed_out:
+                    progress_valid = torch.zeros_like(progress_valid)
+                progress_decision = progress_monitor.observe(
+                    base_x=base_x_value,
+                    # The worker pins the command to --forward-speed.  Use that
+                    # contract for progress gating so a transient command-manager
+                    # reset cannot silently disable online adaptation.
+                    commanded_forward=bool(args.forward_speed > 0.05),
+                    paused=paused_now,
+                )
+                step_edge_x = None if track_completion is None else track_completion.step_edge_x
+                pre_step_clearance_active = step_clearance_reward_active(
+                    learning_enabled=learning_enabled,
+                    progress_stalled=progress_decision.stalled,
+                    base_x=base_x_value,
+                    step_edge_x=step_edge_x,
+                    interaction_distance=args.pre_step_approach_distance,
+                )
+                forward_progress = normalized_forward_progress(
+                    current_x - previous_x,
+                    forward_speed=args.forward_speed,
+                    step_dt=control_step_dt,
+                    valid_mask=progress_valid,
+                )
+                reward = compute_online_reward(
+                    signals,
+                    decision.residual,
+                    previous_residual,
+                    reward_weights,
+                    forward_progress=forward_progress,
+                    post_step_mask=torch.full_like(
+                        forward_progress, float(post_step_reached)
+                    ),
+                    pre_step_clearance_mask=torch.full_like(
+                        forward_progress, float(pre_step_clearance_active)
+                    ),
+                    progress_stalled_mask=torch.full_like(
+                        forward_progress, float(progress_decision.stalled)
+                    ),
+                    completion_mask=torch.full_like(
+                        forward_progress,
+                        float(
+                            track_completion is not None
+                            and track_completion.reached
+                            and not safety_violation
+                            and not done.any().item()
+                        ),
+                    ),
+                )
+                previous_x = current_x
                 velocity_error = float(
                     torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
                 )
@@ -1010,14 +1703,17 @@ def main() -> int:
                 nonfoot_contact = int(signals.nonfoot_contact.any().item())
                 rollback_reason = ""
                 safety_reason = ""
-                if active_episode > 0:
-                    if control_timed_out:
-                        safety_reason = "control_timeout"
-                    elif paused_now:
-                        safety_reason = decision.reasons[0] if decision.reasons else "safety_pause"
-                    elif done.any().item():
-                        safety_reason = "environment_termination"
+                fall_reset_reason = ""
+                if environment_done:
+                    # A fall terminates this physical trial, but does not prove
+                    # that the entire learned actor is unsafe.  Handle it before
+                    # novelty observation because the wrapper has already reset
+                    # the simulator state returned by step().
+                    fall_reset_reason = "fall_reset"
+                elif active_episode > 0 and not control_timed_out and paused_now:
+                    safety_reason = decision.reasons[0] if decision.reasons else "safety_pause"
                 if safety_reason:
+                    online_agent.set_residual_gain(args.residual_gain)
                     rollback_completion = threading.Event()
                     pending_rollback_completion = rollback_completion
                     rollback_command = AdaptationCommand(
@@ -1042,20 +1738,61 @@ def main() -> int:
                         counters.record_rollback(safety_reason)
                         last_rollback_reason = safety_reason
                     rollback_reason = safety_reason
+                elif fall_reset_reason:
+                    online_agent.set_residual_gain(args.residual_gain)
+                    if active_episode > 0:
+                        fall_reset_completion = threading.Event()
+                        pending_rollback_completion = fall_reset_completion
+                        fall_reset_command = AdaptationCommand(
+                            "fall_reset",
+                            active_episode,
+                            fall_reset_reason,
+                            fall_reset_completion,
+                        )
+                        transition_episode_publication(
+                            shared_lock=shared_lock,
+                            actor_gate_event=actor_gate_event,
+                            read_active_episode=read_active_episode,
+                            write_active_episode=write_active_episode,
+                            next_episode=0,
+                            after_transition=lambda episode: commands.put(
+                                replace(fall_reset_command, episode=episode)
+                            ),
+                        )
+                    else:
+                        with shared_lock:
+                            actor_gate_event.clear()
+                            active_episode = 0
+                    novelty_decision = novelty_gate.force_cooldown()
+                    adaptation_performance.start_episode()
+                    with shared_lock:
+                        counters.record_fall_reset()
+                        last_rollback_reason = fall_reset_reason
+                    rollback_reason = fall_reset_reason
+                elif completion_boundary_reached or final_step_cutoff:
+                    with shared_lock:
+                        actor_gate_event.clear()
+                    novelty_decision = novelty_gate.force_cooldown()
+                    adaptation_performance.start_episode()
                 else:
                     novelty_decision = novelty_gate.observe(
                         velocity_error,
                         tilt_rms,
                         bool(nonfoot_contact),
                         float(reward.mean()),
-                        paused=paused_now,
+                        paused=paused_now or control_timed_out,
+                        progress_stalled=progress_decision.stalled,
+                        update_baseline=not args.require_track_completion,
                     )
 
                 if (
                     learning_enabled
                     and novelty_decision.entered_adapting
+                    and not environment_done
+                    and not completion_boundary_reached
                     and not final_step_cutoff
                 ):
+                    online_agent.set_residual_gain(args.adapting_residual_gain)
                     adaptation_episode += 1
                     transition_episode_publication(
                         shared_lock=shared_lock,
@@ -1071,13 +1808,44 @@ def main() -> int:
                     with shared_lock:
                         counters.record_novelty_entry()
 
+                if (
+                    learning_enabled
+                    and post_step_reached
+                    and not post_step_checkpointed
+                    and active_episode > 0
+                    and not final_step_cutoff
+                ):
+                    # Queue this before any same-step performance rollback.  The
+                    # updater consumes commands FIFO, preserving the first
+                    # policy that actually crossed the step edge.
+                    commands.put(
+                        AdaptationCommand(
+                            "checkpoint", active_episode, "post_step_reached"
+                        )
+                    )
+                    post_step_checkpointed = True
+
                 performance_monitoring_enabled = (
                     learning_enabled
                     and novelty_decision.actor_update_enabled
                     and active_episode > 0
                     and not paused_now
                 )
-                adaptation_enabled = performance_monitoring_enabled and not final_step_cutoff
+                # Keep stationary edge samples in critic replay so their
+                # negative return is learned, but do not let thousands of
+                # near-identical stalled actions dominate the actor buffer.
+                actor_replay_eligible = actor_replay_transition_eligible(
+                    progress_stalled=progress_decision.stalled,
+                    steps_without_progress=progress_decision.steps_without_progress,
+                    replay_size=len(online_agent.adaptation_replay),
+                    minimum_replay_size=args.adaptation_min_replay_size,
+                    stalled_replay_stride=args.stalled_actor_replay_stride,
+                )
+                adaptation_enabled = (
+                    performance_monitoring_enabled
+                    and actor_replay_eligible
+                    and not final_step_cutoff
+                )
                 curriculum_stage_id = torch.full_like(
                     terminated,
                     next(
@@ -1122,6 +1890,7 @@ def main() -> int:
                         if performance_decision.improved:
                             commands.put(AdaptationCommand("checkpoint", active_episode))
                         elif performance_decision.should_rollback:
+                            online_agent.set_residual_gain(args.residual_gain)
                             rollback_reason = performance_decision.rollback_reason or "performance_degradation"
                             rollback_completion = threading.Event()
                             pending_rollback_completion = rollback_completion
@@ -1147,6 +1916,7 @@ def main() -> int:
                                 last_rollback_reason = rollback_reason
                             adaptation_performance.start_episode()
                 elif novelty_decision.left_adapting and active_episode > 0:
+                    online_agent.set_residual_gain(args.residual_gain)
                     transition_episode_publication(
                         shared_lock=shared_lock,
                         actor_gate_event=actor_gate_event,
@@ -1159,22 +1929,35 @@ def main() -> int:
                     )
                     adaptation_performance.start_episode()
 
-                if final_step_cutoff and active_episode > 0:
-                    transition_episode_publication(
+                if final_step_cutoff:
+                    online_agent.set_residual_gain(args.residual_gain)
+                    boundary_decision = close_active_episode_for_worker_boundary(
+                        active_episode=active_episode,
                         shared_lock=shared_lock,
                         actor_gate_event=actor_gate_event,
                         read_active_episode=read_active_episode,
                         write_active_episode=write_active_episode,
-                        next_episode=0,
-                        after_transition=lambda episode: commands.put(
-                            AdaptationCommand("end_episode", episode)
-                        ),
+                        enqueue_command=commands.put,
+                        novelty_gate=novelty_gate,
+                        adaptation_performance=adaptation_performance,
                     )
-                    adaptation_performance.start_episode()
+                    if boundary_decision is not None:
+                        novelty_decision = boundary_decision
+
+                # Apply the ramp after novelty/performance transitions so they
+                # cannot restore the larger adapting gain during recovery.
+                if (
+                    learning_enabled
+                    and post_step_reached
+                    and not safety_reason
+                    and not rollback_reason
+                    and not final_step_cutoff
+                ):
+                    online_agent.set_residual_gain(post_step_recovery_gain)
 
                 with shared_lock:
                     counters.record_state(novelty_decision.state.value)
-                in_heldout = bool(adapter.heldout_mask().item())
+                in_heldout = base_x_value >= adapter.track_boundary_x
                 if in_heldout:
                     heldout_steps += 1
                 metrics.update(
@@ -1195,22 +1978,40 @@ def main() -> int:
                     "step": step,
                     "mode": args.mode,
                     "in_heldout": in_heldout,
-                    "base_x": float(adapter.base_x().mean()),
+                    "base_x": base_x_value,
                     "velocity_error": velocity_error,
+                    "commanded_forward": bool(args.forward_speed > 0.05),
+                    "command_x": float(signals.command_lin_vel_xy[:, 0].mean()),
+                    "forward_progress": float(forward_progress.mean()),
                     "tilt_rms": tilt_rms,
                     "nonfoot_contact": nonfoot_contact,
+                    "termination_reasons": list(termination_reasons),
+                    **contact_diagnostics,
                     "reward": float(reward.mean()),
                     "actor_version": actor_version_for_record(decision),
                     "updates": counters_snapshot["actor_updates"],
                     "critic_updates": counters_snapshot["critic_updates"],
                     "actor_updates": counters_snapshot["actor_updates"],
                     "adaptation_state": novelty_decision.state.value,
+                    "stochastic_control_active": not deterministic_control,
                     "novelty_score": novelty_decision.novelty_score,
                     "velocity_excess": novelty_decision.velocity_excess,
                     "tilt_excess": novelty_decision.tilt_excess,
                     "reward_drop": novelty_decision.reward_drop,
+                    "progress_excess": novelty_decision.progress_excess,
+                    "progress_stalled": progress_decision.stalled,
+                    "max_progress_x": progress_decision.max_x,
+                    "post_step_reached": post_step_reached,
+                    "post_step_recovery_progress": post_step_recovery_progress,
+                    "post_step_recovery_active": post_step_recovery_active,
+                    "post_step_checkpointed": post_step_checkpointed,
+                    "effective_residual_gain": online_agent.residual_gain,
+                    "pre_step_clearance_active": pre_step_clearance_active,
+                    "max_foot_height": float(signals.foot_height.max()),
+                    "steps_without_progress": progress_decision.steps_without_progress,
                     "actor_update_enabled": actor_gate_event.is_set(),
                     "adaptation_replay_size": len(online_agent.adaptation_replay),
+                    "actor_replay_eligible": actor_replay_eligible,
                     "adaptation_episode": episode_snapshot,
                     "performance_evaluation_enabled": adaptation_performance.evaluation_enabled,
                     "actor_updates_in_episode": counters_snapshot["actor_updates_by_episode"].get(
@@ -1225,6 +2026,9 @@ def main() -> int:
                         (decision.action - base_action).abs().max()
                     ),
                     "control_compute_ms": control_ms,
+                    "control_timeout_preserved_actor": (
+                        active_episode > 0 and control_timed_out
+                    ),
                     "loop_ms": loop_ms,
                     "replay_size": len(online_agent.replay),
                     "last_update": update_snapshot,
@@ -1233,8 +2037,17 @@ def main() -> int:
                 metrics_stream.flush()
                 writer.add_scalar("run/velocity_error", velocity_error, step)
                 writer.add_scalar("run/tilt_rms", tilt_rms, step)
+                writer.add_scalar("run/forward_progress", float(forward_progress.mean()), step)
                 writer.add_scalar("run/control_compute_ms", control_ms, step)
                 writer.add_scalar("run/replay_size", len(online_agent.replay), step)
+                writer.add_scalar(
+                    "run/terrain_valid",
+                    float(terrain_valid.bool().all().item()),
+                    step,
+                )
+                writer.add_scalar(
+                    "run/terrain_invalid_steps", counters.terrain_invalid_steps, step
+                )
                 writer.add_scalar("run/critic_updates", counters_snapshot["critic_updates"], step)
                 writer.add_scalar("run/actor_updates", counters_snapshot["actor_updates"], step)
 
@@ -1244,6 +2057,30 @@ def main() -> int:
                 if done.any().item():
                     done_count += int(done.sum().item())
                     fell = True
+                    break
+                completion_decision = (
+                    None
+                    if track_completion is None
+                    else evaluate_track_completion_step(
+                        track_completion,
+                        environment_done=False,
+                        safety_violation=safety_violation,
+                    )
+                )
+                if completion_decision is not None and completion_decision.should_stop:
+                    boundary_decision = close_active_episode_for_worker_boundary(
+                        active_episode=active_episode,
+                        shared_lock=shared_lock,
+                        actor_gate_event=actor_gate_event,
+                        read_active_episode=read_active_episode,
+                        write_active_episode=write_active_episode,
+                        enqueue_command=commands.put,
+                        novelty_gate=novelty_gate,
+                        adaptation_performance=adaptation_performance,
+                    )
+                    if boundary_decision is not None:
+                        novelty_decision = boundary_decision
+                    completion_stop = True
                     break
 
             stop_event.set()
@@ -1264,6 +2101,8 @@ def main() -> int:
                 )
 
             with update_lock:
+                online_agent.reset_for_deployment_handoff()
+                physical_handoff_prepared = True
                 after_parameters = {
                     key: value.detach().cpu().clone()
                     for key, value in online_agent.updater.actor.state_dict().items()
@@ -1273,6 +2112,7 @@ def main() -> int:
                         args.experiment_checkpoint_out,
                         {
                             "protocol_sha256": protocol.sha256(),
+                            "terrain_metadata": adapter.terrain_metadata(),
                             "agent": online_agent.state_dict(),
                             "novelty_gate": novelty_gate.state_dict(),
                             "stable_manager": stable_manager.state_dict(),
@@ -1282,6 +2122,22 @@ def main() -> int:
             torch.save(after_parameters, run_dir / "residual_after.pt")
             parameter_changed = any(
                 not torch.equal(before_parameters[key], after_parameters[key]) for key in before_parameters
+            )
+            completion_evidence = (
+                track_completion.evidence(
+                    fell=fell,
+                    safety_violation=safety_violation,
+                )
+                if track_completion is not None
+                else {
+                    "initial_x": initial_x,
+                    "max_x": float(adapter.base_x().mean().item()),
+                    "completion_target_x": None,
+                    "completion_remaining_m": None,
+                    "completion_reached": False,
+                    "completion_mode": "disabled",
+                    "progress_cost_version": protocol.progress_cost_version,
+                }
             )
             summary = {
                 "mode": args.mode,
@@ -1303,14 +2159,35 @@ def main() -> int:
                 "adaptation_state_durations": counters.state_durations,
                 "actor_version": online_agent.updater.version,
                 "safety_fallbacks": safety_fallbacks,
+                "fall_resets": counters.fall_resets,
+                "terrain_feature_source": adapter.terrain_feature_source,
+                "terrain_feature_schema_version": adapter.terrain_metadata().get(
+                    "terrain_feature_schema_version"
+                ),
+                "terrain_invalid_steps": counters.terrain_invalid_steps,
+                "terrain_steps": counters.terrain_steps,
+                "terrain_valid_fraction": (
+                    1.0 - counters.terrain_invalid_steps / counters.terrain_steps
+                    if counters.terrain_steps
+                    else 1.0
+                ),
                 "safety_violation": safety_violation,
                 "parameter_changed": parameter_changed,
                 "last_update": dict(last_update),
                 "last_rollback_reason": last_rollback_reason,
+                "progress_stalled": progress_decision.stalled,
+                "max_progress_x": progress_decision.max_x,
+                "steps_without_progress": progress_decision.steps_without_progress,
                 "terrain_stage": args.terrain_stage,
                 "terrain_seed": args.terrain_seed,
                 "protocol_sha256": protocol.sha256(),
+                "fall_handling": "preserve_updater_reset_episode_v1",
+                "contact_termination": CONTACT_TERMINATION_PROTOCOL,
+                "termination_reasons": list(termination_reasons),
+                **adapter.contact_diagnostics(),
                 "residual_gain": online_agent.residual_gain,
+                "post_step_checkpointed": post_step_checkpointed,
+                **completion_evidence,
                 "flat_batch_fraction": online_agent.last_flat_batch_fraction,
                 "experiment_checkpoint_in_sha256": (
                     None
@@ -1326,15 +2203,38 @@ def main() -> int:
             }
             episode_summary = {
                 **summary,
-                "passed": not fell and not safety_violation,
-                "completion_boundary": resolve_track_boundary_x(env_cfg),
+                "passed": (
+                    evaluate_track_completion_step(
+                        track_completion,
+                        environment_done=fell,
+                        safety_violation=safety_violation,
+                    ).passed
+                    if track_completion is not None
+                    else not fell and not safety_violation
+                ),
+                "completion_boundary": (
+                    track_completion.target_x
+                    if track_completion is not None
+                    else resolve_track_boundary_x(env_cfg)
+                ),
                 "interaction_steps": executed_steps,
                 "contacts": metrics.heldout_summary().get("heldout_nonfoot_contacts", 0),
+                "completion_stop": completion_stop,
             }
             write_episode_summary(run_dir / "episode_summary.json", episode_summary)
             (run_dir / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=True) + "\n", encoding="utf-8"
             )
+            if args.novelty_baseline_out is not None:
+                write_json_atomic(
+                    args.novelty_baseline_out,
+                    novelty_gate.export_baseline(
+                        source={
+                            "seed": args.seed,
+                            "metrics_sha256": sha256_file(run_dir / "metrics.jsonl"),
+                        }
+                    ),
+                )
             writer.flush()
             return 0 if not fell else 1
         finally:
@@ -1348,10 +2248,14 @@ def main() -> int:
                 and novelty_gate is not None
                 and stable_manager is not None
             ):
+                if not physical_handoff_prepared:
+                    online_agent.reset_for_deployment_handoff()
+                    physical_handoff_prepared = True
                 save_experiment_checkpoint(
                     args.experiment_checkpoint_out,
                     {
                         "protocol_sha256": protocol.sha256(),
+                        "terrain_metadata": adapter.terrain_metadata(),
                         "agent": online_agent.state_dict(),
                         "novelty_gate": novelty_gate.state_dict(),
                         "stable_manager": stable_manager.state_dict(),

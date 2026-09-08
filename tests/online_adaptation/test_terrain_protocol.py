@@ -18,6 +18,7 @@ from rl_training.online_adaptation.terrain_protocol import (
     development_geometry,
     sealed_geometry,
 )
+from rl_training.online_adaptation.track_completion import TrackCompletion
 
 
 EXPECTED_MAX_PROTOCOL_INTEGER = 2**63 - 1
@@ -61,6 +62,7 @@ def test_terrain_protocol_is_part_of_the_public_package_api():
         "default_flat_online_protocol": default_flat_online_protocol,
         "development_geometry": development_geometry,
         "sealed_geometry": sealed_geometry,
+        "TrackCompletion": TrackCompletion,
     }
 
     for name, value in expected.items():
@@ -157,6 +159,15 @@ def test_canonical_json_is_compact_deterministic_and_complete():
         "max_total_episodes": 100,
         "max_total_steps": 200_000,
         "max_steps_per_episode": 2_000,
+        "completion_mode": "full_track_v1",
+        "step_clearance_margin_m": 0.5,
+        "track_end_buffer_m": 0.5,
+        "progress_cost_version": "remaining_plus_safety_penalty_v1",
+        "novelty_baseline_mode": "strict_flat_probe_frozen_v1",
+        "progress_novelty_version": "forward_stall_v1",
+        "progress_min_delta_m": 0.05,
+        "progress_stall_steps": 100,
+        "timeout_policy": "fallback_fail_episode_preserve_actor_v1",
     }
 
     canonical = first.canonical_json()
@@ -180,6 +191,46 @@ def test_one_field_change_changes_protocol_sha256():
     changed = replace(protocol, max_total_steps=protocol.max_total_steps + 1)
 
     assert changed.sha256() != protocol.sha256()
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"completion_mode": ""},
+        {"completion_mode": None},
+        {"progress_cost_version": "   "},
+        {"progress_cost_version": None},
+        {"novelty_baseline_mode": ""},
+        {"progress_novelty_version": None},
+        {"progress_min_delta_m": 0.0},
+        {"progress_min_delta_m": float("nan")},
+        {"progress_stall_steps": 0},
+        {"timeout_policy": ""},
+        {"step_clearance_margin_m": True},
+        {"step_clearance_margin_m": -0.1},
+        {"step_clearance_margin_m": float("nan")},
+        {"track_end_buffer_m": float("inf")},
+    ],
+)
+def test_protocol_rejects_invalid_completion_semantics(overrides):
+    with pytest.raises(ValueError):
+        _protocol(**overrides)
+
+
+def test_completion_semantics_are_hash_compatibility_inputs():
+    protocol = default_flat_online_protocol()
+    for field, value in (
+        ("completion_mode", "legacy_done_only"),
+        ("step_clearance_margin_m", 0.6),
+        ("track_end_buffer_m", 0.6),
+        ("progress_cost_version", "other_cost_v2"),
+        ("novelty_baseline_mode", "mutable_challenge_ema_v1"),
+        ("progress_novelty_version", "none"),
+        ("progress_min_delta_m", 0.06),
+        ("progress_stall_steps", 101),
+        ("timeout_policy", "rollback_on_timeout_v1"),
+    ):
+        assert replace(protocol, **{field: value}).sha256() != protocol.sha256()
 
 
 @pytest.mark.parametrize(

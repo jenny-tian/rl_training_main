@@ -20,12 +20,14 @@ LITE3_POLICY_JOINT_NAMES = (
     "HR_Knee_joint",
 )
 
-LITE3_SAFE_ACTION_LOWER = (-3.97, -7.93, -2.96) * 4
-LITE3_SAFE_ACTION_UPPER = (3.97, 3.70, 5.83) * 4
+# The flat/deployment task uses a 0.9 soft-limit factor.  These normalized
+# bounds retain at least the SafetyFilter's 0.02 rad physical-target margin.
+LITE3_SAFE_ACTION_LOWER = (-3.60, -7.40, -2.57) * 4
+LITE3_SAFE_ACTION_UPPER = (3.60, 3.17, 5.43) * 4
 LITE3_SAFE_ACTION_CLIP_BY_PATTERN = {
-    ".*_HipX_joint": (-3.97, 3.97),
-    ".*_HipY_joint": (-7.93, 3.70),
-    ".*_Knee_joint": (-2.96, 5.83),
+    ".*_HipX_joint": (-3.60, 3.60),
+    ".*_HipY_joint": (-7.40, 3.17),
+    ".*_Knee_joint": (-2.57, 5.43),
 }
 
 _LITE3_DEFAULT_JOINT_POS = (0.0, -0.65, 1.3) * 4

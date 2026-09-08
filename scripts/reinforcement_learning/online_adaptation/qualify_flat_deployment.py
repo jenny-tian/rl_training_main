@@ -43,6 +43,7 @@ def main(argv: list[str] | None = None) -> int:
         import rl_training.tasks  # noqa: F401
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.deployment_startup import make_lite3_deployment_env
+        from rl_training.online_adaptation.rsl_rl_compat import load_frozen_rsl_rl_checkpoint
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
@@ -52,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
         wrapped_env = make_lite3_deployment_env(args.task, env_cfg, agent_cfg, gym_module=gym)
         try:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
-            runner.load(args.base_checkpoint)
+            load_frozen_rsl_rl_checkpoint(runner, args.base_checkpoint)
             policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
             adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped)
             limits = SafetyLimits(residual_limits=torch.tensor([0.24, 0.20, 0.20] * 4, device=wrapped_env.unwrapped.device))

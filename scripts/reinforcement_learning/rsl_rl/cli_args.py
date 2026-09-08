@@ -45,6 +45,54 @@ def add_rsl_rl_args(parser: argparse.ArgumentParser):
     )
 
 
+def add_motion_prior_args(parser: argparse.ArgumentParser) -> None:
+    """Add opt-in external motion-prior controls for flat PPO training."""
+    group = parser.add_argument_group("motion_prior", description="Reference-motion rewards for flat Lite3 PPO.")
+    group.add_argument("--motion_prior_path", type=str, default=None, help="Validated canonical motion-prior NPZ.")
+    group.add_argument(
+        "--motion_prior_mode",
+        choices=("on", "decay", "off"),
+        default=None,
+        help="Reference weight schedule; supplying a path defaults to on when omitted.",
+    )
+    group.add_argument("--motion_prior_weight", type=float, default=None)
+    group.add_argument("--motion_prior_decay_steps", type=int, default=None)
+
+
+def update_motion_prior_env_cfg(env_cfg, args_cli):
+    """Apply explicit CLI motion-prior overrides to a compatible env config."""
+    values = {
+        "path": getattr(args_cli, "motion_prior_path", None),
+        "mode": getattr(args_cli, "motion_prior_mode", None),
+        "weight": getattr(args_cli, "motion_prior_weight", None),
+        "decay_steps": getattr(args_cli, "motion_prior_decay_steps", None),
+    }
+    if not any(value is not None for value in values.values()):
+        return env_cfg
+    if not hasattr(env_cfg, "motion_prior_path"):
+        raise ValueError("--motion_prior_* options require a flat Lite3 motion-prior environment config")
+    if values["path"] is not None:
+        env_cfg.motion_prior_path = values["path"]
+    if values["mode"] is not None:
+        env_cfg.motion_prior_mode = values["mode"]
+    elif values["path"] is not None and env_cfg.motion_prior_mode == "off":
+        env_cfg.motion_prior_mode = "on"
+    if values["weight"] is not None:
+        if values["weight"] < 0.0:
+            raise ValueError("--motion_prior_weight must be non-negative")
+        env_cfg.motion_prior_weight = values["weight"]
+    if values["decay_steps"] is not None:
+        if values["decay_steps"] <= 0:
+            raise ValueError("--motion_prior_decay_steps must be positive")
+        env_cfg.motion_prior_decay_steps = values["decay_steps"]
+    if env_cfg.motion_prior_mode != "off" and not env_cfg.motion_prior_path:
+        raise ValueError("motion_prior_mode on/decay requires --motion_prior_path")
+    configure = getattr(env_cfg, "configure_motion_prior_terms", None)
+    if callable(configure):
+        configure()
+    return env_cfg
+
+
 def parse_rsl_rl_cfg(task_name: str, args_cli: argparse.Namespace) -> RslRlOnPolicyRunnerCfg:
     """Parse configuration for RSL-RL agent based on inputs.
 

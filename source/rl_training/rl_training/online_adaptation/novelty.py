@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass
 from enum import Enum
 from math import isfinite, sqrt
 from typing import Any
@@ -69,6 +70,8 @@ class NoveltyDecision:
     velocity_excess: float
     tilt_excess: float
     reward_drop: float
+    progress_excess: float
+    progress_stalled: bool
     entered_adapting: bool
     left_adapting: bool
     actor_update_enabled: bool
@@ -93,6 +96,8 @@ class NoveltyGate:
         self._last_velocity_excess = 0.0
         self._last_tilt_excess = 0.0
         self._last_reward_drop = 0.0
+        self._last_progress_excess = 0.0
+        self._last_progress_stalled = False
 
     def observe(
         self,
@@ -102,6 +107,8 @@ class NoveltyGate:
         reward: float,
         *,
         paused: bool = False,
+        progress_stalled: bool = False,
+        update_baseline: bool = True,
     ) -> NoveltyDecision:
         observations = (velocity_error, tilt_rms, reward)
         if any(not isfinite(value) for value in observations):
@@ -120,7 +127,7 @@ class NoveltyGate:
             self._update_baseline(velocity_error, tilt_rms, reward)
             self._calibration_count += 1
         elif self._state is NoveltyState.MONITORING:
-            self._set_excesses(velocity_error, tilt_rms, reward)
+            self._set_excesses(velocity_error, tilt_rms, reward, progress_stalled)
             self._continuous_crossings.append(self._last_score >= self.config.enter_threshold)
             self._contacts.append(bool(nonfoot_contact))
             if (
@@ -130,9 +137,10 @@ class NoveltyGate:
                 self._state = NoveltyState.ADAPTING
                 entered_adapting = True
             else:
-                self._update_baseline(velocity_error, tilt_rms, reward)
+                if update_baseline:
+                    self._update_baseline(velocity_error, tilt_rms, reward)
         elif self._state is NoveltyState.ADAPTING:
-            self._set_excesses(velocity_error, tilt_rms, reward)
+            self._set_excesses(velocity_error, tilt_rms, reward, progress_stalled)
             self._recovery_count = (
                 self._recovery_count + 1
                 if self._last_score < self.config.exit_threshold
@@ -172,6 +180,8 @@ class NoveltyGate:
             "last_velocity_excess": self._last_velocity_excess,
             "last_tilt_excess": self._last_tilt_excess,
             "last_reward_drop": self._last_reward_drop,
+            "last_progress_excess": self._last_progress_excess,
+            "last_progress_stalled": self._last_progress_stalled,
         }
 
     def load_state_dict(self, state: dict[str, Any]) -> None:
@@ -193,6 +203,7 @@ class NoveltyGate:
             *means.values(), *variances.values(), state["last_score"],
             state["last_velocity_excess"], state["last_tilt_excess"],
             state["last_reward_drop"],
+            state["last_progress_excess"],
         ]
         if any(not isinstance(value, (int, float)) or not isfinite(value) for value in scalar_values):
             raise ValueError("novelty state contains non-finite values")
@@ -217,8 +228,86 @@ class NoveltyGate:
         self._last_velocity_excess = float(state["last_velocity_excess"])
         self._last_tilt_excess = float(state["last_tilt_excess"])
         self._last_reward_drop = float(state["last_reward_drop"])
+        self._last_progress_excess = float(state["last_progress_excess"])
+        if type(state["last_progress_stalled"]) is not bool:
+            raise ValueError("novelty progress state is invalid")
+        self._last_progress_stalled = state["last_progress_stalled"]
 
-    def _set_excesses(self, velocity_error: float, tilt_rms: float, reward: float) -> None:
+    def export_baseline(self, *, source: Mapping[str, Any]) -> dict[str, Any]:
+        if self._calibration_count < self.config.calibration_steps:
+            raise ValueError("novelty baseline calibration is incomplete")
+        normalized_source = self._validate_baseline_source(source)
+        return {
+            "schema_version": 1,
+            "config": asdict(self.config),
+            "observation_count": self._calibration_count,
+            "means": dict(self._means),
+            "variances": dict(self._variances),
+            "source": normalized_source,
+        }
+
+    def load_baseline(self, artifact: Mapping[str, Any]) -> None:
+        expected = {
+            "schema_version", "config", "observation_count", "means", "variances", "source"
+        }
+        if not isinstance(artifact, Mapping) or set(artifact) != expected:
+            raise ValueError("novelty baseline has an unsupported schema")
+        if artifact["schema_version"] != 1:
+            raise ValueError("novelty baseline schema version mismatch")
+        if artifact["config"] != asdict(self.config):
+            raise ValueError("novelty baseline configuration differs from runtime")
+        count = artifact["observation_count"]
+        if type(count) is not int or count < self.config.calibration_steps:
+            raise ValueError("novelty baseline observation count is invalid")
+        means = artifact["means"]
+        variances = artifact["variances"]
+        expected_metrics = {"velocity", "tilt", "reward"}
+        if not isinstance(means, Mapping) or not isinstance(variances, Mapping):
+            raise ValueError("novelty baseline statistics are invalid")
+        if set(means) != expected_metrics or set(variances) != expected_metrics:
+            raise ValueError("novelty baseline statistics are invalid")
+        if any(
+            isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value)
+            for value in (*means.values(), *variances.values())
+        ) or any(float(value) < 0.0 for value in variances.values()):
+            raise ValueError("novelty baseline statistics are invalid")
+        self._validate_baseline_source(artifact["source"])
+        self._state = NoveltyState.MONITORING
+        self._calibration_count = count
+        self._means = {key: float(value) for key, value in means.items()}
+        self._variances = {key: float(value) for key, value in variances.items()}
+        self._cooldown_count = 0
+        self._last_score = 0.0
+        self._last_velocity_excess = 0.0
+        self._last_tilt_excess = 0.0
+        self._last_reward_drop = 0.0
+        self._last_progress_excess = 0.0
+        self._last_progress_stalled = False
+        self._reset_episode_counters()
+
+    @staticmethod
+    def _validate_baseline_source(source: Mapping[str, Any]) -> dict[str, Any]:
+        if not isinstance(source, Mapping) or set(source) != {"seed", "metrics_sha256"}:
+            raise ValueError("novelty baseline source is invalid")
+        seed = source["seed"]
+        digest = source["metrics_sha256"]
+        if type(seed) is not int or seed < 0:
+            raise ValueError("novelty baseline source seed is invalid")
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ValueError("novelty baseline source hash is invalid")
+        return {"seed": seed, "metrics_sha256": digest}
+
+    def _set_excesses(
+        self,
+        velocity_error: float,
+        tilt_rms: float,
+        reward: float,
+        progress_stalled: bool = False,
+    ) -> None:
         self._last_velocity_excess = self._positive_zscore(
             velocity_error, "velocity", self.config.velocity_scale_floor
         )
@@ -226,10 +315,13 @@ class NoveltyGate:
         self._last_reward_drop = self._positive_zscore(
             self._means["reward"] - reward, None, self.config.reward_scale_floor
         )
+        self._last_progress_stalled = bool(progress_stalled)
+        self._last_progress_excess = self.config.enter_threshold if progress_stalled else 0.0
         self._last_score = max(
             self._last_velocity_excess,
             self._last_tilt_excess,
             self._last_reward_drop,
+            self._last_progress_excess,
         )
 
     def _positive_zscore(self, value: float, key: str | None, scale_floor: float) -> float:
@@ -274,6 +366,8 @@ class NoveltyGate:
             velocity_excess=self._last_velocity_excess,
             tilt_excess=self._last_tilt_excess,
             reward_drop=self._last_reward_drop,
+            progress_excess=self._last_progress_excess,
+            progress_stalled=self._last_progress_stalled,
             entered_adapting=entered_adapting,
             left_adapting=left_adapting,
             actor_update_enabled=(

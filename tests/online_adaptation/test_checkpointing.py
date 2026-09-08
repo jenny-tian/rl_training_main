@@ -4,7 +4,11 @@ import numpy as np
 import pytest
 import torch
 
-from rl_training.online_adaptation.agent import AgentConfig, OnlineAdaptationAgent
+from rl_training.online_adaptation.agent import (
+    AgentConfig,
+    OnlineAdaptationAgent,
+    _normalize_replay_state_for_load,
+)
 from rl_training.online_adaptation.checkpointing import (
     load_experiment_checkpoint,
     save_experiment_checkpoint,
@@ -67,6 +71,90 @@ def test_experiment_checkpoint_round_trip_restores_state_and_rng(tmp_path):
     assert np.random.random() == expected_numpy
     torch.testing.assert_close(torch.rand(3), expected_torch)
     assert (tmp_path / "experiment.pt.sha256").exists()
+
+
+def test_frozen_evaluation_can_load_checkpoint_without_overwriting_rng(tmp_path):
+    path = tmp_path / "experiment.pt"
+    random.seed(11)
+    np.random.seed(12)
+    torch.manual_seed(13)
+    save_experiment_checkpoint(path, {"protocol_sha256": "protocol-hash"})
+
+    random.seed(101)
+    np.random.seed(102)
+    torch.manual_seed(103)
+    expected_random = random.random()
+    expected_numpy = np.random.random()
+    expected_torch = torch.rand(3)
+    random.seed(101)
+    np.random.seed(102)
+    torch.manual_seed(103)
+
+    load_experiment_checkpoint(
+        path,
+        expected_protocol_sha256="protocol-hash",
+        restore_rng=False,
+    )
+
+    assert random.random() == expected_random
+    assert np.random.random() == expected_numpy
+    torch.testing.assert_close(torch.rand(3), expected_torch)
+
+
+def test_restore_rng_state_normalizes_cuda_states_to_cpu_byte_tensors(monkeypatch):
+    captured = []
+
+    class CudaResidentState:
+        def detach(self):
+            return self
+
+        def to(self, *, device, dtype=torch.uint8):
+            return torch.tensor([1, 2, 3], device=device, dtype=dtype)
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    monkeypatch.setattr(
+        torch.cuda,
+        "set_rng_state_all",
+        lambda states: captured.extend(states),
+    )
+
+    from rl_training.online_adaptation.checkpointing import restore_rng_state
+
+    restore_rng_state(
+        {
+            "python": random.getstate(),
+            "numpy": np.random.get_state(),
+            "torch_cpu": torch.get_rng_state(),
+            "cuda_device_count": 1,
+            "torch_cuda": (CudaResidentState(),),
+        }
+    )
+
+    assert len(captured) == 1
+    assert captured[0].device.type == "cpu"
+    assert captured[0].dtype == torch.uint8
+
+
+def test_normalize_replay_state_moves_storage_tensors_to_cpu():
+    class CudaResidentState:
+        def detach(self):
+            return self
+
+        def to(self, *, device):
+            return torch.ones(2, device=device)
+
+    normalized = _normalize_replay_state_for_load(
+        {
+            "capacity": 4,
+            "history": CudaResidentState(),
+            "reward": CudaResidentState(),
+        }
+    )
+
+    assert normalized["capacity"] == 4
+    assert normalized["history"].device.type == "cpu"
+    assert normalized["reward"].device.type == "cpu"
 
 
 def test_checkpoint_rejects_checksum_and_protocol_mismatches(tmp_path):

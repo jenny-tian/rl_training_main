@@ -18,6 +18,8 @@ from scripts.reinforcement_learning.online_adaptation.freeze_flat_online_configu
 from scripts.reinforcement_learning.online_adaptation.run_flat_online_curriculum import (
     FLAT_RETENTION_SEEDS,
     FLAT_RETENTION_STEPS,
+    flat_retention_summary_is_disabled,
+    validate_track_completion_summary,
 )
 
 
@@ -110,6 +112,7 @@ def _worker_command(
         "--mode", worker_mode,
         "--run-dir", str(run_dir),
         "--terrain-seed", str(seed),
+        "--terrain-stage", "rough_4cm",
         "--seed", str(seed),
         "--max-steps", str(FLAT_RETENTION_STEPS if flat_probe else 2_000),
         "--residual-gain", "0.0" if mode in {"base", "initial_zero_residual"} else "1.0",
@@ -120,8 +123,9 @@ def _worker_command(
         "n_step": 3,
         "critic_replay_mode": "dual",
         "flat_fraction_initial": 0.75,
-        "flat_fraction_ready": 0.50,
-        "flat_anchor_weight": 1.0,
+        "flat_fraction_ready": 0.25,
+        "flat_anchor_weight": 0.5,
+        "max_policy_residual_mse": None,
         "flat_critic_warmup_updates": 1_000,
         "max_episodes": 100,
         "max_total_steps": 200_000,
@@ -129,16 +133,28 @@ def _worker_command(
     }
     for name, default in option_defaults.items():
         value = configuration.get(name, default)
+        if value is None:
+            continue
         worker_name = name.replace("max_", "protocol_max_", 1) if name in {
             "max_episodes", "max_total_steps", "max_stage_episodes"
         } else name
         command.extend((f"--{worker_name.replace('_', '-')}", str(value)))
+    terrain_source = configuration.get("terrain_feature_source", "geometry")
+    if terrain_source == "height_scan":
+        command.extend(("--terrain-feature-source", "height_scan"))
+        command.extend(
+            (
+                "--terrain-min-valid-fraction",
+                str(configuration.get("terrain_min_valid_fraction", 0.90)),
+            )
+        )
     command.extend(("--protocol-sha256", formal["protocol_sha256"]))
     if mode != "base":
         command.extend(("--experiment-checkpoint-in", checkpoint))
     if flat_probe:
         command.append("--flat-retention-probe")
     else:
+        command.append("--require-track-completion")
         command.append("--evaluation-only")
     if headless:
         command.append("--headless")
@@ -151,13 +167,25 @@ def _run_worker(command: list[str], run_dir: Path) -> dict[str, Any]:
     summary_path = run_dir / "episode_summary.json"
     if result.returncode not in {0, 1} or not summary_path.is_file():
         raise RuntimeError(f"sealed worker failed in {run_dir}")
-    return _json_object(summary_path)
+    summary = _json_object(summary_path)
+    if "--require-track-completion" in command:
+        validate_track_completion_summary(summary)
+        seed = int(command[command.index("--terrain-seed") + 1])
+        stage = command[command.index("--terrain-stage") + 1]
+        if summary.get("terrain_seed") != seed or summary.get("terrain_stage") != stage:
+            raise RuntimeError("sealed worker summary geometry differs from command")
+        protocol_sha256 = command[command.index("--protocol-sha256") + 1]
+        if summary.get("protocol_sha256") != protocol_sha256:
+            raise RuntimeError("sealed worker summary protocol hash differs from command")
+    return summary
 
 
 def _flat_aggregate(summaries: list[Mapping[str, object]]) -> dict[str, object]:
     count = len(summaries)
     if count != len(FLAT_RETENTION_SEEDS):
         raise RuntimeError("flat evaluation is incomplete")
+    if any(not flat_retention_summary_is_disabled(summary) for summary in summaries):
+        raise RuntimeError("flat evaluation received strict or malformed completion evidence")
     def mean(name: str) -> float:
         values = [item.get(name) for item in summaries]
         if any(value is None for value in values):

@@ -28,6 +28,13 @@ def test_guard_accepts_zero_heldout_proportions():
     assert_heldout_terrains_disabled(terrain())
 
 
+def test_guard_accepts_generator_without_heldout_entries():
+    flat_only = SimpleNamespace(
+        sub_terrains={"flat_online": SimpleNamespace(proportion=1.0)}
+    )
+    assert_heldout_terrains_disabled(flat_only)
+
+
 def test_guard_rejects_any_heldout_probability():
     with pytest.raises(ValueError, match="held-out terrain leakage"):
         assert_heldout_terrains_disabled(terrain(boxes=0.01))

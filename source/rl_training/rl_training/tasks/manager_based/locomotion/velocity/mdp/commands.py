@@ -13,10 +13,19 @@ from isaaclab.managers import CommandTerm, CommandTermCfg
 from isaaclab.utils import configclass
 
 from rl_training.command_slew import slew_toward
+from rl_training.foot_metrics import relative_foot_clearance
 import rl_training.tasks.manager_based.locomotion.velocity.mdp as mdp
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedEnv
+
+
+FOOT_CLEARANCE_METRIC_NAMES = (
+    "foot_clearance_fl_max",
+    "foot_clearance_fr_max",
+    "foot_clearance_hl_max",
+    "foot_clearance_hr_max",
+)
 
 
 class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
@@ -41,12 +50,30 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
         knee_joint_ids = self.robot.find_joints(".*[Kk]nee.*")[0]
         self._knee_joint_ids = torch.tensor(knee_joint_ids, dtype=torch.long, device=self.device)
 
+        ordered_foot_ids = []
+        for foot_name in ("FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"):
+            body_ids, _ = self.robot.find_bodies(foot_name)
+            if len(body_ids) != 1:
+                ordered_foot_ids = []
+                break
+            ordered_foot_ids.append(body_ids[0])
+        self._foot_body_ids = torch.tensor(ordered_foot_ids, dtype=torch.long, device=self.device)
+        if self._foot_body_ids.numel() == 4:
+            for metric_name in FOOT_CLEARANCE_METRIC_NAMES:
+                self.metrics[metric_name] = torch.zeros(self.num_envs, device=self.device)
+
         # ---- Store original full ranges for special-case sampling ----
         # These are used by special-case envs so they always sample from the
         # full range regardless of curriculum changes.
         self._full_ranges_lin_vel_x = tuple(cfg.ranges.lin_vel_x)
         self._full_ranges_lin_vel_y = tuple(cfg.ranges.lin_vel_y)
         self._full_ranges_ang_vel_z = tuple(cfg.ranges.ang_vel_z)
+        if cfg.planar_velocity_deadband < 0.0:
+            raise ValueError("planar_velocity_deadband must be non-negative")
+        if cfg.only_lin_x_magnitude_range is not None:
+            min_speed, max_speed = cfg.only_lin_x_magnitude_range
+            if min_speed < 0.0 or max_speed < min_speed:
+                raise ValueError("only_lin_x_magnitude_range must satisfy 0 <= min <= max")
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
         if env_ids is None:
@@ -56,6 +83,16 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
             self.target_vel_command_b[env_ids] = 0.0
 
         extras = {}
+        if self._foot_body_ids.numel() == 4:
+            foot_maxima = torch.stack(
+                [self.metrics[name][env_ids] for name in FOOT_CLEARANCE_METRIC_NAMES], dim=1
+            )
+            front_mean = foot_maxima[:, :2].mean(dim=1)
+            hind_mean = foot_maxima[:, 2:].mean(dim=1)
+            extras["foot_clearance_front_mean"] = front_mean.mean().item()
+            extras["foot_clearance_hind_mean"] = hind_mean.mean().item()
+            extras["foot_clearance_front_hind_gap"] = torch.abs(front_mean - hind_mean).mean().item()
+            extras["foot_clearance_all_min"] = foot_maxima.min(dim=1).values.mean().item()
         for metric_name, metric_value in self.metrics.items():
             if metric_name in {"base_z", "knee_pos"}:
                 step_count = torch.clamp(self._metric_step_counter[env_ids].float(), min=1.0)
@@ -96,14 +133,22 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
 
         self.metrics["base_z"] += base_z
         self.metrics["knee_pos"] += knee_pos
+        if self._foot_body_ids.numel() == 4:
+            foot_pos_w = self.robot.data.body_pos_w[:, self._foot_body_ids, :]
+            clearance = relative_foot_clearance(foot_pos_w)
+            for index, metric_name in enumerate(FOOT_CLEARANCE_METRIC_NAMES):
+                self.metrics[metric_name] = torch.maximum(self.metrics[metric_name], clearance[:, index])
         self._metric_step_counter += 1
 
     def _resample_command(self, env_ids: Sequence[int]):
         if self.cfg.command_acceleration_limits is not None:
             previous = self.vel_command_b[env_ids].clone()
         super()._resample_command(env_ids)
-        # set small commands to zero
-        self.vel_command_b[env_ids, :2] *= (torch.norm(self.vel_command_b[env_ids, :2], dim=1) > 0.2).unsqueeze(1)
+        # Set small sampled commands to zero.  Tasks that explicitly train
+        # low-speed locomotion can lower this deadband in their configuration.
+        self.vel_command_b[env_ids, :2] *= (
+            torch.norm(self.vel_command_b[env_ids, :2], dim=1) > self.cfg.planar_velocity_deadband
+        ).unsqueeze(1)
 
         # ---- Fixed-proportion special-case samples ----
         # These override the sampled command for a fixed fraction of envs,
@@ -164,7 +209,17 @@ class UniformThresholdVelocityCommand(mdp.UniformVelocityCommand):
         # Apply only-lin_x: vx from full range, vy=0, wz=0
         if len(ids_only_x) > 0:
             r_x = torch.empty(len(ids_only_x), device=self.device)
-            self.vel_command_b[ids_only_x, 0] = r_x.uniform_(*self._full_ranges_lin_vel_x)
+            if self.cfg.only_lin_x_magnitude_range is None:
+                self.vel_command_b[ids_only_x, 0] = r_x.uniform_(*self._full_ranges_lin_vel_x)
+            else:
+                min_speed, max_speed = self.cfg.only_lin_x_magnitude_range
+                magnitudes = r_x.uniform_(min_speed, max_speed)
+                signs = torch.where(
+                    torch.rand(len(ids_only_x), device=self.device) < 0.5,
+                    -torch.ones_like(magnitudes),
+                    torch.ones_like(magnitudes),
+                )
+                self.vel_command_b[ids_only_x, 0] = magnitudes * signs
             self.vel_command_b[ids_only_x, 1] = 0.0
             self.vel_command_b[ids_only_x, 2] = 0.0
             self.is_standing_env[ids_only_x] = False
@@ -210,6 +265,12 @@ class UniformThresholdVelocityCommandCfg(mdp.UniformVelocityCommandCfg):
 
     command_acceleration_limits: tuple[float, float, float] | None = None
     """Optional ``(x, y, yaw)`` command acceleration limits per second."""
+
+    planar_velocity_deadband: float = 0.2
+    """Sampled planar commands at or below this norm are converted to standing."""
+
+    only_lin_x_magnitude_range: tuple[float, float] | None = None
+    """Optional signed-magnitude range for the dedicated pure-x samples."""
 
     rel_zero_vel_envs: float = 0.07
     """Fraction of environments that always receive a zero-velocity command.

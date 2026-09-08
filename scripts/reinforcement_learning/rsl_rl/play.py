@@ -16,6 +16,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
@@ -25,8 +26,37 @@ import cli_args
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
-parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
-parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
+parser.add_argument(
+    "--video",
+    dest="video",
+    action="store_true",
+    default=True,
+    help="Record a video during playback (enabled by default).",
+)
+parser.add_argument(
+    "--no-video",
+    dest="video",
+    action="store_false",
+    help="Disable video recording for a lightweight telemetry-only rollout.",
+)
+parser.add_argument(
+    "--video_length",
+    type=int,
+    default=None,
+    help="Length of the recorded video in steps (defaults to rollout_steps or 200).",
+)
+parser.add_argument(
+    "--video_output_dir",
+    type=Path,
+    default=None,
+    help="Optional output directory used to keep videos from separate rollout cases distinct.",
+)
+parser.add_argument(
+    "--rollout_steps",
+    type=int,
+    default=None,
+    help="Optional fixed number of physics steps to run without requiring video recording.",
+)
 parser.add_argument(
     "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
 )
@@ -38,12 +68,57 @@ parser.add_argument(
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
 parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
 parser.add_argument("--keyboard", action="store_true", default=False, help="Whether to use keyboard.")
+parser.add_argument(
+    "--follow_camera",
+    action="store_true",
+    default=False,
+    help="Keep the viewport camera centered on the first robot during playback.",
+)
+parser.add_argument(
+    "--tracking_camera",
+    action="store_true",
+    default=False,
+    help="Use a close asset-root camera that works with headless video recording.",
+)
+parser.add_argument(
+    "--telemetry_output",
+    type=Path,
+    default=None,
+    help="Optional NPZ path for root, command, joint, action, and foot rollout traces.",
+)
+parser.add_argument(
+    "--forward_speed",
+    type=float,
+    default=None,
+    help="Use a deterministic forward command and disable standing/special command samples.",
+)
+parser.add_argument(
+    "--command_x",
+    type=float,
+    default=None,
+    help="Override the fixed body-frame x velocity command for playback.",
+)
+parser.add_argument(
+    "--command_y",
+    type=float,
+    default=None,
+    help="Override the fixed body-frame y velocity command for playback.",
+)
+parser.add_argument(
+    "--command_yaw",
+    type=float,
+    default=None,
+    help="Override the fixed body-frame yaw-rate command for playback.",
+)
 # append RSL-RL cli arguments
+cli_args.add_motion_prior_args(parser)
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
 args_cli, hydra_args = parser.parse_known_args()
+if args_cli.video_length is None:
+    args_cli.video_length = args_cli.rollout_steps if args_cli.rollout_steps is not None else 200
 # always enable cameras to record video
 if args_cli.video:
     args_cli.enable_cameras = True
@@ -86,6 +161,7 @@ import math
 import time
 from collections import deque
 
+import numpy as np
 import torch
 
 import isaaclab.utils.math as math_utils
@@ -114,6 +190,20 @@ from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import rl_training.tasks  # noqa: F401
+
+
+def _pin_fixed_velocity_command(env, command: tuple[float, float, float]) -> None:
+    """Keep an explicit playback command unchanged by sampling thresholds or resets."""
+    term = env.unwrapped.command_manager.get_term("base_velocity")
+    with torch.no_grad():
+        for name in ("vel_command_b", "target_vel_command_b"):
+            value = getattr(term, name, None)
+            if isinstance(value, torch.Tensor):
+                value[:, :3] = value.new_tensor(command)
+        for name in ("is_standing_env", "is_heading_env"):
+            value = getattr(term, name, None)
+            if isinstance(value, torch.Tensor):
+                value.fill_(False)
 
 
 def _phase_traj_body(
@@ -178,7 +268,55 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     task_name = args_cli.task.split(":")[-1]
     # override configurations with non-hydra CLI arguments
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
+    env_cfg = cli_args.update_motion_prior_env_cfg(env_cfg, args_cli)
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else 50
+
+    if args_cli.tracking_camera:
+        env_cfg.viewer.origin_type = "asset_root"
+        env_cfg.viewer.env_index = 0
+        env_cfg.viewer.asset_name = "robot"
+        env_cfg.viewer.eye = (2.0, 2.0, 1.2)
+        env_cfg.viewer.lookat = (0.0, 0.0, 0.25)
+
+    # Evaluation starts with a fresh common_step_counter.  A training-time
+    # short-to-long timeout curriculum would therefore reset a mature policy
+    # after only its initial 20 steps and corrupt gait telemetry.  Freeze such
+    # curricula at their final episode length during playback.
+    time_out_cfg = getattr(getattr(env_cfg, "terminations", None), "time_out", None)
+    time_out_params = getattr(time_out_cfg, "params", None)
+    if isinstance(time_out_params, dict) and {
+        "start_steps",
+        "end_steps",
+        "curriculum_steps",
+    }.issubset(time_out_params):
+        final_episode_steps = int(time_out_params["end_steps"])
+        time_out_params["start_steps"] = final_episode_steps
+        time_out_params["curriculum_steps"] = 1
+        print(f"[INFO] Playback episode curriculum frozen at {final_episode_steps} steps.")
+
+    fixed_command = any(
+        value is not None
+        for value in (args_cli.forward_speed, args_cli.command_x, args_cli.command_y, args_cli.command_yaw)
+    )
+    fixed_command_values = None
+    if fixed_command:
+        command_cfg = env_cfg.commands.base_velocity
+        command_cfg.resampling_time_range = (1.0e9, 1.0e9)
+        command_cfg.rel_standing_envs = 0.0
+        command_cfg.rel_zero_vel_envs = 0.0
+        command_cfg.rel_only_lin_y_envs = 0.0
+        command_cfg.rel_only_lin_x_envs = 0.0
+        command_cfg.rel_only_ang_z_envs = 0.0
+        command_cfg.rel_heading_envs = 0.0
+        command_cfg.heading_command = False
+        command_x = args_cli.command_x if args_cli.command_x is not None else (args_cli.forward_speed or 0.0)
+        command_y = args_cli.command_y if args_cli.command_y is not None else 0.0
+        command_yaw = args_cli.command_yaw if args_cli.command_yaw is not None else 0.0
+        fixed_command_values = (command_x, command_y, command_yaw)
+        command_cfg.ranges.lin_vel_x = (command_x, command_x)
+        command_cfg.ranges.lin_vel_y = (command_y, command_y)
+        command_cfg.ranges.ang_vel_z = (command_yaw, command_yaw)
+        command_cfg.ranges.heading = (0.0, 0.0)
 
     # handle deprecated configurations (convert old policy format to new actor/critic format)
     agent_cfg = handle_deprecated_rsl_rl_cfg(agent_cfg, installed_version)
@@ -238,7 +376,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # wrap for video recording
     if args_cli.video:
         video_kwargs = {
-            "video_folder": os.path.join(log_dir, "videos", "play"),
+            "video_folder": str(args_cli.video_output_dir or Path(log_dir) / "videos" / "play"),
             "step_trigger": lambda step: step == 0,
             "video_length": args_cli.video_length,
             "disable_logger": True,
@@ -370,18 +508,53 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     dt = env.unwrapped.step_dt
     # reset environment
     obs, _ = env.reset()
+    if fixed_command_values is not None:
+        _pin_fixed_velocity_command(env, fixed_command_values)
+        obs = env.get_observations()
 
     timestep = 0
+    telemetry: dict[str, list[np.ndarray | float]] = {
+        "time": [],
+        "root_pos_w": [],
+        "root_quat_w": [],
+        "root_lin_vel_b": [],
+        "root_ang_vel_b": [],
+        "command": [],
+        "joint_pos": [],
+        "action": [],
+        "foot_pos_w": [],
+    }
     # simulate environment
     while simulation_app.is_running():
         start_time = time.time()
         # run everything in inference mode
         with torch.inference_mode():
+            if fixed_command_values is not None:
+                _pin_fixed_velocity_command(env, fixed_command_values)
+                obs = env.get_observations()
             # agent stepping
             actions = policy(obs)
 
             # env stepping
             obs, _, _, _ = env.step(actions)
+
+        if args_cli.telemetry_output is not None:
+            robot = env.unwrapped.scene["robot"]
+            if foot_ids is None:
+                ids, _ = robot.find_bodies(getattr(env_cfg, "foot_link_name", ".*_FOOT"))
+                foot_ids = list(ids[:4])
+            command = env.unwrapped.command_manager.get_command("base_velocity")[0, :3]
+            telemetry["time"].append(float(timestep + 1) * float(dt))
+            telemetry["root_pos_w"].append(robot.data.root_pos_w[0].detach().cpu().numpy().copy())
+            telemetry["root_quat_w"].append(robot.data.root_quat_w[0].detach().cpu().numpy().copy())
+            telemetry["root_lin_vel_b"].append(robot.data.root_lin_vel_b[0].detach().cpu().numpy().copy())
+            telemetry["root_ang_vel_b"].append(robot.data.root_ang_vel_b[0].detach().cpu().numpy().copy())
+            telemetry["command"].append(command.detach().cpu().numpy().copy())
+            telemetry["joint_pos"].append(robot.data.joint_pos[0].detach().cpu().numpy().copy())
+            telemetry["action"].append(actions[0].detach().cpu().numpy().copy())
+            telemetry["foot_pos_w"].append(
+                robot.data.body_pos_w[0, foot_ids, :].detach().cpu().numpy().copy()
+            )
 
         # ----- Draw foot trajectories -----
         if VIS_ENABLED and draw_interface and foot_ids and act_hist and cmd_hist:
@@ -461,19 +634,29 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
             if starts:
                 draw_interface.draw_lines(starts, ends, colors, widths)
+        timestep += 1
         if args_cli.video:
-            timestep += 1
             # Exit the play loop after recording one video
             if timestep == args_cli.video_length:
                 break
+        if args_cli.rollout_steps is not None and timestep >= args_cli.rollout_steps:
+            break
 
-        if args_cli.keyboard:
+        if args_cli.keyboard or args_cli.follow_camera:
             camera_follow(env)
 
         # time delay for real-time evaluation
         sleep_time = dt - (time.time() - start_time)
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
+
+    if args_cli.telemetry_output is not None:
+        args_cli.telemetry_output.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            args_cli.telemetry_output,
+            **{key: np.asarray(values, dtype=np.float32) for key, values in telemetry.items()},
+        )
+        print(f"[INFO] Wrote rollout telemetry: {args_cli.telemetry_output}")
 
     # close the simulator
     env.close()

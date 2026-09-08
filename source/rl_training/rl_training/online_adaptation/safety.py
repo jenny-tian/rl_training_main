@@ -82,17 +82,22 @@ class SafetyFilter:
         )
         contact_unsafe = self._contact_steps > self.limits.nonfoot_contact_grace_steps
         timeout_unsafe = state.control_timed_out.to(dtype=torch.bool)
-        unsafe = gravity_unsafe | height_unsafe | velocity_unsafe | contact_unsafe | timeout_unsafe
+        persistent_unsafe = gravity_unsafe | height_unsafe | velocity_unsafe | contact_unsafe
 
-        self._paused |= unsafe
+        self._paused |= persistent_unsafe
         self._stable_steps = torch.where(
-            unsafe,
+            persistent_unsafe,
             torch.zeros_like(self._stable_steps),
-            torch.where(self._paused, self._stable_steps + 1, torch.zeros_like(self._stable_steps)),
+            torch.where(
+                timeout_unsafe,
+                self._stable_steps,
+                torch.where(self._paused, self._stable_steps + 1, torch.zeros_like(self._stable_steps)),
+            ),
         )
         resumed = self._paused & (self._stable_steps >= self.limits.stable_steps_to_resume)
         self._paused &= ~resumed
         self._stable_steps = torch.where(resumed, torch.zeros_like(self._stable_steps), self._stable_steps)
+        paused = self._paused | timeout_unsafe
 
         limits = self.limits.residual_limits.to(device=raw_residual.device, dtype=raw_residual.dtype)
         residual = torch.maximum(torch.minimum(raw_residual, limits), -limits)
@@ -102,7 +107,7 @@ class SafetyFilter:
         )
         if force_zero_residual:
             residual = torch.zeros_like(residual)
-        residual_guard = self._paused | contact_active | tilt_guard
+        residual_guard = paused | contact_active | tilt_guard
         residual = torch.where(residual_guard, torch.zeros_like(residual), residual)
 
         normalized_action = base_action + residual
@@ -115,7 +120,7 @@ class SafetyFilter:
         projected_action = torch.where(state.action_scale.abs() > 1e-8, projected_action, normalized_action)
         paused_projected_action = projected_action
         accepted_residual = projected_action - base_action
-        accepted_residual = torch.where(self._paused, torch.zeros_like(accepted_residual), accepted_residual)
+        accepted_residual = torch.where(paused, torch.zeros_like(accepted_residual), accepted_residual)
         if force_zero_residual:
             accepted_residual = torch.where(
                 accepted_residual.abs() <= 1.0e-6,
@@ -123,7 +128,7 @@ class SafetyFilter:
                 accepted_residual,
             )
         projected_action = base_action + accepted_residual
-        projected_action = torch.where(self._paused, paused_projected_action, projected_action)
+        projected_action = torch.where(paused, paused_projected_action, projected_action)
 
         changed = (
             (accepted_residual - raw_residual).abs().amax(dim=-1, keepdim=True) > 1e-7
@@ -144,7 +149,7 @@ class SafetyFilter:
         return SafetyDecision(
             action=projected_action,
             residual=accepted_residual,
-            paused=self._paused.clone(),
+            paused=paused.clone(),
             projected=changed,
             reasons=tuple(reasons),
         )

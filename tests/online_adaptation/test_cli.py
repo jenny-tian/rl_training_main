@@ -5,6 +5,7 @@ from scripts.reinforcement_learning.online_adaptation.cli import (
     build_play_parser,
     build_qualify_parser,
     build_deployment_qualify_parser,
+    build_flat_online_curriculum_parser,
     build_train_parser,
 )
 
@@ -15,6 +16,8 @@ def test_train_defaults_keep_heldout_task_out_of_pretraining():
     assert "HeldoutBoxes" not in args.task
     assert args.min_replay_size == 256
     assert args.replay_capacity == 10_000
+    assert args.terrain_feature_source == "geometry"
+    assert args.terrain_min_valid_fraction == 0.90
 
 
 def test_train_can_resume_residual_checkpoint():
@@ -100,7 +103,7 @@ def test_play_defaults_configure_novelty_gated_actor_updates():
     )
 
     assert args.updates_per_second == 5.0
-    assert args.actor_updates_per_second == 1.0
+    assert args.actor_updates_per_second == 2.0
     assert args.novelty_calibration_steps == 256
     assert args.novelty_enter_threshold == 2.5
     assert args.novelty_exit_threshold == 1.0
@@ -108,11 +111,150 @@ def test_play_defaults_configure_novelty_gated_actor_updates():
     assert args.novelty_enter_window == 20
     assert args.novelty_recovery_steps == 100
     assert args.adaptation_min_replay_size == 128
+    assert args.stalled_actor_replay_stride == 16
     assert args.rollback_window == 50
-    assert args.rollback_patience == 2
+    assert args.rollback_patience == 4
     assert args.rollback_degradation_ratio == 0.10
     assert args.stable_improvement_ratio == 0.05
     assert args.adaptation_cooldown_steps == 100
+    assert args.flat_fraction_ready == 0.25
+    assert args.flat_anchor_weight == 0.5
+    assert args.max_policy_residual_mse is None
+    assert args.adapting_residual_gain == 0.5
+    assert args.residual_rate_limit == 0.03
+    assert args.adapting_stochastic_control is True
+    assert args.max_critic_loss == 800.0
+    assert args.max_mean_td_error == 10.0
+    assert args.max_critic_grad_norm == 3_000.0
+    assert args.critic_huber_delta is None
+    assert args.post_step_residual_gain == 0.25
+    assert args.post_step_recovery_steps == 25
+    assert args.post_step_stability_weight == 3.0
+    assert args.post_step_progress_weight == 2.0
+    assert args.stall_penalty_weight == 2.0
+    assert args.completion_bonus == 5.0
+    assert args.pre_step_clearance_weight == 4.0
+    assert args.pre_step_clearance_target == 0.045
+    assert args.pre_step_approach_distance == 0.50
+    assert args.require_track_completion is False
+    assert args.terrain_feature_source == "geometry"
+    assert args.terrain_min_valid_fraction == 0.90
+
+
+def test_play_parser_accepts_height_scan_configuration():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--terrain-feature-source", "height_scan",
+            "--terrain-min-valid-fraction", "0.8",
+        ]
+    )
+    assert args.terrain_feature_source == "height_scan"
+    assert args.terrain_min_valid_fraction == 0.8
+
+
+@pytest.mark.parametrize("value", ["0", "-0.1", "1.1", "nan", "inf"])
+def test_play_parser_rejects_invalid_height_scan_fraction(value):
+    with pytest.raises(SystemExit):
+        build_play_parser().parse_args(
+            [
+                "--base-checkpoint", "base.pt",
+                "--experiment-checkpoint-out", "experiment.pt",
+                "--terrain-min-valid-fraction", value,
+            ]
+        )
+
+
+def test_curriculum_parser_keeps_height_scan_overrides_optional():
+    args = build_flat_online_curriculum_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt", "--base-manifest", "base.json",
+            "--output-dir", "run", "--flat-replay", "flat.pt",
+            "--terrain-feature-source", "height_scan",
+            "--terrain-min-valid-fraction", "0.8",
+        ]
+    )
+    assert args.terrain_feature_source == "height_scan"
+    assert args.terrain_min_valid_fraction == 0.8
+
+
+def test_play_parser_accepts_an_explicit_policy_residual_mse_limit():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--residual-checkpoint", "residual.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--max-policy-residual-mse", "0.125",
+        ]
+    )
+
+    assert args.max_policy_residual_mse == 0.125
+
+
+def test_play_parser_rejects_negative_policy_residual_mse_limit():
+    with pytest.raises(SystemExit):
+        build_play_parser().parse_args(
+            [
+                "--base-checkpoint", "base.pt",
+                "--residual-checkpoint", "residual.pt",
+                "--experiment-checkpoint-out", "experiment.pt",
+                "--max-policy-residual-mse", "-0.1",
+            ]
+        )
+
+
+def test_curriculum_parser_accepts_optional_policy_residual_mse_limit():
+    args = build_flat_online_curriculum_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--base-manifest", "base.json",
+            "--output-dir", "run",
+            "--flat-replay", "flat.pt",
+            "--max-policy-residual-mse", "0.125",
+        ]
+    )
+
+    assert args.max_policy_residual_mse == 0.125
+
+
+def test_play_parser_can_disable_adapting_exploration():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--no-adapting-stochastic-control",
+        ]
+    )
+
+    assert args.adapting_stochastic_control is False
+
+
+def test_play_parser_exposes_explicit_strict_completion_flag():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--residual-checkpoint", "residual.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--novelty-baseline-in", "baseline.json",
+            "--novelty-baseline-sha256", "a" * 64,
+            "--require-track-completion",
+        ]
+    )
+
+    assert args.require_track_completion is True
+
+
+def test_play_parser_keeps_retention_probe_separate_from_strict_completion():
+    with pytest.raises(SystemExit):
+        build_play_parser().parse_args(
+            [
+                "--base-checkpoint", "base.pt",
+                "--mode", "base",
+                "--flat-retention-probe",
+                "--require-track-completion",
+            ]
+        )
 
 
 def test_play_parser_accepts_curriculum_worker_arguments():
@@ -123,6 +265,9 @@ def test_play_parser_accepts_curriculum_worker_arguments():
             "--protocol-sha256", "HASH", "--experiment-checkpoint-in", "in.pt",
             "--experiment-checkpoint-out", "out.pt", "--flat-replay", "flat.pt",
             "--flat-anchor-weight", "2.0", "--n-step", "3",
+            "--target-q-min", "-1000", "--target-q-max", "500",
+            "--critic-huber-delta", "1.0",
+            "--deterministic-actor-weight", "0.25",
             "--residual-gain", "0.25",
         ]
     )
@@ -130,6 +275,51 @@ def test_play_parser_accepts_curriculum_worker_arguments():
     assert args.terrain_seed == 101
     assert args.n_step == 3
     assert args.residual_gain == 0.25
+    assert args.target_q_min == -1000.0
+    assert args.target_q_max == 500.0
+    assert args.critic_huber_delta == 1.0
+    assert args.deterministic_actor_weight == 0.25
+
+
+def test_play_parser_allows_online_updates_on_an_explicit_sealed_split():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--residual-checkpoint", "residual.pt",
+            "--mode", "online",
+            "--experiment-checkpoint-out", "out.pt",
+            "--terrain-split", "sealed",
+            "--terrain-seed", "1009",
+        ]
+    )
+
+    assert args.terrain_split == "sealed"
+    assert args.evaluation_only is False
+
+
+def test_play_parser_keeps_evaluation_only_sealed_default():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--mode", "base",
+            "--evaluation-only",
+            "--terrain-seed", "1009",
+        ]
+    )
+
+    assert args.terrain_split == "sealed"
+
+
+def test_play_parser_rejects_seed_outside_explicit_split():
+    with pytest.raises(SystemExit):
+        build_play_parser().parse_args(
+            [
+                "--base-checkpoint", "base.pt",
+                "--mode", "base",
+                "--terrain-split", "sealed",
+                "--terrain-seed", "101",
+            ]
+        )
 
 
 @pytest.mark.parametrize(

@@ -10,7 +10,6 @@ from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
-from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from scripts.reinforcement_learning.online_adaptation.cli import build_qualify_parser
 from rl_training.online_adaptation.terrain_guards import assert_plane_only_terrain, is_strict_flat_baseline_task
 
@@ -93,8 +92,12 @@ def _run_single_seed(args) -> int:
         from isaaclab_tasks.utils import load_cfg_from_registry, parse_env_cfg
 
         import rl_training.tasks  # noqa: F401
+        from rl_training.lite3_joint_conventions import clip_lite3_policy_action
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
-        from rl_training.online_adaptation.rsl_rl_compat import prepare_rsl_rl_agent_cfg
+        from rl_training.online_adaptation.rsl_rl_compat import (
+            load_frozen_rsl_rl_checkpoint,
+            prepare_rsl_rl_agent_cfg,
+        )
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
 
         seed = args.seeds[0]
@@ -109,7 +112,7 @@ def _run_single_seed(args) -> int:
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
         try:
             runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
-            runner.load(args.base_checkpoint)
+            checkpoint_load = load_frozen_rsl_rl_checkpoint(runner, args.base_checkpoint)
             policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
             adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped)
             action_limits = torch.tensor([0.24, 0.20, 0.20] * 4, device=wrapped_env.unwrapped.device)

@@ -6,6 +6,10 @@ import pytest
 
 from rl_training.online_adaptation.acceptance import evaluate_flat_online_experiment
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+from scripts.reinforcement_learning.online_adaptation.evaluate_flat_online_curriculum import (
+    _flat_aggregate,
+    _worker_command,
+)
 
 
 def mode_records():
@@ -46,6 +50,98 @@ def flat_record(**overrides):
     }
     value.update(overrides)
     return value
+
+
+def _formal_configuration():
+    return {
+        "selected_configuration": {
+            "base_checkpoint": "base.pt",
+            "target_configuration": {},
+        },
+        "inputs": {"experiment_checkpoint": {"path": "experiment.pt"}},
+        "protocol_sha256": default_flat_online_protocol().sha256(),
+    }
+
+
+def test_sealed_challenges_require_full_track_but_flat_probes_do_not(tmp_path):
+    strict = _worker_command(
+        formal=_formal_configuration(),
+        mode="learned_frozen",
+        seed=1009,
+        run_dir=tmp_path / "strict",
+        device="cuda:0",
+        headless=True,
+    )
+    flat = _worker_command(
+        formal=_formal_configuration(),
+        mode="learned_frozen",
+        seed=7,
+        run_dir=tmp_path / "flat",
+        device="cuda:0",
+        headless=True,
+        flat_probe=True,
+    )
+
+    assert "--require-track-completion" in strict
+    assert strict[strict.index("--terrain-stage") + 1] == "rough_4cm"
+    assert "--require-track-completion" not in flat
+    assert "--flat-retention-probe" in flat
+
+
+def test_sealed_worker_forwards_frozen_policy_residual_mse_limit(tmp_path):
+    formal = _formal_configuration()
+    formal["selected_configuration"]["target_configuration"] = {
+        "max_policy_residual_mse": 0.125,
+    }
+
+    command = _worker_command(
+        formal=formal,
+        mode="learned_frozen",
+        seed=1009,
+        run_dir=tmp_path / "strict",
+        device="cuda:0",
+        headless=True,
+    )
+
+    assert command[command.index("--max-policy-residual-mse") + 1] == "0.125"
+
+
+def test_sealed_worker_forwards_height_scan_configuration_from_formal_target(tmp_path):
+    formal = _formal_configuration()
+    formal["selected_configuration"]["target_configuration"] = {
+        "terrain_feature_source": "height_scan",
+        "terrain_min_valid_fraction": 0.8,
+    }
+    command = _worker_command(
+        formal=formal,
+        mode="learned_frozen",
+        seed=1009,
+        run_dir=tmp_path / "strict",
+        device="cuda:0",
+        headless=True,
+    )
+    assert command[command.index("--terrain-feature-source") + 1] == "height_scan"
+    assert command[command.index("--terrain-min-valid-fraction") + 1] == "0.8"
+
+
+def test_flat_aggregate_rejects_strict_completion_evidence():
+    summary = {
+        "passed": True,
+        "fell": False,
+        "completion_mode": "disabled",
+        "completion_reached": False,
+        "completion_target_x": None,
+        "completion_remaining_m": None,
+        "second_half_velocity_error": 0.1,
+        "second_half_tilt_rms": 0.05,
+        "contacts": 0,
+    }
+    summaries = [dict(summary) for _ in range(5)]
+
+    assert _flat_aggregate(summaries)["completion_rate"] == 1.0
+    summaries[0]["completion_mode"] = "full_track_v1"
+    with pytest.raises(RuntimeError):
+        _flat_aggregate(summaries)
 
 
 def test_strict_acceptance_requires_all_confirmed_thresholds():

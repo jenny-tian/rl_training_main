@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from rl_training.online_adaptation import rsl_rl_compat
 from rl_training.online_adaptation.rsl_rl_compat import (
     freeze_rsl_rl_models,
+    load_frozen_rsl_rl_checkpoint,
     prepare_rsl_rl_agent_cfg,
 )
 
@@ -20,7 +21,7 @@ def test_split_rsl_rl_endings_marks_terminal_rows_without_bootstrap():
     assert torch.equal(bootstrap_mask, torch.tensor([[False], [True]]))
 
 
-def test_split_rsl_rl_endings_marks_timeout_as_bootstrapping_truncation():
+def test_split_rsl_rl_endings_does_not_bootstrap_timeout_from_post_reset_observation():
     terminated, truncated, bootstrap_mask = rsl_rl_compat.split_rsl_rl_endings(
         torch.tensor([True]),
         {"time_outs": torch.tensor([True])},
@@ -28,7 +29,28 @@ def test_split_rsl_rl_endings_marks_timeout_as_bootstrapping_truncation():
 
     assert torch.equal(terminated, torch.tensor([[False]]))
     assert torch.equal(truncated, torch.tensor([[True]]))
+    assert torch.equal(bootstrap_mask, torch.tensor([[False]]))
+
+
+def test_split_rsl_rl_endings_can_bootstrap_timeout_with_terminal_observation():
+    terminated, truncated, bootstrap_mask = rsl_rl_compat.split_rsl_rl_endings(
+        torch.tensor([True]),
+        {"time_outs": torch.tensor([True])},
+        bootstrap_timeouts=True,
+    )
+
+    assert torch.equal(terminated, torch.tensor([[False]]))
+    assert torch.equal(truncated, torch.tensor([[True]]))
     assert torch.equal(bootstrap_mask, torch.tensor([[True]]))
+
+
+def test_split_rsl_rl_endings_rejects_non_boolean_timeout_bootstrap_mode():
+    with pytest.raises(TypeError, match="bootstrap_timeouts"):
+        rsl_rl_compat.split_rsl_rl_endings(
+            torch.tensor([False]),
+            {"time_outs": torch.tensor([False])},
+            bootstrap_timeouts=1,
+        )
 
 
 @pytest.mark.parametrize(
@@ -75,3 +97,23 @@ def test_freeze_rsl_rl_models_supports_separate_actor_and_critic():
     assert frozen == (actor, critic)
     assert all(not parameter.requires_grad for module in frozen for parameter in module.parameters())
     assert all(not module.training for module in frozen)
+
+
+def test_load_frozen_checkpoint_skips_mismatched_privileged_critic(tmp_path):
+    actor = torch.nn.Linear(2, 1)
+    critic = torch.nn.Linear(3, 1)
+    expected_actor = {key: value.detach().clone() + 1.0 for key, value in actor.state_dict().items()}
+    checkpoint = tmp_path / "ppo.pt"
+    torch.save(
+        {
+            "actor_state_dict": expected_actor,
+            "critic_state_dict": {"weight": torch.zeros(1, 4), "bias": torch.zeros(1)},
+        },
+        checkpoint,
+    )
+    runner = SimpleNamespace(alg=SimpleNamespace(actor=actor, critic=critic))
+
+    result = load_frozen_rsl_rl_checkpoint(runner, str(checkpoint))
+
+    assert result == {"actor_loaded": True, "critic_loaded": False, "critic_skipped": True}
+    assert all(torch.equal(actor.state_dict()[key], value) for key, value in expected_actor.items())

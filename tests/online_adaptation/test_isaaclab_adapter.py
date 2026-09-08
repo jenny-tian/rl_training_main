@@ -8,6 +8,10 @@ from rl_training.online_adaptation.isaaclab_adapter import (
     Lite3IsaacLabAdapter,
     compose_proprio_frame,
 )
+from rl_training.online_adaptation.terrain_observation import (
+    HeightScanConfig,
+    summarize_height_scan,
+)
 
 pytestmark = pytest.mark.isaaclab
 
@@ -83,6 +87,7 @@ def test_reward_signals_use_articulation_foot_indices_for_foot_speed():
                 (torch.full((1, 12), -1.0), torch.full((1, 12), 1.0)), dim=-1
             ),
             body_lin_vel_w=body_lin_vel_w,
+            body_pos_w=torch.zeros(1, len(robot_body_names), 3),
             root_lin_vel_b=torch.zeros(1, 3),
             root_ang_vel_b=torch.zeros(1, 3),
             projected_gravity_b=torch.tensor([[0.0, 0.0, -1.0]]),
@@ -121,4 +126,190 @@ def test_reward_signals_use_articulation_foot_indices_for_foot_speed():
 
     adapter = Lite3IsaacLabAdapter(env)
 
-    assert adapter.reward_signals().foot_slip.item() == pytest.approx(2.5)
+    signals = adapter.reward_signals()
+
+    assert signals.foot_slip.item() == pytest.approx(2.5)
+    assert signals.foot_height.shape == (1, 4)
+    assert signals.foot_contact.tolist() == [[1.0, 1.0, 1.0, 1.0]]
+
+
+def test_contact_diagnostics_preserve_peak_force_and_body_name():
+    env = _height_scan_env(include_scanner=False)
+    callbacks = []
+    env.add_pre_reset_callback = callbacks.append
+    sensor = env.scene.sensors["contact_forces"]
+    sensor.data.net_forces_w[0, 2, 0] = 3.0
+    sensor.data.net_forces_w[0, 6, 1] = 8.0
+
+    adapter = Lite3IsaacLabAdapter(env)
+    diagnostics = adapter.observe_nonfoot_contact()
+    callbacks[0]([0])
+    sensor.data.net_forces_w.zero_()
+
+    assert diagnostics == {
+        "max_nonfoot_contact_force_n": 8.0,
+        "max_nonfoot_contact_body": "FR_THIGH",
+    }
+    assert adapter.contact_diagnostics() == {
+        "episode_max_nonfoot_contact_force_n": 8.0,
+        "episode_max_nonfoot_contact_body": "FR_THIGH",
+        "terminal_nonfoot_contact_force_n": 8.0,
+        "terminal_nonfoot_contact_body": "FR_THIGH",
+    }
+
+
+def _height_scan_env(*, include_scanner=True, ray_hits_w=None):
+    robot_body_names = [
+        "TORSO",
+        "FL_HIP",
+        "FR_HIP",
+        "HL_HIP",
+        "HR_HIP",
+        "FL_THIGH",
+        "FR_THIGH",
+        "HL_THIGH",
+        "HR_THIGH",
+        "FL_SHANK",
+        "FR_SHANK",
+        "HL_SHANK",
+        "HR_SHANK",
+        "FL_FOOT",
+        "FR_FOOT",
+        "HL_FOOT",
+        "HR_FOOT",
+    ]
+    robot = SimpleNamespace(
+        data=SimpleNamespace(
+            joint_pos=torch.zeros(1, 12),
+            default_joint_pos=torch.zeros(1, 12),
+            soft_joint_pos_limits=torch.stack(
+                (torch.full((1, 12), -1.0), torch.full((1, 12), 1.0)), dim=-1
+            ),
+            body_lin_vel_w=torch.zeros(1, len(robot_body_names), 3),
+            body_pos_w=torch.zeros(1, len(robot_body_names), 3),
+            root_lin_vel_b=torch.zeros(1, 3),
+            root_ang_vel_b=torch.zeros(1, 3),
+            projected_gravity_b=torch.tensor([[0.0, 0.0, -1.0]]),
+            root_pos_w=torch.tensor([[0.0, 0.0, 1.0]]),
+            joint_vel=torch.zeros(1, 12),
+            applied_torque=torch.zeros(1, 12),
+        ),
+    )
+    robot.find_joints = lambda names, preserve_order: (list(range(12)), names)
+    robot.find_bodies = lambda pattern: (
+        ([13, 14, 15, 16], ["FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"])
+        if pattern == ".*_FOOT"
+        else (list(range(13)), robot_body_names[:13])
+    )
+    contact_sensor = SimpleNamespace(
+        data=SimpleNamespace(net_forces_w=torch.zeros(1, len(robot_body_names), 3)),
+        find_bodies=lambda pattern: (
+            ([13, 14, 15, 16], ["FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"])
+            if pattern == ".*_FOOT"
+            else (list(range(13)), robot_body_names[:13])
+        ),
+    )
+    sensors = {"contact_forces": contact_sensor}
+    if include_scanner:
+        if ray_hits_w is None:
+            ray_hits_w = torch.ones(1, 4, 3)
+            ray_hits_w[..., 2] = torch.tensor([[[1.0, 1.1], [1.2, 1.3]]]).reshape(-1)
+        sensors["height_scanner"] = SimpleNamespace(
+            data=SimpleNamespace(
+                ray_hits_w=ray_hits_w,
+                pos_w=torch.tensor([[0.0, 0.0, 1.0]]),
+            )
+        )
+
+    class Scene:
+        def __init__(self):
+            self.sensors = sensors
+
+        def __getitem__(self, name):
+            assert name == "robot"
+            return robot
+
+    return SimpleNamespace(
+        scene=Scene(),
+        command_manager=SimpleNamespace(get_command=lambda _: torch.zeros(1, 3)),
+        cfg=SimpleNamespace(track_boundary_x=-7.0),
+    )
+
+
+def test_height_scan_source_appends_summary_and_reports_validity():
+    relative = torch.tensor([[[0.0, 0.1], [0.2, 0.3]]])
+    ray_hits = torch.zeros(1, 4, 3)
+    ray_hits[..., 2] = (relative + 1.0).reshape(1, 4)
+    adapter = Lite3IsaacLabAdapter(
+        _height_scan_env(ray_hits_w=ray_hits),
+        terrain_feature_source="height_scan",
+        height_scan_config=HeightScanConfig(rows=2, cols=2),
+    )
+
+    frame = adapter.frame(torch.zeros(1, 12))
+
+    assert frame.shape == (1, 59)
+    expected, _ = summarize_height_scan(
+        relative,
+        HeightScanConfig(rows=2, cols=2),
+    )
+    torch.testing.assert_close(frame[:, 49:], expected)
+    assert adapter.terrain_valid.tolist() == [[True]]
+    assert adapter.terrain_metadata()["terrain_feature_source"] == "height_scan"
+
+
+def test_height_scan_missing_sensor_fails_closed():
+    adapter = Lite3IsaacLabAdapter(
+        _height_scan_env(include_scanner=False),
+        terrain_feature_source="height_scan",
+        height_scan_config=HeightScanConfig(rows=2, cols=2),
+    )
+
+    frame = adapter.frame(torch.zeros(1, 12))
+
+    assert frame.shape == (1, 59)
+    assert torch.equal(frame[:, 49:], torch.zeros(1, 10))
+    assert adapter.terrain_valid.tolist() == [[False]]
+
+
+def test_height_scan_low_valid_fraction_fails_closed():
+    relative = torch.tensor([[[float("nan"), 0.1], [0.2, 0.3]]])
+    ray_hits = torch.zeros(1, 4, 3)
+    ray_hits[..., 2] = (relative + 1.0).reshape(1, 4)
+    adapter = Lite3IsaacLabAdapter(
+        _height_scan_env(ray_hits_w=ray_hits),
+        terrain_feature_source="height_scan",
+        height_scan_config=HeightScanConfig(rows=2, cols=2, min_valid_fraction=1.0),
+    )
+
+    frame = adapter.frame(torch.zeros(1, 12))
+
+    assert torch.equal(frame[:, 49:], torch.zeros(1, 10))
+    assert adapter.terrain_valid.tolist() == [[False]]
+
+
+def test_geometry_source_preserves_legacy_frame_without_scanner():
+    adapter = Lite3IsaacLabAdapter(_height_scan_env(include_scanner=False))
+
+    frame = adapter.frame(torch.zeros(1, 12))
+
+    assert frame.shape == (1, 49)
+    assert adapter.terrain_valid.tolist() == [[True]]
+    assert adapter.terrain_metadata()["terrain_feature_source"] == "geometry"
+
+
+def test_adapter_rejects_unknown_terrain_feature_source():
+    with pytest.raises(ValueError, match="terrain_feature_source"):
+        Lite3IsaacLabAdapter(
+            _height_scan_env(),
+            terrain_feature_source="unknown",
+        )
+
+
+def test_proprio_feature_source_keeps_49_dimensional_frame_on_step_geometry():
+    env = _height_scan_env(include_scanner=False)
+    env.cfg.track_boundary_x = -7.0
+    adapter = Lite3IsaacLabAdapter(env, step_height=0.02, terrain_feature_source="proprio")
+    frame = adapter.frame(torch.zeros(1, 12))
+    assert frame.shape == (1, 49)
+    assert adapter.terrain_metadata()["terrain_feature_source"] == "proprio"

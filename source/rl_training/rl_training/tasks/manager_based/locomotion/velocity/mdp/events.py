@@ -10,7 +10,10 @@ import torch
 from typing import TYPE_CHECKING, Literal
 
 import isaaclab.utils.math as math_utils
-from rl_training.lite3_stability_contract import projected_gravity_xy_is_unsafe
+from rl_training.lite3_stability_contract import (
+    projected_gravity_xy_is_unsafe,
+    sustained_contact_confirmation,
+)
 from isaaclab.assets import Articulation, RigidObject
 from isaaclab.envs.mdp import illegal_contact as _isaac_illegal_contact
 from isaaclab.managers import SceneEntityCfg
@@ -248,11 +251,33 @@ def bad_orientation_2(
 
 
 def startup_aware_illegal_contact(
-    env: ManagerBasedEnv, threshold: float, sensor_cfg: SceneEntityCfg
+    env: ManagerBasedEnv,
+    threshold: float,
+    sensor_cfg: SceneEntityCfg,
+    consecutive_steps: int = 1,
 ) -> torch.Tensor:
+    counter_name = "_lite3_illegal_contact_consecutive_counts"
     if bool(getattr(env, "startup_active", False)):
+        setattr(
+            env,
+            counter_name,
+            torch.zeros(env.num_envs, dtype=torch.int64, device=env.device),
+        )
         return torch.zeros(env.num_envs, dtype=torch.bool, device=env.device)
-    return _isaac_illegal_contact(env, threshold=threshold, sensor_cfg=sensor_cfg)
+    contact = _isaac_illegal_contact(env, threshold=threshold, sensor_cfg=sensor_cfg)
+    previous_count = getattr(env, counter_name, None)
+    if previous_count is None or previous_count.shape != contact.shape:
+        previous_count = torch.zeros_like(contact, dtype=torch.int64)
+    episode_length = getattr(env, "episode_length_buf", None)
+    if isinstance(episode_length, torch.Tensor) and episode_length.shape == contact.shape:
+        previous_count = torch.where(
+            episode_length <= 1, torch.zeros_like(previous_count), previous_count
+        )
+    next_count, confirmed = sustained_contact_confirmation(
+        contact, previous_count, consecutive_steps
+    )
+    setattr(env, counter_name, next_count)
+    return confirmed
 
 
 def startup_aware_bad_orientation_2(

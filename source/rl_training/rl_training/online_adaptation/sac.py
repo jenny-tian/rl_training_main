@@ -22,6 +22,12 @@ class CandidateActorRejected(RuntimeError):
     pass
 
 
+class _CriticUpdateRejected(RuntimeError):
+    def __init__(self, reason: str):
+        super().__init__(reason)
+        self.reason = reason
+
+
 @dataclass(frozen=True)
 class SACConfig:
     gamma: float = 0.99
@@ -32,6 +38,13 @@ class SACConfig:
     target_entropy: float = -6.0
     max_grad_norm: float = 1.0
     flat_anchor_weight: float = 0.0
+    max_critic_loss: float | None = None
+    max_mean_td_error: float | None = None
+    max_critic_grad_norm: float | None = None
+    target_q_min: float | None = None
+    target_q_max: float | None = None
+    critic_huber_delta: float | None = None
+    deterministic_actor_weight: float = 0.0
 
     def __post_init__(self) -> None:
         if (
@@ -41,6 +54,41 @@ class SACConfig:
             or self.flat_anchor_weight < 0.0
         ):
             raise ValueError("flat_anchor_weight must be finite and nonnegative")
+        for name in (
+            "max_critic_loss",
+            "max_mean_td_error",
+            "max_critic_grad_norm",
+            "critic_huber_delta",
+        ):
+            value = getattr(self, name)
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not isfinite(value)
+                or value <= 0.0
+            ):
+                raise ValueError(f"{name} must be finite and positive when configured")
+        for name in ("target_q_min", "target_q_max"):
+            value = getattr(self, name)
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not isfinite(value)
+            ):
+                raise ValueError(f"{name} must be finite when configured")
+        if (
+            self.target_q_min is not None
+            and self.target_q_max is not None
+            and self.target_q_min >= self.target_q_max
+        ):
+            raise ValueError("target_q_min must be less than target_q_max")
+        if (
+            isinstance(self.deterministic_actor_weight, bool)
+            or not isinstance(self.deterministic_actor_weight, (int, float))
+            or not isfinite(self.deterministic_actor_weight)
+            or self.deterministic_actor_weight < 0.0
+        ):
+            raise ValueError("deterministic_actor_weight must be finite and nonnegative")
 
 
 def compute_sac_target(
@@ -84,21 +132,30 @@ class SACUpdater:
     def _parameters_are_finite(module: nn.Module) -> bool:
         return all(torch.isfinite(parameter).all().item() for parameter in module.parameters())
 
-    def _rejected_stats(self, reason: str) -> UpdateStats:
+    def _rejected_stats(
+        self,
+        reason: str,
+        *,
+        critic_loss: float = 0.0,
+        mean_q: float = 0.0,
+        grad_norm: float = 0.0,
+        mean_target_q: float | None = None,
+        mean_td_error: float | None = None,
+    ) -> UpdateStats:
         return UpdateStats(
-            critic_loss=0.0,
+            critic_loss=critic_loss,
             actor_loss=0.0,
             alpha_loss=0.0,
             alpha=float(self.alpha.detach()),
-            mean_q=0.0,
-            grad_norm=0.0,
+            mean_q=mean_q,
+            grad_norm=grad_norm,
             accepted=False,
             version=self.version,
             critic_updated=False,
             actor_updated=False,
             rejection_reason=reason,
-            mean_target_q=None,
-            mean_td_error=None,
+            mean_target_q=mean_target_q,
+            mean_td_error=mean_td_error,
             mean_flat_q=None,
             mean_online_q=None,
             flat_anchor_loss=None,
@@ -118,6 +175,7 @@ class SACUpdater:
         if not self._batch_is_finite(critic_batch):
             return self._rejected_stats("nonfinite_batch")
         before = copy.deepcopy(self.state_dict())
+        critic_grad_norm = torch.zeros((), device=next(self.critic.parameters()).device)
         if update_actor and actor_batch is None:
             actor_batch = critic_batch
 
@@ -141,6 +199,11 @@ class SACUpdater:
                     next_q=torch.minimum(target_q1, target_q2),
                     alpha_log_prob=self.alpha.detach() * next_log_prob,
                 )
+                if self.config.target_q_min is not None or self.config.target_q_max is not None:
+                    target = target.clamp(
+                        min=self.config.target_q_min,
+                        max=self.config.target_q_max,
+                    )
 
             q1, q2 = self.critic(
                 critic_batch.history,
@@ -148,14 +211,39 @@ class SACUpdater:
                 critic_batch.base_action,
                 critic_batch.residual_action,
             )
-            critic_loss = F.mse_loss(q1, target) + F.mse_loss(q2, target)
+            if self.config.critic_huber_delta is None:
+                critic_loss = F.mse_loss(q1, target) + F.mse_loss(q2, target)
+            else:
+                critic_loss = F.huber_loss(
+                    q1, target, delta=self.config.critic_huber_delta
+                ) + F.huber_loss(
+                    q2, target, delta=self.config.critic_huber_delta
+                )
             if not torch.isfinite(critic_loss).item():
                 raise FloatingPointError
+            mean_td_error = (target - torch.minimum(q1, q2)).abs().mean()
+            if not torch.isfinite(mean_td_error).item():
+                raise FloatingPointError
+            if (
+                self.config.max_critic_loss is not None
+                and float(critic_loss.detach()) > self.config.max_critic_loss
+            ):
+                raise _CriticUpdateRejected("critic_loss_limit")
+            if (
+                self.config.max_mean_td_error is not None
+                and float(mean_td_error.detach()) > self.config.max_mean_td_error
+            ):
+                raise _CriticUpdateRejected("mean_td_error_limit")
             self.critic_optimizer.zero_grad(set_to_none=True)
             critic_loss.backward()
             critic_grad_norm = torch.nn.utils.clip_grad_norm_(self.critic.parameters(), self.config.max_grad_norm)
             if not torch.isfinite(critic_grad_norm).item() or not self._gradients_are_finite(self.critic):
                 raise FloatingPointError
+            if (
+                self.config.max_critic_grad_norm is not None
+                and float(critic_grad_norm.detach()) > self.config.max_critic_grad_norm
+            ):
+                raise _CriticUpdateRejected("critic_grad_norm_limit")
             self.critic_optimizer.step()
 
             actor_loss = torch.full((), float("nan"), device=q1.device)
@@ -183,6 +271,22 @@ class SACUpdater:
                     residual,
                 )
                 actor_loss = (self.alpha.detach() * log_prob - torch.minimum(actor_q1, actor_q2)).mean()
+                if self.config.deterministic_actor_weight > 0.0:
+                    deterministic_residual, _, _ = self.actor.sample(
+                        actor_batch.history,
+                        actor_batch.current_frame,
+                        actor_batch.base_action,
+                        deterministic=True,
+                    )
+                    deterministic_q1, deterministic_q2 = self.critic(
+                        actor_batch.history,
+                        actor_batch.current_frame,
+                        actor_batch.base_action,
+                        deterministic_residual,
+                    )
+                    actor_loss = actor_loss - self.config.deterministic_actor_weight * torch.minimum(
+                        deterministic_q1, deterministic_q2
+                    ).mean()
                 if flat_anchor_batch is not None:
                     _, _, flat_mean = self.actor.sample(
                         flat_anchor_batch.history,
@@ -230,6 +334,17 @@ class SACUpdater:
                     target_parameter.lerp_(parameter, self.config.tau)
             if not self._parameters_are_finite(self.target_critic):
                 raise FloatingPointError
+        except _CriticUpdateRejected as error:
+            self.critic.requires_grad_(True)
+            self.load_state_dict(before)
+            return self._rejected_stats(
+                error.reason,
+                critic_loss=float(critic_loss.detach()),
+                mean_q=float(torch.minimum(q1, q2).mean().detach()),
+                grad_norm=float(critic_grad_norm.detach()),
+                mean_target_q=float(target.mean().detach()),
+                mean_td_error=float(mean_td_error.detach()),
+            )
         except FloatingPointError:
             self.critic.requires_grad_(True)
             self.load_state_dict(before)
@@ -267,9 +382,7 @@ class SACUpdater:
             actor_updated=update_actor,
             rejection_reason=None,
             mean_target_q=float(target.mean().detach()),
-            mean_td_error=float(
-                (target - torch.minimum(q1, q2)).abs().mean().detach()
-            ),
+            mean_td_error=float(mean_td_error.detach()),
             mean_flat_q=None,
             mean_online_q=None,
             flat_anchor_loss=(

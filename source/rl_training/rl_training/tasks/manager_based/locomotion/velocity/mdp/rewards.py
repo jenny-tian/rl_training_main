@@ -1219,7 +1219,11 @@ def feet_air_time_ang_z_cmd_M20(
     return reward * get_gait_level_tensor(env)
 
 def feet_air_time_including_ang_z(
-    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    threshold: float,
+    command_threshold: float = 0.1,
 ) -> torch.Tensor:
     """Reward long steps taken by the feet using L2-kernel.
 
@@ -1236,7 +1240,7 @@ def feet_air_time_including_ang_z(
     last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
     reward = torch.sum((last_air_time - threshold) * first_contact, dim=1)
     # no reward for zero command
-    reward *= torch.norm(env.command_manager.get_command(command_name), dim=1) > 0.1
+    reward *= torch.norm(env.command_manager.get_command(command_name), dim=1) > command_threshold
     # reward *= torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1) > 0.1
     return reward
 

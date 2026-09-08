@@ -401,6 +401,26 @@ def _validate_final_pair(replay_path: Path, manifest_path: Path) -> None:
         raise RuntimeError("final replay does not match its manifest")
 
 
+def _validate_final_publication(
+    replay_path: Path, manifest_path: Path, ready_path: Path
+) -> None:
+    _validate_final_pair(replay_path, manifest_path)
+    if _regular_entry_state(ready_path) != "regular":
+        raise RuntimeError(
+            f"final artifact must be a regular non-symlink file: {ready_path.name}"
+        )
+    ready = _read_json_object(ready_path, "final publication READY journal")
+    if set(ready) != _READY_KEYS or ready.get("schema_version") != 1:
+        raise RuntimeError("final publication READY journal has an invalid schema")
+    manifest_hash = sha256_file(manifest_path)
+    manifest = _read_json_object(manifest_path, "final flat replay manifest")
+    if (
+        ready.get("replay_sha256") != manifest.get("replay_sha256")
+        or ready.get("manifest_sha256") != manifest_hash
+    ):
+        raise RuntimeError("final publication READY journal does not match its artifacts")
+
+
 def _remove_stage(stage: Path, output_dir: Path) -> None:
     shutil.rmtree(stage)
     _fsync_directory(output_dir)
@@ -420,19 +440,26 @@ def recover_incomplete_publication(output_dir: str | Path) -> bool:
     _, staged_manifest_hash = _validate_ready_stage(stage)
     staged_replay = stage / REPLAY_FILENAME
     staged_manifest = stage / MANIFEST_FILENAME
+    staged_ready = stage / READY_FILENAME
     final_replay = directory / REPLAY_FILENAME
     final_manifest = directory / MANIFEST_FILENAME
+    final_ready = directory / READY_FILENAME
 
     replay_state = _regular_entry_state(final_replay)
     manifest_state = _regular_entry_state(final_manifest)
-    if "invalid" in (replay_state, manifest_state):
+    ready_state = _regular_entry_state(final_ready)
+    if "invalid" in (replay_state, manifest_state, ready_state):
         raise RuntimeError("ambiguous publication state: final artifacts must be regular non-symlink files")
     if manifest_state == "regular" and replay_state == "absent":
         raise RuntimeError("ambiguous publication state: manifest exists without replay")
+    if ready_state == "regular" and "absent" in (replay_state, manifest_state):
+        raise RuntimeError("ambiguous publication state: READY exists without replay and manifest")
     if replay_state == "regular" and sha256_file(final_replay) != sha256_file(staged_replay):
         raise RuntimeError("ambiguous publication state: final replay differs from staged replay")
     if manifest_state == "regular" and sha256_file(final_manifest) != staged_manifest_hash:
         raise RuntimeError("ambiguous publication state: final manifest differs from staged manifest")
+    if ready_state == "regular" and sha256_file(final_ready) != sha256_file(staged_ready):
+        raise RuntimeError("ambiguous publication state: final READY differs from staged READY")
 
     if replay_state == "absent":
         os.link(staged_replay, final_replay)
@@ -440,7 +467,10 @@ def recover_incomplete_publication(output_dir: str | Path) -> bool:
     if manifest_state == "absent":
         os.link(staged_manifest, final_manifest)
         _fsync_directory(directory)
-    _validate_final_pair(final_replay, final_manifest)
+    if ready_state == "absent":
+        os.link(staged_ready, final_ready)
+        _fsync_directory(directory)
+    _validate_final_publication(final_replay, final_manifest, final_ready)
     _remove_stage(stage, directory)
     return True
 
@@ -451,7 +481,10 @@ def _cleanup_failed_publication(
     output_dir: Path,
     replay_linked: bool,
     manifest_linked: bool,
+    ready_linked: bool,
 ) -> None:
+    if ready_linked:
+        (output_dir / READY_FILENAME).unlink(missing_ok=True)
     if manifest_linked:
         (output_dir / MANIFEST_FILENAME).unlink(missing_ok=True)
     if replay_linked:
@@ -477,7 +510,8 @@ def publish_flat_replay(
     recover_incomplete_publication(directory)
     replay_path = directory / REPLAY_FILENAME
     manifest_path = directory / MANIFEST_FILENAME
-    for path in (replay_path, manifest_path):
+    ready_path = directory / READY_FILENAME
+    for path in (replay_path, manifest_path, ready_path):
         if _regular_entry_state(path) != "absent":
             raise FileExistsError(f"immutable formal artifact already exists: {path.name}")
     if not replay.frozen:
@@ -491,6 +525,7 @@ def publish_flat_replay(
     stage_ready = stage / READY_FILENAME
     replay_linked = False
     manifest_linked = False
+    ready_linked = False
     try:
         with stage_replay.open("xb") as stream:
             torch.save(replay.state_dict(), stream)
@@ -531,7 +566,10 @@ def publish_flat_replay(
         os.link(stage_manifest, manifest_path)
         manifest_linked = True
         _fsync_directory(directory)
-        _validate_final_pair(replay_path, manifest_path)
+        os.link(stage_ready, ready_path)
+        ready_linked = True
+        _fsync_directory(directory)
+        _validate_final_publication(replay_path, manifest_path, ready_path)
         _remove_stage(stage, directory)
     except Exception:
         _cleanup_failed_publication(
@@ -539,6 +577,7 @@ def publish_flat_replay(
             output_dir=directory,
             replay_linked=replay_linked,
             manifest_linked=manifest_linked,
+            ready_linked=ready_linked,
         )
         raise
     return manifest
@@ -567,6 +606,7 @@ def _run_collection(args: Any, validated: ValidatedCollectionInputs) -> int:
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
         from rl_training.online_adaptation.rsl_rl_compat import (
             freeze_rsl_rl_models,
+            load_frozen_rsl_rl_checkpoint,
             prepare_rsl_rl_agent_cfg,
             split_rsl_rl_endings,
         )
@@ -581,12 +621,40 @@ def _run_collection(args: Any, validated: ValidatedCollectionInputs) -> int:
         agent_cfg.seed = args.seed
         agent_cfg = prepare_rsl_rl_agent_cfg(agent_cfg)
         assert_plane_only_terrain(env_cfg.scene.terrain)
+
+        # Formal replay is a fixed flat deployment baseline.  Keep command,
+        # reset impulse, and contact material deterministic so a long replay
+        # audits the frozen gait rather than an unrelated command switch.
+        command = env_cfg.commands.base_velocity
+        command.ranges.lin_vel_x = (0.3, 0.3)
+        command.ranges.lin_vel_y = (0.0, 0.0)
+        command.ranges.ang_vel_z = (0.0, 0.0)
+        command.ranges.heading = (0.0, 0.0)
+        command.rel_standing_envs = 0.0
+        command.rel_heading_envs = 0.0
+        command.rel_zero_vel_envs = 0.0
+        command.rel_only_lin_y_envs = 0.0
+        command.rel_only_lin_x_envs = 0.0
+        command.rel_only_ang_z_envs = 0.0
+        reset_base = env_cfg.events.randomize_reset_base
+        reset_base.params["velocity_range"] = {
+            "x": (0.0, 0.0),
+            "y": (0.0, 0.0),
+            "z": (0.0, 0.0),
+            "roll": (0.0, 0.0),
+            "pitch": (0.0, 0.0),
+            "yaw": (0.0, 0.0),
+        }
+        material = env_cfg.events.randomize_rigid_body_material
+        if material is not None:
+            material.params["static_friction_range"] = (1.0, 1.0)
+            material.params["dynamic_friction_range"] = (1.0, 1.0)
         env = gym.make(args.task, cfg=env_cfg)
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
         runner = OnPolicyRunner(wrapped_env, agent_cfg.to_dict(), log_dir=None, device=args.device)
         with materialize_verified_checkpoint(validated) as private_checkpoint:
-            runner.load(str(private_checkpoint))
+            load_frozen_rsl_rl_checkpoint(runner, str(private_checkpoint))
         base_policy = runner.get_inference_policy(device=wrapped_env.unwrapped.device)
         freeze_rsl_rl_models(runner)
 

@@ -8,6 +8,11 @@ import gymnasium as gym
 
 from . import agents
 
+_PRE_RESET_CAPTURE_ENV = (
+    "rl_training.online_adaptation.pre_reset_capture_env:"
+    "PreResetCaptureManagerBasedRLEnv"
+)
+
 ##
 # Register Gym environments.
 ##
@@ -24,8 +29,22 @@ gym.register(
 )
 
 gym.register(
-    id="FlatOnline-Deeprobotics-Lite3-v0",
+    id="MotionImitation-Deeprobotics-Lite3-v0",
     entry_point="isaaclab.envs:ManagerBasedRLEnv",
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": (
+            f"{__name__}.motion_imitation_env_cfg:DeeproboticsLite3MotionImitationEnvCfg"
+        ),
+        "rsl_rl_cfg_entry_point": (
+            f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3MotionImitationPPORunnerCfg"
+        ),
+    },
+)
+
+gym.register(
+    id="FlatOnline-Deeprobotics-Lite3-v0",
+    entry_point=_PRE_RESET_CAPTURE_ENV,
     disable_env_checker=True,
     kwargs={
         "env_cfg_entry_point": f"{__name__}.flat_online_env_cfg:DeeproboticsLite3FlatOnlineEnvCfg",
@@ -41,6 +60,36 @@ gym.register(
         "env_cfg_entry_point": f"{__name__}.rough_env_cfg:DeeproboticsLite3RoughEnvCfg",
         "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3RoughPPORunnerCfg",
         "cusrl_cfg_entry_point": f"{agents.__name__}.cusrl_ppo_cfg:DeeproboticsLite3RoughTrainerCfg",
+    },
+)
+
+gym.register(
+    id="ContinuousRough-Deeprobotics-Lite3-v0",
+    entry_point=_PRE_RESET_CAPTURE_ENV,
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.continuous_rough_env_cfg:DeeproboticsLite3ContinuousRoughEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3RoughPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="Grass-Deeprobotics-Lite3-v0",
+    entry_point=_PRE_RESET_CAPTURE_ENV,
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.continuous_rough_env_cfg:DeeproboticsLite3GrassEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3RoughPPORunnerCfg",
+    },
+)
+
+gym.register(
+    id="RockyRoad-Deeprobotics-Lite3-v0",
+    entry_point=_PRE_RESET_CAPTURE_ENV,
+    disable_env_checker=True,
+    kwargs={
+        "env_cfg_entry_point": f"{__name__}.continuous_rough_env_cfg:DeeproboticsLite3RockyRoadEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3RoughPPORunnerCfg",
     },
 )
 

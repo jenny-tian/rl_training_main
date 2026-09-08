@@ -7,11 +7,76 @@ from typing import Any
 import torch
 
 
+def load_frozen_rsl_rl_checkpoint(runner: Any, checkpoint: str) -> dict[str, object]:
+    """Load a frozen PPO checkpoint, tolerating deployment-only critic dimensions.
+
+    The deployed actor only consumes proprioception.  Online-adaptation environments
+    may expose additional privileged critic observations, so a checkpoint trained with
+    a smaller critic cannot be restored through ``runner.load`` even though its actor
+    is valid.  In that case load and validate the actor explicitly and leave the
+    runtime critic freshly initialized for the residual learner.
+    """
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=False)
+    if not isinstance(payload, Mapping):
+        raise ValueError("PPO checkpoint must contain a mapping")
+    actor_state = payload.get("actor_state_dict")
+    if not isinstance(actor_state, Mapping):
+        # Preserve RSL-RL's native handling for older or non-PPO checkpoint layouts.
+        runner.load(checkpoint)
+        return {"actor_loaded": True, "critic_loaded": True, "critic_skipped": False}
+
+    algorithm = getattr(runner, "alg", None)
+    actor = getattr(algorithm, "actor", None)
+    if actor is None or not hasattr(actor, "load_state_dict"):
+        actor = getattr(algorithm, "policy", None)
+    if actor is None or not hasattr(actor, "load_state_dict"):
+        raise RuntimeError("unable to locate the RSL-RL actor module")
+    try:
+        actor.load_state_dict(actor_state, strict=True)
+    except RuntimeError as error:
+        raise RuntimeError("frozen PPO actor does not match the runtime observation/action schema") from error
+
+    critic_state = payload.get("critic_state_dict")
+    critic = getattr(algorithm, "critic", None)
+    critic_loaded = False
+    critic_skipped = False
+    if isinstance(critic_state, Mapping) and critic is not None:
+        runtime_state = critic.state_dict()
+        shapes_match = all(
+            key in runtime_state
+            and isinstance(value, torch.Tensor)
+            and runtime_state[key].shape == value.shape
+            for key, value in critic_state.items()
+        ) and set(runtime_state) == set(critic_state)
+        if shapes_match:
+            critic.load_state_dict(critic_state, strict=True)
+            critic_loaded = True
+        else:
+            critic_skipped = True
+    elif critic_state is not None:
+        critic_skipped = True
+
+    return {
+        "actor_loaded": True,
+        "critic_loaded": critic_loaded,
+        "critic_skipped": critic_skipped,
+    }
+
+
 def split_rsl_rl_endings(
     done: torch.Tensor,
     extras: Mapping[str, Any],
+    *,
+    bootstrap_timeouts: bool = False,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Split RSL-RL done rows using the wrapper's required time_outs metadata."""
+    """Split RSL-RL endings without bootstrapping from post-reset observations.
+
+    Isaac Lab's RSL-RL wrapper returns observations after resetting ended
+    environments. Timeout bootstrapping is therefore only valid when the caller
+    separately replaces those rows with terminal observations.
+    """
+    if type(bootstrap_timeouts) is not bool:
+        raise TypeError("bootstrap_timeouts must be a bool")
     if not isinstance(done, torch.Tensor) or done.ndim not in (1, 2):
         raise RuntimeError("RSL-RL dones must be a tensor with one value per environment")
     if done.ndim == 2 and done.shape[1] != 1:
@@ -34,7 +99,7 @@ def split_rsl_rl_endings(
     if bool((truncated & ~done_column).any().item()):
         raise RuntimeError("extras['time_outs'] cannot mark a row that is not done")
     terminated = done_column & ~truncated
-    bootstrap_mask = ~terminated
+    bootstrap_mask = ~terminated if bootstrap_timeouts else ~done_column
     return terminated, truncated, bootstrap_mask
 
 

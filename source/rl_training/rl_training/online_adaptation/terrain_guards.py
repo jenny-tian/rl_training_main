@@ -279,7 +279,8 @@ def assert_heldout_terrains_disabled(terrain_generator: Any) -> None:
     leaks = {
         name: float(terrain_generator.sub_terrains[name].proportion)
         for name in HELDOUT_TERRAIN_NAMES
-        if float(terrain_generator.sub_terrains[name].proportion) > 0.0
+        if name in terrain_generator.sub_terrains
+        and float(terrain_generator.sub_terrains[name].proportion) > 0.0
     }
     if leaks:
         details = ", ".join(f"{name}={proportion:g}" for name, proportion in leaks.items())

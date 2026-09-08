@@ -339,6 +339,62 @@ def test_agent_routes_only_adapting_transitions_to_adaptation_replay():
     assert len(agent.adaptation_replay) == 1
 
 
+def test_invalid_terrain_scan_forces_zero_residual_and_skips_adaptation_replay():
+    agent = make_agent()
+    publish_fixed_residual(agent, residual=0.2, version=7)
+    frame = torch.zeros(1, 2)
+    action = torch.zeros(1, 1)
+
+    decision = agent.begin_step(
+        frame,
+        action,
+        safety_state(),
+        deterministic=True,
+        terrain_valid=torch.zeros(1, 1, dtype=torch.bool),
+    )
+    finish_agent_step(
+        agent,
+        frame,
+        action,
+        torch.ones(1, 1),
+        adaptation_enabled=True,
+    )
+
+    assert torch.equal(decision.residual, torch.zeros_like(decision.residual))
+    assert decision.actor_version is None
+    assert len(agent.replay) == 1
+    assert len(agent.adaptation_replay) == 0
+
+
+def test_valid_terrain_scan_preserves_existing_residual_path():
+    agent = make_agent()
+    publish_fixed_residual(agent, residual=0.2, version=7)
+
+    decision = agent.begin_step(
+        torch.zeros(1, 2),
+        torch.zeros(1, 1),
+        safety_state(),
+        deterministic=True,
+        terrain_valid=torch.ones(1, 1, dtype=torch.bool),
+    )
+
+    assert decision.actor_version == 7
+    assert decision.residual.item() == pytest.approx(0.02)
+
+
+def test_terrain_valid_mask_requires_batch_column_shape():
+    agent = make_agent()
+
+    with pytest.raises(ValueError, match="terrain_valid"):
+        agent.begin_step(
+            torch.zeros(1, 2),
+            torch.zeros(1, 1),
+            safety_state(),
+            deterministic=True,
+            terrain_valid=torch.ones(1),
+        )
+
+
 def test_agent_accumulates_nstep_before_replay_insertion():
     agent = make_agent(n_step=3, gamma=0.9)
     frame = torch.zeros(1, 2)
@@ -372,6 +428,39 @@ def test_agent_accumulates_nstep_before_replay_insertion():
     assert sampled.reward.item() == pytest.approx(1.0 + 0.9 + 0.9**2)
     assert sampled.discount.item() == pytest.approx(0.9**3)
     torch.testing.assert_close(sampled.next_frame, frame + 3)
+
+
+def test_deployment_handoff_discards_pending_nstep_without_touching_learner_state():
+    agent = make_agent(n_step=3, gamma=0.9)
+    agent.replay.add_batch(**make_agent_transition(2.0, batch=1))
+    agent.adaptation_replay.add_batch(**make_agent_transition(3.0, batch=1))
+    updater_before = agent.updater.state_dict()
+    frame = torch.zeros(1, 2)
+    action = torch.zeros(1, 1)
+    agent.begin_step(frame, action, safety_state(), deterministic=True)
+    finish_agent_step(
+        agent,
+        frame + 1,
+        action,
+        torch.ones(1, 1),
+        adaptation_enabled=True,
+    )
+    assert len(agent._nstep.state_dict()["queues"][0]) == 1
+    assert len(agent._nstep_valid_queues[0]) == 1
+    assert len(agent._nstep_adaptation_queues[0]) == 1
+
+    agent.reset_for_deployment_handoff()
+
+    assert agent._nstep.state_dict()["queues"] == ((),)
+    assert [len(queue) for queue in agent._nstep_valid_queues] == [0]
+    assert [len(queue) for queue in agent._nstep_adaptation_queues] == [0]
+    assert len(agent.replay) == 1
+    assert len(agent.adaptation_replay) == 1
+    updater_after = agent.updater.state_dict()
+    assert updater_after["version"] == updater_before["version"]
+    for group in ("actor", "critic", "target_critic"):
+        for name, expected in updater_before[group].items():
+            torch.testing.assert_close(updater_after[group][name], expected, rtol=0, atol=0)
 
 
 def test_agent_routes_nstep_adaptation_replay_by_original_step():
@@ -603,6 +692,11 @@ def test_finish_step_resets_history_on_truncation_even_when_bootstrapping():
         bootstrap_mask=torch.ones(1, 1),
     )
 
+    sampled = agent.replay.sample(1, "cpu")
+    assert torch.equal(
+        sampled.next_history,
+        torch.tensor([[[0.0, 0.0], [1.0, 2.0], [3.0, 4.0]]]),
+    )
     assert torch.equal(agent.history.snapshot(), torch.zeros(1, 3, 2))
 
 
@@ -667,6 +761,32 @@ def test_finish_step_excludes_safety_invalid_rows_from_both_replays():
 
     assert len(agent.replay) == 0
     assert len(agent.adaptation_replay) == 0
+
+
+def test_nstep_excludes_every_horizon_contaminated_by_a_safety_fallback():
+    agent = make_agent(n_step=3)
+    frame = torch.zeros(1, 2)
+    action = torch.zeros(1, 1)
+
+    for step in range(1, 7):
+        agent.begin_step(frame + step, action, safety_state(), deterministic=True)
+        invalid = step == 3
+        finish_agent_step(
+            agent,
+            frame + step + 1,
+            action,
+            torch.ones(1, 1),
+            bootstrap_mask=torch.zeros(1, 1) if invalid else torch.ones(1, 1),
+            safety_mask=torch.zeros(1, 1) if invalid else torch.ones(1, 1),
+            adaptation_enabled=True,
+        )
+
+    assert len(agent.replay) == 1
+    assert len(agent.adaptation_replay) == 1
+    for replay in (agent.replay, agent.adaptation_replay):
+        sampled = replay.sample(1, "cpu")
+        assert sampled.safety_mask.eq(1.0).all()
+        assert sampled.bootstrap_mask.eq(1.0).all()
 
 
 def test_finish_step_rolls_back_both_replays_when_second_commit_fails_and_retries_once(monkeypatch):
@@ -897,3 +1017,32 @@ def test_timeout_after_rollback_fallback_pauses_and_excludes_transition_from_rep
     assert decision.actor_version is None
     assert len(agent.replay) == 0
     assert len(agent.adaptation_replay) == 0
+
+
+def test_timeout_fallback_does_not_pause_the_next_control_step():
+    agent = make_agent()
+    frame = torch.zeros(1, 2)
+    base_action = torch.zeros(1, 1)
+    normal_state = safety_state()
+    agent.begin_step(frame, base_action, normal_state, deterministic=True)
+    timed_out_state = replace(
+        normal_state,
+        control_timed_out=torch.ones_like(normal_state.control_timed_out),
+    )
+
+    timed_out = enforce_control_timeout_fallback(
+        online_agent=agent,
+        timed_out_state=timed_out_state,
+    )
+    finish_agent_step(
+        agent,
+        frame,
+        base_action,
+        torch.ones(1, 1),
+        adaptation_enabled=True,
+    )
+    recovered = agent.begin_step(frame, base_action, normal_state, deterministic=True)
+
+    assert timed_out.paused.all()
+    assert not recovered.paused.any()
+    assert recovered.actor_version is not None

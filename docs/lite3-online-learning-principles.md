@@ -89,7 +89,7 @@ a_final = a_base + a_residual
 
 ## 4. 本体感知输入与历史编码
 
-在线策略不读取地形高度图、仿真地形类别、方块区域标志、世界坐标或未来地形信息。每个控制帧由以下 49 个量组成：
+默认正式 flat-only baseline 的在线策略不读取地形高度图、仿真地形类别、方块区域标志、世界坐标或未来地形信息。每个控制帧由以下 49 个量组成：
 
 | 信号 | 维度 |
 |---|---:|
@@ -116,6 +116,18 @@ a_final = a_base + a_residual
 
 - [`history.py`](../source/rl_training/rl_training/online_adaptation/history.py)
 - [`networks.py`](../source/rl_training/rl_training/online_adaptation/networks.py)
+
+### 4.1 可选高度扫描输入
+
+为 residual SAC 提供地形上下文时，可以显式选择 `--terrain-feature-source height_scan`。
+该模式只读取 Isaac Lab 的 `height_scanner` RayCaster，将固定 `23 x 15` 网格压缩为 10 个统计量：
+有效率、全局最小/最大/均值/标准差、前半区最小/均值/最大值、左右差和前后差。
+高度先按 `0.10 m` 归一化并裁剪到 `+-0.20 m`，不会把原始高度图或仿真地形标签送入基础 PPO。
+
+高度扫描是 residual-only 的可选感知源：PPO 的 49 维本体观测契约不变，启用后 residual frame 为 59 维。
+当扫描器缺失、形状错误或有限命中比例低于阈值（默认 0.90）时，特征置零并强制该步 residual 为零；该样本可保留在全局诊断回放，但不会进入 adaptation replay。
+扫描源、网格和摘要 schema 会写入 experiment checkpoint，geometry 与 height_scan checkpoint 不能混用。
+正式 flat-only baseline 继续使用默认 geometry，不启用高度扫描。
 
 ## 5. 残差 Actor 与双 Critic
 
@@ -190,10 +202,14 @@ SAC 实现位于 [`sac.py`](../source/rl_training/rl_training/online_adaptation/
  next_history,
  next_frame,
  next_base_action,
- done)
+ terminated,
+ truncated,
+ bootstrap_mask,
+ discount,
+ safety_mask)
 ```
 
-回放池容量为 10,000。大部分状态和动作使用 CPU `float16` 保存，采样时转回设备上的 `float32`。奖励和 `done` 使用 `float32`。
+回放池容量为 10,000。大部分状态和动作使用 CPU `float16` 保存，采样时转回设备上的 `float32`。`terminated`、`truncated`、`bootstrap_mask`、`discount` 和 `safety_mask` 使用独立的 `float32` 字段保存，避免把时间截断误当成跌倒终止。
 
 回放池实现位于 [`replay_buffer.py`](../source/rl_training/rl_training/online_adaptation/replay_buffer.py)。
 
@@ -214,7 +230,7 @@ Actor 更新使用更严格的门槛：只有 `NoveltyGate` 进入 `ADAPTING`，
 SAC 的目标 Q 值为：
 
 ```text
-y = r + gamma · (1 - done) ·
+y = r + bootstrap_mask · discount ·
     [min(Q1_target(s', a'), Q2_target(s', a')) - alpha · log pi(a'|s')]
 ```
 
@@ -352,6 +368,8 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 2026-07-28 的长时探针发现，性能窗口从进入 `ADAPTING` 时就开始累计，但 Actor 需要等新异回放达到 128 条后才首次更新。这样会把更新前的地形自然变化计入退化耐心，导致 Actor 刚开始学习便被回滚。已确认的修正规则是：更新前只维护最近完整基线；当前 adaptation episode 首次成功 Actor 更新时清除跨越更新边界的部分窗口；只有更新后的完整窗口才允许累计性能退化。详细设计见 [`2026-07-28-lite3-post-update-performance-rollback-design.md`](superpowers/specs/2026-07-28-lite3-post-update-performance-rollback-design.md)。
 
 性能退化判定只在控制线程观察到当前 adaptation episode 的首次成功 Actor 更新后启用。首次更新边界保留最近一个完整更新前基线，清除跨越边界的部分窗口；随后只有完整更新后窗口可以保存稳定快照或累计退化。每个成功发布的 Actor 版本还记录固定诊断 batch 上的确定性残差 MSE、每关节绝对变化的均值与最大值、相对 episode reference Actor 的参数 L2，以及 episode、版本和更新步数。这些指标仅用于观测，不进入 loss、阈值或安全门控；旧 episode 候选和非有限诊断在发布前被拒绝。
+
+如果配置了 `--max-policy-residual-mse`，候选 Actor 还必须通过发布前的行为漂移信任域：固定诊断 batch 上的确定性 residual MSE 不得超过该阈值。超限候选会恢复完整 SAC 更新状态、跳过 Actor 发布并记录 `policy_residual_mse_limit`。阈值只能用 development episode 通过 `calibrate_drift_threshold()` 校准后写入冻结配置，sealed evaluation 不得重新估计；未配置时保持旧行为。
 
 安全事件、控制超时或环境终止会立即关闭 Actor gate、清空新异回放池并请求回滚。安全阈值不会为了让某次演示通过而放宽；触发保护的 seed 必须如实计入报告。
 
@@ -603,12 +621,13 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 - 五种子资格入口改为每个种子独立 Isaac 进程，避免仿真单例重建卡死；
 - `/home/tjx/Lite3_rl_deploy` 官方部署 PPO 导入为 RSL-RL 兼容检查点，并通过五种子源地形资格测试；
 - seed 7、0.3 m/s heldout 单次连续行走在线演示曾跑满 2000 步并产生残差参数变化；当前 novelty-gated 正式对照仍在调试，不能视为最终通过结果。
-- held-out 指标边界已与实际轨道边界对齐，控制路径已在计时循环前预热，三种模式不再因 CUDA/GRU 首次调用产生伪 `control_timeout`。
+- held-out 指标边界已与实际轨道边界对齐，控制路径已在计时循环前预热；GPU 仿真的 frame/safety 输入先完成物化，控制 deadline 只覆盖策略推理与安全投影，updater GPU 工作与控制临界区互斥，不再把 Isaac 异步状态同步误报为 `control_timeout`。
 - 45k residual checkpoint 已在 seed 7 的 frozen 和 online 模式下分别安全跑满 2000 步；online 最终性能仍未达到验收门槛。
 - 性能退化窗口已改为首次成功 Actor 更新后启用；每个成功发布版本记录固定诊断 batch 上的动作与参数漂移标量，并在发布前拒绝旧 episode 候选和非有限诊断。
 - Actor 候选的 episode 检查、gate 状态和双缓冲发布已形成原子边界；回放清空由 updater 命令线程串行执行，旧 episode 命令不会破坏新 episode。
 - `metrics.jsonl` 保持一控制步一行，`actor_updates.jsonl` 逐次持久化并 flush 成功发布事件；750/2000 步 GPU 回归中的事件数与 Actor 更新数完全一致。
 - 回滚请求与控制线程之间已有显式确认边界；确认前立即执行冻结基础策略，learned residual 不再受历史变化率记忆拖尾，同时保留关节限位安全投影。
+- 可选 height-scan residual 输入、无效扫描 fail-closed 门控、worker 参数传播和 checkpoint provenance 校验已加入；默认 geometry 行为保持不变。
 
 尚未完成实证验证：
 
@@ -629,12 +648,13 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 6. 当前残差限幅和奖励权重只完成了单种子连续道路验证，尚未通过十种子统计。
 7. 仿真奖励使用真实机身速度，真机部署前必须验证状态估计误差下的稳定性。
 8. 预训练 checkpoint 不包含源地形 replay，在线 Critic 无法执行 RLPD 式源/在线数据混合。
-9. Actor 更新已记录相对 episode reference Actor 的动作和参数漂移，但这些指标仅用于观测，尚未加入 KL、动作或参数锚定；当前仍只能通过限幅和事后回滚控制策略漂移。
-10. SAC target 使用一步 return，transition 只保存 `done`，尚未显式区分真实终止和时间截断。
+9. Actor 更新已记录相对 episode reference Actor 的动作和参数漂移；当前新增的 MSE 信任域是可选发布门控，尚未完成 development-only 自动校准和 sealed 配置选择，也没有把 KL 正则加入 loss。
+10. 代码路径已经区分真实 termination、时间 truncation、bootstrap mask 和 n-step discount；正式 flat-only 结果仍需要按 1/3/5-step 做单变量消融，不能仅凭接口存在宣称 target 语义已经验证。
 11. 当前安全层是硬阈值、动作投影和基础 PPO 回退，没有 reach-avoid value 或独立恢复策略；这在仿真阶段是明确取舍，不应被描述为完整 learned safety。
 12. 当前基础 PPO checkpoint 缺少平地训练 provenance，45k residual 已见过 rough 和 slopes；它们不满足 flat-only 初始化要求。
 13. seed 7 的 HeldoutBoxes 表现参与过 45k/50k checkpoint 选择，且当前目标 terrain generator 固定 seed 7；需要独立开发/封存几何 seed 才能形成严格 held-out 结论。
 14. 当前脚本在环境终止后结束，尚未跨 reset 持久化完整 SAC、回放池和稳定快照；因此还不能通过多个受保护 episode 累积低台阶学习。
+15. height-scan 当前只完成 Isaac Lab RayCaster 的张量接口和单元测试，尚未验证真实雷达/深度相机的延迟、遮挡、噪声、外参漂移和 domain randomization；这些验证完成前不得宣称 sim-to-real 感知闭环成立。
 
 ## 15. 真机迁移边界
 
@@ -696,3 +716,22 @@ metrics.jsonl         sha256 fbf649d954ec5ace47d90b320dda69b8c8182a23d53174ef305
 ### 16.3 未执行的后续 GPU 探针
 
 2 cm 三进程恢复探针以及 1/3/5-step、online-only/dual replay smoke 没有执行。它们需要先完成 strict-flat PPO 资格、不可变 flat replay 收集和初始 experiment checkpoint。缺少这些前置产物时继续运行会混入旧 rough/held-out 数据并破坏 flat-only 因果边界。当前证据只确认零 gain 控制路径的严格零权限语义，不确认跨 reset 学习、Q 值有限性、replay 混合比例或地形学习能力。
+
+## 17. 全赛道完成判定（2026-08-03）
+
+正式在线 curriculum 的 `passed` 不再表示“走完步数且没有跌倒”。只有同时满足以下条件才算通过：
+
+```text
+completion_reached and not fell and not safety_violation
+```
+
+completion 以 reset 后的机器人世界 X 为基准，并读取实际生成的 `FlatOnlineTrackCfg` 尺寸：
+
+- `step_*` 阶段目标为 `x0 + flat_length / 2 + step_length + 0.5 m`，即越过 2 m 抬高平台远端 0.5 m；
+- `rough_*` 阶段目标为 `x0 + track_length - flat_length / 2 - 0.5 m`，即走完整粗糙段并在赛道末端前保留 0.5 m；
+- 达到目标且当前步没有环境终止或安全违规时立即结束 episode，防止成功后继续走出地形；
+- 每个正式 summary 必须包含 `initial_x`、`max_x`、`completion_target_x`、`completion_remaining_m`、`completion_reached`、`completion_mode`、`progress_cost_version` 和有限 `cost`。
+
+cost 为剩余距离；若跌倒或触发安全保护，额外加一次目标距离惩罚。安全成功的 cost 为 0，安全但未完成的前进越多 cost 越低。supervisor 会复算这些字段并拒绝缺失、非有限或相互矛盾的证据，不能再把缺失 cost 转成 0。
+
+flat-retention probe 明确使用 `completion_mode=disabled`，只评估平地保持性，不继承挑战完成目标。旧的错误 curriculum 目录和 residual checkpoint 不得作为新运行的输入；新运行只复用冻结 flat PPO 与冻结 flat replay，并使用包含 `full_track_v1` 语义的新 protocol hash。

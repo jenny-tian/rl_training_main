@@ -9,6 +9,10 @@ from pathlib import Path
 import pytest
 import torch
 
+from rl_training.lite3_joint_conventions import (
+    LITE3_SAFE_ACTION_LOWER,
+    LITE3_SAFE_ACTION_UPPER,
+)
 from rl_training.online_adaptation.provenance import sha256_file
 from rl_training.online_adaptation.replay_buffer import ReplayBuffer
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
@@ -301,7 +305,7 @@ def test_deterministic_base_action_uses_frozen_policy_intent_without_gradients()
 
     expected = torch.minimum(
         observation.detach() + 0.25,
-        observation.new_tensor([3.97, 3.70, 5.83] * 4),
+        observation.new_tensor(LITE3_SAFE_ACTION_UPPER),
     )
     torch.testing.assert_close(action, expected, rtol=0, atol=0)
     assert action.requires_grad is False
@@ -315,8 +319,8 @@ def test_deterministic_base_action_clips_to_shared_lite3_bounds():
         torch.zeros(1, 3),
     )
 
-    assert action.max().item() == pytest.approx(5.83)
-    assert action.min().item() == pytest.approx(-7.93)
+    assert action.max().item() == pytest.approx(max(LITE3_SAFE_ACTION_UPPER))
+    assert action.min().item() == pytest.approx(min(LITE3_SAFE_ACTION_LOWER))
 
 
 def test_one_step_flat_transition_has_zero_residual_and_explicit_endings():
@@ -437,6 +441,7 @@ def test_publish_flat_replay_saves_frozen_state_and_exact_hash_metadata(tmp_path
         "flat_replay.pt",
         "flat_replay_manifest.json",
         "metrics.jsonl",
+        "READY.json",
     }
 
     replay_bytes = replay_path.read_bytes()

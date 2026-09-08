@@ -1,12 +1,19 @@
 from .acceptance import evaluate_run
 from .agent import AgentConfig, OnlineAdaptationAgent
 from .history import HistoryBuffer
-from .isaaclab_adapter import Lite3IsaacLabAdapter, compose_proprio_frame
+from .isaaclab_adapter import (
+    LEGACY_PROPRIO_FRAME_DIM,
+    PROPRIO_FRAME_DIM,
+    TERRAIN_FEATURE_DIM,
+    Lite3IsaacLabAdapter,
+    compose_proprio_frame,
+)
 from .metrics import RollingMetrics
 from .networks import HistoryEncoder, ResidualActor, TwinCritic
 from .publisher import DoubleBufferedActorPublisher
 from .provenance import REQUIRED_VERSION_KEYS, build_flat_baseline_manifest, sha256_file, write_json_atomic
-from .replay_buffer import ReplayBuffer
+from .progress_novelty import ForwardProgressMonitor, ProgressNoveltyDecision
+from .replay_buffer import ReplayBuffer, adapt_replay_state_frame_dim
 from .reward import RewardWeights, compute_online_reward
 from .sac import SACConfig, SACUpdater, StableStateManager
 from .safety import SafetyFilter, SafetyLimits
@@ -18,6 +25,7 @@ from .terrain_protocol import (
     development_geometry,
     sealed_geometry,
 )
+from .track_completion import TrackCompletion
 from .terrain_guards import (
     assert_flat_online_deployment_config,
     assert_heldout_terrains_disabled,
@@ -36,6 +44,7 @@ __all__ = [
     "OnlineAdaptationAgent",
     "HistoryBuffer",
     "ReplayBuffer",
+    "adapt_replay_state_frame_dim",
     "HistoryEncoder",
     "ResidualActor",
     "TwinCritic",
@@ -50,6 +59,7 @@ __all__ = [
     "default_flat_online_protocol",
     "development_geometry",
     "sealed_geometry",
+    "TrackCompletion",
     "RewardWeights",
     "compute_online_reward",
     "RollingMetrics",
@@ -58,8 +68,13 @@ __all__ = [
     "sha256_file",
     "build_flat_baseline_manifest",
     "write_json_atomic",
+    "ForwardProgressMonitor",
+    "ProgressNoveltyDecision",
     "Lite3IsaacLabAdapter",
     "compose_proprio_frame",
+    "LEGACY_PROPRIO_FRAME_DIM",
+    "TERRAIN_FEATURE_DIM",
+    "PROPRIO_FRAME_DIM",
     "assert_heldout_terrains_disabled",
     "assert_flat_online_deployment_config",
     "assert_plane_only_terrain",

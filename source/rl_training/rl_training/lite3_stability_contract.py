@@ -7,6 +7,21 @@ LITE3_MAX_PROJECTED_GRAVITY_XY = 0.65
 LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY = 0.55
 
 
+def sustained_contact_confirmation(
+    contact: torch.Tensor,
+    previous_count: torch.Tensor,
+    required_steps: int,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """Confirm contact only after it persists for whole control steps."""
+    if required_steps < 1:
+        raise ValueError("required_steps must be positive")
+    contact = contact.bool()
+    if contact.shape != previous_count.shape:
+        raise ValueError("contact and previous_count must have matching shapes")
+    next_count = torch.where(contact, previous_count + 1, torch.zeros_like(previous_count))
+    return next_count, next_count >= required_steps
+
+
 def projected_gravity_xy_is_unsafe(
     projected_gravity: torch.Tensor,
     *,

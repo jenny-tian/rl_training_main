@@ -43,14 +43,14 @@ def test_extreme_actions_clip_to_targets_inside_soft_joint_bounds():
     assert targets.dtype == action.dtype
     assert targets.device == action.device
 
-    # Runtime-observed Isaac soft limits. The SafetyFilter reserves 0.02 rad
-    # from each limit before projecting an action into a physical target.
+    # Runtime-observed Isaac soft limits with the flat task's 0.9 factor. The
+    # SafetyFilter reserves 0.02 rad before projecting a physical target.
     soft_lower = torch.tensor(
-        (-0.5177699327, -2.6550798416, 0.5353399515) * 4,
+        (-0.4706999362, -2.5207998753, 0.6373999119) * 4,
         dtype=action.dtype,
     )
     soft_upper = torch.tensor(
-        (0.5177699327, 0.2990798950, 2.7806601524) * 4,
+        (0.4706999362, 0.1647999287, 2.6786000729) * 4,
         dtype=action.dtype,
     )
     safety_margin = 0.02
@@ -60,9 +60,9 @@ def test_extreme_actions_clip_to_targets_inside_soft_joint_bounds():
 
 def test_action_clip_pattern_map_has_one_entry_per_joint_kind():
     assert LITE3_SAFE_ACTION_CLIP_BY_PATTERN == {
-        ".*_HipX_joint": (-3.97, 3.97),
-        ".*_HipY_joint": (-7.93, 3.70),
-        ".*_Knee_joint": (-2.96, 5.83),
+        ".*_HipX_joint": (-3.60, 3.60),
+        ".*_HipY_joint": (-7.40, 3.17),
+        ".*_Knee_joint": (-2.57, 5.43),
     }
 
 

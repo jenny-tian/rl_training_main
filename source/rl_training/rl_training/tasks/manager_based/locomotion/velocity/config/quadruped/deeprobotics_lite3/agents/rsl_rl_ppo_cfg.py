@@ -44,5 +44,17 @@ class DeeproboticsLite3FlatPPORunnerCfg(DeeproboticsLite3RoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 10000
-        self.experiment_name = "deeprobotics_lite3_flat"
+        # Match the public unitree_rl_gym Go2 PPO schedule.
+        self.num_steps_per_env = 24
+        self.max_iterations = 1500
+        self.save_interval = 50
+        self.experiment_name = "deeprobotics_lite3_flat_adapted"
+
+
+@configclass
+class DeeproboticsLite3MotionImitationPPORunnerCfg(DeeproboticsLite3FlatPPORunnerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.num_steps_per_env = 48
+        self.experiment_name = "deeprobotics_lite3_motion_imitation"
+        self.algorithm.entropy_coef = 0.002

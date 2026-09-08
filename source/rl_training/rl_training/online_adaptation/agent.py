@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 from collections import deque
+from collections.abc import Mapping
 from contextlib import ExitStack
 from dataclasses import dataclass, fields, replace
 from numbers import Real
@@ -32,7 +33,7 @@ class AgentConfig:
     n_step: int = 1
     gamma: float = 0.99
     flat_fraction_initial: float = 0.75
-    flat_fraction_ready: float = 0.50
+    flat_fraction_ready: float = 0.25
     online_ready_size: int = 1024
     flat_critic_warmup_updates: int = 1000
     critic_replay_mode: str = "dual"
@@ -65,7 +66,29 @@ class PendingStep:
     base_action: torch.Tensor
     residual_action: torch.Tensor
     learning_mask: torch.Tensor
+    terrain_valid: torch.Tensor
     actor_version: int | None
+
+
+def _normalize_replay_state_for_load(state: Mapping[str, Any]) -> dict[str, Any]:
+    """Move replay storage tensors to CPU before ReplayBuffer validation."""
+    if not isinstance(state, Mapping):
+        raise TypeError("replay state must be a mapping")
+    normalized: dict[str, Any] = {}
+    for name, value in state.items():
+        try:
+            detached = value.detach()
+        except AttributeError:
+            normalized[name] = value
+            continue
+        try:
+            cpu_value = detached.to(device="cpu")
+        except (AttributeError, RuntimeError, TypeError) as error:
+            raise ValueError(f"replay state {name} cannot be moved to CPU") from error
+        if not isinstance(cpu_value, torch.Tensor):
+            raise TypeError(f"replay state {name} must normalize to a tensor")
+        normalized[name] = cpu_value.clone()
+    return normalized
 
 
 def _validate_residual_gain(value: object) -> float:
@@ -157,10 +180,15 @@ class OnlineAdaptationAgent:
             self._residual_gain = validated
 
     def reset_for_deployment_handoff(self) -> None:
-        """Clear temporal control state after deterministic stand-up."""
+        """Clear temporal state that must never cross a physical reset."""
         self.history.reset()
         self._pending = None
         self.safety.reset_temporal_state()
+        self._nstep.clear()
+        for queue in self._nstep_valid_queues:
+            queue.clear()
+        for queue in self._nstep_adaptation_queues:
+            queue.clear()
 
     def state_dict(self) -> dict[str, Any]:
         return {
@@ -199,11 +227,15 @@ class OnlineAdaptationAgent:
         adaptation_queues = self._validate_mask_queue_state(
             state["nstep_adaptation_queues"]
         )
+        replay_state = _normalize_replay_state_for_load(state["replay"])
+        adaptation_replay_state = _normalize_replay_state_for_load(
+            state["adaptation_replay"]
+        )
         before = self.state_dict()
         try:
             self.updater.load_state_dict(state["updater"])
-            self.replay.load_state_dict(state["replay"])
-            self.adaptation_replay.load_state_dict(state["adaptation_replay"])
+            self.replay.load_state_dict(replay_state)
+            self.adaptation_replay.load_state_dict(adaptation_replay_state)
             self._nstep.load_state_dict(state["nstep"])
             self._nstep_valid_queues = valid_queues
             self._nstep_adaptation_queues = adaptation_queues
@@ -271,9 +303,24 @@ class OnlineAdaptationAgent:
         base_action: torch.Tensor,
         safety_state: SafetyState,
         deterministic: bool,
+        terrain_valid: torch.Tensor | None = None,
     ) -> SafetyDecision:
         if self._pending is not None:
             raise RuntimeError("finish_step must be called before the next begin_step")
+        if not isinstance(frame, torch.Tensor) or frame.ndim != 2:
+            raise ValueError("frame must be a [batch, frame_dim] tensor")
+        if terrain_valid is None:
+            terrain_valid = torch.ones(
+                frame.shape[0], 1, dtype=torch.bool, device=frame.device
+            )
+        elif (
+            not isinstance(terrain_valid, torch.Tensor)
+            or terrain_valid.shape != (frame.shape[0], 1)
+            or terrain_valid.requires_grad
+        ):
+            raise ValueError("terrain_valid must be a detached [batch, 1] tensor")
+        terrain_valid = terrain_valid.detach().to(device=frame.device, dtype=torch.bool)
+        batch_terrain_valid = terrain_valid.all(dim=0, keepdim=True)
         residual_gain = self.residual_gain
         self.history.append(frame)
         history = self.history.snapshot()
@@ -281,14 +328,15 @@ class OnlineAdaptationAgent:
         with torch.no_grad():
             residual, _, _ = actor.sample(history, frame, base_action, deterministic=deterministic)
             residual = residual * residual_gain
+            residual = torch.where(batch_terrain_valid, residual, torch.zeros_like(residual))
         decision = replace(
             self.safety.project(
                 base_action,
                 residual,
                 safety_state,
-                force_zero_residual=residual_gain == 0.0,
+                force_zero_residual=residual_gain == 0.0 or not bool(batch_terrain_valid.item()),
             ),
-            actor_version=version,
+            actor_version=version if bool(batch_terrain_valid.item()) else None,
         )
         self._pending = PendingStep(
             history=history,
@@ -296,7 +344,8 @@ class OnlineAdaptationAgent:
             base_action=base_action.detach().clone(),
             residual_action=decision.residual.detach().clone(),
             learning_mask=(~decision.paused).detach().clone(),
-            actor_version=version,
+            terrain_valid=batch_terrain_valid.expand_as(decision.paused).detach().clone(),
+            actor_version=version if bool(batch_terrain_valid.item()) else None,
         )
         return decision
 
@@ -317,7 +366,8 @@ class OnlineAdaptationAgent:
         if self._pending is None:
             raise RuntimeError("begin_step must be called before finish_step")
         reset_mask = (terminated.bool() | truncated.bool()).squeeze(-1)
-        next_history = self.history.preview(next_frame, reset_mask=reset_mask)
+        target_reset_mask = reset_mask & ~bootstrap_mask.bool().squeeze(-1)
+        next_history = self.history.preview(next_frame, reset_mask=target_reset_mask)
         raw_transition = RawTransition(
             history=self._pending.history,
             current_frame=self._pending.frame,
@@ -348,6 +398,7 @@ class OnlineAdaptationAgent:
             emitted = self._nstep.append(raw_transition)
             emitted_valid_masks, emitted_adaptation_masks = self._append_nstep_masks(
                 valid_mask=valid_mask,
+                terrain_valid=self._pending.terrain_valid,
                 terminated=terminated,
                 truncated=truncated,
                 adaptation_enabled=adaptation_enabled,
@@ -356,10 +407,17 @@ class OnlineAdaptationAgent:
             global_valid_mask = self._concatenate_masks(emitted_valid_masks)
             adaptation_valid_mask = self._concatenate_masks(emitted_adaptation_masks)
             if transition is not None and global_valid_mask is not None and adaptation_valid_mask is not None:
+                # An n-step target is unusable when any transition in its
+                # horizon used a safety fallback.  The accumulator already
+                # reduces the per-step safety masks across that horizon; fold
+                # the reduced mask into the commit masks so an invalid final
+                # step cannot leak a zero-bootstrap target into an otherwise
+                # valid prefix transition.
+                horizon_safe = transition["safety_mask"].bool()
                 self._add_emitted_transition(
                     transition,
-                    global_valid_mask=global_valid_mask,
-                    adaptation_valid_mask=adaptation_valid_mask,
+                    global_valid_mask=global_valid_mask & horizon_safe,
+                    adaptation_valid_mask=adaptation_valid_mask & horizon_safe,
                 )
         except BaseException:
             self._nstep.load_state_dict(nstep_state)
@@ -375,6 +433,7 @@ class OnlineAdaptationAgent:
         self,
         *,
         valid_mask: torch.Tensor,
+        terrain_valid: torch.Tensor,
         terminated: torch.Tensor,
         truncated: torch.Tensor,
         adaptation_enabled: bool,
@@ -382,7 +441,7 @@ class OnlineAdaptationAgent:
         valid_emissions: list[list[torch.Tensor]] = []
         adaptation_emissions: list[list[torch.Tensor]] = []
         end_mask = (terminated.bool() | truncated.bool()).reshape(-1)
-        adaptation_mask = valid_mask & bool(adaptation_enabled)
+        adaptation_mask = valid_mask & terrain_valid.bool() & bool(adaptation_enabled)
         for env_id in range(len(self._nstep_valid_queues)):
             valid_queue = self._nstep_valid_queues[env_id]
             adaptation_queue = self._nstep_adaptation_queues[env_id]
@@ -504,6 +563,7 @@ class OnlineAdaptationAgent:
             base_action=self._pending.base_action,
             residual_action=fallback.residual.detach().clone(),
             learning_mask=(~fallback.paused).detach().clone(),
+            terrain_valid=self._pending.terrain_valid,
             actor_version=None,
         )
         return fallback

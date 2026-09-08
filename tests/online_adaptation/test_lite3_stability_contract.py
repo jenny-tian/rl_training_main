@@ -7,6 +7,7 @@ from rl_training.lite3_stability_contract import (
     LITE3_MAX_PROJECTED_GRAVITY_XY,
     LITE3_TILT_GUARD_PROJECTED_GRAVITY_XY,
     projected_gravity_xy_is_unsafe,
+    sustained_contact_confirmation,
     tilt_guard_band_penalty,
 )
 
@@ -82,6 +83,7 @@ def test_startup_aware_termination_signatures_match_manager_params():
         "env",
         "threshold",
         "sensor_cfg",
+        "consecutive_steps",
     ]
     assert illegal_contact.vararg is None
     assert illegal_contact.kwarg is None
@@ -92,3 +94,22 @@ def test_startup_aware_termination_signatures_match_manager_params():
     ]
     assert bad_orientation.vararg is None
     assert bad_orientation.kwarg is None
+
+
+def test_sustained_contact_confirmation_requires_consecutive_control_steps():
+    count = torch.zeros(2, dtype=torch.int64)
+    count, terminated = sustained_contact_confirmation(
+        torch.tensor([True, True]), count, 3
+    )
+    assert count.tolist() == [1, 1]
+    assert terminated.tolist() == [False, False]
+    count, terminated = sustained_contact_confirmation(
+        torch.tensor([True, False]), count, 3
+    )
+    assert count.tolist() == [2, 0]
+    assert terminated.tolist() == [False, False]
+    count, terminated = sustained_contact_confirmation(
+        torch.tensor([True, True]), count, 3
+    )
+    assert count.tolist() == [3, 1]
+    assert terminated.tolist() == [True, False]

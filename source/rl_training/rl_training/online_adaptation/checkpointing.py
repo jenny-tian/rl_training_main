@@ -55,7 +55,16 @@ def restore_rng_state(state: Mapping[str, Any]) -> None:
     np.random.set_state(state["numpy"])
     torch.set_rng_state(state["torch_cpu"].to(device="cpu"))
     if current_cuda_count:
-        torch.cuda.set_rng_state_all(list(cuda_states))
+        normalized_cuda_states = []
+        for cuda_state in cuda_states:
+            try:
+                normalized = cuda_state.detach().to(device="cpu")
+            except (AttributeError, RuntimeError, TypeError) as error:
+                raise ValueError("checkpoint CUDA RNG state is not a tensor") from error
+            if not isinstance(normalized, torch.Tensor) or normalized.dtype != torch.uint8:
+                raise ValueError("checkpoint CUDA RNG state must be a torch.uint8 tensor")
+            normalized_cuda_states.append(normalized)
+        torch.cuda.set_rng_state_all(normalized_cuda_states)
 
 
 def save_experiment_checkpoint(path: str | Path, state: Mapping[str, Any]) -> None:
@@ -135,6 +144,7 @@ def load_experiment_checkpoint(
     *,
     expected_protocol_sha256: str,
     map_location: str | torch.device | None = "cpu",
+    restore_rng: bool = True,
 ) -> dict[str, Any]:
     target = Path(path)
     expected_checksum = _checksum_path(target).read_text(encoding="ascii").strip()
@@ -149,7 +159,8 @@ def load_experiment_checkpoint(
     experiment_state = envelope.get("experiment_state")
     if not isinstance(experiment_state, Mapping):
         raise ValueError("experiment checkpoint state is invalid")
-    restore_rng_state(envelope.get("rng_state"))
+    if restore_rng:
+        restore_rng_state(envelope.get("rng_state"))
     return dict(experiment_state)
 
 

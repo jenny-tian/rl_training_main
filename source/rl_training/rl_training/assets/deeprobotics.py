@@ -118,5 +118,3 @@ DEEPROBOTICS_M20_CFG = ArticulationCfg(
         ),
     },
 )
-
-

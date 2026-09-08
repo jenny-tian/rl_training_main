@@ -346,7 +346,7 @@ def test_apply_geometry_reports_rollback_that_leaves_failed_field_changed():
     assert subterrain.rough_amplitude == 0.04
 
 
-def test_flat_online_registration_uses_manager_env_and_flat_ppo_runner():
+def test_flat_online_registration_uses_pre_reset_capture_env_and_flat_ppo_runner():
     package_name = (
         "rl_training.tasks.manager_based.locomotion.velocity.config.quadruped."
         "deeprobotics_lite3"
@@ -355,7 +355,10 @@ def test_flat_online_registration_uses_manager_env_and_flat_ppo_runner():
     importlib.import_module(package_name)
     spec = gym.spec("FlatOnline-Deeprobotics-Lite3-v0")
 
-    assert spec.entry_point == "isaaclab.envs:ManagerBasedRLEnv"
+    assert spec.entry_point == (
+        "rl_training.online_adaptation.pre_reset_capture_env:"
+        "PreResetCaptureManagerBasedRLEnv"
+    )
     assert spec.disable_env_checker is True
     assert spec.kwargs == {
         "env_cfg_entry_point": (
@@ -365,6 +368,27 @@ def test_flat_online_registration_uses_manager_env_and_flat_ppo_runner():
             f"{package_name}.agents.rsl_rl_ppo_cfg:DeeproboticsLite3FlatPPORunnerCfg"
         ),
     }
+
+
+@pytest.mark.parametrize(
+    "task_id",
+    (
+        "ContinuousRough-Deeprobotics-Lite3-v0",
+        "Grass-Deeprobotics-Lite3-v0",
+        "RockyRoad-Deeprobotics-Lite3-v0",
+    ),
+)
+def test_online_terrain_registrations_support_pre_reset_terminal_capture(task_id):
+    package_name = (
+        "rl_training.tasks.manager_based.locomotion.velocity.config.quadruped."
+        "deeprobotics_lite3"
+    )
+    importlib.import_module(package_name)
+
+    assert gym.spec(task_id).entry_point == (
+        "rl_training.online_adaptation.pre_reset_capture_env:"
+        "PreResetCaptureManagerBasedRLEnv"
+    )
 
 
 def test_lite3_deployment_configs_enable_the_same_command_ramp():
@@ -549,6 +573,8 @@ def test_flat_online_config_uses_fixed_forward_command_and_safety_terminations(
     assert cfg.terminations.terrain_out_of_bounds is not None
     assert cfg.terminations.terrain_out_of_bounds.params["distance_buffer"] == 0.5
     assert cfg.terminations.illegal_contact is not None
+    assert cfg.terminations.illegal_contact.params["threshold"] == 5.0
+    assert cfg.terminations.illegal_contact.params["consecutive_steps"] == 3
     assert (
         cfg.terminations.illegal_contact.params["sensor_cfg"].body_names
         == EXPECTED_ILLEGAL_CONTACT_LINKS

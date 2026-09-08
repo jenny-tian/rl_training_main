@@ -32,6 +32,44 @@ class StratifiedBatch:
     flat_fraction: float
 
 
+def adapt_replay_state_frame_dim(
+    state: Mapping[str, Any], target_frame_dim: int
+) -> dict[str, Any]:
+    """Pad legacy replay frames when a learner adds observation features."""
+    if not isinstance(state, Mapping):
+        raise TypeError("replay state must be a mapping")
+    if type(target_frame_dim) is not int or target_frame_dim <= 0:
+        raise ValueError("target_frame_dim must be a positive int")
+    source_frame_dim = state.get("frame_dim")
+    if type(source_frame_dim) is not int or source_frame_dim <= 0:
+        raise ValueError("replay state frame_dim must be a positive int")
+    if source_frame_dim > target_frame_dim:
+        raise ValueError(
+            "replay state frame_dim cannot be reduced: "
+            f"source={source_frame_dim}, target={target_frame_dim}"
+        )
+    normalized = dict(state)
+    if source_frame_dim == target_frame_dim:
+        return normalized
+    for name in ("history", "current_frame", "next_history", "next_frame"):
+        value = state.get(name)
+        if not isinstance(value, torch.Tensor) or value.ndim == 0:
+            raise TypeError(f"replay state {name} must be a non-scalar tensor")
+        if value.shape[-1] != source_frame_dim:
+            raise ValueError(
+                f"replay state {name} last dimension must be {source_frame_dim}, "
+                f"got {value.shape[-1]}"
+            )
+        padding = torch.zeros(
+            (*value.shape[:-1], target_frame_dim - source_frame_dim),
+            dtype=value.dtype,
+            device=value.device,
+        )
+        normalized[name] = torch.cat((value, padding), dim=-1)
+    normalized["frame_dim"] = target_frame_dim
+    return normalized
+
+
 def concatenate_transition_batches(
     batches: tuple[TransitionBatch, ...],
 ) -> TransitionBatch:

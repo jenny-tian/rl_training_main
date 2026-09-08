@@ -183,6 +183,16 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
+        # Kept disabled by robot configs unless a time-indexed motion prior is
+        # active.  Without this signal, a time-varying reference is partially
+        # observable and PPO tends to collapse to a stable front-leg gait.
+        motion_phase = ObsTerm(
+            func=mdp.phase,
+            params={"cycle_time": 9.1167},
+            clip=(-1.0, 1.0),
+            scale=1.0,
+        )
+        motion_reference = None
         height_scan = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
@@ -238,6 +248,13 @@ class ObservationsCfg:
             clip=(-100.0, 100.0),
             scale=1.0,
         )
+        motion_phase = ObsTerm(
+            func=mdp.phase,
+            params={"cycle_time": 9.1167},
+            clip=(-1.0, 1.0),
+            scale=1.0,
+        )
+        motion_reference = None
         height_scan = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
@@ -365,6 +382,8 @@ class EventCfg:
             },
         },
     )
+
+    motion_reference_reset = None
 
     # interval
     randomize_push_robot = EventTerm(
@@ -619,6 +638,7 @@ class RewardsCfg:
         params={
             "command_name": "base_velocity",
             "threshold": 0.5,
+            "command_threshold": 0.1,
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
         },
     )
@@ -707,6 +727,130 @@ class RewardsCfg:
             "stance_span": 0.0, # 支撑相在 S∈[0,2) 中占据的长度
             "stand_ref_z_offset": -0.0, # 基准站立足端参考在 body-z 的偏置（米）
             "velocity_weight": 0.0, # 速度误差在总误差中的权重
+        },
+    )
+
+    # Optional external motion prior.  The flat Lite3 config enables these only
+    # when an explicit, provenance-bearing reference NPZ is supplied.
+    motion_prior_joint_pos = RewTerm(
+        func=mdp.motion_prior_joint_pos_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True),
+            "reference_path": None,
+            "std": 0.25,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_prior_foot_pos = RewTerm(
+        func=mdp.motion_prior_foot_pos_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_FOOT"),
+            "reference_path": None,
+            "std": 0.04,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_prior_contact = RewTerm(
+        func=mdp.motion_prior_contact_phase,
+        weight=0.0,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_FOOT"),
+            "reference_path": None,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_prior_clearance = RewTerm(
+        func=mdp.motion_prior_swing_clearance,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_FOOT"),
+            "reference_path": None,
+            "std": 0.04,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_prior_symmetry = RewTerm(
+        func=mdp.motion_prior_symmetry_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_FOOT"),
+            "reference_path": None,
+            "std": 0.04,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_prior_joint_smoothness = RewTerm(
+        func=mdp.motion_prior_joint_smoothness,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True),
+            "reference_path": None,
+            "std": 0.5,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+
+    # Exact low-level imitation terms from Motion Priors Reimagined, Table 1.
+    motion_reference_base_lin_vel = RewTerm(
+        func=mdp.motion_reference_base_lin_vel_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "reference_path": None,
+            "error_scale": 1.0,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_reference_base_ang_vel = RewTerm(
+        func=mdp.motion_reference_base_ang_vel_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "reference_path": None,
+            "error_scale": 0.8,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_reference_joint_pos = RewTerm(
+        func=mdp.motion_reference_joint_pos_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True),
+            "reference_path": None,
+            "error_scale": 2.0,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
+        },
+    )
+    motion_reference_projected_gravity = RewTerm(
+        func=mdp.motion_reference_projected_gravity_exp,
+        weight=0.0,
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "reference_path": None,
+            "error_scale": 3.0,
+            "mode": "off",
+            "prior_weight_value": 1.0,
+            "decay_steps": 100_000,
         },
     )
     
@@ -948,12 +1092,17 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
             if self.scene.terrain.terrain_generator is not None:
                 self.scene.terrain.terrain_generator.curriculum = False
 
-    def disable_zero_weight_rewards(self):
-        """If the weight of rewards is 0, set rewards to None"""
+    def disable_zero_weight_rewards(self, preserve_zero_weight_terms=()):
+        """If the weight of rewards is 0, set rewards to None.
+
+        Some opt-in terms must remain available for a later CLI override,
+        even when the formal baseline starts with them at zero weight.
+        """
+        preserved = set(preserve_zero_weight_terms)
         for attr in dir(self.rewards):
             if not attr.startswith("__"):
                 reward_attr = getattr(self.rewards, attr)
-                if not callable(reward_attr) and reward_attr.weight == 0:
+                if not callable(reward_attr) and attr not in preserved and reward_attr.weight == 0:
                     setattr(self.rewards, attr, None)
 
 

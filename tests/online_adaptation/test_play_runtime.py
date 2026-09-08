@@ -1,34 +1,445 @@
 import json
 import threading
+from argparse import Namespace
 
 import pytest
 
 from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
     AdaptationCommand,
     AdaptationRuntimeOrchestrator,
+    PostStepSnapshot,
+    actor_replay_transition_eligible,
+    PostStepRecoveryRamp,
     RuntimeCounters,
     enable_actor_gate_if_active,
+    evaluate_track_completion_step,
     enforce_prepared_rollback_fallback,
     actor_version_for_record,
     policy_drift_record,
+    actor_update_options,
+    prepare_control_inputs,
+    validate_terrain_checkpoint_metadata,
+    pin_forward_command,
+    normalized_forward_progress,
     prepare_rollback_fallback,
     apply_adaptation_command,
+    build_track_completion,
+    close_active_episode_for_worker_boundary,
     cutoff_before_final_step,
     record_update_result,
     rollback_record_fields,
     resolve_track_boundary_x,
+    select_post_step_snapshot,
+    control_phase,
+    control_is_deterministic,
+    start_control_timing,
     transition_episode_publication,
+    update_pause_event,
     warm_up_control_path,
     write_actor_update_event,
     resolve_worker_geometry,
     split_worker_endings,
+    step_clearance_reward_active,
+    termination_reasons_from_step_result,
     write_episode_summary,
 )
 from rl_training.online_adaptation.metrics import AdaptationPerformance
-from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate
+from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
 from rl_training.online_adaptation.policy_drift import PolicyDrift
 from rl_training.online_adaptation.types import UpdateStats
+from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+from rl_training.online_adaptation.track_completion import TrackCompletion
 import torch
+
+
+def test_stalled_transitions_are_thinned_after_actor_replay_warmup():
+    assert actor_replay_transition_eligible(
+        progress_stalled=False,
+        steps_without_progress=1,
+        replay_size=500,
+        minimum_replay_size=128,
+        stalled_replay_stride=16,
+    )
+    assert actor_replay_transition_eligible(
+        progress_stalled=True,
+        steps_without_progress=127,
+        replay_size=127,
+        minimum_replay_size=128,
+        stalled_replay_stride=16,
+    )
+    assert not actor_replay_transition_eligible(
+        progress_stalled=True,
+        steps_without_progress=129,
+        replay_size=128,
+        minimum_replay_size=128,
+        stalled_replay_stride=16,
+    )
+    assert actor_replay_transition_eligible(
+        progress_stalled=True,
+        steps_without_progress=144,
+        replay_size=128,
+        minimum_replay_size=128,
+        stalled_replay_stride=16,
+    )
+
+    with pytest.raises(TypeError, match="progress_stalled"):
+        actor_replay_transition_eligible(
+            progress_stalled=1,
+            steps_without_progress=0,
+            replay_size=0,
+            minimum_replay_size=128,
+            stalled_replay_stride=16,
+        )
+    with pytest.raises(ValueError, match="replay_size"):
+        actor_replay_transition_eligible(
+            progress_stalled=True,
+            steps_without_progress=0,
+            replay_size=-1,
+            minimum_replay_size=128,
+            stalled_replay_stride=16,
+        )
+    with pytest.raises(ValueError, match="steps_without_progress"):
+        actor_replay_transition_eligible(
+            progress_stalled=True,
+            steps_without_progress=-1,
+            replay_size=0,
+            minimum_replay_size=128,
+            stalled_replay_stride=16,
+        )
+
+
+def test_terrain_checkpoint_metadata_rejects_source_mismatch():
+    geometry = {"terrain_feature_source": "geometry", "terrain_feature_schema_version": 1}
+    height_scan = {
+        "terrain_feature_source": "height_scan",
+        "terrain_feature_schema_version": 1,
+        "height_scanner_name": "height_scanner",
+        "height_scan": {"rows": 23, "cols": 15},
+    }
+    with pytest.raises(ValueError, match="terrain metadata"):
+        validate_terrain_checkpoint_metadata(geometry, height_scan)
+    with pytest.raises(ValueError, match="lacks terrain metadata"):
+        validate_terrain_checkpoint_metadata(None, height_scan)
+    validate_terrain_checkpoint_metadata(None, geometry)
+
+
+def test_post_step_recovery_ramp_reaches_target_in_exact_number_of_steps():
+    ramp = PostStepRecoveryRamp(transition_steps=4, target_gain=0.25)
+
+    values = [
+        ramp.step(reached=True, current_gain=0.5)
+        for _ in range(4)
+    ]
+
+    assert [value[0] for value in values] == pytest.approx([0.4375, 0.375, 0.3125, 0.25])
+    assert [value[1] for value in values] == pytest.approx([0.25, 0.5, 0.75, 1.0])
+    assert [value[2] for value in values] == [True, True, True, False]
+
+
+def test_actor_update_options_forward_policy_drift_limit():
+    assert actor_update_options(
+        Namespace(max_policy_residual_mse=0.125)
+    ) == {"max_residual_mse": 0.125}
+
+
+def test_post_step_recovery_ramp_does_not_start_before_crossing():
+    ramp = PostStepRecoveryRamp(transition_steps=4, target_gain=0.25)
+
+    assert ramp.step(reached=False, current_gain=0.5) == (0.5, 0.0, False)
+    assert ramp.elapsed_steps == 0
+
+
+@pytest.mark.parametrize("base_x", [-7.49, -7.0, -6.51])
+def test_step_clearance_reward_covers_stalls_around_geometric_edge(base_x):
+    assert step_clearance_reward_active(
+        learning_enabled=True,
+        progress_stalled=True,
+        base_x=base_x,
+        step_edge_x=-7.0,
+        interaction_distance=0.5,
+    )
+
+
+def test_step_clearance_reward_requires_learning_and_stall():
+    options = {
+        "base_x": -6.9,
+        "step_edge_x": -7.0,
+        "interaction_distance": 0.5,
+    }
+
+    assert not step_clearance_reward_active(
+        learning_enabled=False, progress_stalled=True, **options
+    )
+    assert not step_clearance_reward_active(
+        learning_enabled=True, progress_stalled=False, **options
+    )
+
+
+@pytest.mark.parametrize(
+    ("state", "learning_enabled", "expected"),
+    [
+        (NoveltyState.ADAPTING, True, False),
+        (NoveltyState.MONITORING, True, True),
+        (NoveltyState.COOLDOWN, True, True),
+        (NoveltyState.ADAPTING, False, True),
+    ],
+)
+def test_adapting_stochastic_control_is_scoped_to_learning(state, learning_enabled, expected):
+    assert control_is_deterministic(
+        stochastic_control=False,
+        adapting_stochastic_control=True,
+        learning_enabled=learning_enabled,
+        novelty_state=state,
+    ) is expected
+
+
+def test_global_stochastic_control_remains_an_explicit_override():
+    assert not control_is_deterministic(
+        stochastic_control=True,
+        adapting_stochastic_control=False,
+        learning_enabled=False,
+        novelty_state=NoveltyState.MONITORING,
+    )
+
+
+class _TrackGenerator:
+    size = (20.0, 4.0)
+    sub_terrains = {"flat_online": type("Flat", (), {"flat_length": 3.0, "step_length": 2.0})()}
+
+
+class _TrackEnvCfg:
+    class scene:
+        class terrain:
+            terrain_generator = _TrackGenerator()
+
+
+def test_build_track_completion_uses_generated_dimensions_and_reset_x():
+    completion = build_track_completion(
+        _TrackEnvCfg(),
+        stage_name="rough_4cm",
+        initial_x=-8.5,
+        protocol=default_flat_online_protocol(),
+    )
+
+    assert completion.target_x == pytest.approx(9.5)
+    assert completion.initial_x == pytest.approx(-8.5)
+
+
+def test_track_completion_stops_only_for_safe_nonterminal_crossing():
+    completion = TrackCompletion.start(
+        stage_name="step_2cm",
+        initial_x=-8.5,
+        flat_length=3.0,
+        step_length=2.0,
+        track_length=20.0,
+        step_clearance_margin_m=0.5,
+        track_end_buffer_m=0.5,
+    )
+    completion.observe(-4.5)
+
+    safe = evaluate_track_completion_step(
+        completion, environment_done=False, safety_violation=False
+    )
+    terminal = evaluate_track_completion_step(
+        completion, environment_done=True, safety_violation=False
+    )
+    unsafe = evaluate_track_completion_step(
+        completion, environment_done=False, safety_violation=True
+    )
+
+    assert safe.reached and safe.passed and safe.should_stop
+    assert terminal.reached and not terminal.passed and not terminal.should_stop
+    assert unsafe.reached and not unsafe.passed and not unsafe.should_stop
+
+
+def test_worker_boundary_closes_active_episode_and_forces_novelty_cooldown():
+    gate = FakeEvent()
+    gate.set()
+    active_episode = 3
+    commands = []
+
+    class Gate:
+        def force_cooldown(self):
+            return "cooldown"
+
+    class Performance:
+        starts = 0
+
+        def start_episode(self):
+            self.starts += 1
+
+    performance = Performance()
+
+    def write_active_episode(value):
+        nonlocal active_episode
+        active_episode = value
+
+    decision = close_active_episode_for_worker_boundary(
+        active_episode=active_episode,
+        shared_lock=threading.Lock(),
+        actor_gate_event=gate,
+        read_active_episode=lambda: active_episode,
+        write_active_episode=write_active_episode,
+        enqueue_command=commands.append,
+        novelty_gate=Gate(),
+        adaptation_performance=performance,
+    )
+
+    assert decision == "cooldown"
+    assert active_episode == 0
+    assert not gate.is_set()
+    assert commands == [AdaptationCommand("end_episode", 3)]
+    assert performance.starts == 1
+
+
+def test_worker_boundary_without_active_episode_still_forces_novelty_cooldown():
+    gate = FakeEvent()
+    gate.set()
+    commands = []
+
+    class Gate:
+        def force_cooldown(self):
+            return "cooldown"
+
+    class Performance:
+        starts = 0
+
+        def start_episode(self):
+            self.starts += 1
+
+    performance = Performance()
+
+    decision = close_active_episode_for_worker_boundary(
+        active_episode=0,
+        shared_lock=threading.Lock(),
+        actor_gate_event=gate,
+        read_active_episode=lambda: 0,
+        write_active_episode=lambda _value: None,
+        enqueue_command=commands.append,
+        novelty_gate=Gate(),
+        adaptation_performance=performance,
+    )
+
+    assert decision == "cooldown"
+    assert not gate.is_set()
+    assert commands == []
+    assert performance.starts == 1
+
+
+def test_start_control_timing_synchronizes_cuda_before_reading_clock(monkeypatch):
+    events = []
+
+    class Device:
+        type = "cuda"
+
+    monkeypatch.setattr(
+        torch.cuda,
+        "synchronize",
+        lambda _device: events.append("synchronize"),
+    )
+
+    started = start_control_timing(
+        device=Device(),
+        clock=lambda: events.append("clock") or 12.5,
+    )
+
+    assert started == 12.5
+    assert events == ["synchronize", "clock"]
+
+
+def test_control_phase_serializes_cuda_work_before_and_during_control(monkeypatch):
+    events = []
+
+    class Device:
+        type = "cuda"
+
+    class Lock:
+        def __enter__(self):
+            events.append("acquire")
+
+        def __exit__(self, *_args):
+            events.append("release")
+
+    monkeypatch.setattr(
+        torch.cuda,
+        "synchronize",
+        lambda _device: events.append("synchronize"),
+    )
+
+    with control_phase(
+        control_update_lock=Lock(),
+        device=Device(),
+        clock=lambda: events.append("clock") or 5.0,
+    ) as started:
+        events.append(("body", started))
+
+    assert events == ["acquire", "synchronize", "clock", ("body", 5.0), "release"]
+
+
+def test_prepare_control_inputs_reads_frame_and_safety_state_before_control_phase():
+    calls = []
+
+    class Adapter:
+        def frame(self, previous_action):
+            calls.append(("frame", tuple(previous_action.shape)))
+            return torch.zeros(1, 49)
+
+        def safety_state(self, timeout):
+            calls.append(("safety", tuple(timeout.shape)))
+            return "safety_state"
+
+    frame, timeout, safety_state = prepare_control_inputs(
+        adapter=Adapter(),
+        previous_action=torch.zeros(1, 12),
+        device=torch.device("cpu"),
+    )
+
+    assert frame.shape == (1, 49)
+    assert timeout.shape == (1, 1)
+    assert timeout.dtype is torch.bool
+    assert safety_state == "safety_state"
+    assert calls == [("frame", (1, 12)), ("safety", (1, 1))]
+
+
+def test_pin_forward_command_overrides_reset_state_and_special_modes():
+    class Term:
+        vel_command_b = torch.zeros(2, 3)
+        target_vel_command_b = torch.zeros(2, 3)
+        is_standing_env = torch.ones(2, dtype=torch.bool)
+        is_heading_env = torch.ones(2, dtype=torch.bool)
+
+    term = Term()
+
+    class Manager:
+        def get_command(self, name):
+            assert name == "base_velocity"
+            return term.vel_command_b
+
+        def get_term(self, name):
+            assert name == "base_velocity"
+            return term
+
+    env = type("Env", (), {"command_manager": Manager()})()
+
+    pin_forward_command(env, 0.5)
+
+    assert torch.equal(term.vel_command_b, torch.tensor([[0.5, 0.0, 0.0]]).expand(2, -1))
+    assert torch.equal(
+        term.target_vel_command_b, torch.tensor([[0.5, 0.0, 0.0]]).expand(2, -1)
+    )
+    assert not term.is_standing_env.any()
+    assert not term.is_heading_env.any()
+
+
+def test_normalized_forward_progress_masks_reset_jump_and_clamps_motion():
+    progress = normalized_forward_progress(
+        torch.tensor([[0.01], [-10.0], [0.5]]),
+        forward_speed=0.5,
+        step_dt=0.02,
+        valid_mask=torch.tensor([[True], [False], [True]]),
+    )
+
+    assert torch.equal(progress, torch.tensor([[1.0], [0.0], [1.0]]))
 
 
 def make_orchestrator():
@@ -210,11 +621,16 @@ def make_update_stats(**changes):
 
 
 def test_worker_geometry_uses_development_or_sealed_protocol_paths():
-    development = resolve_worker_geometry("step_2cm", 101, evaluation_only=False)
-    sealed = resolve_worker_geometry("step_2cm", 1009, evaluation_only=True)
+    development = resolve_worker_geometry("step_2cm", 101, terrain_split="development")
+    sealed = resolve_worker_geometry("step_2cm", 1009, terrain_split="sealed")
     assert development.step_height == 0.02
     assert development.seed == 101
     assert sealed.seed == 1009
+
+
+def test_worker_geometry_rejects_unknown_split():
+    with pytest.raises(ValueError, match="unknown terrain split"):
+        resolve_worker_geometry("step_2cm", 101, terrain_split="unknown")
 
 
 def test_worker_endings_support_gymnasium_and_reject_ambiguous_rsl_rows():
@@ -224,6 +640,107 @@ def test_worker_endings_support_gymnasium_and_reject_ambiguous_rsl_rows():
     assert terminated.item() and not truncated.item() and not bootstrap.item()
     with pytest.raises(RuntimeError, match="cannot distinguish termination from truncation"):
         split_worker_endings((None, None, torch.tensor([True]), {}))
+
+
+def test_terminal_step_uses_pre_reset_snapshot_instead_of_reset_state():
+    terminal = PostStepSnapshot(
+        mask=torch.tensor([[True]]),
+        policy_observation=torch.tensor([[1.0]]),
+        frame=torch.tensor([[2.0]]),
+        signals="terminal-signals",
+        base_x=torch.tensor([[3.0]]),
+    )
+    reset = PostStepSnapshot(
+        mask=torch.tensor([[False]]),
+        policy_observation=torch.tensor([[10.0]]),
+        frame=torch.tensor([[20.0]]),
+        signals="reset-signals",
+        base_x=torch.tensor([[-8.5]]),
+    )
+
+    selected = select_post_step_snapshot(
+        done=torch.tensor([[True]]),
+        terminal=terminal,
+        post_reset=reset,
+    )
+
+    assert selected is terminal
+    assert selected.signals == "terminal-signals"
+    torch.testing.assert_close(selected.frame, torch.tensor([[2.0]]))
+    torch.testing.assert_close(selected.base_x, torch.tensor([[3.0]]))
+
+
+def test_terminal_snapshot_mask_must_match_done_rows():
+    terminal = PostStepSnapshot(
+        mask=torch.tensor([[False]]),
+        policy_observation=torch.zeros(1, 1),
+        frame=torch.zeros(1, 1),
+        signals=object(),
+        base_x=torch.zeros(1, 1),
+    )
+    reset = PostStepSnapshot(
+        mask=torch.tensor([[False]]),
+        policy_observation=torch.zeros(1, 1),
+        frame=torch.zeros(1, 1),
+        signals=object(),
+        base_x=torch.zeros(1, 1),
+    )
+
+    with pytest.raises(RuntimeError, match="capture mask"):
+        select_post_step_snapshot(
+            done=torch.tensor([[True]]),
+            terminal=terminal,
+            post_reset=reset,
+        )
+
+
+def test_nonterminal_step_uses_live_post_step_state_without_capture():
+    reset = PostStepSnapshot(
+        mask=torch.tensor([[False]]),
+        policy_observation=torch.tensor([[10.0]]),
+        frame=torch.tensor([[20.0]]),
+        signals="live-signals",
+        base_x=torch.tensor([[30.0]]),
+    )
+
+    assert select_post_step_snapshot(
+        done=torch.tensor([[False]]),
+        terminal=None,
+        post_reset=reset,
+    ) is reset
+
+
+def test_termination_reasons_read_episode_log_from_rsl_step_result():
+    step_result = (
+        None,
+        None,
+        torch.tensor([1]),
+        {
+            "log": {
+                "Episode_Termination/illegal_contact": 1.0,
+                "Episode_Termination/bad_orientation_2": 0.0,
+            }
+        },
+    )
+
+    assert termination_reasons_from_step_result(step_result) == ("illegal_contact",)
+
+
+def test_termination_reasons_ignore_inactive_and_malformed_terms():
+    step_result = (
+        None,
+        None,
+        torch.tensor([1]),
+        {
+            "log": {
+                "Episode_Termination/illegal_contact": 0.0,
+                "Episode_Termination/bad_orientation_2": "invalid",
+                "unrelated": 1.0,
+            }
+        },
+    )
+
+    assert termination_reasons_from_step_result(step_result) == ()
 
 
 def test_episode_summary_is_strict_json_and_immutable(tmp_path):
@@ -548,6 +1065,36 @@ def test_matching_rollback_and_end_commands_clear_only_their_replay():
         assert replay_clears == [2]
         assert drift_monitor.cleared == [2]
         assert not gate.is_set()
+
+
+def test_fall_reset_preserves_live_actor_and_clears_episode_state():
+    stable_manager = FakeStableManager()
+    drift_monitor = FakeDriftMonitor()
+    publisher = FakePublisher()
+    updater = FakeUpdater()
+    gate = FakeEvent()
+    gate.set()
+    replay_clears = []
+
+    checkpointed_episode, reason = apply_adaptation_command(
+        AdaptationCommand("fall_reset", 2, "fall_reset"),
+        checkpointed_episode=2,
+        updater=updater,
+        publisher=publisher,
+        stable_manager=stable_manager,
+        drift_monitor=drift_monitor,
+        actor_gate_event=gate,
+        clear_adaptation_replay=lambda: replay_clears.append(True),
+        enable_actor_if_episode_active=lambda episode: False,
+    )
+
+    assert checkpointed_episode == 0
+    assert reason == "fall_reset"
+    assert stable_manager.rollbacks == []
+    assert publisher.published == [(FakeUpdater.actor, FakeUpdater.version)]
+    assert drift_monitor.cleared == [2]
+    assert replay_clears == [True]
+    assert not gate.is_set()
 
 
 def test_final_step_cutoff_preserves_episode_for_safety_handling():
@@ -1090,7 +1637,103 @@ def test_safety_rollback_remains_active_before_actor_update():
     assert not result.record_fields["performance_evaluation_enabled"]
 
 
-def test_control_timeout_rollback_remains_active_before_actor_update():
+def test_fall_ends_adaptation_without_counting_as_safety_rollback():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+
+    result = runtime.observe_step(
+        step=8,
+        velocity_error=0.50,
+        tilt_rms=0.20,
+        nonfoot_contact=0,
+        reward=0.1,
+        done=True,
+    )
+
+    assert result.commands == (AdaptationCommand("fall_reset", 1, "fall_reset"),)
+    assert result.clear_adaptation_replay
+    assert runtime.active_episode == 0
+    assert runtime.counters.rollbacks == 0
+    assert runtime.counters.fall_resets == 1
+    assert result.record_fields["rollback_reason"] == "fall_reset"
+    assert result.record_fields["adaptation_state"] == "cooldown"
+
+
+def test_terminal_fall_takes_soft_reset_precedence_over_same_step_pause():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+
+    result = runtime.observe_step(
+        step=8,
+        velocity_error=0.50,
+        tilt_rms=0.40,
+        nonfoot_contact=1,
+        reward=-1.0,
+        paused=True,
+        done=True,
+        safety_reasons=("height",),
+    )
+
+    assert result.commands == (AdaptationCommand("fall_reset", 1, "fall_reset"),)
+    assert runtime.counters.fall_resets == 1
+    assert runtime.counters.safety_rollbacks == 0
+
+
+def test_terminal_without_active_episode_cannot_open_adaptation_on_reset_sample():
+    runtime = make_orchestrator()
+    for step in range(1, 6):
+        runtime.observe_step(
+            step=step,
+            velocity_error=0.10,
+            tilt_rms=0.02,
+            nonfoot_contact=0,
+            reward=1.0,
+        )
+    first_crossing = runtime.observe_step(
+        step=6,
+        velocity_error=0.50,
+        tilt_rms=0.02,
+        nonfoot_contact=0,
+        reward=0.2,
+    )
+    assert first_crossing.record_fields["adaptation_state"] == "monitoring"
+
+    terminal = runtime.observe_step(
+        step=7,
+        velocity_error=0.50,
+        tilt_rms=0.02,
+        nonfoot_contact=0,
+        reward=0.2,
+        done=True,
+    )
+
+    assert terminal.commands == ()
+    assert terminal.record_fields["adaptation_state"] == "cooldown"
+    assert not terminal.adaptation_enabled
+    assert runtime.active_episode == 0
+    assert runtime.novelty_gate.state_dict()["state"] == "cooldown"
+
+
+def test_terminal_with_timeout_still_closes_active_adaptation_episode():
+    runtime = make_orchestrator()
+    enter_adapting(runtime)
+
+    result = runtime.observe_step(
+        step=8,
+        velocity_error=0.50,
+        tilt_rms=0.20,
+        nonfoot_contact=0,
+        reward=0.1,
+        control_timed_out=True,
+        done=True,
+    )
+
+    assert result.commands == (AdaptationCommand("fall_reset", 1, "fall_reset"),)
+    assert result.record_fields["adaptation_state"] == "cooldown"
+    assert runtime.active_episode == 0
+
+
+def test_control_timeout_preserves_active_actor_episode_before_actor_update():
     runtime = make_orchestrator()
     enter_adapting(runtime)
 
@@ -1103,5 +1746,17 @@ def test_control_timeout_rollback_remains_active_before_actor_update():
         control_timed_out=True,
     )
 
-    assert result.commands == (AdaptationCommand("rollback", 1, "control_timeout"),)
+    assert result.commands == ()
+    assert runtime.active_episode == 1
+    assert result.record_fields["control_timeout_preserved_actor"] is True
+    assert result.record_fields["rollback_reason"] == ""
     assert not result.record_fields["performance_evaluation_enabled"]
+
+
+def test_timeout_fallback_does_not_latch_pause_for_next_control_step():
+    paused_event = threading.Event()
+    paused_event.set()
+
+    update_pause_event(paused_event, paused=True, control_timed_out=True)
+
+    assert not paused_event.is_set()

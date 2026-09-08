@@ -9,7 +9,7 @@ from rl_training.online_adaptation.isaaclab_adapter import select_joint_order
 from rl_training.online_adaptation.types import SafetyState
 
 
-def state(tilt=0.0, height=0.35, nonfoot_contact=False):
+def state(tilt=0.0, height=0.35, nonfoot_contact=False, control_timed_out=False):
     return SafetyState(
         projected_gravity_xy=torch.tensor([[tilt, 0.0]]),
         base_height=torch.tensor([[height]]),
@@ -20,7 +20,7 @@ def state(tilt=0.0, height=0.35, nonfoot_contact=False):
         default_joint_pos=torch.zeros(1, 12),
         action_scale=torch.full((1, 12), 0.25),
         nonfoot_contact=torch.tensor([[nonfoot_contact]], dtype=torch.bool),
-        control_timed_out=torch.zeros(1, 1, dtype=torch.bool),
+        control_timed_out=torch.tensor([[control_timed_out]], dtype=torch.bool),
     )
 
 
@@ -142,6 +142,43 @@ def test_unsafe_tilt_pauses_and_requires_stable_window_to_resume():
     for _ in range(2):
         assert filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()
     assert not filt.project(torch.zeros(1, 12), torch.zeros(1, 12), state()).paused.item()
+
+
+def test_control_timeout_pauses_only_the_current_step():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), stable_steps_to_resume=3)
+    )
+    base_action = torch.ones(1, 12)
+
+    timed_out = filt.project(
+        base_action,
+        torch.full((1, 12), 0.1),
+        state(control_timed_out=True),
+    )
+    recovered = filt.project(base_action, torch.full((1, 12), 0.1), state())
+
+    assert timed_out.paused.item()
+    assert "control_timeout" in timed_out.reasons
+    assert torch.equal(timed_out.action, base_action)
+    assert not recovered.paused.item()
+    assert recovered.reasons == ()
+
+
+def test_control_timeout_does_not_clear_a_physical_safety_pause():
+    filt = SafetyFilter(
+        SafetyLimits(residual_limits=torch.full((12,), 0.2), stable_steps_to_resume=3)
+    )
+    base_action = torch.zeros(1, 12)
+
+    assert filt.project(base_action, base_action, state(tilt=0.8)).paused.item()
+    assert filt.project(
+        base_action,
+        base_action,
+        state(control_timed_out=True),
+    ).paused.item()
+    for _ in range(2):
+        assert filt.project(base_action, base_action, state()).paused.item()
+    assert not filt.project(base_action, base_action, state()).paused.item()
 
 
 def test_transient_nonfoot_contact_uses_a_short_grace_window():

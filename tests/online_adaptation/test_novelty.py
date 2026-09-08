@@ -184,6 +184,63 @@ def test_novelty_gate_state_round_trip_preserves_transition_progress():
     assert decision.actor_update_enabled
 
 
+def test_frozen_monitoring_baseline_does_not_absorb_challenge_failure():
+    gate = NoveltyGate(config())
+    calibrate(gate)
+    observe(gate)
+    before = gate.state_dict()
+
+    for _ in range(20):
+        gate.observe(0.5, 0.1, False, 0.2, update_baseline=False)
+
+    after = gate.state_dict()
+    assert after["means"] == before["means"]
+    assert after["variances"] == before["variances"]
+
+
+def test_persistent_progress_stall_opens_and_holds_actor_gate():
+    gate = NoveltyGate(config())
+    calibrate(gate)
+    observe(gate)
+
+    first = gate.observe(0.0, 0.0, False, 1.0, progress_stalled=True)
+    entered = gate.observe(0.0, 0.0, False, 1.0, progress_stalled=True)
+
+    assert not first.actor_update_enabled
+    assert entered.actor_update_enabled
+    assert entered.progress_stalled
+    assert entered.progress_excess == pytest.approx(gate.config.enter_threshold)
+    for _ in range(gate.config.recovery_steps + 1):
+        held = gate.observe(0.0, 0.0, False, 1.0, progress_stalled=True)
+    assert held.state is NoveltyState.ADAPTING
+
+
+def test_flat_baseline_artifact_starts_new_gate_in_monitoring():
+    calibrated = NoveltyGate(config())
+    calibrate(calibrated)
+    artifact = calibrated.export_baseline(
+        source={"seed": 7, "metrics_sha256": "a" * 64}
+    )
+    restored = NoveltyGate(config())
+
+    restored.load_baseline(artifact)
+    decision = observe(restored)
+
+    assert decision.state is NoveltyState.MONITORING
+    assert restored.state_dict()["means"] == calibrated.state_dict()["means"]
+
+
+def test_flat_baseline_artifact_rejects_config_mismatch():
+    calibrated = NoveltyGate(config())
+    calibrate(calibrated)
+    artifact = calibrated.export_baseline(
+        source={"seed": 7, "metrics_sha256": "a" * 64}
+    )
+
+    with pytest.raises(ValueError, match="configuration"):
+        NoveltyGate(config(enter_threshold=3.0)).load_baseline(artifact)
+
+
 @pytest.mark.parametrize(
     "overrides",
     [

@@ -62,6 +62,11 @@ class NStepAccumulator:
             per_env_emissions.append(emitted)
         return self._merge_emissions(per_env_emissions)
 
+    def clear(self) -> None:
+        """Discard incomplete returns at an external environment boundary."""
+        for queue in self._queues:
+            queue.clear()
+
     def state_dict(self) -> dict[str, Any]:
         return {
             "num_envs": self.num_envs,
