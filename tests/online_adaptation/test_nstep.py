@@ -19,6 +19,7 @@ def make_raw_transition(
         current_frame=torch.full((env_count, 1), float(marker)),
         base_action=torch.full((env_count, 1), float(marker)),
         residual_action=torch.full((env_count, 1), float(marker)),
+        requested_residual_action=torch.full((env_count, 1), float(marker + 10)),
         reward=torch.full((env_count, 1), reward),
         next_history=torch.full((env_count, 1, 1), float(marker)),
         next_frame=torch.full((env_count, 1), float(marker)),
@@ -43,6 +44,7 @@ def test_nstep_accumulates_reward_discount_and_next_state(n_step):
     assert transition.reward.item() == pytest.approx(sum(0.9**i for i in range(n_step)))
     assert transition.discount.item() == pytest.approx(0.9**n_step)
     assert transition.next_frame.item() == n_step - 1
+    assert transition.requested_residual_action.item() == 10.0
 
 
 def run_terminal_case(*, terminated: bool, truncated: bool):

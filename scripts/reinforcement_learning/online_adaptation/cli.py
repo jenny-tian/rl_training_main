@@ -317,6 +317,8 @@ def build_play_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--target-q-min", type=_finite_float, default=None)
     parser.add_argument("--target-q-max", type=_finite_float, default=None)
+    parser.add_argument("--initial-alpha", type=_positive_float, default=1.0)
+    parser.add_argument("--alpha-max", type=_positive_float, default=None)
     parser.add_argument(
         "--deterministic-actor-weight", type=_nonnegative_float, default=0.0
     )
@@ -402,6 +404,8 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--completion-bonus", type=_nonnegative_float, default=5.0
     )
+    parser.add_argument("--rough-swing-lift-weight", type=_nonnegative_float, default=0.0)
+    parser.add_argument("--rough-swing-lift-target", type=_positive_float, default=0.045)
     parser.add_argument(
         "--pre-step-clearance-weight", type=_nonnegative_float, default=4.0
     )

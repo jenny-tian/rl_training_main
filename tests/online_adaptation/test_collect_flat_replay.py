@@ -332,6 +332,7 @@ def test_one_step_flat_transition_has_zero_residual_and_explicit_endings():
 
     assert {field.name for field in fields(transition)} == set(values) | {
         "residual_action",
+        "requested_residual_action",
         "discount",
     }
     assert torch.equal(transition.residual_action, torch.zeros_like(transition.base_action))

@@ -4,7 +4,8 @@ import copy
 from collections.abc import Callable
 import torch
 from dataclasses import dataclass, fields
-from math import isfinite
+from math import isfinite, log
+from numbers import Real
 from pathlib import Path
 from torch import nn
 from torch.nn import functional as F
@@ -45,8 +46,18 @@ class SACConfig:
     target_q_max: float | None = None
     critic_huber_delta: float | None = None
     deterministic_actor_weight: float = 0.0
+    initial_alpha: float = 1.0
+    alpha_max: float | None = None
 
     def __post_init__(self) -> None:
+        for name in ("initial_alpha", "alpha_max"):
+            value = getattr(self, name)
+            if value is None and name == "alpha_max":
+                continue
+            if isinstance(value, bool) or not isinstance(value, Real) or not isfinite(value) or value <= 0:
+                raise ValueError(f"{name} must be finite and positive")
+        if self.alpha_max is not None and self.initial_alpha > self.alpha_max:
+            raise ValueError("initial_alpha must not exceed alpha_max")
         if (
             isinstance(self.flat_anchor_weight, bool)
             or not isinstance(self.flat_anchor_weight, (int, float))
@@ -103,6 +114,9 @@ def compute_sac_target(
 
 
 class SACUpdater:
+    CHECKPOINT_SCHEMA_VERSION = 1
+    CRITIC_ACTION_SEMANTICS = "requested_residual_before_safety_v1"
+
     def __init__(self, actor: ResidualActor, critic: TwinCritic, config: SACConfig):
         self.actor = actor
         self.critic = critic
@@ -112,7 +126,7 @@ class SACUpdater:
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=config.actor_lr)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=config.critic_lr)
         device = next(actor.parameters()).device
-        self.log_alpha = nn.Parameter(torch.zeros((), device=device))
+        self.log_alpha = nn.Parameter(torch.tensor(log(config.initial_alpha), device=device))
         self.alpha_optimizer = torch.optim.Adam((self.log_alpha,), lr=config.alpha_lr)
         self.version = 0
 
@@ -141,6 +155,9 @@ class SACUpdater:
         grad_norm: float = 0.0,
         mean_target_q: float | None = None,
         mean_td_error: float | None = None,
+        mean_unclipped_target_q: float | None = None,
+        target_q_clip_fraction: float | None = None,
+        mean_entropy_bonus: float | None = None,
     ) -> UpdateStats:
         return UpdateStats(
             critic_loss=critic_loss,
@@ -156,6 +173,9 @@ class SACUpdater:
             rejection_reason=reason,
             mean_target_q=mean_target_q,
             mean_td_error=mean_td_error,
+            mean_unclipped_target_q=mean_unclipped_target_q,
+            target_q_clip_fraction=target_q_clip_fraction,
+            mean_entropy_bonus=mean_entropy_bonus,
             mean_flat_q=None,
             mean_online_q=None,
             flat_anchor_loss=None,
@@ -171,7 +191,16 @@ class SACUpdater:
         *,
         update_actor: bool = True,
         candidate_validator: CandidateActorValidator | None = None,
+        residual_gain: float = 1.0,
     ) -> UpdateStats:
+        if (
+            isinstance(residual_gain, bool)
+            or not isinstance(residual_gain, Real)
+            or not isfinite(float(residual_gain))
+            or not 0.0 <= float(residual_gain) <= 1.0
+        ):
+            raise ValueError("residual_gain must be a finite scalar in [0, 1]")
+        residual_gain = float(residual_gain)
         if not self._batch_is_finite(critic_batch):
             return self._rejected_stats("nonfinite_batch")
         before = copy.deepcopy(self.state_dict())
@@ -186,6 +215,7 @@ class SACUpdater:
                     critic_batch.next_frame,
                     critic_batch.next_base_action,
                 )
+                next_residual = next_residual * residual_gain
                 target_q1, target_q2 = self.target_critic(
                     critic_batch.next_history,
                     critic_batch.next_frame,
@@ -199,17 +229,26 @@ class SACUpdater:
                     next_q=torch.minimum(target_q1, target_q2),
                     alpha_log_prob=self.alpha.detach() * next_log_prob,
                 )
+                raw_target = target
                 if self.config.target_q_min is not None or self.config.target_q_max is not None:
                     target = target.clamp(
                         min=self.config.target_q_min,
                         max=self.config.target_q_max,
                     )
+                target_diagnostics = dict(
+                    mean_unclipped_target_q=float(raw_target.mean()),
+                    target_q_clip_fraction=float((target != raw_target).float().mean()),
+                    mean_entropy_bonus=float((-self.alpha.detach() * next_log_prob).mean()),
+                )
 
             q1, q2 = self.critic(
                 critic_batch.history,
                 critic_batch.current_frame,
                 critic_batch.base_action,
-                critic_batch.residual_action,
+                # Q models a requested residual with the safety filter included
+                # in the environment dynamics. Never relabel a request with the
+                # different executed action after a rate/joint/tilt intervention.
+                critic_batch.requested_residual_action,
             )
             if self.config.critic_huber_delta is None:
                 critic_loss = F.mse_loss(q1, target) + F.mse_loss(q2, target)
@@ -264,6 +303,7 @@ class SACUpdater:
                     actor_batch.current_frame,
                     actor_batch.base_action,
                 )
+                residual = residual * residual_gain
                 actor_q1, actor_q2 = self.critic(
                     actor_batch.history,
                     actor_batch.current_frame,
@@ -278,6 +318,7 @@ class SACUpdater:
                         actor_batch.base_action,
                         deterministic=True,
                     )
+                    deterministic_residual = deterministic_residual * residual_gain
                     deterministic_q1, deterministic_q2 = self.critic(
                         actor_batch.history,
                         actor_batch.current_frame,
@@ -294,6 +335,7 @@ class SACUpdater:
                         flat_anchor_batch.base_action,
                         deterministic=True,
                     )
+                    flat_mean = flat_mean * residual_gain
                     flat_anchor_loss_value = (
                         self.config.flat_anchor_weight * flat_mean.square().mean()
                     )
@@ -319,6 +361,9 @@ class SACUpdater:
                     raise FloatingPointError
                 torch.nn.utils.clip_grad_norm_((self.log_alpha,), self.config.max_grad_norm)
                 self.alpha_optimizer.step()
+                if self.config.alpha_max is not None:
+                    with torch.no_grad():
+                        self.log_alpha.clamp_(max=log(self.config.alpha_max))
 
             if not (
                 self._parameters_are_finite(self.actor)
@@ -344,6 +389,7 @@ class SACUpdater:
                 grad_norm=float(critic_grad_norm.detach()),
                 mean_target_q=float(target.mean().detach()),
                 mean_td_error=float(mean_td_error.detach()),
+                **target_diagnostics,
             )
         except FloatingPointError:
             self.critic.requires_grad_(True)
@@ -383,6 +429,7 @@ class SACUpdater:
             rejection_reason=None,
             mean_target_q=float(target.mean().detach()),
             mean_td_error=float(mean_td_error.detach()),
+            **target_diagnostics,
             mean_flat_q=None,
             mean_online_q=None,
             flat_anchor_loss=(
@@ -396,6 +443,8 @@ class SACUpdater:
 
     def state_dict(self) -> dict[str, Any]:
         return {
+            "schema_version": self.CHECKPOINT_SCHEMA_VERSION,
+            "critic_action_semantics": self.CRITIC_ACTION_SEMANTICS,
             "actor": self.actor.state_dict(),
             "critic": self.critic.state_dict(),
             "target_critic": self.target_critic.state_dict(),
@@ -406,7 +455,34 @@ class SACUpdater:
             "version": self.version,
         }
 
+    @classmethod
+    def validate_checkpoint_contract(cls, state: dict[str, Any]) -> None:
+        if (
+            not isinstance(state, dict)
+            or type(state.get("schema_version")) is not int
+            or state["schema_version"] != cls.CHECKPOINT_SCHEMA_VERSION
+            or state.get("critic_action_semantics") != cls.CRITIC_ACTION_SEMANTICS
+        ):
+            raise ValueError(
+                "SAC checkpoint has missing or incompatible action semantics/schema; "
+                "use a freshly generated initializer for training, or load only "
+                "historical actor weights for evaluation"
+            )
+
     def load_state_dict(self, state: dict[str, Any]) -> None:
+        self.validate_checkpoint_contract(state)
+        if self.config.alpha_max is not None:
+            saved_alpha = state["log_alpha"].exp().item()
+            if not isfinite(saved_alpha) or saved_alpha > self.config.alpha_max * (1.0 + 1e-6):
+                raise ValueError("checkpoint temperature exceeds alpha_max; create a compatible initializer")
+        before = copy.deepcopy(self.state_dict())
+        try:
+            self._restore_state(state)
+        except BaseException:
+            self._restore_state(before)
+            raise
+
+    def _restore_state(self, state: dict[str, Any]) -> None:
         self.actor.load_state_dict(state["actor"])
         self.critic.load_state_dict(state["critic"])
         self.target_critic.load_state_dict(state["target_critic"])
@@ -459,6 +535,8 @@ class StableStateManager:
         degradation_count = state["degradation_count"]
         if type(degradation_count) is not int or not 0 <= degradation_count <= self.patience:
             raise ValueError("stable manager degradation_count is invalid")
+        if state["stable_state"] is not None:
+            SACUpdater.validate_checkpoint_contract(state["stable_state"])
         self._best_score = state["best_score"]
         self._stable_state = copy.deepcopy(state["stable_state"])
         self._degradation_count = degradation_count

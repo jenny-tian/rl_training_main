@@ -11,6 +11,9 @@ from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisod
     _archive_incomplete,
     _initial_state,
     _target_configuration,
+    _manifest,
+    _validate_input_lineage,
+    build_flat_probe_command,
     build_development_control_command,
     build_parser,
     build_sealed_evaluation_command,
@@ -45,6 +48,11 @@ def _args(tmp_path: Path, **overrides) -> Namespace:
         "control_timeout_ms": 50.0,
         "target_q_min": -500.0,
         "target_q_max": 300.0,
+        "initial_alpha": 0.02,
+        "alpha_max": 0.05,
+        "critic_huber_delta": 1.0,
+        "rough_swing_lift_weight": 1.0,
+        "rough_swing_lift_target": 0.045,
         "deterministic_actor_weight": 0.25,
         "max_policy_residual_mse": 1.0e-5,
         "flat_probe_interval": 10,
@@ -84,6 +92,84 @@ def _value(command: list[str], option: str) -> str:
     return command[command.index(option) + 1]
 
 
+@pytest.mark.parametrize("mismatch", [None, "missing", "semantics", "updater_version", "replay_version"])
+def test_initializer_lineage_requires_versioned_action_contract(tmp_path, mismatch):
+    from rl_training.online_adaptation.provenance import sha256_file
+    from rl_training.online_adaptation.sac import SACUpdater
+
+    args = _args(tmp_path)
+    base = Path(args.base_checkpoint)
+    flat = Path(args.flat_replay)
+    initializer = Path(args.initial_residual_checkpoint)
+    for path in (base, flat, initializer):
+        path.write_bytes(b"test artifact")
+    base_manifest = Path(args.base_manifest)
+    base_manifest.write_text(json.dumps({"files": {
+        str(base.resolve()): {"sha256": sha256_file(base), "bytes": base.stat().st_size}
+    }}), encoding="utf-8")
+    flat.with_name("flat_replay_manifest.json").write_text(json.dumps({
+        "frozen": True,
+        "transition_count": 100_000,
+        "replay_sha256": sha256_file(flat),
+        "baseline_manifest_sha256": sha256_file(base_manifest),
+    }), encoding="utf-8")
+    manifest = {
+        "updater_sha256": sha256_file(initializer),
+        "flat_replay_sha256": sha256_file(flat),
+        "frame_dim": 49,
+        "actor_source": "fresh_zero_mean_actor",
+        "critic_action_semantics": SACUpdater.CRITIC_ACTION_SEMANTICS,
+        "updater_schema_version": SACUpdater.CHECKPOINT_SCHEMA_VERSION,
+        "replay_schema_version": 2,
+        "sac_config": {"initial_alpha": 0.02, "alpha_max": 0.05},
+    }
+    if mismatch == "missing":
+        manifest.pop("updater_schema_version")
+    elif mismatch == "semantics":
+        manifest["critic_action_semantics"] = "executed_residual_after_safety_v1"
+    elif mismatch == "updater_version":
+        manifest["updater_schema_version"] = True
+    elif mismatch == "replay_version":
+        manifest["replay_schema_version"] = 1
+    initializer.with_name("initializer.json").write_text(json.dumps(manifest), encoding="utf-8")
+    if mismatch is None:
+        result = _validate_input_lineage(args)
+        assert result["initializer_manifest"] == str(initializer.with_name("initializer.json"))
+    else:
+        with pytest.raises(ValueError, match="action semantics/schema"):
+            _validate_input_lineage(args)
+
+
+def test_training_and_all_evaluations_share_rate_limit(tmp_path):
+    args = _args(tmp_path, residual_rate_limit=0.05)
+    output = Path(args.output_dir)
+    output.mkdir()
+    (output / "novelty_baseline.json").write_text("{}", encoding="utf-8")
+    config = _target_configuration(args)
+    commands = [build_training_command(args, config, output=output, episode=1)]
+    for mode in ("base", "learned_frozen"):
+        commands.append(build_flat_probe_command(args, config, output=output, mode=mode,
+                                                seed=7, run_dir=output / mode))
+    commands.append(build_sealed_evaluation_command(args, config, output=output,
+                                                   terrain_seed=1009, run_dir=output / "sealed"))
+    commands.append(build_development_control_command(args, config, output=output,
+                                                     mode="initial_residual", run_dir=output / "control"))
+    assert all(_value(command, "--residual-rate-limit") == "0.05" for command in commands)
+
+
+def test_manifest_binds_action_semantics_and_rate_limit(tmp_path, monkeypatch):
+    from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as module
+    for name in ("_validate_input_lineage", "_frozen_benchmark_provenance", "_git_provenance"):
+        monkeypatch.setattr(module, name, lambda *args: {})
+    monkeypatch.setattr(module, "sha256_file", lambda path: "test-hash")
+    args = _args(tmp_path, residual_rate_limit=0.05)
+    manifest = _manifest(args, _target_configuration(args))
+    assert manifest["critic_action_semantics"] == "requested_residual_before_safety_v1"
+    assert manifest["replay_schema_version"] == 2
+    args.residual_rate_limit = 0.03
+    assert manifest != _manifest(args, _target_configuration(args))
+
+
 def test_parser_defaults_define_bounded_stable_multiepisode_experiment():
     args = build_parser().parse_args(
         [
@@ -97,7 +183,9 @@ def test_parser_defaults_define_bounded_stable_multiepisode_experiment():
         ]
     )
 
-    assert args.max_episodes == 500
+    assert args.max_episodes == 100
+    assert args.target_q_min is None and args.target_q_max is None
+    assert args.initial_alpha == 0.02 and args.alpha_max == 0.05
     assert args.terrain_seed == 101
     assert args.simulation_seed == 7
     assert args.terrain_stage == "rough_4cm"
@@ -215,6 +303,10 @@ def test_stable_success_requires_full_window_current_flat_probe_and_streak():
     state["latest_flat_retention_passed"] = True
     state["base_control_passed"] = False
     state["initial_residual_control_passed"] = False
+
+    assert not stable_success_reached(state, window=10, min_success_rate=0.8, min_consecutive_successes=3)
+    state["last_development_probe_episode"] = 10
+    state["latest_development_validation"] = {"passed": True}
 
     assert stable_success_reached(
         state,
@@ -335,3 +427,137 @@ def test_incomplete_attempt_is_archived_without_deletion(tmp_path):
     archived = tmp_path / "episodes" / "incomplete" / "episode-0001-attempt-01"
     assert not run_dir.exists()
     assert (archived / "runtime.log").read_text(encoding="utf-8") == "partial"
+
+
+def test_development_validation_is_frozen_disjoint_and_uses_snapshot(tmp_path):
+    from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisode import (
+        build_development_validation_command, validation_seeds,
+    )
+    args = _args(tmp_path)
+    snapshot = tmp_path / "episode-0020" / "experiment.pt"
+    command = build_development_validation_command(
+        args, _target_configuration(args), output=tmp_path, seed=103,
+        run_dir=tmp_path / "validation", checkpoint=snapshot,
+    )
+    assert _value(command, "--experiment-checkpoint-in") == str(snapshot)
+    assert _value(command, "--terrain-split") == "development"
+    assert _value(command, "--mode") == "residual_frozen"
+    assert _value(command, "--seed") == "7"
+    assert "--evaluation-only" in command and "--stochastic-control" not in command
+    assert set(validation_seeds(args)) == {103, 107, 109, 113}
+    for invalid_seed in (101, 1009):
+        with pytest.raises(ValueError, match="development seed"):
+            build_development_validation_command(args, _target_configuration(args), output=tmp_path,
+                seed=invalid_seed, run_dir=tmp_path / "invalid", checkpoint=snapshot)
+
+
+def test_best_checkpoint_survives_later_regression_and_failed_flat_probe():
+    from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisode import select_best_checkpoint
+    best = {"episode": 20, "rank": [3, 0, -0.1, -0.1, -0.1], "flat_retention_passed": True}
+    worse = {**best, "episode": 100, "rank": [2, -1, -0.2, -0.2, -0.2]}
+    unsafe = {**best, "episode": 50, "rank": [4, 0, 0, 0, 0], "flat_retention_passed": False}
+    assert select_best_checkpoint(best, worse) == best
+    assert select_best_checkpoint(best, unsafe) == best
+    assert select_best_checkpoint(best, {**best, "episode": 60}) == best
+    assert select_best_checkpoint(None, unsafe) is None
+
+
+def test_selected_checkpoint_is_not_latest_and_checksum_is_verified(tmp_path):
+    from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisode import _selected_checkpoint
+    from rl_training.online_adaptation.provenance import sha256_file
+    snapshot = tmp_path / "episodes" / "episode-0020" / "experiment.pt"
+    snapshot.parent.mkdir(parents=True)
+    snapshot.write_bytes(b"best")
+    digest = sha256_file(snapshot)
+    snapshot.with_suffix(".pt.sha256").write_text(digest)
+    (tmp_path / "experiment.pt").write_bytes(b"worse final")
+    (tmp_path / "best_checkpoint.json").write_text(json.dumps({
+        "episode": 20, "flat_retention_passed": True, "checkpoint_sha256": digest,
+    }))
+    assert _selected_checkpoint(tmp_path) == snapshot
+    snapshot.write_bytes(b"changed")
+    with pytest.raises(RuntimeError, match="checksum"):
+        _selected_checkpoint(tmp_path)
+
+
+@pytest.mark.parametrize("mismatch", ["seed", "checkpoint", "stochastic", "updates"])
+def test_validation_rejects_stale_or_exploratory_results(mismatch):
+    from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisode import _validate_frozen_rollout
+    summary = {"terrain_seed": 103, "mode": "residual_frozen", "actor_updates": 0,
+               "critic_updates": 0, "parameter_changed": False, "experiment_checkpoint_in_sha256": "good"}
+    config = {"arguments": {"stochastic_control": False, "evaluation_only": True, "seed": 7}}
+    if mismatch == "seed": summary["terrain_seed"] = 107
+    if mismatch == "checkpoint": summary["experiment_checkpoint_in_sha256"] = "old"
+    if mismatch == "stochastic": config["arguments"]["stochastic_control"] = True
+    if mismatch == "updates": summary["actor_updates"] = 1
+    with pytest.raises(RuntimeError, match="matching deterministic"):
+        _validate_frozen_rollout(summary, config, seed=103, checkpoint_sha256="good", simulation_seed=7)
+
+
+def test_resume_completes_missing_development_probe_without_repeating_flat(tmp_path, monkeypatch):
+    from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as module
+    state = _initial_state()
+    state.update(episodes_completed=10, last_flat_probe_episode=10, latest_flat_retention_passed=True)
+    calls = []
+    monkeypatch.setattr(module, "_run_flat_probe", lambda *a, **k: pytest.fail("already committed flat probe"))
+    def record(*args, **kwargs):
+        calls.append(kwargs["state"]["episodes_completed"])
+        kwargs["state"]["last_development_probe_episode"] = 10
+    monkeypatch.setattr(module, "_record_development_validation", record)
+    args = _args(tmp_path)
+    for _ in range(2):
+        module._complete_current_probes(args, _target_configuration(args), output=tmp_path,
+                                       state=state, base_summaries=[])
+    assert calls == [10]
+
+
+def test_development_probe_aggregates_pairing_and_replaces_stale_cache(tmp_path, monkeypatch):
+    from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as module
+    from rl_training.online_adaptation.provenance import sha256_file
+
+    args = _args(tmp_path, video=False)
+    checkpoint = tmp_path / "episodes" / "episode-0010" / "experiment.pt"
+    checkpoint.parent.mkdir(parents=True)
+    checkpoint.write_bytes(b"snapshot")
+    checkpoint.with_suffix(".pt.sha256").write_text(sha256_file(checkpoint))
+    calls = []
+
+    def run(command, run_dir, *, physical_gpu):
+        seed = int(_value(command, "--terrain-seed"))
+        mode = _value(command, "--mode")
+        calls.append((mode, seed))
+        summary = {
+            "mode": mode, "terrain_seed": seed, "actor_updates": 0, "critic_updates": 0,
+            "parameter_changed": False, "passed": mode == "residual_frozen" or seed in (103, 107),
+            "fell": False, "safety_violation": False, "completion_remaining_m": 0.0,
+            "second_half_velocity_error": 0.1, "second_half_tilt_rms": 0.1,
+            "experiment_checkpoint_in_sha256": sha256_file(checkpoint) if mode == "residual_frozen" else None,
+        }
+        (run_dir / "episode_summary.json").write_text(json.dumps(summary))
+        (run_dir / "config.json").write_text(json.dumps({"arguments": {
+            "seed": 7, "stochastic_control": False, "evaluation_only": True,
+        }}))
+        return 0
+
+    monkeypatch.setattr(module, "_run_logged", run)
+    config = _target_configuration(args)
+    report = module._run_development_validation(args, config, output=tmp_path, episode=10, flat_passed=True)
+    assert report["passed"] is True
+    assert report["base"]["successes"] == 2 and report["learned_frozen"]["successes"] == 4
+    assert len(calls) == 8
+    assert module._run_development_validation(args, config, output=tmp_path, episode=10, flat_passed=True) == report
+    assert len(calls) == 8
+    stale = tmp_path / "development_validation" / "episode-0010" / "seed-107" / "episode_summary.json"
+    saved = json.loads(stale.read_text())
+    saved["experiment_checkpoint_in_sha256"] = "old checkpoint"
+    stale.write_text(json.dumps(saved))
+    module._run_development_validation(args, config, output=tmp_path, episode=10, flat_passed=True)
+    assert calls[-1] == ("residual_frozen", 107) and len(calls) == 9
+    assert stale.parent.parent.joinpath("incomplete", "seed-107-attempt-01").is_dir()
+
+
+def test_invalid_validation_metrics_cannot_select_a_winner():
+    from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisode import _validation_rank
+    with pytest.raises(RuntimeError, match="finite"):
+        _validation_rank([{"passed": True, "fell": False, "second_half_velocity_error": float("nan"),
+                           "second_half_tilt_rms": .1, "completion_remaining_m": 0}])

@@ -101,6 +101,36 @@ def test_known_mean_layer_bias_change_has_positive_finite_drift():
     assert all(torch.isfinite(torch.tensor(value)) for value in values)
 
 
+def test_policy_drift_is_measured_in_applied_residual_units():
+    actor = make_actor()
+    monitor = ActorDriftMonitor()
+    monitor.start_episode(actor, adaptation_episode=1)
+    with torch.no_grad():
+        actor.mean_layer.bias.add_(0.1)
+
+    full_gain = monitor.measure(
+        actor,
+        make_batch(),
+        actor_version=1,
+        update_step=20,
+        adaptation_episode=1,
+        residual_gain=1.0,
+    )
+    half_gain = monitor.measure(
+        actor,
+        make_batch(1.0),
+        actor_version=2,
+        update_step=21,
+        adaptation_episode=1,
+        residual_gain=0.5,
+    )
+
+    assert half_gain.residual_mse == pytest.approx(full_gain.residual_mse * 0.25)
+    assert half_gain.joint_abs_change_mean == pytest.approx(
+        full_gain.joint_abs_change_mean * 0.5
+    )
+
+
 def test_float64_parameter_l2_stays_finite_for_large_finite_delta():
     actor = make_actor().double()
     batch = make_batch(dtype=torch.float64)

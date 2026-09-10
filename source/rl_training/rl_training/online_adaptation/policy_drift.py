@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+from math import isfinite
+from numbers import Real
 
 import torch
 
@@ -80,7 +82,15 @@ class ActorDriftMonitor:
         actor_version: int,
         update_step: int,
         adaptation_episode: int,
+        residual_gain: float = 1.0,
     ) -> PolicyDrift:
+        if (
+            isinstance(residual_gain, bool)
+            or not isinstance(residual_gain, Real)
+            or not isfinite(float(residual_gain))
+            or not 0.0 <= float(residual_gain) <= 1.0
+        ):
+            raise ValueError("residual_gain must be a finite scalar in [0, 1]")
         if self._reference_actor is None or adaptation_episode != self._adaptation_episode:
             raise RuntimeError("no reference actor for adaptation episode")
         if self._diagnostic_inputs is None:
@@ -100,7 +110,9 @@ class ActorDriftMonitor:
             reference_residual, _, _ = self._reference_actor.sample(
                 history, current_frame, base_action, deterministic=True
             )
-            delta = candidate_residual - reference_residual
+            # Bound the requested residual before safety filtering. This also
+            # bounds changes that filtering may currently hide from execution.
+            delta = (candidate_residual - reference_residual) * float(residual_gain)
             joint_mean_abs = delta.abs().mean(dim=0)
 
             reference_parameters = dict(self._reference_actor.named_parameters())

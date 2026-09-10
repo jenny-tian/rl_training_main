@@ -32,6 +32,8 @@ from rl_training.online_adaptation.terrain_protocol import (
 )
 from rl_training.online_adaptation.track_completion import TrackCompletion
 from rl_training.online_adaptation.types import UpdateStats
+from rl_training.online_adaptation.swing_lift import SwingLiftTracker, rough_swing_reward_active
+from rl_training.online_adaptation.training_contract import training_contract, validate_training_contract
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser
 
@@ -1188,6 +1190,8 @@ def main() -> int:
                     target_q_max=args.target_q_max,
                     critic_huber_delta=args.critic_huber_delta,
                     deterministic_actor_weight=args.deterministic_actor_weight,
+                    initial_alpha=args.initial_alpha,
+                    alpha_max=args.alpha_max,
                 ),
                 device=device,
             )
@@ -1207,6 +1211,23 @@ def main() -> int:
                 if not flat_replay.frozen:
                     raise ValueError("--flat-replay must contain a frozen replay state")
                 online_agent.flat_replay = flat_replay
+            reward_weights = replace(
+                RewardWeights(),
+                post_step_stability_weight=args.post_step_stability_weight,
+                post_step_progress_weight=args.post_step_progress_weight,
+                stall_penalty_weight=args.stall_penalty_weight,
+                completion_bonus=args.completion_bonus,
+                pre_step_clearance_weight=args.pre_step_clearance_weight,
+                pre_step_clearance_target=args.pre_step_clearance_target,
+                pre_step_foot_forward_weight=args.pre_step_foot_forward_weight,
+                pre_step_foot_forward_target=args.pre_step_foot_forward_target,
+                rough_swing_lift_weight=args.rough_swing_lift_weight,
+                rough_swing_lift_target=args.rough_swing_lift_target,
+            )
+            current_training_contract = training_contract(
+                online_agent.updater.config, reward_weights, target_semantics=args.target_semantics
+            )
+            swing_lift_tracker = SwingLiftTracker()
             restored_experiment = None
             if args.experiment_checkpoint_in is not None:
                 restored_experiment = load_experiment_checkpoint(
@@ -1219,6 +1240,10 @@ def main() -> int:
                     restored_experiment.get("terrain_metadata"),
                     adapter.terrain_metadata(),
                 )
+                if learning_enabled:
+                    validate_training_contract(
+                        restored_experiment.get("training_contract"), current_training_contract
+                    )
                 online_agent.load_state_dict(restored_experiment["agent"])
             if (
                 args.residual_checkpoint is not None
@@ -1228,18 +1253,6 @@ def main() -> int:
                 online_agent.updater.load(args.residual_checkpoint, map_location=device)
                 online_agent.publisher.publish(online_agent.updater.actor, online_agent.updater.version)
 
-            reward_weights = RewardWeights()
-            reward_weights = replace(
-                reward_weights,
-                post_step_stability_weight=args.post_step_stability_weight,
-                post_step_progress_weight=args.post_step_progress_weight,
-                stall_penalty_weight=args.stall_penalty_weight,
-                completion_bonus=args.completion_bonus,
-                pre_step_clearance_weight=args.pre_step_clearance_weight,
-                pre_step_clearance_target=args.pre_step_clearance_target,
-                pre_step_foot_forward_weight=args.pre_step_foot_forward_weight,
-                pre_step_foot_forward_target=args.pre_step_foot_forward_target,
-            )
             metrics = RollingMetrics(window=250)
             novelty_gate = NoveltyGate(
                 NoveltyConfig(
@@ -1275,6 +1288,10 @@ def main() -> int:
                 )
                 novelty_gate.load_baseline(baseline_payload)
             if learning_enabled and online_agent.flat_replay is not None:
+                # Critic warmup must use the same applied residual scale as
+                # the first deployment phase; the runtime config starts at
+                # zero only to prevent pre-handoff control leakage.
+                online_agent.set_residual_gain(args.residual_gain)
                 online_agent.prewarm_critics_from_flat()
             if restored_experiment is None:
                 stable_manager.checkpoint(online_agent.updater)
@@ -1402,6 +1419,7 @@ def main() -> int:
                                     update_step=step_snapshot,
                                     episode_is_active=episode_is_still_active,
                                     final_publish_attempt=publish_if_episode_is_still_active,
+                                    residual_gain=online_agent.residual_gain,
                                 )
                             stats = replace(
                                 outcome.stats,
@@ -1443,6 +1461,8 @@ def main() -> int:
 
             config = {
                 "arguments": vars(args),
+                "critic_action_semantics": "requested_residual_before_safety_v1",
+                "replay_schema_version": 2,
                 "agent": asdict(runtime_config),
                 "reward": asdict(reward_weights),
                 "continuous_no_reset": True,
@@ -1705,11 +1725,19 @@ def main() -> int:
                     step_dt=control_step_dt,
                     valid_mask=progress_valid,
                 )
+                swing_lift = swing_lift_tracker.observe(signals.foot_height, signals.foot_contact)
+                rough_swing_active = rough_swing_reward_active(
+                    stage=args.terrain_stage,
+                    learning_enabled=learning_enabled,
+                    adapting=novelty_decision.state is NoveltyState.ADAPTING,
+                )
                 reward = compute_online_reward(
                     signals,
                     decision.residual,
                     previous_residual,
                     reward_weights,
+                    swing_lift=swing_lift,
+                    rough_swing_mask=torch.full_like(signals.base_lin_vel_z, float(rough_swing_active)),
                     forward_progress=forward_progress,
                     post_step_mask=torch.full_like(
                         forward_progress, float(post_step_reached)
@@ -1890,6 +1918,7 @@ def main() -> int:
                     ),
                     dtype=torch.int64,
                 )
+                swing_lift_tracker.reset(done)
                 actor_invalid = decision.paused.bool().reshape(-1, 1)
                 if control_timed_out or rollback_fallback_used:
                     actor_invalid = torch.ones_like(actor_invalid)
@@ -2042,6 +2071,10 @@ def main() -> int:
                     "post_step_checkpointed": post_step_checkpointed,
                     "effective_residual_gain": online_agent.residual_gain,
                     "pre_step_clearance_active": pre_step_clearance_active,
+                    "rough_swing_reward_active": rough_swing_active,
+                    "foot_lift_from_contact_m": swing_lift[0].tolist(),
+                    "foot_contact": signals.foot_contact[0].tolist(),
+                    "joint_target_residual_rad": (decision.residual * safety_state.action_scale)[0].tolist(),
                     "max_foot_height": float(signals.foot_height.max()),
                     "steps_without_progress": progress_decision.steps_without_progress,
                     "actor_update_enabled": actor_gate_event.is_set(),
@@ -2148,6 +2181,7 @@ def main() -> int:
                         {
                             "protocol_sha256": protocol.sha256(),
                             "terrain_metadata": adapter.terrain_metadata(),
+                            "training_contract": current_training_contract,
                             "agent": online_agent.state_dict(),
                             "novelty_gate": novelty_gate.state_dict(),
                             "stable_manager": stable_manager.state_dict(),
@@ -2291,6 +2325,7 @@ def main() -> int:
                     {
                         "protocol_sha256": protocol.sha256(),
                         "terrain_metadata": adapter.terrain_metadata(),
+                        "training_contract": current_training_contract,
                         "agent": online_agent.state_dict(),
                         "novelty_gate": novelty_gate.state_dict(),
                         "stable_manager": stable_manager.state_dict(),

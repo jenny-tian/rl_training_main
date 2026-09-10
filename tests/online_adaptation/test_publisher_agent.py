@@ -324,6 +324,38 @@ def test_agent_does_not_request_update_before_minimum_replay():
     assert not OnlineAdaptationAgent.should_update(replay_size=256, min_replay_size=256, paused=True)
 
 
+@pytest.mark.parametrize("intervention", ["rate", "joint", "tilt"])
+def test_replay_and_q_preserve_request_through_safety_and_checkpoint(intervention):
+    agent = make_agent(residual_gain=0.25, residual_rate_limit=0.05, replay_capacity=4)
+    frame, base = torch.zeros(1, 2), torch.zeros(1, 1)
+    state = safety_state()
+    if intervention == "rate":
+        agent.safety._ensure_state(base)
+        agent.safety._previous_residual.fill_(0.04)
+    elif intervention == "joint":
+        base.fill_(-0.97)
+    else:
+        state = replace(state, projected_gravity_xy=torch.tensor([[0.56, 0.0]]))
+    publish_fixed_residual(agent, -0.16)
+    decision = agent.begin_step(frame, base, state, deterministic=True)
+    assert decision.projected.item()
+    finish_agent_step(agent, frame, base, torch.ones(1, 1), adaptation_enabled=True)
+    restored = make_agent(residual_gain=0.25, residual_rate_limit=0.05, replay_capacity=4)
+    restored.load_state_dict(agent.state_dict())
+    for replay in (restored.replay, restored.adaptation_replay):
+        batch = replay.sample(1, "cpu")
+        assert batch.requested_residual_action.item() == pytest.approx(-0.04, abs=2e-5)
+        assert batch.residual_action.item() == pytest.approx(decision.residual.item(), abs=2e-5)
+        assert abs(batch.requested_residual_action.item() - batch.residual_action.item()) > 0.02
+    seen = []
+    handle = restored.updater.critic.register_forward_pre_hook(
+        lambda module, args: seen.append(args[-1].detach().clone()))
+    stats = restored.update(update_actor=False)
+    handle.remove()
+    assert stats.accepted
+    assert seen[0].item() == pytest.approx(-0.04, abs=2e-5)
+
+
 def test_vectorized_learning_pauses_only_when_all_environments_are_paused():
     assert not OnlineAdaptationAgent.all_environments_paused(torch.tensor([[False], [True]]))
     assert OnlineAdaptationAgent.all_environments_paused(torch.tensor([[True], [True]]))

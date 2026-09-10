@@ -41,6 +41,7 @@ def update_and_publish_actor(
     update_step: int,
     episode_is_active: Callable[[], bool],
     final_publish_attempt: Callable[[object, int], bool] | None = None,
+    residual_gain: float = 1.0,
 ) -> ActorUpdateOutcome:
     max_residual_mse = _validate_max_residual_mse(max_residual_mse)
     pre_update_state = copy.deepcopy(updater.state_dict())
@@ -57,6 +58,7 @@ def update_and_publish_actor(
                 actor_version=candidate_version,
                 update_step=update_step,
                 adaptation_episode=adaptation_episode,
+                residual_gain=residual_gain,
             )
         except FloatingPointError:
             return "nonfinite_policy_drift"
@@ -73,6 +75,7 @@ def update_and_publish_actor(
         flat_anchor_batch,
         update_actor=True,
         candidate_validator=validate_candidate,
+        residual_gain=residual_gain,
     )
     if stats.accepted and policy_drift is None:
         updater.load_state_dict(pre_update_state)

@@ -136,7 +136,7 @@ def sample_stratified_batch(
 
 
 class ReplayBuffer:
-    _SCHEMA_VERSION = 1
+    _SCHEMA_VERSION = 2
     _METADATA_KEYS = frozenset(
         {
             "schema_version",
@@ -187,6 +187,7 @@ class ReplayBuffer:
         self._current_frame = torch.zeros(capacity, frame_dim, dtype=storage_dtype, device="cpu")
         self._base_action = torch.zeros(capacity, action_dim, dtype=storage_dtype, device="cpu")
         self._residual_action = torch.zeros(capacity, action_dim, dtype=storage_dtype, device="cpu")
+        self._requested_residual_action = torch.zeros_like(self._residual_action)
         self._reward = torch.zeros(capacity, 1, dtype=torch.float32, device="cpu")
         self._next_history = torch.zeros_like(self._history)
         self._next_frame = torch.zeros_like(self._current_frame)
@@ -269,6 +270,25 @@ class ReplayBuffer:
     ) -> tuple[dict[str, Any], dict[str, torch.Tensor]]:
         if not isinstance(state, Mapping):
             raise TypeError("replay state must be a mapping")
+        if type(state.get("schema_version")) is int and state["schema_version"] == 1:
+            # A frozen zero-residual base replay has a known zero request. Old
+            # online replay has lost pre-filter requests: fail instead of guessing.
+            residual = state.get("residual_action")
+            if (
+                state.get("frozen") is not True
+                or not isinstance(residual, torch.Tensor)
+                or not bool((residual == 0).all().item())
+                or "requested_residual_action" in state
+            ):
+                raise ValueError(
+                    "legacy replay lacks requested actions; only frozen "
+                    "zero-residual base replay can migrate"
+                )
+            state = dict(
+                state,
+                schema_version=self._SCHEMA_VERSION,
+                requested_residual_action=residual.clone(),
+            )
         expected_keys = self._METADATA_KEYS | frozenset(self._destinations())
         if set(state) != expected_keys:
             missing = sorted(expected_keys.difference(state))
@@ -373,6 +393,7 @@ class ReplayBuffer:
         curriculum_stage_id: torch.Tensor,
         episode_id: torch.Tensor,
         valid_mask: torch.Tensor | None = None,
+        requested_residual_action: torch.Tensor | None = None,
     ) -> None:
         with self._lock:
             self._require_mutable_locked()
@@ -381,6 +402,7 @@ class ReplayBuffer:
             current_frame=current_frame,
             base_action=base_action,
             residual_action=residual_action,
+            requested_residual_action=requested_residual_action,
             reward=reward,
             next_history=next_history,
             next_frame=next_frame,
@@ -447,12 +469,16 @@ class ReplayBuffer:
         curriculum_stage_id: torch.Tensor,
         episode_id: torch.Tensor,
         valid_mask: torch.Tensor | None = None,
+        requested_residual_action: torch.Tensor | None = None,
     ) -> _PreparedReplayBatch:
         values = {
             "history": history,
             "current_frame": current_frame,
             "base_action": base_action,
             "residual_action": residual_action,
+            "requested_residual_action": (
+                residual_action if requested_residual_action is None else requested_residual_action
+            ),
             "reward": reward,
             "next_history": next_history,
             "next_frame": next_frame,
@@ -478,6 +504,7 @@ class ReplayBuffer:
             "current_frame": (batch_size, self._frame_dim),
             "base_action": (batch_size, self._action_dim),
             "residual_action": (batch_size, self._action_dim),
+            "requested_residual_action": (batch_size, self._action_dim),
             "reward": (batch_size, 1),
             "next_history": (batch_size, self._history_length, self._frame_dim),
             "next_frame": (batch_size, self._frame_dim),
@@ -557,6 +584,7 @@ class ReplayBuffer:
             "current_frame": self._current_frame,
             "base_action": self._base_action,
             "residual_action": self._residual_action,
+            "requested_residual_action": self._requested_residual_action,
             "reward": self._reward,
             "next_history": self._next_history,
             "next_frame": self._next_frame,
@@ -628,6 +656,7 @@ class ReplayBuffer:
                 current_frame=select(self._current_frame),
                 base_action=select(self._base_action),
                 residual_action=select(self._residual_action),
+                requested_residual_action=select(self._requested_residual_action),
                 reward=select(self._reward),
                 next_history=select(self._next_history),
                 next_frame=select(self._next_frame),

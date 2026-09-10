@@ -16,6 +16,7 @@ def make_transition(value: float, batch: int = 2):
         current_frame=torch.full((batch, 2), value),
         base_action=torch.full((batch, 1), value),
         residual_action=torch.full((batch, 1), value),
+        requested_residual_action=torch.full((batch, 1), value),
         reward=torch.full((batch, 1), value),
         next_history=torch.full((batch, 3, 2), value + 1),
         next_frame=torch.full((batch, 2), value + 1),
@@ -32,6 +33,35 @@ def make_transition(value: float, batch: int = 2):
 
 def make_replay():
     return ReplayBuffer(capacity=1, history_length=3, frame_dim=2, action_dim=1)
+
+
+def test_legacy_zero_base_replay_migrates_without_mutating_source():
+    source = make_replay()
+    source.add_batch(**make_transition(0.0, batch=1))
+    source.freeze()
+    legacy = source.state_dict()
+    legacy["schema_version"] = 1
+    legacy.pop("requested_residual_action")
+    restored = make_replay()
+    restored.load_state_dict(legacy)
+    assert restored.state_dict()["schema_version"] == 2
+    assert legacy["schema_version"] == 1 and "requested_residual_action" not in legacy
+    assert restored.sample(1, "cpu").requested_residual_action.item() == 0.0
+
+
+@pytest.mark.parametrize("frozen,value", [(False, 0.0), (False, 0.1), (True, 0.1)])
+def test_legacy_online_or_nonzero_replay_cannot_guess_pre_filter_requests(frozen, value):
+    source = make_replay()
+    source.add_batch(**make_transition(value, batch=1))
+    if frozen:
+        source.freeze()
+    legacy = source.state_dict()
+    legacy["schema_version"] = 1
+    legacy.pop("requested_residual_action")
+    target = make_replay()
+    with pytest.raises(ValueError, match="legacy replay lacks requested actions"):
+        target.load_state_dict(legacy)
+    assert len(target) == 0
 
 
 def filled_replay(value: float, count: int, *, frozen: bool = False):
@@ -82,6 +112,7 @@ STORAGE_KEYS = {
     "current_frame",
     "base_action",
     "residual_action",
+    "requested_residual_action",
     "reward",
     "next_history",
     "next_frame",
@@ -419,7 +450,7 @@ def test_replay_state_round_trip_preserves_complete_storage_and_metadata():
         "frozen",
         *STORAGE_KEYS,
     }
-    assert state["schema_version"] == 1
+    assert state["schema_version"] == 2
     assert state["capacity"] == 4
     assert state["history_length"] == 3
     assert state["frame_dim"] == 2
@@ -496,7 +527,7 @@ def _invalid_replay_states(valid_state):
     yield "keys", extra
 
     for key, value in (
-        ("schema_version", 2),
+        ("schema_version", 3),
         ("capacity", 3),
         ("history_length", 4),
         ("frame_dim", 3),

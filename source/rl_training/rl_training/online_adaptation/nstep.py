@@ -27,6 +27,11 @@ class RawTransition:
     safety_mask: torch.Tensor
     curriculum_stage_id: torch.Tensor
     episode_id: torch.Tensor
+    requested_residual_action: torch.Tensor | None = None
+
+    def __post_init__(self) -> None:
+        if self.requested_residual_action is None:
+            object.__setattr__(self, "requested_residual_action", self.residual_action)
 
 
 class NStepAccumulator:
@@ -163,6 +168,7 @@ class NStepAccumulator:
             current_frame=first.current_frame,
             base_action=first.base_action,
             residual_action=first.residual_action,
+            requested_residual_action=first.requested_residual_action,
             reward=reward,
             next_history=last.next_history,
             next_frame=last.next_frame,

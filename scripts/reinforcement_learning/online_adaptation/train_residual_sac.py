@@ -290,6 +290,7 @@ def main() -> int:
                         critic_batch=critic_batch,
                         actor_batch=actor_batch,
                         flat_anchor_batch=flat_anchor_batch,
+                        residual_gain=online_agent.residual_gain,
                     )
                     latest_update = stats
                     writer.add_scalar("loss/critic", stats.critic_loss, step)

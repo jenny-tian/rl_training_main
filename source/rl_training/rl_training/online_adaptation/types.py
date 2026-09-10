@@ -21,6 +21,12 @@ class TransitionBatch:
     safety_mask: torch.Tensor
     curriculum_stage_id: torch.Tensor
     episode_id: torch.Tensor
+    requested_residual_action: torch.Tensor | None = None
+
+    def __post_init__(self) -> None:
+        # Direct callers without filtering may omit the identical request.
+        if self.requested_residual_action is None:
+            object.__setattr__(self, "requested_residual_action", self.residual_action)
 
 
 @dataclass(frozen=True)
@@ -84,3 +90,6 @@ class UpdateStats:
     flat_anchor_loss: float | None = None
     flat_batch_fraction: float = 0.0
     n_step: int = 1
+    mean_unclipped_target_q: float | None = None
+    target_q_clip_fraction: float | None = None
+    mean_entropy_bonus: float | None = None

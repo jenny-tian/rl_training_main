@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import threading
 from collections import deque
 from collections.abc import Mapping
@@ -68,6 +69,7 @@ class PendingStep:
     learning_mask: torch.Tensor
     terrain_valid: torch.Tensor
     actor_version: int | None
+    requested_residual_action: torch.Tensor
 
 
 def _normalize_replay_state_for_load(state: Mapping[str, Any]) -> dict[str, Any]:
@@ -231,7 +233,12 @@ class OnlineAdaptationAgent:
         adaptation_replay_state = _normalize_replay_state_for_load(
             state["adaptation_replay"]
         )
+        if replay_state.get("frozen") is not False or adaptation_replay_state.get("frozen") is not False:
+            raise ValueError("agent online replay buffers must remain mutable")
         before = self.state_dict()
+        # Module state_dict tensors alias live parameters; replay/n-step already
+        # return independent copies, but the updater needs an explicit snapshot.
+        before["updater"] = copy.deepcopy(before["updater"])
         try:
             self.updater.load_state_dict(state["updater"])
             self.replay.load_state_dict(replay_state)
@@ -343,6 +350,7 @@ class OnlineAdaptationAgent:
             frame=frame.detach().clone(),
             base_action=base_action.detach().clone(),
             residual_action=decision.residual.detach().clone(),
+            requested_residual_action=residual.detach().clone(),
             learning_mask=(~decision.paused).detach().clone(),
             terrain_valid=batch_terrain_valid.expand_as(decision.paused).detach().clone(),
             actor_version=version if bool(batch_terrain_valid.item()) else None,
@@ -373,6 +381,7 @@ class OnlineAdaptationAgent:
             current_frame=self._pending.frame,
             base_action=self._pending.base_action,
             residual_action=self._pending.residual_action,
+            requested_residual_action=self._pending.requested_residual_action,
             reward=reward,
             next_history=next_history,
             next_frame=next_frame,
@@ -562,6 +571,7 @@ class OnlineAdaptationAgent:
             frame=self._pending.frame,
             base_action=self._pending.base_action,
             residual_action=fallback.residual.detach().clone(),
+            requested_residual_action=torch.zeros_like(fallback.residual),
             learning_mask=(~fallback.paused).detach().clone(),
             terrain_valid=self._pending.terrain_valid,
             actor_version=None,
@@ -613,6 +623,7 @@ class OnlineAdaptationAgent:
         stats = self.updater.update(
             critic_batch=critic_batch,
             actor_batch=actor_batch,
+            residual_gain=self.residual_gain,
             update_actor=update_actor,
         )
         return replace(
@@ -639,7 +650,11 @@ class OnlineAdaptationAgent:
             batch = self.flat_replay.sample(
                 self.config.batch_size, self.device, generator=generator
             )
-            stats = self.updater.update(batch, update_actor=False)
+            stats = self.updater.update(
+                batch,
+                update_actor=False,
+                residual_gain=self.residual_gain,
+            )
             stats = replace(
                 stats, flat_batch_fraction=1.0, n_step=self.config.n_step
             )

@@ -54,6 +54,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--warmup-updates", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--frame-dim", type=int, choices=(49, 59), default=49)
+    parser.add_argument("--initial-alpha", type=float, default=0.02)
+    parser.add_argument("--alpha-max", type=float, default=0.05)
     return parser
 
 
@@ -87,7 +89,7 @@ def main() -> int:
         critic=critic,
         safety_limits=SafetyLimits(residual_limits=limits),
         config=config,
-        sac_config=SACConfig(flat_anchor_weight=0.5),
+        sac_config=SACConfig(flat_anchor_weight=0.5, initial_alpha=args.initial_alpha, alpha_max=args.alpha_max),
         device=device,
     )
     agent.flat_replay = replay
@@ -105,6 +107,9 @@ def main() -> int:
     metadata = {
         "schema_version": 1,
         "initializer": "clean_residual_sac_v1",
+        "critic_action_semantics": agent.updater.CRITIC_ACTION_SEMANTICS,
+        "updater_schema_version": agent.updater.CHECKPOINT_SCHEMA_VERSION,
+        "replay_schema_version": 2,
         "seed": args.seed,
         "device": str(device),
         "frame_dim": args.frame_dim,
@@ -124,6 +129,7 @@ def main() -> int:
         "forbidden_sources": ["v10_step2cm_safe_updater.pt", "v24_fall_softreset"],
         "updater_sha256": _sha256(updater_path),
         "agent_config": asdict(config),
+        "sac_config": asdict(agent.updater.config),
     }
     (output / "initializer.json").write_text(
         json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"

@@ -1,3 +1,4 @@
+import copy
 import random
 
 import numpy as np
@@ -38,6 +39,72 @@ def make_agent():
         sac_config=SACConfig(),
         device="cpu",
     )
+
+
+def _assert_state_equal(actual, expected):
+    if isinstance(expected, torch.Tensor):
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+    elif isinstance(expected, dict):
+        assert actual.keys() == expected.keys()
+        for key in expected:
+            _assert_state_equal(actual[key], expected[key])
+    elif isinstance(expected, (tuple, list)):
+        assert len(actual) == len(expected)
+        for actual_item, expected_item in zip(actual, expected, strict=True):
+            _assert_state_equal(actual_item, expected_item)
+    else:
+        assert actual == expected
+
+
+@pytest.mark.parametrize("failure", ["legacy_replay", "adaptation_replay", "nstep", "frozen_replay"])
+def test_agent_failed_restore_preserves_training_and_control_state(failure):
+    agent = make_agent()
+    for optimizer in (agent.updater.actor_optimizer, agent.updater.critic_optimizer,
+                      agent.updater.alpha_optimizer):
+        for group in optimizer.param_groups:
+            for parameter in group["params"]:
+                parameter.grad = torch.ones_like(parameter)
+        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)
+    agent.updater.version = 3
+    agent.publisher.publish(agent.updater.actor, agent.updater.version)
+    agent.history.append(torch.ones(1, 2))
+    agent.safety._previous_residual = torch.full((1, 1), 0.05)
+    before = copy.deepcopy(agent.state_dict())
+    history_before = agent.history.snapshot().clone()
+    safety_before = agent.safety._previous_residual.clone()
+    published_actor, published_version = agent.publisher.current()
+    published_before = copy.deepcopy(published_actor.state_dict())
+    candidate = copy.deepcopy(before)
+    for name in ("actor", "critic", "target_critic"):
+        for tensor in candidate["updater"][name].values():
+            tensor.add_(1.0)
+    for name in ("actor_optimizer", "critic_optimizer", "alpha_optimizer"):
+        for state in candidate["updater"][name]["state"].values():
+            for tensor in state.values():
+                if isinstance(tensor, torch.Tensor):
+                    tensor.add_(2.0)
+    candidate["updater"]["version"] = 99
+    candidate["updater"]["log_alpha"].add_(3.0)
+    candidate["replay"]["reward"].fill_(17.0)
+    if failure == "legacy_replay":
+        candidate["replay"]["schema_version"] = 1
+        candidate["replay"].pop("requested_residual_action")
+    elif failure == "adaptation_replay":
+        candidate["adaptation_replay"]["schema_version"] = 999
+    elif failure == "nstep":
+        candidate["nstep"]["queues"] = "invalid"
+    else:
+        candidate["replay"]["frozen"] = True
+    with pytest.raises(ValueError):
+        agent.load_state_dict(candidate)
+    _assert_state_equal(agent.state_dict(), before)
+    _assert_state_equal(agent.history.snapshot(), history_before)
+    _assert_state_equal(agent.safety._previous_residual, safety_before)
+    published_after, version_after = agent.publisher.current()
+    assert version_after == published_version
+    _assert_state_equal(published_after.state_dict(), published_before)
+    _assert_state_equal(published_after.state_dict(), agent.updater.actor.state_dict())
 
 
 def test_experiment_checkpoint_round_trip_restores_state_and_rng(tmp_path):

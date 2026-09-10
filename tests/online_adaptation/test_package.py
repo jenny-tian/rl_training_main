@@ -75,6 +75,7 @@ def test_transition_batch_contract():
         "safety_mask",
         "curriculum_stage_id",
         "episode_id",
+        "requested_residual_action",
     ]
     assert [field.name for field in fields(SafetyState)] == [
         "projected_gravity_xy",

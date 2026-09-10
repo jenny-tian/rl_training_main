@@ -99,16 +99,22 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--simulation-seed", type=int, default=7)
     parser.add_argument("--terrain-stage", choices=("rough_4cm",), default="rough_4cm")
     parser.add_argument("--terrain-rough-amplitude", type=_positive_float, default=0.04)
-    parser.add_argument("--max-episodes", type=_positive_int, default=500)
+    parser.add_argument("--max-episodes", type=_positive_int, default=100)
     parser.add_argument("--max-steps-per-episode", type=_positive_int, default=2_000)
     parser.add_argument("--forward-speed", type=_positive_float, default=0.3)
-    parser.add_argument("--residual-gain", type=_unit_interval, default=0.05)
-    parser.add_argument("--adapting-residual-gain", type=_unit_interval, default=0.10)
-    parser.add_argument("--post-step-residual-gain", type=_unit_interval, default=0.10)
+    parser.add_argument("--residual-gain", type=_unit_interval, default=0.10)
+    parser.add_argument("--adapting-residual-gain", type=_unit_interval, default=0.25)
+    parser.add_argument("--post-step-residual-gain", type=_unit_interval, default=0.25)
+    parser.add_argument("--residual-rate-limit", type=_positive_float, default=0.05)
     parser.add_argument("--actor-updates-per-second", type=_positive_float, default=0.5)
     parser.add_argument("--control-timeout-ms", type=_positive_float, default=50.0)
-    parser.add_argument("--target-q-min", type=_finite_float, default=-500.0)
-    parser.add_argument("--target-q-max", type=_finite_float, default=300.0)
+    parser.add_argument("--target-q-min", type=_finite_float, default=None)
+    parser.add_argument("--target-q-max", type=_finite_float, default=None)
+    parser.add_argument("--initial-alpha", type=_positive_float, default=0.02)
+    parser.add_argument("--alpha-max", type=_positive_float, default=0.05)
+    parser.add_argument("--critic-huber-delta", type=_positive_float, default=1.0)
+    parser.add_argument("--rough-swing-lift-weight", type=_positive_float, default=1.0)
+    parser.add_argument("--rough-swing-lift-target", type=_positive_float, default=0.045)
     parser.add_argument("--deterministic-actor-weight", type=_unit_interval, default=0.25)
     parser.add_argument("--max-policy-residual-mse", type=_positive_float, default=1.0e-5)
     parser.add_argument("--flat-probe-interval", type=_positive_int, default=10)
@@ -159,6 +165,7 @@ def _worker_args(
         forward_speed=args.forward_speed,
         adapting_residual_gain=args.adapting_residual_gain,
         post_step_residual_gain=args.post_step_residual_gain,
+        residual_rate_limit=getattr(args, "residual_rate_limit", 0.03),
         post_step_stability_weight=1.0,
         post_step_progress_weight=2.0,
         stall_penalty_weight=2.0,
@@ -167,11 +174,15 @@ def _worker_args(
         pre_step_clearance_target=0.045,
         pre_step_approach_distance=0.50,
         max_critic_grad_norm=3_000.0,
-        critic_huber_delta=None,
+        critic_huber_delta=args.critic_huber_delta,
         max_policy_residual_mse=args.max_policy_residual_mse,
         target_q_min=args.target_q_min,
         target_q_max=args.target_q_max,
         deterministic_actor_weight=args.deterministic_actor_weight,
+        initial_alpha=args.initial_alpha,
+        alpha_max=args.alpha_max,
+        rough_swing_lift_weight=args.rough_swing_lift_weight,
+        rough_swing_lift_target=args.rough_swing_lift_target,
         actor_updates_per_second=args.actor_updates_per_second,
         adaptation_min_replay_size=128,
         stalled_actor_replay_stride=16,
@@ -280,6 +291,7 @@ def build_sealed_evaluation_command(
     output: Path,
     terrain_seed: int,
     run_dir: Path,
+    checkpoint: Path | None = None,
 ) -> list[str]:
     command = build_flat_probe_command(
         args,
@@ -290,6 +302,8 @@ def build_sealed_evaluation_command(
         run_dir=run_dir,
     )
     command.remove("--flat-retention-probe")
+    if checkpoint is not None:
+        _replace_option(command, "--experiment-checkpoint-in", checkpoint)
     _replace_option(command, "--task", ROCKY_ROAD_TASK)
     _replace_option(command, "--seed", args.simulation_seed)
     _replace_option(command, "--max-steps", args.max_steps_per_episode)
@@ -305,6 +319,30 @@ def build_sealed_evaluation_command(
             "--require-track-completion",
         )
     )
+    return command
+
+
+def validation_seeds(args: argparse.Namespace) -> tuple[int, ...]:
+    return tuple(seed for seed in default_flat_online_protocol().development_seeds if seed != args.terrain_seed)
+
+
+def build_development_validation_command(args, configuration, *, output, seed, run_dir, checkpoint=None):
+    if seed not in validation_seeds(args):
+        raise ValueError("validation must use a development seed other than the training seed")
+    command = build_flat_probe_command(
+        args, configuration, output=output, mode="base" if checkpoint is None else "learned_frozen",
+        seed=seed, run_dir=run_dir,
+    )
+    command.remove("--flat-retention-probe")
+    _replace_option(command, "--task", ROCKY_ROAD_TASK)
+    _replace_option(command, "--seed", args.simulation_seed)
+    _replace_option(command, "--max-steps", args.max_steps_per_episode)
+    if "--video-length" in command:
+        _replace_option(command, "--video-length", args.max_steps_per_episode)
+    if checkpoint is not None:
+        _replace_option(command, "--experiment-checkpoint-in", checkpoint)
+    command.extend(("--terrain-split", "development", "--terrain-rough-amplitude",
+                    str(args.terrain_rough_amplitude), "--evaluation-only", "--require-track-completion"))
     return command
 
 
@@ -387,6 +425,9 @@ def _initial_state() -> dict[str, Any]:
         "latest_flat_retention_passed": None,
         "flat_probes": [],
         "sealed_evaluation_complete": False,
+        "last_development_probe_episode": 0,
+        "latest_development_validation": None,
+        "best_checkpoint": None,
     }
 
 
@@ -542,6 +583,9 @@ def stable_success_reached(
         and state.get("initial_residual_control_passed") is False
         and state.get("latest_flat_retention_passed") is True
         and state.get("last_flat_probe_episode") == state.get("episodes_completed")
+        and state.get("last_development_probe_episode") == state.get("episodes_completed")
+        and isinstance(state.get("latest_development_validation"), dict)
+        and state["latest_development_validation"].get("passed") is True
     )
 
 
@@ -592,11 +636,19 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
         "residual_gain": args.residual_gain,
         "adapting_residual_gain": args.adapting_residual_gain,
         "post_step_residual_gain": args.post_step_residual_gain,
+        "residual_rate_limit": getattr(args, "residual_rate_limit", 0.03),
+        "critic_action_semantics": "requested_residual_before_safety_v1",
+        "replay_schema_version": 2,
         "actor_updates_per_second": args.actor_updates_per_second,
         "control_timeout_ms": args.control_timeout_ms,
         "target_q_min": args.target_q_min,
         "target_q_max": args.target_q_max,
         "deterministic_actor_weight": args.deterministic_actor_weight,
+        "initial_alpha": args.initial_alpha,
+        "alpha_max": args.alpha_max,
+        "critic_huber_delta": args.critic_huber_delta,
+        "rough_swing_lift_weight": args.rough_swing_lift_weight,
+        "rough_swing_lift_target": args.rough_swing_lift_target,
         "max_policy_residual_mse": args.max_policy_residual_mse,
         "policy_drift_interpretation": (
             "local_to_each_novelty_adaptation_episode_not_clean_initializer"
@@ -604,6 +656,8 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
         "max_steps_per_episode": args.max_steps_per_episode,
         "flat_probe_interval": args.flat_probe_interval,
         "flat_retention_seeds": list(FLAT_RETENTION_SEEDS),
+        "development_validation_seeds": list(validation_seeds(args)),
+        "checkpoint_selection": "frozen_development_success_falls_remaining_v1",
         "stability_window": args.stability_window,
         "stability_min_success_rate": args.stability_min_success_rate,
         "stability_min_consecutive_successes": args.stability_min_consecutive_successes,
@@ -664,10 +718,21 @@ def _validate_input_lineage(args: argparse.Namespace) -> dict[str, Any]:
     if initializer_manifest.get("flat_replay_sha256") != sha256_file(flat_replay):
         raise ValueError("residual initializer lineage differs from flat replay")
     if (
+        initializer_manifest.get("critic_action_semantics") != "requested_residual_before_safety_v1"
+        or type(initializer_manifest.get("updater_schema_version")) is not int
+        or initializer_manifest["updater_schema_version"] != 1
+        or type(initializer_manifest.get("replay_schema_version")) is not int
+        or initializer_manifest["replay_schema_version"] != 2
+    ):
+        raise ValueError("residual initializer has incompatible action semantics/schema; regenerate it")
+    if (
         initializer_manifest.get("frame_dim") != 49
         or initializer_manifest.get("actor_source") != "fresh_zero_mean_actor"
     ):
         raise ValueError("residual initializer is not the strict clean 49D artifact")
+    temperature = initializer_manifest.get("sac_config", {})
+    if any(temperature.get(name) != getattr(args, name) for name in ("initial_alpha", "alpha_max")):
+        raise ValueError("initializer temperature configuration differs; regenerate the clean initializer")
     return {
         "base_manifest_schema_version": base_manifest.get("schema_version"),
         "flat_replay_manifest": str(flat_manifest_path),
@@ -774,8 +839,10 @@ def _prepare_output(
         raise ValueError("--terrain-seed must be a development seed")
     if args.stability_min_consecutive_successes > args.stability_window:
         raise ValueError("stable consecutive-success requirement exceeds the window")
-    if args.target_q_min >= args.target_q_max:
+    if args.target_q_min is not None and args.target_q_max is not None and args.target_q_min >= args.target_q_max:
         raise ValueError("--target-q-min must be less than --target-q-max")
+    if args.initial_alpha > args.alpha_max:
+        raise ValueError("initial-alpha must not exceed alpha-max")
 
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -783,7 +850,10 @@ def _prepare_output(
     manifest_path = output / "run_manifest.json"
     if manifest_path.exists():
         if _load_json_object(manifest_path) != requested:
-            raise ValueError("resume configuration differs from run manifest")
+            raise ValueError(
+                "resume configuration differs from run manifest; preserve the existing "
+                "run and use a new output directory after code or control changes"
+            )
     else:
         write_json_atomic(manifest_path, requested)
     _copy_novelty_baseline(Path(args.novelty_baseline), output / "novelty_baseline.json")
@@ -891,6 +961,8 @@ def _mean(summaries: list[Mapping[str, object]], name: str) -> float:
     values = [summary.get(name) for summary in summaries]
     if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
         raise RuntimeError(f"rollout summaries lack numeric {name}")
+    if not values or not all(math.isfinite(value) for value in values):
+        raise RuntimeError(f"rollout summaries lack finite {name}")
     return sum(float(value) for value in values) / len(values)
 
 
@@ -930,14 +1002,19 @@ def _run_flat_mode(
     mode: str,
 ) -> list[dict[str, Any]]:
     summaries: list[dict[str, Any]] = []
+    digest = None if mode == "base" else sha256_file(output / "experiment.pt")
     for seed in FLAT_RETENTION_SEEDS:
         run_dir = root / f"seed-{seed}"
         summary_path = run_dir / "episode_summary.json"
         if summary_path.is_file():
             try:
-                summaries.append(_require_rollout_outputs(run_dir, video=args.video))
+                cached = _require_rollout_outputs(run_dir, video=args.video)
+                _validate_frozen_rollout(cached, _load_json_object(run_dir / "config.json"),
+                                        seed=seed, checkpoint_sha256=digest, simulation_seed=seed,
+                                        evaluation_only=False)
+                summaries.append(cached)
                 continue
-            except RuntimeError:
+            except (RuntimeError, ValueError, OSError):
                 _archive_incomplete(run_dir)
         if run_dir.exists():
             _archive_incomplete(run_dir)
@@ -953,7 +1030,11 @@ def _run_flat_mode(
         returncode = _run_logged(command, run_dir, physical_gpu=args.physical_gpu)
         if returncode not in {0, 1}:
             raise RuntimeError(f"flat {mode} probe failed for seed {seed}")
-        summaries.append(_require_rollout_outputs(run_dir, video=args.video))
+        summary = _require_rollout_outputs(run_dir, video=args.video)
+        _validate_frozen_rollout(summary, _load_json_object(run_dir / "config.json"),
+                                seed=seed, checkpoint_sha256=digest, simulation_seed=seed,
+                                evaluation_only=False)
+        summaries.append(summary)
     return summaries
 
 
@@ -988,18 +1069,155 @@ def _run_flat_probe(
     root = output / "flat_retention" / f"episode-{episode:04d}"
     aggregate_path = root / "summary.json"
     if aggregate_path.is_file():
-        return _load_json_object(aggregate_path)
+        cached = _load_json_object(aggregate_path)
+        if cached.get("checkpoint_sha256") != sha256_file(output / "experiment.pt"):
+            raise RuntimeError("flat retention result belongs to a different checkpoint")
+        return cached
     learned = _run_flat_mode(
         args, configuration, output=output, root=root, mode="learned_frozen"
     )
     report = {
         "episode": episode,
+        "checkpoint_sha256": sha256_file(output / "experiment.pt"),
         "passed": flat_retention_passes(base_summaries, learned),
         "base": _summarize_rollouts(base_summaries),
         "learned_frozen": _summarize_rollouts(learned),
     }
     write_json_atomic(aggregate_path, report)
     return report
+
+
+def _validate_frozen_rollout(summary, config, *, seed, checkpoint_sha256, simulation_seed, evaluation_only=True):
+    expected_mode = "base" if checkpoint_sha256 is None else "residual_frozen"
+    arguments = config.get("arguments", {})
+    if (
+        summary.get("terrain_seed") != seed
+        or summary.get("mode") != expected_mode
+        or summary.get("actor_updates") != 0
+        or summary.get("critic_updates") != 0
+        or summary.get("parameter_changed") is not False
+        or arguments.get("stochastic_control") is not False
+        or arguments.get("evaluation_only") is not evaluation_only
+        or arguments.get("seed") != simulation_seed
+        or (checkpoint_sha256 is not None and summary.get("experiment_checkpoint_in_sha256") != checkpoint_sha256)
+    ):
+        raise RuntimeError("validation is not a matching deterministic frozen rollout")
+    for name in ("passed", "fell", "safety_violation"):
+        if type(summary.get(name)) is not bool:
+            raise RuntimeError(f"validation lacks boolean {name}")
+    if summary["passed"] and (summary["fell"] or summary["safety_violation"]):
+        raise RuntimeError("validation cannot pass after a fall/safety violation")
+
+
+def _validation_rank(summaries):
+    aggregate = _summarize_rollouts(summaries)
+    return [aggregate["successes"], -aggregate["falls"],
+            -_mean(summaries, "completion_remaining_m"),
+            -aggregate["mean_velocity_error"], -aggregate["mean_tilt_rms"]]
+
+
+def select_best_checkpoint(previous, candidate):
+    # Never replace a tie with a later checkpoint. A failed flat probe cannot
+    # win, even when its rough-terrain success count is higher.
+    if not candidate["flat_retention_passed"]:
+        return previous
+    if previous is None or candidate["rank"] > previous["rank"]:
+        return candidate
+    return previous
+
+
+def _run_development_validation(args, configuration, *, output, episode, flat_passed):
+    checkpoint = output / "episodes" / f"episode-{episode:04d}" / "experiment.pt"
+    digest = sha256_file(checkpoint)
+    if checkpoint.with_suffix(".pt.sha256").read_text(encoding="ascii").strip() != digest:
+        raise RuntimeError("development checkpoint checksum mismatch")
+    groups = {}
+    for mode in ("base", "learned_frozen"):
+        root = output / "development_validation" / ("base" if mode == "base" else f"episode-{episode:04d}")
+        source = None if mode == "base" else checkpoint
+        source_digest = None if mode == "base" else digest
+        summaries = []
+        for seed in validation_seeds(args):
+            run_dir = root / f"seed-{seed}"
+            summary = None
+            if (run_dir / "episode_summary.json").is_file():
+                try:
+                    summary = _require_rollout_outputs(run_dir, video=args.video)
+                    _validate_frozen_rollout(summary, _load_json_object(run_dir / "config.json"),
+                                            seed=seed, checkpoint_sha256=source_digest,
+                                            simulation_seed=args.simulation_seed)
+                except (RuntimeError, ValueError, OSError):
+                    summary = None
+            if summary is None:
+                if run_dir.exists():
+                    _archive_incomplete(run_dir)
+                run_dir.mkdir(parents=True)
+                command = build_development_validation_command(
+                    args, configuration, output=output, seed=seed, run_dir=run_dir, checkpoint=source
+                )
+                returncode = _run_logged(command, run_dir, physical_gpu=args.physical_gpu)
+                if returncode not in {0, 1}:
+                    raise RuntimeError(f"development validation worker failed for seed {seed}")
+                summary = _require_rollout_outputs(run_dir, video=args.video)
+                _validate_frozen_rollout(summary, _load_json_object(run_dir / "config.json"),
+                                        seed=seed, checkpoint_sha256=source_digest,
+                                        simulation_seed=args.simulation_seed)
+            summaries.append(summary)
+        groups[mode] = summaries
+    base = _summarize_rollouts(groups["base"])
+    learned = _summarize_rollouts(groups["learned_frozen"])
+    report = {
+        "episode": episode, "checkpoint_path": str(checkpoint.resolve()), "checkpoint_sha256": digest,
+        "seeds": list(validation_seeds(args)), "learning_enabled": False,
+        "flat_retention_passed": flat_passed,
+        "rank": _validation_rank(groups["learned_frozen"]),
+        "base": base, "learned_frozen": learned,
+        "passed": (flat_passed and learned["falls"] == 0
+                   and learned["successes"] / learned["count"] >= args.stability_min_success_rate
+                   and learned["successes"] > base["successes"]),
+    }
+    write_json_atomic(output / "development_validation" / f"episode-{episode:04d}" / "summary.json", report)
+    return report
+
+
+def _record_development_validation(args, configuration, *, output, state):
+    episode = int(state["episodes_completed"])
+    report = _run_development_validation(
+        args, configuration, output=output, episode=episode,
+        flat_passed=state["latest_flat_retention_passed"] is True,
+    )
+    state["last_development_probe_episode"] = episode
+    state["latest_development_validation"] = report
+    state["best_checkpoint"] = select_best_checkpoint(state["best_checkpoint"], report)
+    if state["best_checkpoint"] is not None:
+        write_json_atomic(output / "best_checkpoint.json", state["best_checkpoint"])
+    write_json_atomic(output / "learning_state.json", state)
+
+
+def _selected_checkpoint(output):
+    selected = _load_json_object(output / "best_checkpoint.json")
+    checkpoint = output / "episodes" / f"episode-{int(selected['episode']):04d}" / "experiment.pt"
+    digest = sha256_file(checkpoint)
+    if (selected.get("flat_retention_passed") is not True
+        or digest != selected.get("checkpoint_sha256")
+        or checkpoint.with_suffix(".pt.sha256").read_text(encoding="ascii").strip() != digest):
+        raise RuntimeError("selected checkpoint provenance/checksum mismatch")
+    return checkpoint
+
+
+def _complete_current_probes(args, configuration, *, output, state, base_summaries):
+    episode = int(state["episodes_completed"])
+    if state["last_flat_probe_episode"] != episode:
+        probe = _run_flat_probe(args, configuration, output=output, episode=episode,
+                                base_summaries=base_summaries)
+        state["last_flat_probe_episode"] = episode
+        state["latest_flat_retention_passed"] = probe["passed"]
+        state["flat_probes"] = [*state["flat_probes"], probe]
+        if probe["passed"] is not True:
+            state["status"] = "flat_retention_failed"
+        write_json_atomic(output / "learning_state.json", state)
+    if state["last_development_probe_episode"] != episode:
+        _record_development_validation(args, configuration, output=output, state=state)
 
 
 def _episode_record(
@@ -1077,11 +1295,14 @@ def _write_progress_summary(
                 "latest_flat_retention_passed"
             ],
             "flat_probes": state["flat_probes"],
+            "latest_development_validation": state["latest_development_validation"],
+            "best_checkpoint": state["best_checkpoint"],
             "stability_criterion": {
                 "window": args.stability_window,
                 "minimum_success_rate": args.stability_min_success_rate,
                 "minimum_consecutive_successes": args.stability_min_consecutive_successes,
                 "requires_current_flat_retention": True,
+                "requires_frozen_development_improvement": True,
             },
             "sealed_evaluation_complete": state["sealed_evaluation_complete"],
             "sealed_evaluation": (
@@ -1165,10 +1386,14 @@ def _run_sealed_evaluation(
 ) -> dict[str, Any]:
     root = output / "sealed_evaluation"
     report_path = root / "summary.json"
+    checkpoint = _selected_checkpoint(output)
+    checkpoint_sha256 = sha256_file(checkpoint)
     if report_path.is_file():
-        return _load_json_object(report_path)
+        cached = _load_json_object(report_path)
+        if cached.get("checkpoint_sha256") != checkpoint_sha256:
+            raise RuntimeError("sealed evaluation belongs to a different selected checkpoint")
+        return cached
     frozen = _load_frozen_benchmark(args)
-    checkpoint_sha256 = sha256_file(output / "experiment.pt")
     summaries: list[dict[str, Any]] = []
     for terrain_seed in default_flat_online_protocol().sealed_seeds:
         run_dir = root / f"seed-{terrain_seed}"
@@ -1187,6 +1412,7 @@ def _run_sealed_evaluation(
             output=output,
             terrain_seed=terrain_seed,
             run_dir=run_dir,
+            checkpoint=checkpoint,
         )
         returncode = _run_logged(command, run_dir, physical_gpu=args.physical_gpu)
         if returncode not in {0, 1}:
@@ -1229,6 +1455,8 @@ def _run_sealed_evaluation(
         "terrain_split": "sealed",
         "interpretation": "reused_heldout_benchmark_not_blind_confirmatory",
         "checkpoint_sha256": checkpoint_sha256,
+        "checkpoint_path": str(checkpoint.resolve()),
+        "checkpoint_selection": "frozen_development_validation",
         "seeds": list(default_flat_online_protocol().sealed_seeds),
         "per_seed": [
             {
@@ -1319,24 +1547,13 @@ def run_experiment(args: argparse.Namespace) -> int:
 
     pending_episode = int(state["episodes_completed"])
     if (
-        state["status"] == "running"
-        and pending_episode > 0
-        and pending_episode % args.flat_probe_interval == 0
-        and state["last_flat_probe_episode"] != pending_episode
+        pending_episode > 0
+        and (pending_episode % args.flat_probe_interval == 0
+             or pending_episode >= args.max_episodes or state["status"] != "running")
     ):
-        probe = _run_flat_probe(
-            args,
-            configuration,
-            output=output,
-            episode=pending_episode,
-            base_summaries=base_summaries,
-        )
-        state["last_flat_probe_episode"] = pending_episode
-        state["latest_flat_retention_passed"] = probe["passed"]
-        state["flat_probes"] = [*state["flat_probes"], probe]
-        if probe["passed"] is not True:
-            state["status"] = "flat_retention_failed"
-        elif stable_success_reached(
+        _complete_current_probes(args, configuration, output=output, state=state,
+                                 base_summaries=base_summaries)
+        if state["status"] == "running" and stable_success_reached(
             state,
             window=args.stability_window,
             min_success_rate=args.stability_min_success_rate,
@@ -1415,19 +1632,8 @@ def run_experiment(args: argparse.Namespace) -> int:
         write_json_atomic(output / "learning_state.json", state)
 
         if episode % args.flat_probe_interval == 0:
-            probe = _run_flat_probe(
-                args,
-                configuration,
-                output=output,
-                episode=episode,
-                base_summaries=base_summaries,
-            )
-            state["last_flat_probe_episode"] = episode
-            state["latest_flat_retention_passed"] = probe["passed"]
-            state["flat_probes"] = [*state["flat_probes"], probe]
-            if probe["passed"] is not True:
-                state["status"] = "flat_retention_failed"
-            write_json_atomic(output / "learning_state.json", state)
+            _complete_current_probes(args, configuration, output=output, state=state,
+                                     base_summaries=base_summaries)
 
         if state["status"] == "running":
             if stable_success_reached(
@@ -1452,24 +1658,11 @@ def run_experiment(args: argparse.Namespace) -> int:
             flush=True,
         )
 
-    if state["episodes_completed"] and (
-        state["last_flat_probe_episode"] != state["episodes_completed"]
-    ):
-        probe = _run_flat_probe(
-            args,
-            configuration,
-            output=output,
-            episode=int(state["episodes_completed"]),
-            base_summaries=base_summaries,
-        )
-        state["last_flat_probe_episode"] = state["episodes_completed"]
-        state["latest_flat_retention_passed"] = probe["passed"]
-        state["flat_probes"] = [*state["flat_probes"], probe]
-        if probe["passed"] is not True:
-            state["status"] = "flat_retention_failed"
-        write_json_atomic(output / "learning_state.json", state)
+    if state["episodes_completed"]:
+        _complete_current_probes(args, configuration, output=output, state=state,
+                                 base_summaries=base_summaries)
 
-    if state["status"] == "running":
+    if state["status"] in {"running", "episode_cap_reached"}:
         if stable_success_reached(
             state,
             window=args.stability_window,
@@ -1485,8 +1678,8 @@ def run_experiment(args: argparse.Namespace) -> int:
 
     if (
         args.sealed_evaluation
-        and state["status"] in {"stable_success", "episode_cap_reached"}
-        and state["latest_flat_retention_passed"] is True
+        and state["status"] in {"stable_success", "episode_cap_reached", "flat_retention_failed"}
+        and state["best_checkpoint"] is not None
         and not state["sealed_evaluation_complete"]
     ):
         _run_sealed_evaluation(args, configuration, output=output)

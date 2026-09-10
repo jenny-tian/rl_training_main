@@ -61,6 +61,18 @@ class ConstantTwinCritic(torch.nn.Module):
         return self.q1_value.expand(batch_size, 1), self.q2_value.expand(batch_size, 1)
 
 
+class ResidualEchoCritic(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.bias = torch.nn.Parameter(torch.tensor(0.0))
+        self.last_residual = None
+
+    def forward(self, history, current_frame, base_action, residual_action):
+        self.last_residual = residual_action.detach().clone()
+        value = residual_action.sum(dim=-1, keepdim=True) + self.bias
+        return value, value
+
+
 def assert_state_dict_equal(actual, expected):
     assert type(actual) is type(expected)
     if isinstance(expected, dict):
@@ -75,6 +87,69 @@ def assert_state_dict_equal(actual, expected):
         torch.testing.assert_close(actual, expected, rtol=0, atol=0, equal_nan=True)
     else:
         assert actual == expected
+
+
+def test_updater_checkpoint_round_trip_preserves_action_contract(tmp_path):
+    updater = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), SACConfig())
+    assert updater.update(make_batch()).accepted
+    checkpoint = tmp_path / "updater.pt"
+    updater.save(checkpoint)
+    restored = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), SACConfig())
+    restored.load(checkpoint, map_location="cpu")
+    assert restored.state_dict()["schema_version"] == 1
+    assert restored.state_dict()["critic_action_semantics"] == "requested_residual_before_safety_v1"
+    assert_state_dict_equal(restored.state_dict(), updater.state_dict())
+
+
+@pytest.mark.parametrize("contract", [
+    {},
+    {"schema_version": 1},
+    {"schema_version": True, "critic_action_semantics": "requested_residual_before_safety_v1"},
+    {"schema_version": 2, "critic_action_semantics": "requested_residual_before_safety_v1"},
+    {"schema_version": 1, "critic_action_semantics": "executed_residual_after_safety_v1"},
+])
+def test_updater_load_rejects_incompatible_contract_before_mutation(tmp_path, contract):
+    updater = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), SACConfig())
+    assert updater.update(make_batch()).accepted
+    before = copy.deepcopy(updater.state_dict())
+    incompatible = copy.deepcopy(before)
+    incompatible.pop("schema_version")
+    incompatible.pop("critic_action_semantics")
+    incompatible.update(contract)
+    for tensor in incompatible["actor"].values():
+        tensor.add_(1.0)
+    checkpoint = tmp_path / "incompatible.pt"
+    torch.save(incompatible, checkpoint)
+    with pytest.raises(ValueError, match="action semantics/schema"):
+        updater.load(checkpoint, map_location="cpu")
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
+@pytest.mark.parametrize("broken_component", ["critic", "alpha_optimizer"])
+def test_updater_failed_load_is_atomic(broken_component):
+    updater = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), SACConfig())
+    assert updater.update(make_batch()).accepted
+    before = copy.deepcopy(updater.state_dict())
+    candidate = copy.deepcopy(before)
+    for name in ("actor", "critic", "target_critic"):
+        for tensor in candidate[name].values():
+            tensor.add_(1.0)
+    candidate[broken_component] = {}
+    with pytest.raises((RuntimeError, KeyError, ValueError)):
+        updater.load_state_dict(candidate)
+    assert_state_dict_equal(updater.state_dict(), before)
+
+
+def test_stable_manager_rejects_legacy_updater_before_mutation():
+    updater = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), SACConfig())
+    manager = StableStateManager()
+    manager.checkpoint(updater)
+    before = manager.state_dict()
+    incompatible = copy.deepcopy(before)
+    incompatible["stable_state"].pop("critic_action_semantics")
+    with pytest.raises(ValueError, match="action semantics/schema"):
+        manager.load_state_dict(incompatible)
+    assert_state_dict_equal(manager.state_dict(), before)
 
 
 def test_target_uses_saved_discount_and_bootstrap_mask():
@@ -112,6 +187,127 @@ def test_configured_q_limits_clamp_bootstrapped_critic_target():
     assert stats.accepted
     assert stats.mean_target_q == pytest.approx(5.0)
     assert stats.mean_td_error == pytest.approx(5.0)
+    assert stats.target_q_clip_fraction == 1.0
+    assert stats.mean_unclipped_target_q > 5.0
+
+
+def test_low_temperature_preserves_reward_differences_that_old_cap_erased():
+    batch = replace(make_batch(), reward=torch.linspace(0.0, 2.0, 32).reshape(-1, 1))
+    updater = SACUpdater(ConstantActor(-8.0), ConstantTwinCritic(),
+                         SACConfig(critic_lr=0.0, initial_alpha=0.02, alpha_max=0.05))
+    with torch.no_grad():
+        updater.target_critic.q1_value.fill_(300.0)
+        updater.target_critic.q2_value.fill_(300.0)
+    stats = updater.update(batch, update_actor=False)
+    assert stats.accepted
+    assert stats.mean_entropy_bonus == pytest.approx(0.16)
+    assert stats.target_q_clip_fraction == 0.0
+    assert stats.mean_unclipped_target_q == stats.mean_target_q
+
+
+def test_terminal_failure_is_not_discarded_by_squared_loss_guard():
+    # One terminal failure amid 127 ordinary transitions: Q is initially 300.
+    # Squared loss exceeds 800 and rejects the very evidence needed to lower Q.
+    batch = make_batch()
+    from dataclasses import fields
+    batch = replace(batch, **{f.name: getattr(batch, f.name).repeat_interleave(4, dim=0)
+                              for f in fields(batch)})
+    reward = torch.full((128, 1), 3.0)
+    reward[0] = -2.0
+    bootstrap = torch.ones(128, 1)
+    bootstrap[0] = 0
+    batch = replace(batch, reward=reward, bootstrap_mask=bootstrap)
+    for delta, accepted in [(None, False), (1.0, True)]:
+        updater = SACUpdater(ConstantActor(0), ConstantTwinCritic(),
+                             SACConfig(critic_huber_delta=delta, max_critic_loss=800))
+        for critic in (updater.critic, updater.target_critic):
+            with torch.no_grad():
+                critic.q1_value.fill_(300)
+                critic.q2_value.fill_(300)
+        stats = updater.update(batch, update_actor=False)
+        assert stats.accepted is accepted
+        if accepted:
+            assert updater.critic.q1_value.item() < 300
+        else:
+            assert stats.rejection_reason == "critic_loss_limit"
+
+
+def test_temperature_ceiling_applies_after_optimizer_and_survives_restore():
+    config = SACConfig(initial_alpha=0.02, alpha_max=0.02, target_entropy=100.0, alpha_lr=0.5)
+    updater = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), config)
+    assert updater.update(make_batch()).accepted
+    assert updater.alpha.item() == pytest.approx(0.02)
+    saved = copy.deepcopy(updater.state_dict())
+    restored = SACUpdater(ResidualActor(49, 12), TwinCritic(49, 12), config)
+    restored.load_state_dict(saved)
+    assert restored.alpha.item() == pytest.approx(0.02)
+    incompatible = copy.deepcopy(saved)
+    incompatible["log_alpha"].fill_(0.0)
+    with pytest.raises(ValueError, match="temperature exceeds"):
+        restored.load_state_dict(incompatible)
+    assert_state_dict_equal(restored.state_dict(), saved)
+
+
+@pytest.mark.parametrize("options", [{"initial_alpha": 0}, {"initial_alpha": float("nan")},
+                                    {"alpha_max": float("inf")}, {"initial_alpha": .1, "alpha_max": .05}])
+def test_invalid_temperature_configuration(options):
+    with pytest.raises(ValueError, match="alpha"):
+        SACConfig(**options)
+
+
+def test_residual_gain_scales_actor_action_before_target_critic():
+    actor = ConstantActor(log_prob=0.0)
+    with torch.no_grad():
+        actor.value.fill_(1.0)
+    critic = ResidualEchoCritic()
+    updater = SACUpdater(actor, critic, SACConfig(critic_lr=0.0))
+
+    stats = updater.update(make_batch(), update_actor=False, residual_gain=0.25)
+
+    assert stats.accepted
+    assert updater.target_critic.last_residual is not None
+    torch.testing.assert_close(
+        updater.target_critic.last_residual,
+        torch.full_like(updater.target_critic.last_residual, 0.25),
+    )
+
+
+def test_critic_regresses_request_when_safety_changes_executed_action():
+    batch = make_batch()
+    batch = replace(batch, residual_action=torch.full_like(batch.residual_action, -0.01),
+                    requested_residual_action=torch.full_like(batch.residual_action, -0.04))
+    critic = ResidualEchoCritic()
+    updater = SACUpdater(ConstantActor(0.0), critic, SACConfig(critic_lr=0.0))
+    stats = updater.update(batch, update_actor=False, residual_gain=0.25)
+    assert stats.accepted
+    torch.testing.assert_close(critic.last_residual, batch.requested_residual_action)
+
+
+def test_actor_and_deterministic_q_use_scaled_requests_and_anchor_keeps_gradient():
+    actor = ConstantActor(0.0)
+    with torch.no_grad():
+        actor.value.fill_(0.2)
+    critic = ResidualEchoCritic()
+    inputs = []
+    hook = critic.register_forward_pre_hook(lambda module, args: inputs.append(args[-1].detach().clone()))
+    updater = SACUpdater(actor, critic, SACConfig(critic_lr=0.0, flat_anchor_weight=0.5,
+                                               deterministic_actor_weight=0.25))
+    batch = make_batch()
+    stats = updater.update(batch, flat_anchor_batch=batch, residual_gain=0.25)
+    hook.remove()
+    assert stats.accepted and stats.actor_updated
+    # The live critic sees replay, stochastic request, deterministic request.
+    torch.testing.assert_close(inputs[-2], torch.full_like(batch.residual_action, 0.05))
+    torch.testing.assert_close(inputs[-1], torch.full_like(batch.residual_action, 0.05))
+    assert stats.flat_anchor_loss == pytest.approx(0.5 * 0.05 ** 2)
+    assert actor.value.item() > 0.2
+
+
+@pytest.mark.parametrize("gain", [-0.1, float("nan"), float("inf"), True])
+def test_residual_gain_must_be_finite_unit_interval(gain):
+    updater = SACUpdater(ConstantActor(log_prob=0.0), ConstantTwinCritic(), SACConfig())
+    with pytest.raises(ValueError, match="residual_gain"):
+        updater.update(make_batch(), update_actor=False, residual_gain=gain)
 
 
 def test_configured_huber_loss_bounds_large_td_penalty():

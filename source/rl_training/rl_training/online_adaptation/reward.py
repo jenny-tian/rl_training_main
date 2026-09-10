@@ -31,6 +31,8 @@ class RewardWeights:
     pre_step_foot_forward_target: float = 0.04
     minimum_reward: float = -10.0
     maximum_reward: float = 5.0
+    rough_swing_lift_weight: float = 0.0
+    rough_swing_lift_target: float = 0.045
 
 
 def compute_online_reward(
@@ -43,6 +45,8 @@ def compute_online_reward(
     pre_step_clearance_mask: torch.Tensor | None = None,
     progress_stalled_mask: torch.Tensor | None = None,
     completion_mask: torch.Tensor | None = None,
+    rough_swing_mask: torch.Tensor | None = None,
+    swing_lift: torch.Tensor | None = None,
 ) -> torch.Tensor:
     velocity_error = torch.sum(
         (signals.base_lin_vel_xy - signals.command_lin_vel_xy).square(), dim=-1, keepdim=True
@@ -180,6 +184,28 @@ def compute_online_reward(
         completion_term = weights.completion_bonus * torch.nan_to_num(
             completion_mask, nan=0.0, posinf=1.0, neginf=0.0
         ).clamp(0.0, 1.0)
+    rough_swing_term = torch.zeros_like(velocity_term)
+    if rough_swing_mask is not None and weights.rough_swing_lift_weight > 0.0:
+        if rough_swing_mask.shape != velocity_term.shape:
+            raise ValueError("rough_swing_mask must have shape (batch, 1)")
+        if swing_lift is None or swing_lift.shape != signals.foot_contact.shape:
+            raise ValueError("swing_lift must match foot_contact")
+        if not weights.rough_swing_lift_target > 0.0:
+            raise ValueError("rough_swing_lift_target must be positive")
+        contact = torch.nan_to_num(signals.foot_contact, nan=1.0).clamp(0.0, 1.0)
+        lift = torch.nan_to_num(swing_lift, nan=0.0, posinf=0.0, neginf=0.0)
+        # Peak at the target: lifting ever higher is not a reward shortcut.
+        score = (1.0 - (lift / weights.rough_swing_lift_target - 1.0).abs()).clamp(0.0, 1.0)
+        swing_score = (score * (1.0 - contact)).mean(dim=-1, keepdim=True)
+        support = (contact > 0.5).any(dim=-1, keepdim=True)
+        # No bonus for hopping in place or holding a leg up while stuck.
+        progress = torch.zeros_like(velocity_term) if forward_progress is None else torch.nan_to_num(
+            forward_progress, nan=0.0, posinf=0.0, neginf=0.0
+        ).clamp(0.0, 1.0)
+        rough_swing_term = (
+            weights.rough_swing_lift_weight * swing_score * support * progress
+            * torch.nan_to_num(rough_swing_mask, nan=0.0).clamp(0.0, 1.0)
+        )
     reward = (
         weights.velocity_weight * velocity_term
         + progress_term
@@ -187,6 +213,7 @@ def compute_online_reward(
         + completion_term
         + pre_step_clearance_term
         + pre_step_foot_forward_term
+        + rough_swing_term
         + weights.yaw_weight * yaw_term
         - weights.tilt_weight * tilt
         - weights.vertical_velocity_weight * signals.base_lin_vel_z.square()

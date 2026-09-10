@@ -1,10 +1,12 @@
 from dataclasses import replace
 
 import torch
+import pytest
 
 from rl_training.online_adaptation.metrics import RollingMetrics
 from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
 from rl_training.online_adaptation.types import RewardSignals
+from rl_training.online_adaptation.swing_lift import SwingLiftTracker, rough_swing_reward_active
 
 
 def signals(error=0.0, tilt=0.0, batch=1, foot_height=0.022, foot_contact=1.0):
@@ -22,6 +24,54 @@ def signals(error=0.0, tilt=0.0, batch=1, foot_height=0.022, foot_contact=1.0):
         foot_height=torch.full((batch, 4), foot_height),
         foot_contact=torch.full((batch, 4), foot_contact),
     )
+
+
+def test_swing_lift_uses_each_feet_last_contact_not_world_height():
+    tracker = SwingLiftTracker()
+    support = torch.tensor([[1.0, 1.04, 1.02, 1.06]])
+    # Initially airborne feet have no valid support reference.
+    torch.testing.assert_close(tracker.observe(support, torch.zeros(1, 4)), torch.zeros(1, 4))
+    tracker.observe(support, torch.ones(1, 4))
+    contact = torch.tensor([[0.0, 1.0, 1.0, 0.0]])
+    lifted = support + torch.tensor([[0.045, 0.0, 0.0, 0.03]])
+    torch.testing.assert_close(tracker.observe(lifted, contact), torch.tensor([[.045, 0., 0., .03]]))
+    tracker.reset(torch.tensor([True]))
+    torch.testing.assert_close(tracker.observe(lifted, contact), torch.zeros(1, 4))
+
+
+def test_swing_lift_reset_is_per_environment_and_nan_invalidates_reference():
+    tracker = SwingLiftTracker()
+    tracker.observe(torch.ones(2, 4), torch.ones(2, 4))
+    tracker.reset(torch.tensor([True, False]))
+    lift = tracker.observe(torch.full((2, 4), 1.03), torch.zeros(2, 4))
+    torch.testing.assert_close(lift[0], torch.zeros(4))
+    torch.testing.assert_close(lift[1], torch.full((4,), .03))
+    bad = torch.full((2, 4), float("nan"))
+    assert torch.isfinite(tracker.observe(bad, torch.zeros_like(bad))).all()
+    torch.testing.assert_close(tracker.observe(torch.ones(2, 4), torch.zeros(2, 4)), torch.zeros(2, 4))
+
+
+def test_rough_reward_activates_without_a_step_edge_but_not_on_flat_or_frozen_runs():
+    assert rough_swing_reward_active(stage="rough_4cm", learning_enabled=True, adapting=True)
+    for changes in [{"stage": "step_4cm"}, {"learning_enabled": False}, {"adapting": False}]:
+        assert not rough_swing_reward_active(**{**dict(stage="rough_4cm", learning_enabled=True, adapting=True), **changes})
+
+
+@pytest.mark.parametrize("case", ["moving_swing", "stance", "stalled", "backwards", "hopping", "too_high", "inactive"])
+def test_rough_swing_bonus_requires_supported_forward_motion_and_target_lift(case):
+    s = signals(foot_contact=1.0)
+    contacts = torch.tensor([[0.0, 1.0, 1.0, 0.0]])
+    if case == "stance": contacts.fill_(1.0)
+    if case == "hopping": contacts.fill_(0.0)
+    s = replace(s, foot_contact=contacts)
+    residual = torch.zeros(1, 12)
+    progress = -1.0 if case == "backwards" else 0.0 if case == "stalled" else 1.0
+    weights = RewardWeights(rough_swing_lift_weight=1.0)
+    kwargs = dict(forward_progress=torch.tensor([[progress]]), swing_lift=torch.full((1, 4), .2 if case == "too_high" else .045))
+    base = compute_online_reward(s, residual, residual, weights, **kwargs)
+    shaped = compute_online_reward(s, residual, residual, weights,
+                                   rough_swing_mask=torch.tensor([[0.0 if case == "inactive" else 1.0]]), **kwargs)
+    assert (shaped - base).item() == pytest.approx(.5 if case == "moving_swing" else 0.0)
 
 
 def test_reward_decreases_with_tracking_error_and_tilt():
