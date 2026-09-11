@@ -424,6 +424,7 @@ def _initial_state() -> dict[str, Any]:
         "last_flat_probe_episode": 0,
         "latest_flat_retention_passed": None,
         "flat_probes": [],
+        "flat_retention_failures": 0,
         "sealed_evaluation_complete": False,
         "last_development_probe_episode": 0,
         "latest_development_validation": None,
@@ -869,6 +870,21 @@ def _load_state(output: Path) -> dict[str, Any]:
         raise ValueError("learning state schema version mismatch")
     if type(state.get("episodes_completed")) is not int or state["episodes_completed"] < 0:
         raise ValueError("learning state has invalid episode count")
+    # Older supervisors treated one failed flat-retention probe as a terminal
+    # run status. That status is no longer terminal: retention is a checkpoint
+    # selection gate, while the bounded RockyRoad loop continues learning.
+    # Migrate it on resume so an interrupted legacy run can reach its episode
+    # cap and produce a later eligible checkpoint.
+    if state.get("status") == "flat_retention_failed":
+        state["status"] = "running"
+        if type(state.get("flat_retention_failures")) is not int:
+            probes = state.get("flat_probes", [])
+            state["flat_retention_failures"] = sum(
+                isinstance(probe, dict) and probe.get("passed") is False
+                for probe in probes
+            )
+    if type(state.get("flat_retention_failures", 0)) is not int or state.get("flat_retention_failures", 0) < 0:
+        raise ValueError("learning state has invalid flat-retention failure count")
     return state
 
 
@@ -1214,7 +1230,11 @@ def _complete_current_probes(args, configuration, *, output, state, base_summari
         state["latest_flat_retention_passed"] = probe["passed"]
         state["flat_probes"] = [*state["flat_probes"], probe]
         if probe["passed"] is not True:
-            state["status"] = "flat_retention_failed"
+            # A retention probe is a noisy gate, not a terminal condition for
+            # the whole bounded experiment. Keep learning so later snapshots
+            # can recover, while best-checkpoint selection still excludes this
+            # candidate. The run ends at the episode cap or stable success.
+            state["flat_retention_failures"] = int(state.get("flat_retention_failures", 0)) + 1
         write_json_atomic(output / "learning_state.json", state)
     if state["last_development_probe_episode"] != episode:
         _record_development_validation(args, configuration, output=output, state=state)
@@ -1294,6 +1314,7 @@ def _write_progress_summary(
             "latest_flat_retention_passed": state[
                 "latest_flat_retention_passed"
             ],
+            "flat_retention_failures": state.get("flat_retention_failures", 0),
             "flat_probes": state["flat_probes"],
             "latest_development_validation": state["latest_development_validation"],
             "best_checkpoint": state["best_checkpoint"],

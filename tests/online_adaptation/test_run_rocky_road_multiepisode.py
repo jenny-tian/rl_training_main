@@ -511,6 +511,43 @@ def test_resume_completes_missing_development_probe_without_repeating_flat(tmp_p
     assert calls == [10]
 
 
+def test_failed_flat_probe_is_recorded_without_terminating_bounded_run(tmp_path, monkeypatch):
+    from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as module
+
+    state = _initial_state()
+    state.update(episodes_completed=10, last_flat_probe_episode=0)
+    probe = {"episode": 10, "passed": False}
+    monkeypatch.setattr(module, "_run_flat_probe", lambda *args, **kwargs: probe)
+    monkeypatch.setattr(module, "_record_development_validation", lambda *args, **kwargs: None)
+
+    module._complete_current_probes(
+        _args(tmp_path), _target_configuration(_args(tmp_path)),
+        output=tmp_path, state=state, base_summaries=[],
+    )
+
+    assert state["status"] == "running"
+    assert state["flat_retention_failures"] == 1
+    assert state["latest_flat_retention_passed"] is False
+
+
+def test_load_state_migrates_legacy_flat_retention_terminal_status(tmp_path):
+    from scripts.reinforcement_learning.online_adaptation.run_rocky_road_multiepisode import _load_state
+
+    state = _initial_state()
+    state.pop("flat_retention_failures")
+    state.update(
+        status="flat_retention_failed",
+        episodes_completed=30,
+        flat_probes=[{"episode": 10, "passed": False}, {"episode": 20, "passed": True}],
+    )
+    (tmp_path / "learning_state.json").write_text(json.dumps(state), encoding="utf-8")
+
+    migrated = _load_state(tmp_path)
+
+    assert migrated["status"] == "running"
+    assert migrated["flat_retention_failures"] == 1
+
+
 def test_development_probe_aggregates_pairing_and_replaces_stale_cache(tmp_path, monkeypatch):
     from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as module
     from rl_training.online_adaptation.provenance import sha256_file
