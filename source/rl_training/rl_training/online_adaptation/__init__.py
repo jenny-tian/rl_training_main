@@ -10,6 +10,19 @@ from .isaaclab_adapter import (
 )
 from .metrics import RollingMetrics
 from .networks import HistoryEncoder, ResidualActor, TwinCritic
+from .lora import (
+    LoRALinear,
+    inject_lora,
+    iter_lora_modules,
+    lora_parameter_count,
+    lora_parameters,
+    mark_only_lora_trainable,
+    merge_lora,
+    replace_linear_with_lora,
+    unmerge_lora,
+)
+from .ppo_rollout import PPORollout, compute_gae
+from .ppo_online import OnlinePPOUpdater, PPOConfig, PPOUpdateStats
 from .publisher import DoubleBufferedActorPublisher
 from .provenance import REQUIRED_VERSION_KEYS, build_flat_baseline_manifest, sha256_file, write_json_atomic
 from .progress_novelty import ForwardProgressMonitor, ProgressNoveltyDecision
@@ -48,6 +61,20 @@ __all__ = [
     "HistoryEncoder",
     "ResidualActor",
     "TwinCritic",
+    "LoRALinear",
+    "inject_lora",
+    "replace_linear_with_lora",
+    "iter_lora_modules",
+    "lora_parameters",
+    "mark_only_lora_trainable",
+    "merge_lora",
+    "unmerge_lora",
+    "lora_parameter_count",
+    "PPORollout",
+    "compute_gae",
+    "PPOConfig",
+    "PPOUpdateStats",
+    "OnlinePPOUpdater",
     "SACConfig",
     "SACUpdater",
     "StableStateManager",
