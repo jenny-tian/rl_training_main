@@ -205,12 +205,60 @@ class OnlinePPOUpdater:
             copy.deepcopy(self.critic_optimizer.state_dict()),
         )
 
+    def _flat_anchor_loss(self, observations: Any, means: Tensor) -> Tensor:
+        current = _policy_mean(self.policy, observations)
+        if current.shape != means.shape:
+            raise ValueError(
+                f"flat anchor means shape {tuple(means.shape)} does not match policy mean {tuple(current.shape)}"
+            )
+        return (current - means.detach()).square().mean()
+
     def _restore(self, snapshot: tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]) -> None:
         policy_state, critic_state, actor_opt, critic_opt = snapshot
         self.policy.load_state_dict(policy_state)
         self.critic.load_state_dict(critic_state)
         self.actor_optimizer.load_state_dict(actor_opt)
         self.critic_optimizer.load_state_dict(critic_opt)
+
+    def state_dict(self) -> dict[str, Any]:
+        """Return an independent checkpoint, including policy version."""
+
+        return {
+            "schema_version": 1,
+            "policy_version": self.policy_version,
+            "policy": copy.deepcopy(self.policy.state_dict()),
+            "critic": copy.deepcopy(self.critic.state_dict()),
+            "actor_optimizer": copy.deepcopy(self.actor_optimizer.state_dict()),
+            "critic_optimizer": copy.deepcopy(self.critic_optimizer.state_dict()),
+        }
+
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        """Restore a checkpoint atomically and reject incompatible versions."""
+
+        if not isinstance(state, dict) or state.get("schema_version") != 1:
+            raise ValueError("unsupported online PPO checkpoint schema")
+        version = state.get("policy_version")
+        if isinstance(version, bool) or not isinstance(version, int) or version < 0:
+            raise ValueError("online PPO policy_version must be a non-negative integer")
+        required = {"policy", "critic", "actor_optimizer", "critic_optimizer"}
+        if set(state) != {"schema_version", "policy_version", *required}:
+            raise ValueError("online PPO checkpoint keys are incompatible")
+        snapshot = self._snapshot()
+        previous_version = self.policy_version
+        try:
+            self.policy.load_state_dict(state["policy"], strict=True)
+            self.critic.load_state_dict(state["critic"], strict=True)
+            self.actor_optimizer.load_state_dict(state["actor_optimizer"])
+            self.critic_optimizer.load_state_dict(state["critic_optimizer"])
+            self.policy_version = version
+            if any(not bool(torch.isfinite(p).all().item()) for p in self.policy.parameters()) or any(
+                not bool(torch.isfinite(p).all().item()) for p in self.critic.parameters()
+            ):
+                raise ValueError("online PPO checkpoint contains non-finite parameters")
+        except BaseException:
+            self._restore(snapshot)
+            self.policy_version = previous_version
+            raise
 
     def update(
         self,
@@ -262,8 +310,7 @@ class OnlinePPOUpdater:
                 policy_loss = -torch.minimum(unclipped, clipped).mean()
                 anchor_loss = torch.zeros((), device=policy_loss.device, dtype=policy_loss.dtype)
                 if flat_anchor_observations is not None and self.config.flat_anchor_coef:
-                    anchor_mean = _policy_mean(self.policy, flat_anchor_observations)
-                    anchor_loss = (anchor_mean - flat_anchor_means).square().mean()
+                    anchor_loss = self._flat_anchor_loss(flat_anchor_observations, flat_anchor_means)
                 actor_loss = policy_loss - self.config.entropy_coef * entropy.mean() + self.config.flat_anchor_coef * anchor_loss
                 self.actor_optimizer.zero_grad(set_to_none=True)
                 actor_loss.backward()

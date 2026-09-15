@@ -115,3 +115,19 @@ def test_rollout_rejects_mixed_episode_endings_and_non_requested_actions():
             rollout.next_values,
             action_semantics="executed",
         )
+
+
+def test_updater_state_dict_round_trip_includes_version_and_optimizer_state():
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(policy, critic, PPOConfig(target_kl=None, minibatch_size=4))
+    updater.update(make_rollout(policy, critic))
+    state = copy.deepcopy(updater.state_dict())
+    restored = OnlinePPOUpdater(GaussianPolicy(), Value(), PPOConfig(target_kl=None, minibatch_size=4))
+    restored.load_state_dict(state)
+    assert restored.policy_version == updater.policy_version
+    for key, value in updater.policy.state_dict().items():
+        torch.testing.assert_close(restored.policy.state_dict()[key], value)
+    broken = copy.deepcopy(state)
+    broken["policy_version"] = -1
+    with pytest.raises(ValueError, match="policy_version"):
+        restored.load_state_dict(broken)

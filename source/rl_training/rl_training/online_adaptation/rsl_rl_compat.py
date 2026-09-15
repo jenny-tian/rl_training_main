@@ -5,6 +5,72 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 import torch
+from torch import nn
+
+
+class RslMLPPolicyAdapter(nn.Module):
+    """Tensor-facing adapter for an RSL-RL ``MLPModel`` actor.
+
+    Online PPO stores observations as ordinary ``[T, obs_dim]`` tensors, while
+    current RSL-RL models expect a TensorDict keyed by their observation group.
+    This wrapper preserves the model's Gaussian distribution and exposes the
+    small ``evaluate_actions``/``mean_action`` interface consumed by
+    :class:`OnlinePPOUpdater`.
+    """
+
+    def __init__(self, model: nn.Module, observation_group: str | None = None) -> None:
+        super().__init__()
+        if not isinstance(model, nn.Module):
+            raise TypeError("model must be a torch module")
+        groups = getattr(model, "obs_groups", None)
+        if observation_group is None:
+            if not isinstance(groups, (list, tuple)) or len(groups) != 1 or not isinstance(groups[0], str):
+                raise ValueError("RSL actor must expose exactly one observation group or an explicit group name")
+            observation_group = groups[0]
+        if not isinstance(observation_group, str) or not observation_group:
+            raise ValueError("observation_group must be a non-empty string")
+        self.model = model
+        self.observation_group = observation_group
+
+    def _as_model_observation(self, observations: Any) -> Any:
+        if isinstance(observations, Mapping):
+            return observations
+        if not isinstance(observations, torch.Tensor) or observations.ndim < 2:
+            raise ValueError("RSL actor observations must be a TensorDict or [batch, obs_dim] tensor")
+        from tensordict import TensorDict
+
+        return TensorDict(
+            {self.observation_group: observations},
+            batch_size=list(observations.shape[:-1]),
+            device=observations.device,
+        )
+
+    def forward(self, observations: Any) -> torch.Tensor:
+        return self.model(self._as_model_observation(observations), stochastic_output=False)
+
+    def get_distribution(self, observations: Any):
+        output = self.forward(observations)
+        distribution = getattr(self.model, "distribution", None)
+        if distribution is None or not hasattr(distribution, "update"):
+            raise RuntimeError("RSL actor does not expose a stochastic distribution")
+        distribution.update(output)
+        current = getattr(distribution, "_distribution", None)
+        if current is None:
+            raise RuntimeError("RSL actor distribution was not initialized")
+        return current
+
+    def evaluate_actions(self, observations: Any, actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        distribution = self.get_distribution(observations)
+        log_prob = distribution.log_prob(actions)
+        entropy = distribution.entropy()
+        if log_prob.ndim > 1:
+            log_prob = log_prob.sum(dim=-1)
+        if entropy.ndim > 1:
+            entropy = entropy.sum(dim=-1)
+        return log_prob, entropy
+
+    def mean_action(self, observations: Any) -> torch.Tensor:
+        return self.forward(observations)
 
 
 def load_frozen_rsl_rl_checkpoint(runner: Any, checkpoint: str) -> dict[str, object]:

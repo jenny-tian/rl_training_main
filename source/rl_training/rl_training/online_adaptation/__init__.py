@@ -23,7 +23,9 @@ from .lora import (
 )
 from .ppo_rollout import PPORollout, compute_gae
 from .ppo_online import OnlinePPOUpdater, PPOConfig, PPOUpdateStats
+from .online_session import OnlinePPOSession, SessionCounters
 from .publisher import DoubleBufferedActorPublisher
+from .rsl_rl_compat import RslMLPPolicyAdapter
 from .provenance import REQUIRED_VERSION_KEYS, build_flat_baseline_manifest, sha256_file, write_json_atomic
 from .progress_novelty import ForwardProgressMonitor, ProgressNoveltyDecision
 from .replay_buffer import ReplayBuffer, adapt_replay_state_frame_dim
@@ -75,6 +77,9 @@ __all__ = [
     "PPOConfig",
     "PPOUpdateStats",
     "OnlinePPOUpdater",
+    "OnlinePPOSession",
+    "SessionCounters",
+    "RslMLPPolicyAdapter",
     "SACConfig",
     "SACUpdater",
     "StableStateManager",
