@@ -12,4 +12,6 @@
 
 测试覆盖 LoRA 初始化等价、冻结基座、适配器梯度、合并/恢复、原始检查点加载、GAE 终止/超时边界、版本隔离、KL 回滚、会话容量和断点恢复。当前回归结果为 `1102 passed, 7 skipped`。
 
-仿真主循环尚未把现有 RockyRoad SAC worker 改成 PPO worker；下一步应在 Isaac Lab 中使用同一 45 维 PPO 观测、同一安全投影和同一地形/种子协议，接入 `RslMLPPolicyAdapter` 与 `OnlinePPOSession`，再与现有 SAC 进行配对预算比较。未完成该闭环前，不把组件通过声明为机器狗已经学会陌生地形。
+新增 `scripts/reinforcement_learning/online_adaptation/train_lora_ppo.py` 作为独立仿真入口：它在 RSL-RL Actor 上注入 LoRA，使用 pre-reset 末帧处理终止/超时，经过 SafetyFilter 执行动作，并按完整 rollout 更新和发布策略。它还会保存训练配置、逐步记录和在线 PPO session checkpoint。
+
+该入口尚未替代现有 RockyRoad SAC worker，也尚未在本轮启动 Isaac Lab 长程学习。因此当前结果证明的是算法组件、接口和闭环边界正确，不是机器狗已经学会陌生地形；下一步仍需在同一 45 维 PPO 观测、地形/种子和交互预算下运行 LoRA-PPO 与 SAC 配对实验。
