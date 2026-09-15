@@ -406,3 +406,9 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=2 python -m pytest tests/online
 | [RLPD，2023](https://arxiv.org/abs/2302.02948) | 源数据与在线数据结合 | 用于 SAC/价值学习设计；不允许把 replay 直接当 PPO 的当前策略样本 |
 
 第一阶段的价值在于严谨验证“从唯一平地技能出发能否在线获得并保留新能力”。采用 LoRA、SAC 或其他名称本身不是研究结论；能力、代价、适用范围和失败边界才是交付内容。
+
+## 12. 2026-09-15 文献调研增补
+
+新增 [生成式策略与 VLA 在线适配调研](lite3-generative-policy-adaptation-review-2026-09-15.md)，核对了用户提供的 USR、FlowDAgger，以及 DSRL、PA-RL、StructRL、HAF、ReSkill、RFS、LP-DS 等近邻。LoRA-PPO 与 residual SAC 继续作为基线；开发筛选可增加 PA-RL 式动作改进和结构化探索候选，优先使用原有筛选/诊断额度。
+
+潜变量加残差、低频动作基、隐藏层适配和渐进门控已有相关工作，不能仅凭组合认定创新。动作投影导致的价值混叠也已有 CAPG、Marginal Policy Gradients 和 SE-RL/SP-RL 等近邻；先检查实际执行和价值学习瓶颈，再比较现有处理方法。若有证据表明固定平地先验仍限制新能力，再研究扩展条件、方向和能力保持。完整 diffusion/flow 方案需要额外的平地先验模型与数据诊断；人工纠正则单列为人工辅助分支。正式方法、阈值与预算仍在开发结束后冻结。
