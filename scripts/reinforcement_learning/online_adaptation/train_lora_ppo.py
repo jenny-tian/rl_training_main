@@ -241,6 +241,11 @@ def main() -> int:
                     previous_residual,
                     reward_weights,
                 ).to(dtype=torch.float32)
+                signals = reward_adapter.reward_signals()
+                command_velocity = signals.command_lin_vel_xy[:, 0:1]
+                velocity_error = (signals.base_lin_vel_xy[:, 0:1] - command_velocity).abs()
+                tilt_rms = torch.linalg.vector_norm(signals.projected_gravity_xy, dim=-1, keepdim=True)
+                contact_diagnostics = reward_adapter.observe_nonfoot_contact()
                 if environment_done:
                     if "observation" not in terminal_capture or "reward" not in terminal_capture:
                         raise RuntimeError("ended online PPO row has no pre-reset terminal capture")
@@ -264,6 +269,13 @@ def main() -> int:
                 rows.append({
                     "step": step + 1,
                     "reward": float(reward_tensor.mean()),
+                    "base_x": float(reward_adapter.base_x().mean()),
+                    "velocity_error": float(velocity_error.mean()),
+                    "tilt_rms": float(tilt_rms.mean()),
+                    "nonfoot_contact": bool(signals.nonfoot_contact.any().item()),
+                    "max_nonfoot_contact_force_n": float(
+                        contact_diagnostics["max_nonfoot_contact_force_n"]
+                    ),
                     "done": bool(done.any()),
                     "policy_version": version,
                     "safety_projected": bool(safety_decision.projected.any()),
