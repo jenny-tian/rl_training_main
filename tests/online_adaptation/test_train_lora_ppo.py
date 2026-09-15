@@ -7,6 +7,8 @@ def test_parser_has_planned_low_rank_ppo_defaults():
     assert args.rollout_steps == 256
     assert args.action_std == 0.1
     assert args.target_kl == 0.01
+    assert args.terrain_stage == "rough_4cm"
+    assert args.terrain_seed == 101
 
 
 def test_parser_accepts_explicit_app_and_learning_options():

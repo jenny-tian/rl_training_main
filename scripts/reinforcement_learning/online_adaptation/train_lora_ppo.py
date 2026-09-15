@@ -42,8 +42,12 @@ def build_parser() -> argparse.ArgumentParser:
     # the actual command line.  Validate it in main after parsing instead.
     parser.add_argument("--base-checkpoint")
     parser.add_argument("--task", default="FlatOnline-Deeprobotics-Lite3-v0")
-    parser.add_argument("--terrain-stage", default="rocky_road")
-    parser.add_argument("--terrain-seed", type=int, default=7)
+    parser.add_argument(
+        "--terrain-stage",
+        choices=("step_2cm", "step_4cm", "step_6cm", "rough_2cm", "rough_4cm"),
+        default="rough_4cm",
+    )
+    parser.add_argument("--terrain-seed", type=int, default=101)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--forward-speed", type=float, default=0.3)
     parser.add_argument("--max-steps", type=_positive_int, default=2_000)
@@ -117,12 +121,8 @@ def main() -> int:
         env_cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         env_cfg.terminations.time_out = None
-        try:
-            apply_geometry_to_env_cfg(env_cfg, development_geometry(args.terrain_stage, args.terrain_seed))
-        except (KeyError, ValueError):
-            # A custom task may already define its terrain; the checkpoint and
-            # seed remain bound in the run manifest below.
-            pass
+        geometry = development_geometry(args.terrain_stage, args.terrain_seed)
+        apply_geometry_to_env_cfg(env_cfg, geometry)
         agent_cfg = prepare_rsl_rl_agent_cfg(load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point"))
         env = gym.make(args.task, cfg=env_cfg)
         wrapped_env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
@@ -207,6 +207,7 @@ def main() -> int:
             wrapped_env.unwrapped.add_pre_reset_callback(capture_terminal_state)
             rows = []
             update_records = []
+            updates_stream = (output / "updates.jsonl").open("w", encoding="utf-8")
             for step in range(args.max_steps):
                 previous_residual = current_residual.detach().clone()
                 terminal_capture.clear()
@@ -230,7 +231,7 @@ def main() -> int:
                     current_residual = safety_decision.residual.detach().clone()
                 result = wrapped_env.step(executed_action)
                 next_observation, _, done, extras = result
-                terminated, truncated, _ = split_rsl_rl_endings(result)
+                terminated, truncated, _ = split_rsl_rl_endings(done, extras)
                 next_obs_tensor = next_observation["policy"]
                 environment_done = bool((terminated | truncated).any().item())
                 value_observation = next_obs_tensor
@@ -277,15 +278,30 @@ def main() -> int:
                     stats = session.update()
                     if stats is not None:
                         update_records.append(stats.__dict__)
+                        updates_stream.write(json.dumps(stats.__dict__, sort_keys=True) + "\n")
+                        updates_stream.flush()
+                        print(
+                            f"[LoRA-PPO] step={step + 1} version={updater.policy_version} "
+                            f"accepted={stats.accepted} kl={stats.approx_kl:.6g}",
+                            flush=True,
+                        )
             if session.pending_transitions:
                 stats = session.update(force=True)
                 if stats is not None:
                     update_records.append(stats.__dict__)
+                    updates_stream.write(json.dumps(stats.__dict__, sort_keys=True) + "\n")
+                    updates_stream.flush()
+            updates_stream.close()
             torch.save(
                 {
                     "schema_version": 1,
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
+                    "terrain_geometry": {
+                        "step_height": geometry.step_height,
+                        "rough_amplitude": geometry.rough_amplitude,
+                        "seed": geometry.seed,
+                    },
                     "lora_rank": args.rank,
                     "lora_parameter_count": lora_parameter_count(adapted_model),
                     "session": session.state_dict(),
