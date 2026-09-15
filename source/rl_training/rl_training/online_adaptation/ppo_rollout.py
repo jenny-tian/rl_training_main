@@ -69,6 +69,10 @@ class PPORollout:
                 raise ValueError(f"{name} must have the same leading length as observations")
         if self.actions.ndim < 2:
             raise ValueError("actions must have shape [T, action_dim]")
+        for name in ("observations", "actions"):
+            value = getattr(self, name)
+            if value.is_complex() or not bool(torch.isfinite(value).all().item()):
+                raise ValueError(f"{name} must contain finite real values")
         for name in ("old_log_probs", "old_values", "rewards", "next_values"):
             value = _column(getattr(self, name), name)
             object.__setattr__(self, name, value)
