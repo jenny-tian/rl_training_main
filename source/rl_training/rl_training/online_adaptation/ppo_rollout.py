@@ -44,7 +44,9 @@ class PPORollout:
     ``next_values[t]`` is evaluated on the terminal observation for a
     truncation and on the ordinary next observation otherwise.  Samples from
     different policy versions must be split into separate blocks before an
-    update.
+    update.  ``critic_observations`` can supply a separate value input while
+    ``observations`` always remains the actor input; omitting it preserves the
+    shared-observation behavior.
     """
 
     observations: Tensor
@@ -58,11 +60,18 @@ class PPORollout:
     policy_version: int | Tensor = 0
     valid_mask: Tensor | None = None
     action_semantics: str = "requested"
+    critic_observations: Tensor | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.observations, Tensor) or self.observations.ndim < 1:
             raise ValueError("observations must be a tensor with a time dimension")
         length = self.observations.shape[0]
+        if self.critic_observations is not None:
+            value = self.critic_observations
+            if not isinstance(value, Tensor) or value.ndim < 1 or value.shape[0] != length:
+                raise ValueError("critic_observations must have the same leading length as observations")
+            if value.is_complex() or not bool(torch.isfinite(value).all().item()):
+                raise ValueError("critic_observations must contain finite real values")
         for name in ("actions", "old_log_probs", "old_values", "rewards", "next_values"):
             value = getattr(self, name)
             if not isinstance(value, Tensor) or value.shape[0] != length:

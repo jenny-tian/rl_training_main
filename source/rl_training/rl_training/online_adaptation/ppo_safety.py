@@ -29,6 +29,7 @@ def requested_action_rollout(
     next_values: torch.Tensor,
     policy_version: int,
     safety_decision: SafetyDecision,
+    critic_observations: torch.Tensor | None = None,
 ) -> PPORollout:
     """Retain projected requests with the probability used to sample them.
 
@@ -48,4 +49,5 @@ def requested_action_rollout(
         next_values=next_values.detach(),
         policy_version=policy_version,
         valid_mask=(~safety_decision.paused).to(dtype=torch.float32).detach(),
+        critic_observations=(None if critic_observations is None else critic_observations.detach()),
     )

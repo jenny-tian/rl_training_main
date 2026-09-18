@@ -330,6 +330,9 @@ class OnlinePPOUpdater:
 
         snapshot = self._snapshot()
         old_log_probs = rollout.old_log_probs.detach()
+        critic_observations = (
+            rollout.observations if rollout.critic_observations is None else rollout.critic_observations
+        )
         total_actor = total_value = total_entropy = total_clip = 0.0
         total_count = 0
         # A deterministic permutation per epoch is sufficient; random state is
@@ -360,7 +363,7 @@ class OnlinePPOUpdater:
                     nn.utils.clip_grad_norm_([p for p in self.policy.parameters() if p.requires_grad], self.config.max_grad_norm)
                 self.actor_optimizer.step()
 
-                value = _critic_value(self.critic, obs)
+                value = _critic_value(self.critic, critic_observations[idx])
                 value_loss = 0.5 * (value - returns[idx].detach()).square().mean() * self.config.value_coef
                 self.critic_optimizer.zero_grad(set_to_none=True)
                 value_loss.backward()

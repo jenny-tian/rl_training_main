@@ -14,7 +14,7 @@ source /home/tjx/anaconda3/etc/profile.d/conda.sh
 conda activate env_isaaclab
 
 WORKTREE=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
-OUTPUT_ROOT=${OUTPUT_ROOT:-$WORKTREE/artifacts/semester_2026/09/paired_rough4cm_development_v7}
+OUTPUT_ROOT=${OUTPUT_ROOT:-$WORKTREE/artifacts/semester_2026/09/paired_rough4cm_development_v8}
 BASE_CHECKPOINT=$WORKTREE/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt
 RESIDUAL_CHECKPOINT=$WORKTREE/artifacts/semester_2026/09/rocky_road_online/v12_fix_validation_20260910/initializer/residual_sac_initial.pt
 FLAT_REPLAY=$WORKTREE/artifacts/online_validation_20260805/flat_replay_model1998_formal/flat_replay.pt
@@ -70,7 +70,7 @@ run_lora() {
     local seed=$1
     local run_dir=$2
     if [[ -s "$run_dir/latest.pt" && -s "$run_dir/summary.json" ]]; then
-        if ! jq -e '.learning_contract == "requested_action_ppo_runtime_config_v6"' \
+        if ! jq -e '.learning_contract == "requested_ppo_absorbing_success_critic_context_v7"' \
             "$run_dir/summary.json" >/dev/null; then
             echo "incompatible LoRA result; use a new OUTPUT_ROOT: $run_dir" >&2
             exit 2

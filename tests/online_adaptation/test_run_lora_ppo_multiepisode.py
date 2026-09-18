@@ -48,6 +48,7 @@ def test_training_command_chains_checkpoint_and_stops_at_physical_boundary(tmp_p
     assert command[command.index("--reference-anchor-coef") + 1] == "1.0"
     assert command[command.index("--max-reference-mse") + 1] == "0.0001"
     assert "--retain-terminal-learning" in command
+    assert command[command.index("--trial-deadline-steps") + 1] == "2000"
 
 
 def test_probe_is_deterministic_and_can_change_validation_seed(tmp_path):

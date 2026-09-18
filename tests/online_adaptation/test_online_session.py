@@ -1,4 +1,6 @@
 import copy
+import io
+from dataclasses import replace
 
 import pytest
 import torch
@@ -34,14 +36,15 @@ class Critic(nn.Module):
         return self.linear(obs)
 
 
-def block(policy, critic, version=0, n=2):
+def block(policy, critic, version=0, n=2, *, critic_observations=None):
     obs = torch.randn(n, 2)
     actions = policy.get_distribution(obs).sample()
     old_lp = policy.get_distribution(obs).log_prob(actions).detach()
-    old_v = critic(obs).detach()
+    old_v = critic(obs if critic_observations is None else critic_observations).detach()
     return PPORollout(
         obs, actions, old_lp, old_v, torch.ones(n, 1), torch.zeros(n, 1),
         torch.zeros(n, 1), old_v, policy_version=version,
+        critic_observations=critic_observations,
     )
 
 
@@ -72,12 +75,15 @@ def test_session_refuses_cross_version_or_over_capacity_blocks():
         session.append(block(policy, critic, n=2))
 
 
-def test_session_checkpoint_round_trip_restores_pending_rollout_and_updater():
+@pytest.mark.parametrize("legacy", [False, True])
+def test_session_checkpoint_round_trip_restores_pending_rollout_and_updater(legacy):
     policy, critic = Policy(), Critic()
     updater = OnlinePPOUpdater(policy, critic, PPOConfig(target_kl=None))
     session = OnlinePPOSession(updater, rollout_capacity=4)
     session.append(block(policy, critic, n=2))
     state = copy.deepcopy(session.state_dict())
+    if legacy:
+        del state["pending_rollout"]["critic_observations"]
     restored = OnlinePPOSession(
         OnlinePPOUpdater(Policy(), Critic(), PPOConfig(target_kl=None)), rollout_capacity=4
     )
@@ -85,10 +91,72 @@ def test_session_checkpoint_round_trip_restores_pending_rollout_and_updater():
     assert restored.pending_transitions == 2
     assert restored.counters.transitions_collected == 2
     assert restored.updater.policy_version == 0
+    assert restored.state_dict()["pending_rollout"]["critic_observations"] is None
     with pytest.raises(ValueError, match="capacity"):
         OnlinePPOSession(
             OnlinePPOUpdater(Policy(), Critic(), PPOConfig(target_kl=None)), rollout_capacity=8
         ).load_state_dict(state)
+    restored.append(block(restored.updater.policy, restored.updater.critic, n=2))
+    assert restored.update().accepted
+
+
+def test_pending_critic_observations_survive_combination_serialization_and_resume():
+    policy, critic = Policy(), nn.Linear(3, 1)
+    config = PPOConfig(target_kl=None, minibatch_size=2)
+    session = OnlinePPOSession(OnlinePPOUpdater(policy, critic, config), rollout_capacity=6)
+    first = torch.arange(6.0).reshape(2, 3)
+    second = torch.arange(6.0, 12.0).reshape(2, 3)
+    session.append(block(policy, critic, critic_observations=first))
+    session.append(block(policy, critic, critic_observations=second))
+    state = session.state_dict()
+    expected = torch.cat((first, second))
+    torch.testing.assert_close(state["pending_rollout"]["critic_observations"], expected)
+    assert state["pending_rollout"]["observations"].shape == (4, 2)
+    serialized = io.BytesIO()
+    torch.save(state, serialized)
+    serialized.seek(0)
+    restored = OnlinePPOSession(
+        OnlinePPOUpdater(Policy(), nn.Linear(3, 1), config), rollout_capacity=6,
+    )
+
+    restored.load_state_dict(torch.load(serialized, map_location="cpu", weights_only=False))
+
+    pending = restored.state_dict()["pending_rollout"]
+    torch.testing.assert_close(pending["critic_observations"], expected)
+    torch.testing.assert_close(pending["observations"], state["pending_rollout"]["observations"])
+    assert restored.pending_transitions == restored.counters.transitions_collected == 4
+    third = torch.arange(12.0, 18.0).reshape(2, 3)
+    restored.append(block(restored.updater.policy, restored.updater.critic, critic_observations=third))
+    stats = restored.update()
+    assert stats.accepted and stats.num_valid_samples == 6
+
+
+@pytest.mark.parametrize("first_has_context", [False, True])
+def test_session_rejects_mixed_critic_observation_blocks_without_mutation(first_has_context):
+    policy, critic = Policy(), Critic()
+    session = OnlinePPOSession(
+        OnlinePPOUpdater(policy, critic, PPOConfig(target_kl=None)), rollout_capacity=4,
+    )
+    plain = block(policy, critic)
+    contextual = replace(plain, critic_observations=plain.observations)
+    first, second = (contextual, plain) if first_has_context else (plain, contextual)
+    session.append(first)
+    before = session.state_dict()
+
+    with pytest.raises(ValueError, match="mix blocks with and without critic observations"):
+        session.append(second)
+
+    after = session.state_dict()
+    assert session.pending_transitions == 2
+    assert after["counters"] == before["counters"]
+    torch.testing.assert_close(after["pending_rollout"]["observations"], before["pending_rollout"]["observations"])
+    if first_has_context:
+        torch.testing.assert_close(after["pending_rollout"]["critic_observations"], first.critic_observations)
+    else:
+        assert after["pending_rollout"]["critic_observations"] is None
+    session.clear()
+    session.append(second)
+    assert session.pending_transitions == 2
 
 
 def test_terminal_rollback_restores_last_stable_candidate_and_invalidates_versioned_rollout():

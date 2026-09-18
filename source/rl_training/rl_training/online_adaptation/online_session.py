@@ -117,6 +117,10 @@ class OnlinePPOSession:
         versions = rollout.version_tensor()
         if not bool((versions == self.updater.policy_version).all().item()):
             raise ValueError("rollout policy version does not match the current updater")
+        if self._blocks and (
+            (self._blocks[0].critic_observations is None) != (rollout.critic_observations is None)
+        ):
+            raise ValueError("pending rollout cannot mix blocks with and without critic observations")
         if self._pending_version is None:
             self._pending_version = self.updater.policy_version
         if self._pending_version != self.updater.policy_version:
@@ -141,6 +145,12 @@ class OnlinePPOSession:
         first = self._blocks[0]
         valid_masks = [block.valid_mask for block in self._blocks]
         valid = None if any(mask is None for mask in valid_masks) else _cat([mask for mask in valid_masks if mask is not None], "valid masks")
+        critic_observations = (
+            None if first.critic_observations is None else _cat(
+                [block.critic_observations for block in self._blocks if block.critic_observations is not None],
+                "critic observations",
+            )
+        )
         return PPORollout(
             observations=_cat([block.observations for block in self._blocks], "observations"),
             actions=_cat([block.actions for block in self._blocks], "actions"),
@@ -152,6 +162,7 @@ class OnlinePPOSession:
             next_values=_cat([block.next_values for block in self._blocks], "next values"),
             policy_version=self._pending_version if self._pending_version is not None else first.policy_version,
             valid_mask=valid,
+            critic_observations=critic_observations,
         )
 
     def update(
@@ -277,6 +288,9 @@ class OnlinePPOSession:
             "rollout_capacity": self.rollout_capacity,
             "pending_rollout": None if pending is None else {
                 "observations": pending.observations.detach().cpu(),
+                "critic_observations": (
+                    None if pending.critic_observations is None else pending.critic_observations.detach().cpu()
+                ),
                 "actions": pending.actions.detach().cpu(),
                 "old_log_probs": pending.old_log_probs.detach().cpu(),
                 "old_values": pending.old_values.detach().cpu(),
@@ -346,6 +360,7 @@ class OnlinePPOSession:
                     next_values=pending["next_values"],
                     policy_version=pending["policy_version"],
                     valid_mask=pending.get("valid_mask"),
+                    critic_observations=pending.get("critic_observations"),
                 ))
             self.counters = counters
             if self.publisher is not None:

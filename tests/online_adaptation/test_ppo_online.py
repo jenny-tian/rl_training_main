@@ -1,5 +1,6 @@
 import copy
 import json
+from dataclasses import replace
 
 import pytest
 import torch
@@ -79,6 +80,83 @@ def test_updater_requires_matching_policy_version_and_advances_after_acceptance(
     stats = updater.update(rollout)
     assert stats.accepted
     assert stats.policy_version_after == 3
+
+
+def test_updater_routes_actor_and_critic_observations_to_separate_networks():
+    torch.manual_seed(24)
+    policy, critic = GaussianPolicy(), nn.Linear(3, 1)
+    config = PPOConfig(target_kl=None, epochs=2, minibatch_size=2, flat_anchor_coef=0.1)
+    updater = OnlinePPOUpdater(policy, critic, config)
+    observations = torch.stack((torch.arange(6.0), torch.linspace(-1.0, 1.0, 6)), dim=1)
+    context = torch.cat((observations, torch.arange(10.0, 16.0).unsqueeze(-1)), dim=1)
+    with torch.no_grad():
+        distribution = policy.get_distribution(observations)
+        actions = distribution.sample()
+        old_values = critic(context)
+        old_log_probs = distribution.log_prob(actions).sum(-1, keepdim=True)
+        anchor_means = policy.mean_action(observations)
+    rollout = PPORollout(
+        observations, actions, old_log_probs, old_values, torch.ones(6, 1),
+        torch.zeros(6, 1), torch.zeros(6, 1), old_values,
+        critic_observations=context,
+    )
+    actor_inputs, critic_inputs = [], []
+    actor_hook = policy.linear.register_forward_pre_hook(
+        lambda module, args: actor_inputs.append(args[0].detach().clone())
+    )
+    critic_hook = critic.register_forward_pre_hook(
+        lambda module, args: critic_inputs.append(args[0].detach().clone())
+    )
+    try:
+        stats = updater.update(
+            rollout, flat_anchor_observations=observations, flat_anchor_means=anchor_means,
+        )
+    finally:
+        actor_hook.remove()
+        critic_hook.remove()
+
+    assert stats.accepted
+    assert actor_inputs and all(value.shape[1] == 2 for value in actor_inputs)
+    for value in actor_inputs:
+        torch.testing.assert_close(value, observations[value[:, 0].long()])
+    seen = torch.cat(critic_inputs)
+    expected = context.repeat(config.epochs, 1)
+    torch.testing.assert_close(seen[seen[:, 0].argsort()], expected[expected[:, 0].argsort()])
+
+
+def test_legacy_shared_observations_match_explicit_critic_input_updates():
+    policy, critic = GaussianPolicy(), Value()
+    config = PPOConfig(target_kl=None, minibatch_size=4)
+    shared = OnlinePPOUpdater(policy, critic, config)
+    rollout = make_rollout(policy, critic)
+    explicit = OnlinePPOUpdater(GaussianPolicy(), Value(), config)
+    explicit.load_state_dict(shared.state_dict())
+
+    torch.manual_seed(71)
+    shared_stats = shared.update(rollout)
+    torch.manual_seed(71)
+    explicit_stats = explicit.update(replace(rollout, critic_observations=rollout.observations))
+
+    assert rollout.critic_observations is None
+    assert shared_stats == explicit_stats
+    for model_name in ("policy", "critic"):
+        for key, value in getattr(shared, model_name).state_dict().items():
+            torch.testing.assert_close(getattr(explicit, model_name).state_dict()[key], value)
+
+
+@pytest.mark.parametrize("context", [
+    [[0.0, 0.0, 0.0]],
+    torch.tensor(1.0),
+    torch.zeros(11, 3),
+    torch.full((12, 3), float("nan")),
+    torch.full((12, 3), float("inf")),
+    torch.zeros(12, 3, dtype=torch.complex64),
+])
+def test_rollout_rejects_invalid_critic_observations(context):
+    policy, critic = GaussianPolicy(), Value()
+    rollout = make_rollout(policy, critic)
+    with pytest.raises(ValueError, match="critic_observations"):
+        replace(rollout, critic_observations=context)
 
 
 def test_rejected_large_kl_restores_policy_critic_and_optimizers():

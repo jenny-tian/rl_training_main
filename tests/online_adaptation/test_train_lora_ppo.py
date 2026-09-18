@@ -176,6 +176,59 @@ def test_completion_and_timeout_flush_partial_rollouts():
     ) == "truncated"
 
 
+def test_declared_task_deadline_is_distinct_from_a_short_sampling_budget():
+    from scripts.reinforcement_learning.online_adaptation.train_lora_ppo import _deadline_failure
+
+    # A diagnostic cut at 1200 steps must not invent a failure at the formal
+    # 2000-step deadline; a genuine deadline has no future task continuation.
+    assert _deadline_failure(completed_steps=1200, deadline_steps=2000, completion_passed=False) is None
+    assert _deadline_failure(completed_steps=2000, deadline_steps=None, completion_passed=False) is None
+    reason = _deadline_failure(completed_steps=2000, deadline_steps=2000, completion_passed=False)
+    assert reason == "task_timeout"
+    assert _learning_boundary(
+        retain_failures=True, rollback_reason=None, completion_passed=False,
+        environment_done=False, task_failure_reason=reason,
+    ) == "task_timeout"
+    assert _deadline_failure(completed_steps=2000, deadline_steps=2000, completion_passed=True) is None
+
+
+def test_short_sampling_cut_keeps_declared_deadline_context():
+    import torch
+    from rl_training.online_adaptation.ppo_critic_context import build_critic_observation
+    from scripts.reinforcement_learning.online_adaptation.train_lora_ppo import _critic_time_horizon
+
+    horizon = _critic_time_horizon(max_steps=1200, deadline_steps=2000)
+    observation = build_critic_observation(
+        torch.zeros(1, 45), torch.zeros(1, 2), step=1200, max_steps=horizon,
+    )
+    assert observation[0, -1].item() == pytest.approx(0.6)
+    assert _critic_time_horizon(max_steps=1200, deadline_steps=None) == 1200
+
+
+def test_task_termination_never_bootstraps_even_when_failure_learning_is_disabled():
+    import torch
+    from rl_training.online_adaptation.ppo_rollout import PPORollout
+    from scripts.reinforcement_learning.online_adaptation.train_lora_ppo import _learning_termination
+
+    assert _learning_boundary(
+        retain_failures=False, rollback_reason=None, task_failure_reason="task_timeout",
+        completion_passed=False, environment_done=False,
+    ) is None
+    terminal = _learning_termination(
+        torch.zeros(1, 1, dtype=torch.bool), rollback_reason=None,
+        task_failure_reason="task_timeout", completion_passed=False,
+    )
+    rollout = PPORollout(
+        observations=torch.zeros(1, 45), actions=torch.zeros(1, 12),
+        old_log_probs=torch.zeros(1, 1), old_values=torch.ones(1, 1),
+        rewards=torch.full((1, 1), -8.), terminated=terminal,
+        truncated=torch.zeros(1, 1), next_values=torch.full((1, 1), 999.),
+    )
+    advantage, returns = rollout.compute_returns()
+    assert returns.item() == -8.
+    assert advantage.item() == -9.
+
+
 def test_parser_has_planned_low_rank_ppo_defaults():
     args = build_parser().parse_args(["--base-checkpoint", "flat.pt"])
     assert args.rank == 2

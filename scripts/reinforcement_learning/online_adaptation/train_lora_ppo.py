@@ -20,7 +20,9 @@ from isaaclab.app import AppLauncher
 
 
 CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
-LEARNING_CONTRACT = "requested_action_ppo_runtime_config_v6"
+LEARNING_CONTRACT = "requested_ppo_absorbing_success_critic_context_v7"
+REWARD_CONTRACT = "absorbing_success_explicit_task_deadline_v4"
+CRITIC_OBSERVATION_SCHEMA = "policy_plus_body_velocity_xy_elapsed_v1"
 
 
 def _configure_forward_command(command_cfg, forward_speed: float) -> None:
@@ -79,6 +81,25 @@ def _task_failure_reason(completion) -> str | None:
     if completion.lateral_violation_steps:
         return "lateral_violation"
     return None
+
+
+def _deadline_failure(*, completed_steps: int, deadline_steps: int | None,
+                      completion_passed: bool) -> str | None:
+    if not completion_passed and deadline_steps is not None and completed_steps >= deadline_steps:
+        return "task_timeout"
+    return None
+
+
+def _critic_time_horizon(*, max_steps: int, deadline_steps: int | None) -> int:
+    return deadline_steps if deadline_steps is not None else max_steps
+
+
+def _learning_termination(physical_terminated, *, rollback_reason: str | None,
+                          task_failure_reason: str | None, completion_passed: bool):
+    import torch
+
+    task_ended = rollback_reason is not None or task_failure_reason is not None or completion_passed
+    return physical_terminated | torch.full_like(physical_terminated, task_ended)
 
 
 def _lateral_deviation(base_y, foot_y, initial_y: float):
@@ -212,6 +233,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--forward-speed", type=_positive_float, default=0.3)
     parser.add_argument("--max-steps", type=_positive_int, default=2_000)
+    parser.add_argument(
+        "--trial-deadline-steps", type=_positive_int, default=None,
+        help="declare a task deadline as terminal failure; an earlier max-steps cut still bootstraps",
+    )
     parser.add_argument("--rollout-steps", type=_positive_int, default=256)
     parser.add_argument("--output", default="logs/online_adaptation/lora_ppo")
     parser.add_argument(
@@ -318,6 +343,10 @@ def main() -> int:
         from rl_training.online_adaptation.online_session import OnlinePPOSession
         from rl_training.online_adaptation.ppo_online import OnlinePPOUpdater, PPOConfig
         from rl_training.online_adaptation.ppo_safety import SAMPLING_CONTRACT, requested_action_rollout
+        from rl_training.online_adaptation.ppo_critic_context import (
+            build_critic_observation, migrate_critic_context,
+        )
+        from rl_training.online_adaptation.ppo_task_reward import success_absorbing_reward
         from rl_training.online_adaptation.ppo_runtime_config import (
             apply_ppo_runtime_config,
             read_ppo_runtime_config,
@@ -412,7 +441,7 @@ def main() -> int:
                 raise RuntimeError("policy observation must have shape [1, obs_dim]")
             obs_dim = int(policy_obs.shape[-1])
             critic = nn.Sequential(
-                nn.Linear(obs_dim, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
+                nn.Linear(obs_dim + 3, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
             ).to(args.device)
             updater = OnlinePPOUpdater(
                 policy,
@@ -439,6 +468,7 @@ def main() -> int:
             publisher = DoubleBufferedActorPublisher(policy)
             session = OnlinePPOSession(updater, rollout_capacity=args.rollout_steps, publisher=publisher)
             loaded_checkpoint = None
+            checkpoint_migration = None
             if args.checkpoint_in:
                 loaded_checkpoint = torch.load(
                     args.checkpoint_in,
@@ -452,6 +482,15 @@ def main() -> int:
                 checkpoint_session = loaded_checkpoint.get("session")
                 if not isinstance(checkpoint_session, dict):
                     raise ValueError("online PPO checkpoint is missing session state")
+                checkpoint_migration = {
+                    "source_learning_contract": loaded_checkpoint.get("learning_contract"),
+                    "critic_input_from": int(checkpoint_session["updater"]["critic"]["0.weight"].shape[1]),
+                    "critic_input_to": obs_dim + 3,
+                }
+                if (checkpoint_migration["critic_input_from"] == obs_dim + 3
+                        and loaded_checkpoint.get("critic_observation_schema") != CRITIC_OBSERVATION_SCHEMA):
+                    raise ValueError("checkpoint critic observation schema does not match the requested context")
+                checkpoint_session = migrate_critic_context(checkpoint_session, policy_obs_dim=obs_dim)
                 session.load_state_dict(checkpoint_session)
             effective_runtime_config = (
                 read_ppo_runtime_config(session)
@@ -461,11 +500,27 @@ def main() -> int:
                 )
             )
             initial_policy_version = effective_runtime_config.pop("policy_version")
+            reward_weights = RewardWeights()
+            completion_terminal_reward = success_absorbing_reward(
+                args.gamma,
+                continuing_reward_upper_bound=(reward_weights.velocity_weight
+                                               + reward_weights.yaw_weight
+                                               + reward_weights.forward_progress_weight),
+                completion_bonus=reward_weights.completion_bonus,
+            )
+            critic_time_horizon = _critic_time_horizon(
+                max_steps=args.max_steps, deadline_steps=args.trial_deadline_steps,
+            )
             (output / "config.json").write_text(
                 json.dumps(
                     {**vars(args), "contact_termination": CONTACT_TERMINATION_PROTOCOL,
                      "learning_contract": LEARNING_CONTRACT,
                      "sampling_contract": SAMPLING_CONTRACT,
+                     "reward_contract": REWARD_CONTRACT,
+                     "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
+                     "checkpoint_migration": checkpoint_migration,
+                     "completion_terminal_reward": completion_terminal_reward,
+                     "critic_time_horizon_steps": critic_time_horizon,
                      "effective_runtime_config": effective_runtime_config,
                      "initial_policy_version": initial_policy_version},
                     indent=2, default=str,
@@ -486,7 +541,6 @@ def main() -> int:
             swing_lift_tracker = SwingLiftTracker()
             if not hasattr(wrapped_env.unwrapped, "add_pre_reset_callback"):
                 raise RuntimeError("online PPO task must support pre-reset terminal capture")
-            reward_weights = RewardWeights()
             safety_filter = SafetyFilter(SafetyLimits(
                 residual_limits=torch.tensor([0.24, 0.20, 0.20] * 4, device=args.device),
                 residual_rate_limit=args.residual_rate_limit,
@@ -531,20 +585,26 @@ def main() -> int:
                 terminal_capture.clear()
                 observation = _pin_forward_observation(wrapped_env, observation, args.forward_speed)
                 obs_tensor = observation["policy"]
+                critic_obs_tensor = build_critic_observation(
+                    obs_tensor, reward_adapter.robot.data.root_lin_vel_b[:, :2],
+                    step=step, max_steps=critic_time_horizon,
+                )
                 control_policy, version = publisher.current()
                 with torch.no_grad():
                     reference_mean = reference_policy.mean_action(obs_tensor)
                     if args.evaluation_only:
                         requested_action = control_policy.mean_action(obs_tensor)
+                        control_mean = requested_action
                         old_log_prob = torch.zeros(1, 1, device=args.device)
                         old_value = torch.zeros(1, 1, device=args.device)
                     else:
                         distribution = control_policy.get_distribution(obs_tensor)
+                        control_mean = distribution.mean
                         requested_action = distribution.sample()
                         old_log_prob = distribution.log_prob(requested_action)
                         if old_log_prob.ndim > 1:
                             old_log_prob = old_log_prob.sum(dim=-1)
-                        old_value = critic(obs_tensor)
+                        old_value = critic(critic_obs_tensor)
                     base_action = reference_mean
                     requested_residual = requested_action - base_action
                     safety_decision = safety_filter.project(
@@ -619,7 +679,10 @@ def main() -> int:
                     track_completion, fell=fell, safety_violation=safety_violation,
                     reset_count=reset_count,
                 )
-                task_failure_reason = _task_failure_reason(track_completion)
+                task_failure_reason = _task_failure_reason(track_completion) or _deadline_failure(
+                    completed_steps=step + 1, deadline_steps=args.trial_deadline_steps,
+                    completion_passed=completion_passed,
+                )
                 lateral_deviation = _lateral_deviation(
                     step_state["base_y"], step_state["foot_y"], initial_y
                 )
@@ -634,8 +697,9 @@ def main() -> int:
                     environment_done=environment_done,
                     task_failure_reason=task_failure_reason,
                 )
-                learning_terminated = terminated | torch.full_like(
-                    terminated, learning_boundary not in (None, "truncated")
+                learning_terminated = _learning_termination(
+                    terminated, rollback_reason=rollback_reason,
+                    task_failure_reason=task_failure_reason, completion_passed=completion_passed,
                 )
                 learning_truncated = (truncated | torch.full_like(
                     truncated, step + 1 == args.max_steps
@@ -655,14 +719,23 @@ def main() -> int:
                     lateral_deviation=lateral_deviation,
                 ).to(dtype=torch.float32)
                 previous_x = current_x
-                if (bool(terminated.any().item()) or learning_boundary == "severe_nonfoot_contact"
+                if completion_passed:
+                    # Include the known reward tail of the absorbing success
+                    # state. The physical transition remains truly terminal;
+                    # there is no critic or post-reset observation bootstrap.
+                    reward_tensor = torch.full_like(reward_tensor, completion_terminal_reward)
+                elif (bool(terminated.any().item()) or learning_boundary == "severe_nonfoot_contact"
                         or task_failure_reason is not None):
                     reward_tensor = torch.full_like(
                         reward_tensor, float(args.terminal_failure_penalty)
                     ).to(dtype=torch.float32)
                 if not args.evaluation_only:
                     with torch.no_grad():
-                        next_value_raw = critic(value_observation)
+                        next_critic_observation = build_critic_observation(
+                            value_observation, signals.base_lin_vel_xy,
+                            step=step + 1, max_steps=critic_time_horizon,
+                        )
+                        next_value_raw = critic(next_critic_observation)
                         next_value = next_value_raw * (~learning_terminated).to(dtype=next_value_raw.dtype)
                     transition = requested_action_rollout(
                         observations=obs_tensor,
@@ -675,6 +748,7 @@ def main() -> int:
                         next_values=next_value,
                         policy_version=version,
                         safety_decision=safety_decision,
+                        critic_observations=critic_obs_tensor,
                     )
                     session.append(transition)
                     anchor_observations.append(obs_tensor.detach())
@@ -683,6 +757,13 @@ def main() -> int:
                 rows.append({
                     "step": step + 1,
                     "reward": float(reward_tensor.mean()),
+                    "old_value": None if args.evaluation_only else float(old_value.mean()),
+                    "terminal_raw_advantage": (
+                        float((reward_tensor - old_value).mean())
+                        if not args.evaluation_only and bool(learning_terminated.all()) else None
+                    ),
+                    "policy_reference_mse": float((control_mean - reference_mean).square().mean()),
+                    "mean_residual_max_abs": float((control_mean - reference_mean).abs().max()),
                     "base_x": float(current_x.mean()),
                     "base_y": float(step_state["base_y"].mean()),
                     "foot_y": step_state["foot_y"].reshape(-1).cpu().tolist(),
@@ -836,6 +917,13 @@ def main() -> int:
                     "schema_version": 1,
                     "learning_contract": LEARNING_CONTRACT,
                     "sampling_contract": SAMPLING_CONTRACT,
+                    "reward_contract": REWARD_CONTRACT,
+                    "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
+                    "checkpoint_migration": checkpoint_migration,
+                    "critic_time_horizon_steps": critic_time_horizon,
+                    "trial_deadline_steps": args.trial_deadline_steps,
+                    "discount_gamma": args.gamma,
+                    "completion_terminal_reward": completion_terminal_reward,
                     "effective_runtime_config": effective_runtime_config,
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
@@ -883,6 +971,10 @@ def main() -> int:
                 "mode": "learned_frozen" if args.evaluation_only else "online_learning",
                 "learning_contract": LEARNING_CONTRACT,
                 "sampling_contract": SAMPLING_CONTRACT,
+                "reward_contract": REWARD_CONTRACT,
+                "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
+                "completion_terminal_reward": completion_terminal_reward,
+                "critic_time_horizon_steps": critic_time_horizon,
                 "effective_runtime_config": effective_runtime_config,
                 "evaluation_only": bool(args.evaluation_only),
                 "steps": steps,
@@ -922,7 +1014,7 @@ def main() -> int:
                 "rollbacks": 0 if args.evaluation_only else len(rollback_records),
                 "terminal_learning_updates": (
                     sum(record["update_attempted"] and record["reason"] in (
-                        "terminated", "severe_nonfoot_contact", "lateral_violation", "edge_slip"
+                        "terminated", "severe_nonfoot_contact", "lateral_violation", "edge_slip", "task_timeout"
                     ) for record in terminal_learning_records)
                 ),
                 "boundary_learning_updates": sum(record["update_attempted"] for record in terminal_learning_records),
