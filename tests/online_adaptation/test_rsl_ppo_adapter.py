@@ -49,3 +49,12 @@ def test_rsl_adapter_requires_explicit_group_for_multiple_groups():
         assert "exactly one" in str(error)
     else:
         raise AssertionError("multiple observation groups should require an explicit group")
+
+
+def test_rsl_adapter_applies_action_transform_to_mean_and_distribution():
+    adapter = RslMLPPolicyAdapter(FakeRslActor(), action_transform=lambda action: action.clamp(-0.1, 0.1))
+    observations = torch.full((2, 3), 100.0)
+    mean = adapter.mean_action(observations)
+    distribution = adapter.get_distribution(observations)
+    assert bool((mean.abs() <= 0.1).all())
+    torch.testing.assert_close(distribution.mean, mean)

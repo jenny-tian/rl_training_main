@@ -775,6 +775,7 @@ def test_finish_step_routes_all_explicit_fields_to_both_replays():
         sampled = replay.sample(1, "cpu")
         for name, expected in explicit_fields.items():
             torch.testing.assert_close(getattr(sampled, name), expected)
+    assert agent.last_committed_transition_counts == (1, 1)
 
 
 def test_finish_step_excludes_safety_invalid_rows_from_both_replays():

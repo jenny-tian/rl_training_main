@@ -104,6 +104,9 @@ def test_play_defaults_configure_novelty_gated_actor_updates():
 
     assert args.updates_per_second == 5.0
     assert args.actor_updates_per_second == 2.0
+    assert args.update_schedule == "wall-clock"
+    assert args.critic_updates_per_transition == 0.5
+    assert args.actor_updates_per_transition == 0.005
     assert args.novelty_calibration_steps == 256
     assert args.novelty_enter_threshold == 2.5
     assert args.novelty_exit_threshold == 1.0
@@ -139,6 +142,18 @@ def test_play_defaults_configure_novelty_gated_actor_updates():
     assert args.require_track_completion is False
     assert args.terrain_feature_source == "geometry"
     assert args.terrain_min_valid_fraction == 0.90
+
+
+def test_play_parser_accepts_control_step_update_schedule():
+    args = build_play_parser().parse_args(
+        [
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--update-schedule", "control-step",
+        ]
+    )
+
+    assert args.update_schedule == "control-step"
 
 
 def test_play_parser_accepts_height_scan_configuration():

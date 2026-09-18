@@ -60,6 +60,8 @@ class DeeproboticsLite3HeldoutBoxesEnvCfg(DeeproboticsLite3RoughEnvCfg):
         self.terminations.terrain_out_of_bounds = None
         self.terminations.illegal_contact = TerminationsCfg().illegal_contact
         self.terminations.illegal_contact.func = mdp.startup_aware_illegal_contact
+        self.terminations.illegal_contact.params["threshold"] = 5.0
+        self.terminations.illegal_contact.params["consecutive_steps"] = 3
         self.terminations.illegal_contact.params["sensor_cfg"].body_names = [
             link_name for link_name in self.link_names if not link_name.endswith("_FOOT")
         ]

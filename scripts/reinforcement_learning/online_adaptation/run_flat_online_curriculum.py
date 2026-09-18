@@ -24,6 +24,7 @@ from rl_training.online_adaptation.terrain_protocol import (
     default_flat_online_protocol,
 )
 from rl_training.online_adaptation.track_completion import (
+    COMPLETION_QUALIFICATION_VERSION,
     FULL_TRACK_COMPLETION_MODE,
     PROGRESS_COST_VERSION,
 )
@@ -219,6 +220,14 @@ def build_worker_command(args: Namespace, request: EpisodeRequest) -> list[str]:
         (
             "--actor-updates-per-second",
             getattr(args, "actor_updates_per_second", 2.0),
+        ),
+        (
+            "--critic-updates-per-transition",
+            getattr(args, "critic_updates_per_transition", 0.5),
+        ),
+        (
+            "--actor-updates-per-transition",
+            getattr(args, "actor_updates_per_transition", 0.005),
         ),
         (
             "--adaptation-min-replay-size",
@@ -527,6 +536,7 @@ def classify_worker_result(
     *,
     request: EpisodeRequest | None = None,
     expected_protocol_sha256: str | None = None,
+    protocol: FlatOnlineProtocol | None = None,
 ) -> EpisodeOutcome:
     directory = Path(episode_dir)
     summary_path = directory / "episode_summary.json"
@@ -566,7 +576,7 @@ def classify_worker_result(
         ):
             raise RuntimeError("worker summary schema is invalid")
         if request is not None:
-            validate_track_completion_summary(summary)
+            validate_track_completion_summary(summary, protocol=protocol)
         cost_value = summary.get("cost")
         if cost_value is None:
             if request is not None:
@@ -589,11 +599,24 @@ def classify_worker_result(
     raise RuntimeError("worker produced no valid summary or failure record")
 
 
-def validate_track_completion_summary(summary: Mapping[str, object]) -> None:
+def validate_track_completion_summary(
+    summary: Mapping[str, object],
+    *,
+    protocol: FlatOnlineProtocol | None = None,
+) -> None:
+    # Use the same immutable protocol values that configured the worker.  The
+    # optional argument lets callers validating a custom, hash-matched
+    # protocol use its thresholds; ordinary callers retain the default
+    # production contract.
+    resolved_protocol = default_flat_online_protocol() if protocol is None else protocol
+    if not isinstance(resolved_protocol, FlatOnlineProtocol):
+        raise TypeError("protocol must be a FlatOnlineProtocol instance")
     if summary.get("completion_mode") != FULL_TRACK_COMPLETION_MODE:
         raise RuntimeError("formal worker completion mode is invalid")
     if summary.get("progress_cost_version") != PROGRESS_COST_VERSION:
         raise RuntimeError("formal worker progress cost version is invalid")
+    if summary.get("completion_qualification_version") != COMPLETION_QUALIFICATION_VERSION:
+        raise RuntimeError("formal worker completion qualification version is invalid")
     if type(summary.get("fell")) is not bool or type(summary.get("safety_violation")) is not bool:
         raise RuntimeError("formal worker safety fields must be booleans")
     fields = (
@@ -602,6 +625,11 @@ def validate_track_completion_summary(summary: Mapping[str, object]) -> None:
         "completion_target_x",
         "completion_remaining_m",
         "cost",
+        "initial_y",
+        "max_abs_lateral_deviation_m",
+        "allowed_lateral_deviation_m",
+        "challenge_start_x",
+        "challenge_end_x",
     )
     values: dict[str, float] = {}
     for name in fields:
@@ -610,7 +638,8 @@ def validate_track_completion_summary(summary: Mapping[str, object]) -> None:
             raise RuntimeError(f"formal worker summary lacks numeric {name}")
         numeric = float(value)
         if not math.isfinite(numeric) or (
-            name in {"completion_remaining_m", "cost"} and numeric < 0.0
+            name in {"completion_remaining_m", "cost", "max_abs_lateral_deviation_m"}
+            and numeric < 0.0
         ):
             raise RuntimeError(f"formal worker summary has invalid {name}")
         values[name] = numeric
@@ -630,13 +659,46 @@ def validate_track_completion_summary(summary: Mapping[str, object]) -> None:
     reached = summary.get("completion_reached")
     if type(reached) is not bool or reached != (max_x >= target_x):
         raise RuntimeError("formal worker completion evidence is inconsistent")
+    qualification_fields = (
+        "completion_qualification_passed",
+        "lateral_violation_steps",
+        "edge_slip_events",
+        "challenge_observation_steps",
+        "challenge_swing_steps",
+        "stable_completion_steps",
+    )
+    qualification_passed = summary.get("completion_qualification_passed")
+    if type(qualification_passed) is not bool:
+        raise RuntimeError("formal worker completion qualification flag is invalid")
+    for name in qualification_fields[1:]:
+        value = summary.get(name)
+        if type(value) is not int or value < 0:
+            raise RuntimeError(f"formal worker completion qualification field {name} is invalid")
+    expected_qualification = (
+        summary["lateral_violation_steps"] == 0
+        and summary["edge_slip_events"] == 0
+        and summary["challenge_observation_steps"]
+        >= resolved_protocol.min_challenge_observation_steps
+        and summary["challenge_swing_steps"]
+        >= resolved_protocol.min_challenge_swing_steps
+        and summary["stable_completion_steps"]
+        >= resolved_protocol.min_stable_completion_steps
+    )
+    if qualification_passed != expected_qualification:
+        raise RuntimeError(
+            "formal worker completion qualification flag is inconsistent with evidence"
+        )
     passed = summary.get("passed")
     fell = summary.get("fell")
     safety_violation = summary.get("safety_violation")
-    expected_passed = reached and not fell and not safety_violation
+    expected_passed = reached and qualification_passed and not fell and not safety_violation
     if type(passed) is not bool or passed != expected_passed:
         raise RuntimeError("formal worker passed flag is inconsistent with safety/completion")
-    expected_cost = remaining + (target_distance if fell or safety_violation else 0.0)
+    expected_cost = remaining + (
+        target_distance
+        if fell or safety_violation or not qualification_passed
+        else 0.0
+    )
     if not math.isclose(cost, expected_cost, rel_tol=1.0e-9, abs_tol=1.0e-9):
         raise RuntimeError("formal worker cost is inconsistent with completion evidence")
     if passed and cost != 0.0:
@@ -816,6 +878,7 @@ def run_curriculum(args: Namespace, configuration: TargetConfiguration) -> int:
             result.returncode,
             request=request,
             expected_protocol_sha256=protocol.sha256(),
+            protocol=protocol,
         )
         if (state["stage_episodes"] + 1) % coordinator.WINDOW_SIZE == 0:
             checkpoint = directory / "experiment.pt"

@@ -10,7 +10,7 @@ from .sac import SACConfig
 def training_contract(sac: SACConfig, reward: RewardWeights, *, target_semantics: str) -> dict[str, Any]:
     return {
         "version": 1,
-        "reward_semantics": "contact_referenced_rough_swing_v1",
+        "reward_semantics": "contact_swing_lateral_current_pose_completion_v2",
         "entropy_coordinates": "normalized_tanh_action_v1",
         "sac": asdict(sac),
         "reward": asdict(reward),

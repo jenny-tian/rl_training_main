@@ -12,6 +12,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     actor_replay_transition_eligible,
     PostStepRecoveryRamp,
     RuntimeCounters,
+    TransitionUpdateBudget,
     enable_actor_gate_if_active,
     evaluate_track_completion_step,
     enforce_prepared_rollback_fallback,
@@ -22,6 +23,7 @@ from scripts.reinforcement_learning.online_adaptation.play_online_adaptation imp
     validate_terrain_checkpoint_metadata,
     pin_forward_command,
     normalized_forward_progress,
+    observe_completion_snapshot,
     prepare_rollback_fallback,
     apply_adaptation_command,
     build_track_completion,
@@ -252,6 +254,30 @@ def test_track_completion_stops_only_for_safe_nonterminal_crossing():
     assert safe.reached and safe.passed and safe.should_stop
     assert terminal.reached and not terminal.passed and not terminal.should_stop
     assert unsafe.reached and not unsafe.passed and not unsafe.should_stop
+
+
+def test_track_completion_does_not_pass_target_without_strict_qualification():
+    completion = TrackCompletion.start(
+        stage_name="step_2cm",
+        initial_x=-8.5,
+        flat_length=3.0,
+        step_length=2.0,
+        track_length=20.0,
+        step_clearance_margin_m=0.5,
+        track_end_buffer_m=0.5,
+        initial_y=2.0,
+        lane_width_m=2.0,
+        track_width_m=4.0,
+    )
+    completion.observe(completion.target_x)
+
+    decision = evaluate_track_completion_step(
+        completion, environment_done=False, safety_violation=False
+    )
+
+    assert decision.reached
+    assert not decision.passed
+    assert not decision.should_stop
 
 
 def test_worker_boundary_closes_active_episode_and_forces_novelty_cooldown():
@@ -622,6 +648,57 @@ def make_update_stats(**changes):
     return UpdateStats(**values)
 
 
+def test_transition_update_budget_is_charged_by_committed_samples_and_capped():
+    budget = TransitionUpdateBudget(
+        critic_updates_per_transition=0.5,
+        actor_updates_per_transition=0.005,
+        max_pending_critic_updates=4,
+        max_pending_actor_updates=2,
+    )
+    budget.add(critic_transitions=10, actor_transitions=300)
+    assert budget.snapshot() == {"critic": 4.0, "actor": 1.5}
+    assert budget.take_critic()
+    assert budget.take_actor()
+    assert budget.snapshot() == {"critic": 3.0, "actor": 0.5}
+    assert not budget.take_actor()
+
+
+def test_transition_update_budget_clears_episode_local_actor_budget():
+    budget = TransitionUpdateBudget(
+        critic_updates_per_transition=0.5,
+        actor_updates_per_transition=0.01,
+    )
+    budget.add(critic_transitions=4, actor_transitions=100)
+    assert budget.snapshot() == {"critic": 2.0, "actor": 1.0}
+    budget.clear_actor()
+    assert budget.snapshot() == {"critic": 2.0, "actor": 0.0}
+
+
+def test_transition_update_budget_rejects_invalid_transition_counts():
+    budget = TransitionUpdateBudget(
+        critic_updates_per_transition=0.5,
+        actor_updates_per_transition=0.005,
+    )
+    with pytest.raises(ValueError):
+        budget.add(critic_transitions=-1, actor_transitions=0)
+    with pytest.raises(ValueError):
+        budget.add(critic_transitions=0, actor_transitions=True)
+
+
+def test_runtime_counters_track_committed_transitions_and_rejections():
+    counters = RuntimeCounters()
+    counters.record_transition_commits(critic_transitions=3, actor_transitions=2)
+    counters.record_transition_commits(critic_transitions=1, actor_transitions=0)
+    assert counters.critic_transitions_committed == 4
+    assert counters.actor_transitions_committed == 2
+
+    counters.record_update_result(
+        make_update_stats(accepted=False, rejection_reason="nonfinite_critic_loss")
+    )
+    assert counters.update_attempts == 1
+    assert counters.update_rejections == {"nonfinite_critic_loss": 1}
+
+
 def test_worker_geometry_uses_development_or_sealed_protocol_paths():
     development = resolve_worker_geometry("step_2cm", 101, terrain_split="development")
     sealed = resolve_worker_geometry("step_2cm", 1009, terrain_split="sealed")
@@ -642,6 +719,43 @@ def test_worker_endings_support_gymnasium_and_reject_ambiguous_rsl_rows():
     assert terminated.item() and not truncated.item() and not bootstrap.item()
     with pytest.raises(RuntimeError, match="cannot distinguish termination from truncation"):
         split_worker_endings((None, None, torch.tensor([True]), {}))
+
+
+@pytest.mark.parametrize(
+    "last_y,environment_done,safety_violation,expected",
+    [(0.0, False, False, True), (1.0, False, False, False),
+     (0.0, True, False, False), (0.0, False, True, False)],
+)
+def test_completion_reward_uses_current_pose_and_ending_status(
+    last_y, environment_done, safety_violation, expected,
+):
+    from types import SimpleNamespace
+
+    completion = TrackCompletion.start(
+        stage_name="rough_4cm", initial_x=0.0, flat_length=3.0,
+        step_length=2.0, track_length=10.0, step_clearance_margin_m=0.5,
+        track_end_buffer_m=0.5, initial_y=0.0, lane_width_m=2.0,
+        track_width_m=4.0, min_challenge_observation_steps=2,
+        min_challenge_swing_steps=2, min_stable_completion_steps=2,
+    )
+    completion.observe_pose(
+        4.0, 0.0, foot_y=[0.0] * 4, swing_lift=[0.03] * 4,
+        velocity_error=0.1, tilt_rms=0.1, foot_slip=0.1,
+    )
+    assert not completion.qualification_satisfied
+    snapshot = PostStepSnapshot(
+        mask=torch.tensor([[environment_done]]), policy_observation=None,
+        frame=None, signals=SimpleNamespace(foot_slip=torch.tensor([[0.1]])),
+        base_x=torch.tensor([[completion.target_x]]),
+        base_y=torch.tensor([[last_y]]), foot_y=torch.full((1, 4), last_y),
+    )
+    assert observe_completion_snapshot(
+        completion, snapshot, swing_lift=torch.full((1, 4), 0.03),
+        velocity_error=0.1, tilt_rms=0.1, environment_done=environment_done,
+        safety_violation=safety_violation,
+    ) is expected
+    assert completion.reached
+    assert completion.lateral_violation_steps == int(last_y > 0.65)
 
 
 def test_terminal_step_uses_pre_reset_snapshot_instead_of_reset_state():

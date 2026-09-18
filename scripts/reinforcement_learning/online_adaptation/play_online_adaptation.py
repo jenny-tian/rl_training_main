@@ -77,6 +77,10 @@ class RuntimeCounters:
     actor_updates_by_episode: dict[int, int] = field(default_factory=dict)
     terrain_invalid_steps: int = 0
     terrain_steps: int = 0
+    critic_transitions_committed: int = 0
+    actor_transitions_committed: int = 0
+    update_attempts: int = 0
+    update_rejections: dict[str, int] = field(default_factory=dict)
 
     def record_state(self, state: str) -> None:
         self.state_durations[state] = self.state_durations.get(state, 0) + 1
@@ -118,6 +122,94 @@ class RuntimeCounters:
         if not valid:
             self.terrain_invalid_steps += 1
 
+    def record_transition_commits(
+        self, *, critic_transitions: int, actor_transitions: int
+    ) -> None:
+        if (
+            type(critic_transitions) is not int
+            or critic_transitions < 0
+            or type(actor_transitions) is not int
+            or actor_transitions < 0
+        ):
+            raise ValueError("committed transition counts must be nonnegative integers")
+        self.critic_transitions_committed += critic_transitions
+        self.actor_transitions_committed += actor_transitions
+
+    def record_update_result(self, stats: UpdateStats) -> None:
+        """Record every non-stale optimizer result for auditable accounting."""
+        self.update_attempts += 1
+        if not stats.accepted:
+            reason = stats.rejection_reason or "unknown"
+            self.update_rejections[reason] = self.update_rejections.get(reason, 0) + 1
+
+
+class TransitionUpdateBudget:
+    """Thread-safe update budget charged by committed replay transitions."""
+
+    def __init__(
+        self,
+        *,
+        critic_updates_per_transition: float,
+        actor_updates_per_transition: float,
+        max_pending_critic_updates: int = 256,
+        max_pending_actor_updates: int = 32,
+    ) -> None:
+        values = (
+            critic_updates_per_transition,
+            actor_updates_per_transition,
+        )
+        if any(not math.isfinite(float(value)) or float(value) < 0.0 for value in values):
+            raise ValueError("transition update rates must be finite and nonnegative")
+        if type(max_pending_critic_updates) is not int or max_pending_critic_updates <= 0:
+            raise ValueError("max_pending_critic_updates must be a positive integer")
+        if type(max_pending_actor_updates) is not int or max_pending_actor_updates <= 0:
+            raise ValueError("max_pending_actor_updates must be a positive integer")
+        self.critic_updates_per_transition = float(critic_updates_per_transition)
+        self.actor_updates_per_transition = float(actor_updates_per_transition)
+        self.max_pending_critic_updates = max_pending_critic_updates
+        self.max_pending_actor_updates = max_pending_actor_updates
+        self._critic = 0.0
+        self._actor = 0.0
+        self._lock = threading.Lock()
+
+    def add(self, *, critic_transitions: int, actor_transitions: int) -> None:
+        if type(critic_transitions) is not int or critic_transitions < 0:
+            raise ValueError("critic_transitions must be a nonnegative integer")
+        if type(actor_transitions) is not int or actor_transitions < 0:
+            raise ValueError("actor_transitions must be a nonnegative integer")
+        with self._lock:
+            self._critic = min(
+                float(self.max_pending_critic_updates),
+                self._critic + critic_transitions * self.critic_updates_per_transition,
+            )
+            self._actor = min(
+                float(self.max_pending_actor_updates),
+                self._actor + actor_transitions * self.actor_updates_per_transition,
+            )
+
+    def take_critic(self) -> bool:
+        with self._lock:
+            if self._critic < 1.0:
+                return False
+            self._critic -= 1.0
+            return True
+
+    def take_actor(self) -> bool:
+        with self._lock:
+            if self._actor < 1.0:
+                return False
+            self._actor -= 1.0
+            return True
+
+    def clear_actor(self) -> None:
+        """Discard budget tied to the episode-local adaptation replay."""
+        with self._lock:
+            self._actor = 0.0
+
+    def snapshot(self) -> dict[str, float]:
+        with self._lock:
+            return {"critic": self._critic, "actor": self._actor}
+
 
 @dataclass(frozen=True)
 class RuntimeStepResult:
@@ -134,6 +226,38 @@ class PostStepSnapshot:
     frame: Any
     signals: Any
     base_x: Any
+    base_y: Any = None
+    foot_y: Any = None
+
+
+def observe_completion_snapshot(
+    completion: Any,
+    snapshot: PostStepSnapshot,
+    *,
+    swing_lift: Any,
+    velocity_error: float,
+    tilt_rms: float,
+    environment_done: bool,
+    safety_violation: bool,
+) -> bool:
+    """Qualify the current physical pose before assigning completion reward."""
+    if completion is None:
+        return False
+    completion.observe_pose(
+        float(snapshot.base_x.mean().item()),
+        float(snapshot.base_y.mean().item()),
+        foot_y=snapshot.foot_y.detach().reshape(-1).cpu().tolist(),
+        swing_lift=swing_lift.detach().reshape(-1).cpu().tolist(),
+        velocity_error=velocity_error,
+        tilt_rms=tilt_rms,
+        foot_slip=float(snapshot.signals.foot_slip.mean().item()),
+    )
+    return bool(
+        completion.reached
+        and completion.qualification_satisfied
+        and not environment_done
+        and not safety_violation
+    )
 
 
 def replace_base_policy_group(observation: Any, policy_observation: Any) -> Any:
@@ -237,7 +361,18 @@ def evaluate_track_completion_step(
 ) -> TrackCompletionDecision:
     if type(environment_done) is not bool or type(safety_violation) is not bool:
         raise TypeError("environment_done and safety_violation must be bools")
-    passed = completion.reached and not environment_done and not safety_violation
+    # Reaching the X boundary is only one part of a formal traversal.  In
+    # strict mode the completion tracker also requires in-lane obstacle
+    # interaction, swing evidence, and a stable-gait window.  Keep this
+    # helper in lock-step with the worker's stop condition and the summary
+    # validator; otherwise a run could be recorded as passed even though the
+    # worker correctly refused to stop for a lateral bypass or slide.
+    passed = (
+        completion.reached
+        and completion.qualification_satisfied
+        and not environment_done
+        and not safety_violation
+    )
     return TrackCompletionDecision(
         reached=completion.reached,
         passed=passed,
@@ -547,9 +682,15 @@ def apply_adaptation_command(
     actor_gate_event: Any,
     clear_adaptation_replay: Callable[[], None],
     enable_actor_if_episode_active: Callable[[int], bool],
+    clear_actor_update_budget: Callable[[], None] | None = None,
 ) -> tuple[int, str | None]:
-    if command.kind == "start_episode":
+    def clear_episode_local_state() -> None:
         clear_adaptation_replay()
+        if clear_actor_update_budget is not None:
+            clear_actor_update_budget()
+
+    if command.kind == "start_episode":
+        clear_episode_local_state()
         stable_manager.checkpoint(updater)
         drift_monitor.start_episode(updater.actor, adaptation_episode=command.episode)
         checkpointed_episode = command.episode
@@ -566,7 +707,7 @@ def apply_adaptation_command(
             raise RuntimeError("stable rollback unavailable")
         publisher.publish(updater.actor, updater.version)
         drift_monitor.clear_episode(adaptation_episode=command.episode)
-        clear_adaptation_replay()
+        clear_episode_local_state()
         checkpointed_episode = 0
         actor_gate_event.clear()
         if command.completion is not None:
@@ -582,7 +723,7 @@ def apply_adaptation_command(
             return checkpointed_episode, None
         publisher.publish(updater.actor, updater.version)
         drift_monitor.clear_episode(adaptation_episode=command.episode)
-        clear_adaptation_replay()
+        clear_episode_local_state()
         checkpointed_episode = 0
         actor_gate_event.clear()
         if command.completion is not None:
@@ -592,7 +733,7 @@ def apply_adaptation_command(
         if command.episode != checkpointed_episode:
             return checkpointed_episode, None
         drift_monitor.clear_episode(adaptation_episode=command.episode)
-        clear_adaptation_replay()
+        clear_episode_local_state()
         checkpointed_episode = 0
         actor_gate_event.clear()
     return checkpointed_episode, None
@@ -609,6 +750,7 @@ def record_update_result(
 ) -> dict[str, Any] | None:
     if stats.rejection_reason == "stale_adaptation_episode":
         return None
+    counters.record_update_result(stats)
     update_record = asdict(stats)
     if not stats.actor_updated:
         for field in ("actor_loss", "alpha_loss"):
@@ -644,6 +786,7 @@ def build_track_completion(
     *,
     stage_name: str,
     initial_x: float,
+    initial_y: float | None = None,
     protocol: FlatOnlineProtocol,
 ) -> TrackCompletion:
     """Build reset-relative completion geometry from the generated track cfg."""
@@ -668,8 +811,12 @@ def build_track_completion(
         else:
             raise KeyError("no supported online terrain subterrain")
         flat_length = flat_online.flat_length
+        lane_width = getattr(flat_online, "lane_width", None)
     except (AttributeError, KeyError, IndexError, TypeError) as error:
         raise ValueError("env_cfg does not expose FlatOnline track geometry") from error
+    track_width = float(generator.size[1])
+    if lane_width is None:
+        lane_width = track_width
     return TrackCompletion.start(
         stage_name=stage_name,
         initial_x=initial_x,
@@ -680,6 +827,18 @@ def build_track_completion(
         track_end_buffer_m=protocol.track_end_buffer_m,
         completion_mode=protocol.completion_mode,
         progress_cost_version=protocol.progress_cost_version,
+        initial_y=initial_y,
+        lane_width_m=float(lane_width) if initial_y is not None else None,
+        track_width_m=track_width if initial_y is not None else None,
+        lateral_margin_m=protocol.lateral_margin_m,
+        required_swing_lift_m=protocol.required_swing_lift_m,
+        min_challenge_observation_steps=protocol.min_challenge_observation_steps,
+        min_challenge_swing_steps=protocol.min_challenge_swing_steps,
+        min_stable_completion_steps=protocol.min_stable_completion_steps,
+        max_completion_velocity_error=protocol.max_completion_velocity_error,
+        max_completion_tilt_rms=protocol.max_completion_tilt_rms,
+        max_completion_foot_slip=protocol.max_completion_foot_slip,
+        edge_slip_margin_m=protocol.edge_slip_margin_m,
     )
 
 
@@ -1306,8 +1465,14 @@ def main() -> int:
             paused_event = threading.Event()
             actor_gate_event = threading.Event()
             commands: queue.SimpleQueue[AdaptationCommand] = queue.SimpleQueue()
+            update_wakeup = threading.Event()
+            update_cycle_complete = threading.Event()
             update_errors: list[BaseException] = []
             counters = RuntimeCounters()
+            update_budget = TransitionUpdateBudget(
+                critic_updates_per_transition=args.critic_updates_per_transition,
+                actor_updates_per_transition=args.actor_updates_per_transition,
+            )
             adaptation_episode = 0
             active_episode = 0
             current_step = 0
@@ -1315,6 +1480,7 @@ def main() -> int:
             actor_update_events_logged = 0
             last_rollback_reason = ""
             pending_rollback_completion: threading.Event | None = None
+            control_step_updates = args.update_schedule == "control-step"
 
             def read_active_episode() -> int:
                 return active_episode
@@ -1332,6 +1498,10 @@ def main() -> int:
                 checkpointed_episode = 0
                 try:
                     while not stop_event.is_set() or not commands.empty():
+                        if control_step_updates:
+                            if not update_wakeup.wait(timeout=0.1):
+                                continue
+                            update_wakeup.clear()
                         while True:
                             try:
                                 command = commands.get_nowait()
@@ -1356,6 +1526,7 @@ def main() -> int:
                                     actor_gate_event=actor_gate_event,
                                     clear_adaptation_replay=online_agent.clear_adaptation_replay,
                                     enable_actor_if_episode_active=enable_actor_if_episode_active,
+                                    clear_actor_update_budget=update_budget.clear_actor,
                                 )
                                 if command_rollback_reason is not None:
                                     with shared_lock:
@@ -1365,8 +1536,10 @@ def main() -> int:
                         with shared_lock:
                             episode_snapshot = active_episode
                             step_snapshot = current_step
+                        budget_snapshot = update_budget.snapshot()
                         actor_due = (
-                            now >= next_actor
+                            (control_step_updates or now >= next_actor)
+                            and budget_snapshot["actor"] >= 1.0
                             and checkpointed_episode > 0
                             and checkpointed_episode == episode_snapshot
                             and online_agent.should_update_actor(
@@ -1379,6 +1552,8 @@ def main() -> int:
                         stats = None
                         policy_drift = None
                         if actor_due:
+                            if not update_budget.take_actor():
+                                continue
                             critic_batch = online_agent.sample_critic_batch()
                             actor_batch = online_agent.sample_actor_batch()
                             flat_anchor_batch = (
@@ -1429,9 +1604,17 @@ def main() -> int:
                             policy_drift = outcome.policy_drift
                             next_actor = now + actor_period
                             next_critic = max(next_critic + critic_period, now)
-                        elif now >= next_critic and online_agent.should_update(
-                            len(online_agent.replay), args.min_replay_size, paused_event.is_set()
+                        elif (
+                            (control_step_updates or now >= next_critic)
+                            and budget_snapshot["critic"] >= 1.0
+                            and online_agent.should_update(
+                                len(online_agent.replay),
+                                args.min_replay_size,
+                                paused_event.is_set(),
+                            )
                         ):
+                            if not update_budget.take_critic():
+                                continue
                             with control_update_lock, update_lock:
                                 stats = online_agent.update(update_actor=False)
                             next_critic = now + critic_period
@@ -1450,10 +1633,14 @@ def main() -> int:
                                 write_actor_update_event(actor_updates_stream, actor_update_event)
                                 with shared_lock:
                                     actor_update_events_logged += 1
-                        stop_event.wait(0.001)
+                        if control_step_updates:
+                            update_cycle_complete.set()
+                        else:
+                            stop_event.wait(0.001)
                 except BaseException as error:
                     update_errors.append(error)
                     stop_event.set()
+                    update_cycle_complete.set()
 
             if learning_enabled:
                 updater_thread = threading.Thread(target=updater_loop, name="lite3-sac-updater", daemon=False)
@@ -1469,6 +1656,7 @@ def main() -> int:
                 "heldout_mask_usage": "metrics_only",
                 "terrain_stage": args.terrain_stage,
                 "terrain_seed": args.terrain_seed,
+                "completion_qualification_version": protocol.completion_qualification_version,
                 "protocol_sha256": protocol.sha256(),
                 "geometry": asdict(geometry),
                 "terrain_metadata": adapter.terrain_metadata(),
@@ -1485,12 +1673,14 @@ def main() -> int:
             if generation is None:
                 raise RuntimeError("deployment startup reset did not produce a generation")
             initial_x = float(adapter.base_x().mean().item())
+            initial_y = float(adapter.base_y().mean().item())
             track_completion = None
             if args.require_track_completion and not args.flat_retention_probe:
                 track_completion = build_track_completion(
                     env_cfg,
                     stage_name=args.terrain_stage,
                     initial_x=initial_x,
+                    initial_y=initial_y,
                     protocol=protocol,
                 )
             online_agent.reset_for_deployment_handoff()
@@ -1545,6 +1735,8 @@ def main() -> int:
                     frame=adapter.frame(current_decision.action).detach().clone(),
                     signals=clone_reward_signals(adapter.reward_signals()),
                     base_x=adapter.base_x().detach().clone(),
+                    base_y=adapter.base_y().detach().clone(),
+                    foot_y=adapter.foot_y().detach().clone(),
                 )
 
             wrapped_env.unwrapped.add_pre_reset_callback(capture_terminal_state)
@@ -1657,6 +1849,8 @@ def main() -> int:
                         frame=adapter.frame(decision.action),
                         signals=adapter.reward_signals(),
                         base_x=adapter.base_x(),
+                        base_y=adapter.base_y(),
+                        foot_y=adapter.foot_y(),
                     )
                     post_step_snapshot = select_post_step_snapshot(
                         done=done,
@@ -1678,12 +1872,6 @@ def main() -> int:
                     track_completion.observe(base_x_value)
                 post_step_reached = bool(
                     track_completion is not None and track_completion.past_step_edge
-                )
-                completion_boundary_reached = bool(
-                    track_completion is not None
-                    and track_completion.reached
-                    and not environment_done
-                    and not safety_violation
                 )
                 if learning_enabled and post_step_reached:
                     (
@@ -1726,6 +1914,20 @@ def main() -> int:
                     valid_mask=progress_valid,
                 )
                 swing_lift = swing_lift_tracker.observe(signals.foot_height, signals.foot_contact)
+                velocity_error = float(
+                    torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
+                )
+                tilt_rms = float(torch.linalg.norm(signals.projected_gravity_xy, dim=-1).mean())
+                nonfoot_contact = int(signals.nonfoot_contact.any().item())
+                completion_boundary_reached = observe_completion_snapshot(
+                    track_completion,
+                    post_step_snapshot,
+                    swing_lift=swing_lift,
+                    velocity_error=velocity_error,
+                    tilt_rms=tilt_rms,
+                    environment_done=environment_done,
+                    safety_violation=safety_violation,
+                )
                 rough_swing_active = rough_swing_reward_active(
                     stage=args.terrain_stage,
                     learning_enabled=learning_enabled,
@@ -1752,18 +1954,12 @@ def main() -> int:
                         forward_progress,
                         float(
                             track_completion is not None
-                            and track_completion.reached
-                            and not safety_violation
-                            and not done.any().item()
+                            and completion_boundary_reached
                         ),
                     ),
+                    lateral_deviation=(post_step_snapshot.base_y - initial_y).abs(),
                 )
                 previous_x = current_x
-                velocity_error = float(
-                    torch.linalg.norm(signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1).mean()
-                )
-                tilt_rms = float(torch.linalg.norm(signals.projected_gravity_xy, dim=-1).mean())
-                nonfoot_contact = int(signals.nonfoot_contact.any().item())
                 rollback_reason = ""
                 safety_reason = ""
                 fall_reset_reason = ""
@@ -1938,6 +2134,18 @@ def main() -> int:
                     episode_id=torch.full_like(curriculum_stage_id, active_episode),
                     adaptation_enabled=adaptation_enabled,
                 )
+                committed_global, committed_adaptation = (
+                    online_agent.last_committed_transition_counts
+                )
+                with shared_lock:
+                    counters.record_transition_commits(
+                        critic_transitions=committed_global,
+                        actor_transitions=committed_adaptation,
+                    )
+                update_budget.add(
+                    critic_transitions=committed_global,
+                    actor_transitions=committed_adaptation,
+                )
 
                 if performance_monitoring_enabled:
                     with shared_lock:
@@ -2018,6 +2226,14 @@ def main() -> int:
                     and not final_step_cutoff
                 ):
                     online_agent.set_residual_gain(post_step_recovery_gain)
+
+                if learning_enabled and control_step_updates:
+                    update_cycle_complete.clear()
+                    update_wakeup.set()
+                    if not update_cycle_complete.wait(timeout=30.0):
+                        raise RuntimeError("control-step SAC update did not complete")
+                    if update_errors:
+                        raise RuntimeError("control-step SAC updater failed") from update_errors[0]
 
                 with shared_lock:
                     counters.record_state(novelty_decision.state.value)
@@ -2152,6 +2368,7 @@ def main() -> int:
                     break
 
             stop_event.set()
+            update_wakeup.set()
             if updater_thread is not None:
                 updater_thread.join(timeout=30.0)
                 if updater_thread.is_alive():
@@ -2216,6 +2433,22 @@ def main() -> int:
                 "updates": counters.actor_updates,
                 "critic_updates": counters.critic_updates,
                 "actor_updates": counters.actor_updates,
+                "update_attempts": counters.update_attempts,
+                "update_rejections": dict(counters.update_rejections),
+                "update_budget_remaining": update_budget.snapshot(),
+                "critic_transitions_committed": counters.critic_transitions_committed,
+                "actor_transitions_committed": counters.actor_transitions_committed,
+                "critic_updates_per_transition_actual": (
+                    counters.critic_updates / counters.critic_transitions_committed
+                    if counters.critic_transitions_committed
+                    else 0.0
+                ),
+                "actor_updates_per_transition_actual": (
+                    counters.actor_updates / counters.actor_transitions_committed
+                    if counters.actor_transitions_committed
+                    else 0.0
+                ),
+                "update_schedule": args.update_schedule,
                 "actor_update_events_logged": actor_update_events_logged_snapshot,
                 "actor_updates_before_novelty": counters.actor_updates_before_novelty,
                 "actor_updates_after_novelty": counters.actor_updates_after_novelty,

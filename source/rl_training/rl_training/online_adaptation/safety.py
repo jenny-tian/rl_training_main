@@ -130,9 +130,17 @@ class SafetyFilter:
         projected_action = base_action + accepted_residual
         projected_action = torch.where(paused, paused_projected_action, projected_action)
 
+        # The normalized-action -> physical-target -> normalized-action round
+        # trip introduces float32 error around 1e-7.  Treating that numerical
+        # noise as a safety intervention invalidates otherwise on-policy rows.
+        projection_tolerance = 1.0e-6
         changed = (
-            (accepted_residual - raw_residual).abs().amax(dim=-1, keepdim=True) > 1e-7
-        ) | ((projected_action - base_action - accepted_residual).abs().amax(dim=-1, keepdim=True) > 1e-7)
+            (accepted_residual - raw_residual).abs().amax(dim=-1, keepdim=True)
+            > projection_tolerance
+        ) | (
+            (projected_action - base_action - accepted_residual).abs().amax(dim=-1, keepdim=True)
+            > projection_tolerance
+        )
         self._previous_residual = accepted_residual.detach().clone()
 
         reasons: list[str] = []

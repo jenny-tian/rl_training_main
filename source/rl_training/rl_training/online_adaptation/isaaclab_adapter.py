@@ -353,3 +353,11 @@ class Lite3IsaacLabAdapter:
 
     def base_x(self) -> torch.Tensor:
         return base_x_position(self.robot.data.root_pos_w)
+
+    def base_y(self) -> torch.Tensor:
+        """Return reset-relative lateral position in world coordinates."""
+        return self.robot.data.root_pos_w[:, 1:2]
+
+    def foot_y(self) -> torch.Tensor:
+        """Return the four policy-order foot lateral positions."""
+        return self.robot.data.body_pos_w[:, self.robot_foot_ids, 1]

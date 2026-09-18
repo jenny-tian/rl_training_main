@@ -23,7 +23,12 @@ from .lora import (
 )
 from .ppo_rollout import PPORollout, compute_gae
 from .ppo_online import OnlinePPOUpdater, PPOConfig, PPOUpdateStats
-from .online_session import OnlinePPOSession, SessionCounters
+from .online_session import (
+    OnlinePPOSession,
+    PPOFinalizationStats,
+    PPORollbackStats,
+    SessionCounters,
+)
 from .publisher import DoubleBufferedActorPublisher
 from .rsl_rl_compat import RslMLPPolicyAdapter
 from .provenance import REQUIRED_VERSION_KEYS, build_flat_baseline_manifest, sha256_file, write_json_atomic
@@ -40,7 +45,12 @@ from .terrain_protocol import (
     development_geometry,
     sealed_geometry,
 )
-from .track_completion import TrackCompletion
+from .track_completion import (
+    COMPLETION_QUALIFICATION_VERSION,
+    FULL_TRACK_COMPLETION_MODE,
+    PROGRESS_COST_VERSION,
+    TrackCompletion,
+)
 from .terrain_guards import (
     assert_flat_online_deployment_config,
     assert_heldout_terrains_disabled,
@@ -78,6 +88,8 @@ __all__ = [
     "PPOUpdateStats",
     "OnlinePPOUpdater",
     "OnlinePPOSession",
+    "PPOFinalizationStats",
+    "PPORollbackStats",
     "SessionCounters",
     "RslMLPPolicyAdapter",
     "SACConfig",
@@ -92,6 +104,9 @@ __all__ = [
     "development_geometry",
     "sealed_geometry",
     "TrackCompletion",
+    "FULL_TRACK_COMPLETION_MODE",
+    "PROGRESS_COST_VERSION",
+    "COMPLETION_QUALIFICATION_VERSION",
     "RewardWeights",
     "compute_online_reward",
     "RollingMetrics",

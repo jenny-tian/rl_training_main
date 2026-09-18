@@ -491,6 +491,35 @@ def test_flat_online_source_selects_all_non_foot_links_for_illegal_contacts():
 
 
 @pytest.mark.parametrize(
+    "filename",
+    (
+        "flat_online_env_cfg.py",
+        "continuous_rough_env_cfg.py",
+        "heldout_boxes_env_cfg.py",
+    ),
+)
+def test_online_terrain_sources_use_sustained_nonfoot_contact_termination(filename):
+    source = (LITE3_CONFIG_DIR / filename).read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    assignments = {
+        ast.unparse(target): ast.literal_eval(node.value)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Assign)
+        for target in node.targets
+        if ast.unparse(target)
+        in {
+            "self.terminations.illegal_contact.params['threshold']",
+            "self.terminations.illegal_contact.params['consecutive_steps']",
+        }
+    }
+
+    assert assignments == {
+        "self.terminations.illegal_contact.params['threshold']": 5.0,
+        "self.terminations.illegal_contact.params['consecutive_steps']": 3,
+    }
+
+
+@pytest.mark.parametrize(
     "filename", ("flat_online_env_cfg.py", "continuous_rough_env_cfg.py")
 )
 def test_online_worker_configs_disable_remote_velocity_arrow_markers(filename):

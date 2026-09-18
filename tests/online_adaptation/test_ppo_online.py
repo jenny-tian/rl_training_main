@@ -35,6 +35,12 @@ class Value(nn.Module):
         return self.linear(obs)
 
 
+def test_online_ppo_defaults_use_conservative_learning_rates():
+    config = PPOConfig()
+    assert config.actor_lr == 5e-5
+    assert config.critic_lr == 5e-5
+
+
 def make_rollout(policy, critic, *, version=0, length=12):
     torch.manual_seed(20)
     obs = torch.randn(length, 2)
@@ -87,6 +93,34 @@ def test_rejected_large_kl_restores_policy_critic_and_optimizers():
     for key, value in before.items():
         torch.testing.assert_close(updater.policy.state_dict()[key], value)
     assert updater.policy_version == 0
+
+
+def test_reference_anchor_limit_rejects_policy_drift_and_restores_actor():
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(
+        policy,
+        critic,
+        PPOConfig(
+            target_kl=None,
+            max_anchor_mse=1e-12,
+            actor_lr=1.0,
+            minibatch_size=12,
+        ),
+    )
+    rollout = make_rollout(policy, critic)
+    anchor_observations = rollout.observations.detach().clone()
+    with torch.no_grad():
+        anchor_means = policy.mean_action(anchor_observations).detach().clone()
+    before = copy.deepcopy(policy.state_dict())
+    stats = updater.update(
+        rollout,
+        flat_anchor_observations=anchor_observations,
+        flat_anchor_means=anchor_means,
+    )
+    assert not stats.accepted
+    assert stats.rejection_reason == "anchor_mse"
+    for key, value in before.items():
+        torch.testing.assert_close(policy.state_dict()[key], value)
 
 
 def test_rollout_rejects_mixed_episode_endings_and_non_requested_actions():

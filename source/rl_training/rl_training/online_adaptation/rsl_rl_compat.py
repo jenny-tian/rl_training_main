@@ -18,7 +18,12 @@ class RslMLPPolicyAdapter(nn.Module):
     :class:`OnlinePPOUpdater`.
     """
 
-    def __init__(self, model: nn.Module, observation_group: str | None = None) -> None:
+    def __init__(
+        self,
+        model: nn.Module,
+        observation_group: str | None = None,
+        action_transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    ) -> None:
         super().__init__()
         if not isinstance(model, nn.Module):
             raise TypeError("model must be a torch module")
@@ -29,8 +34,11 @@ class RslMLPPolicyAdapter(nn.Module):
             observation_group = groups[0]
         if not isinstance(observation_group, str) or not observation_group:
             raise ValueError("observation_group must be a non-empty string")
+        if action_transform is not None and not callable(action_transform):
+            raise TypeError("action_transform must be callable or None")
         self.model = model
         self.observation_group = observation_group
+        self.action_transform = action_transform
 
     def _as_model_observation(self, observations: Any) -> Any:
         if isinstance(observations, Mapping):
@@ -46,7 +54,10 @@ class RslMLPPolicyAdapter(nn.Module):
         )
 
     def forward(self, observations: Any) -> torch.Tensor:
-        return self.model(self._as_model_observation(observations), stochastic_output=False)
+        action = self.model(self._as_model_observation(observations), stochastic_output=False)
+        if self.action_transform is not None:
+            action = self.action_transform(action)
+        return action
 
     def get_distribution(self, observations: Any):
         output = self.forward(observations)

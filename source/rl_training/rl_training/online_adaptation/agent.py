@@ -167,6 +167,8 @@ class OnlineAdaptationAgent:
         self.updater = SACUpdater(actor, critic, sac_config)
         self.publisher = DoubleBufferedActorPublisher(actor)
         self._pending: PendingStep | None = None
+        self._last_committed_global = 0
+        self._last_committed_adaptation = 0
         self._nstep = NStepAccumulator(num_envs=num_envs, n_step=config.n_step, gamma=config.gamma)
         self._nstep_valid_queues: list[deque[torch.Tensor]] = [deque() for _ in range(num_envs)]
         self._nstep_adaptation_queues: list[deque[torch.Tensor]] = [deque() for _ in range(num_envs)]
@@ -181,10 +183,17 @@ class OnlineAdaptationAgent:
         with self._residual_gain_lock:
             self._residual_gain = validated
 
+    @property
+    def last_committed_transition_counts(self) -> tuple[int, int]:
+        """Counts committed by the most recent :meth:`finish_step` call."""
+        return self._last_committed_global, self._last_committed_adaptation
+
     def reset_for_deployment_handoff(self) -> None:
         """Clear temporal state that must never cross a physical reset."""
         self.history.reset()
         self._pending = None
+        self._last_committed_global = 0
+        self._last_committed_adaptation = 0
         self.safety.reset_temporal_state()
         self._nstep.clear()
         for queue in self._nstep_valid_queues:
@@ -403,6 +412,8 @@ class OnlineAdaptationAgent:
             deque(mask.detach().clone() for mask in queue)
             for queue in self._nstep_adaptation_queues
         ]
+        committed_global = 0
+        committed_adaptation = 0
         try:
             emitted = self._nstep.append(raw_transition)
             emitted_valid_masks, emitted_adaptation_masks = self._append_nstep_masks(
@@ -423,6 +434,8 @@ class OnlineAdaptationAgent:
                 # step cannot leak a zero-bootstrap target into an otherwise
                 # valid prefix transition.
                 horizon_safe = transition["safety_mask"].bool()
+                committed_global = int((global_valid_mask & horizon_safe).bool().sum().item())
+                committed_adaptation = int((adaptation_valid_mask & horizon_safe).bool().sum().item())
                 self._add_emitted_transition(
                     transition,
                     global_valid_mask=global_valid_mask & horizon_safe,
@@ -437,6 +450,8 @@ class OnlineAdaptationAgent:
         if reset_ids.numel() > 0:
             self.history.reset(reset_ids)
         self._pending = None
+        self._last_committed_global = committed_global
+        self._last_committed_adaptation = committed_adaptation
 
     def _append_nstep_masks(
         self,

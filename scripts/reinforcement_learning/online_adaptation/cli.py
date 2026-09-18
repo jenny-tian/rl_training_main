@@ -278,6 +278,27 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument("--replay-capacity", type=int, default=10_000)
     parser.add_argument("--updates-per-second", type=float, default=5.0)
     parser.add_argument("--actor-updates-per-second", type=float, default=2.0)
+    parser.add_argument(
+        "--update-schedule",
+        choices=("wall-clock", "control-step"),
+        default="wall-clock",
+        help=(
+            "use real-time background updates or synchronize at most one "
+            "eligible optimizer update to each control step"
+        ),
+    )
+    parser.add_argument(
+        "--critic-updates-per-transition",
+        type=_nonnegative_float,
+        default=0.5,
+        help="optimizer updates charged per committed critic transition",
+    )
+    parser.add_argument(
+        "--actor-updates-per-transition",
+        type=_nonnegative_float,
+        default=0.005,
+        help="optimizer updates charged per committed actor transition",
+    )
     parser.add_argument("--novelty-calibration-steps", type=int, default=256)
     parser.add_argument("--novelty-enter-threshold", type=float, default=2.5)
     parser.add_argument("--novelty-exit-threshold", type=float, default=1.0)

@@ -225,6 +225,19 @@ SAC 实现位于 [`sac.py`](../source/rl_training/rl_training/online_adaptation/
 
 Actor 更新使用更严格的门槛：只有 `NoveltyGate` 进入 `ADAPTING`，本轮新异回放池达到默认 128 条，且没有安全暂停时才允许更新。这样普通路面阶段可以训练价值函数，但不会提前改变控制策略。
 
+worker 按实际提交到 replay 的有效 transition 累计更新预算：
+`--critic-updates-per-transition` 默认 `0.5`，`--actor-updates-per-transition` 默认 `0.005`。
+回滚或切换 adaptation episode 清空 episode-local adaptation replay 时，Actor 待执行预算也同步清零，
+Critic 的全局预算则保留。摘要会记录提交 transition 数、更新尝试数、拒绝原因、剩余预算和实际
+updates/transition 比例；被拒绝的 optimizer 尝试仍消耗一个预算单位。
+
+更新执行有两种显式调度。`--update-schedule wall-clock` 保留真实在线后台线程行为，
+`--updates-per-second` 和 `--actor-updates-per-second` 限制发布频率；它适合测量真实控制和学习并发，
+但机器负载会改变某个策略版本从哪一控制步开始生效。`--update-schedule control-step` 用于算法配对实验：
+每个控制步处理完控制命令后，至多执行并等待一个已经到期的优化更新。该模式由 transition 数决定更新和
+发布边界，不使用墙钟频率作为调度条件，因此相同 seed 的逐步轨迹可以复现。路线选择只能使用
+`control-step` 结果；墙钟模式结果单独用于实时系统吞吐和 deadline 验证。
+
 ### 6.3 Critic 目标
 
 SAC 的目标 Q 值为：
@@ -478,6 +491,27 @@ mean(velocity_error + tilt_rms) + 0.25 * nonfoot_contact_rate
 
 最终 2000 步回归仍未达到性能门槛：heldout 后半速度误差 0.308，高于前半的 0.295，也高于历史 45k frozen 对照后半的 0.279。因此当前阶段的正式结论仍是“在线更新、回滚和审计基础设施可用”，不是“已经从平地在线学会台阶或不平路”。
 
+### 11.2 2026-09-15 RockyRoad 配对实验
+
+使用同一平地 PPO、`rough_4cm`、terrain seed 101、算法 seed 7、`0.3 m/s` 指令和最多 2000 控制步，
+按统一的 `sustained_nonfoot_contact_5n_3steps_v1` 终止协议比较冻结 PPO、LoRA-PPO 和 Residual SAC。
+所有倾角 RMS 均从逐步 `tilt_rms` 重新计算为 `sqrt(mean(tilt_rms^2))`，没有混用 summary 中的算术均值。
+
+| 路线 | 步数 | 最大重置前前向位移 | 速度误差前/后半 | 倾角 RMS 前/后半 | 在线更新 | 终止 |
+|---|---:|---:|---:|---:|---:|---|
+| 冻结 PPO | 2000 | 4.152 m | 0.1217 / 0.2998 | 0.1177 / 0.2103 | 0 | 无 |
+| LoRA-PPO | 2000 | 8.322 m | 0.1064 / 0.1190 | 0.1189 / 0.1091 | 7 个完整 rollout | 第 1934 步非法接触，随后重置 |
+| Residual SAC，`control-step` | 1460 | 6.719 m | 0.0712 / 0.1704 | 0.0736 / 0.1284 | 732 Critic / 2 Actor | 第 1460 步非法接触 |
+
+Residual SAC 的正式运行完整重复了一次。两次均在第 856、1056 步更新 Actor，并在第 1460 步以
+`19.7077 N` 的第三个连续非法接触帧终止；去掉两项计时字段后 1460 行日志完全相同，Actor 事件流、
+summary 和三个 checkpoint 的 SHA-256 也相同。此前墙钟后台调度的两次结果差异很大，不能用于路线选择。
+
+LoRA-PPO 在该 seed 上前进最远且后半段速度、姿态统计最好，但第 1932 至 1934 步仍发生真实事故。
+Residual SAC 比冻结 PPO 前进更远，且同步调度已经可复现，但更早终止。两种在线路线均未完成路段，
+单 seed 也无法区分算法收益与随机轨迹收益，因此当前不淘汰任一路线。下一判断点是五个 development seeds
+的配对重复、平地保持测试和完成率置信区间；在达到这些门槛前不能宣称从单一平地 PPO 在线学会了新地形。
+
 ## 12. 参考资料及其与本实现的关系
 
 ### 12.1 直接采用的算法思想
@@ -722,8 +756,12 @@ metrics.jsonl         sha256 fbf649d954ec5ace47d90b320dda69b8c8182a23d53174ef305
 正式在线 curriculum 的 `passed` 不再表示“走完步数且没有跌倒”。只有同时满足以下条件才算通过：
 
 ```text
-completion_reached and not fell and not safety_violation
+completion_reached and completion_qualification_passed \
+    and not fell and not safety_violation
 ```
+
+`completion_qualification_passed` 使用版本
+`in_lane_obstacle_interaction_edge_slip_v3`，用于排除踩到边缘后横向绕行、擦边滑行、从凸起边缘滑落或没有形成新步态的“假通过”。在挑战区内必须始终保持在赛道中心通道（`lane_width / 2 - 0.35 m`）以内，并同时提供至少 20 个有效观测、4 个足端抬脚样本和 50 个稳定步态样本（速度误差 `≤0.25`、倾角 RMS `≤0.20`、足端滑移 `≤0.35`）。在台阶前后边缘 `0.35 m` 交互窗口内，接触足端速度（`foot_slip`）超过 `0.35 m/s` 会记录为 sticky `edge_slip_events`；即使之后到达终点，也不再具备完成资格。v3 修正了窗口被挑战区截断的问题，台阶前沿之前和后沿之后的窗口也参与判定。此规则适用于固定台阶，尚不能单凭该计数判断 RockyRoad 每个岩石边缘是否滑落。缺失足端横向观测按违规处理。所有计数和资格标志都会写入 episode summary，supervisor 按协议阈值重新计算并拒绝不一致或证据不足的结果。
 
 completion 以 reset 后的机器人世界 X 为基准，并读取实际生成的 `FlatOnlineTrackCfg` 尺寸：
 

@@ -25,13 +25,17 @@ class PPOConfig:
     clip_eps: float = 0.1
     gamma: float = 0.99
     gae_lambda: float = 0.95
-    actor_lr: float = 1e-4
-    critic_lr: float = 1e-4
+    # Online LoRA updates see much less data than the original flat PPO run.
+    # A conservative default limits destructive policy jumps after a terrain
+    # transition; callers can still opt into a larger rate explicitly.
+    actor_lr: float = 5e-5
+    critic_lr: float = 5e-5
     epochs: int = 2
     minibatch_size: int = 64
     entropy_coef: float = 0.0
     value_coef: float = 0.5
     flat_anchor_coef: float = 0.0
+    max_anchor_mse: float | None = None
     max_grad_norm: float = 1.0
     target_kl: float | None = 0.01
     normalize_advantages: bool = True
@@ -52,6 +56,12 @@ class PPOConfig:
             raise ValueError("minibatch_size must be positive")
         if self.target_kl is not None and (not math.isfinite(self.target_kl) or self.target_kl <= 0):
             raise ValueError("target_kl must be positive or None")
+        if not math.isfinite(self.flat_anchor_coef) or self.flat_anchor_coef < 0:
+            raise ValueError("flat_anchor_coef must be finite and non-negative")
+        if self.max_anchor_mse is not None and (
+            not math.isfinite(self.max_anchor_mse) or self.max_anchor_mse <= 0
+        ):
+            raise ValueError("max_anchor_mse must be positive or None")
         if self.max_parameter_abs is not None and (
             not math.isfinite(self.max_parameter_abs) or self.max_parameter_abs <= 0
         ):
@@ -272,8 +282,8 @@ class OnlinePPOUpdater:
             raise ValueError("cannot update from an empty rollout")
         if (flat_anchor_observations is None) != (flat_anchor_means is None):
             raise ValueError("flat_anchor_observations and flat_anchor_means must be supplied together")
-        if self.config.flat_anchor_coef and flat_anchor_means is None:
-            raise ValueError("flat_anchor_coef requires flat anchor observations and means")
+        if (self.config.flat_anchor_coef or self.config.max_anchor_mse is not None) and flat_anchor_means is None:
+            raise ValueError("anchor constraints require flat anchor observations and means")
 
         advantages, returns = rollout.compute_returns(self.config.gamma, self.config.gae_lambda)
         if rollout.valid_mask is not None:
@@ -341,7 +351,13 @@ class OnlinePPOUpdater:
         # log-prob change is stable for both Gaussian and categorical actors.
         with torch.no_grad():
             new_log_prob, _ = _evaluate_actions(self.policy, rollout.observations, rollout.actions)
-            approx_kl = float(0.5 * (new_log_prob - old_log_probs).square().mean())
+            valid_rows = valid.bool()
+            approx_kl = float(0.5 * (new_log_prob - old_log_probs).square()[valid_rows].mean())
+            anchor_mse = (
+                float(self._flat_anchor_loss(flat_anchor_observations, flat_anchor_means))
+                if flat_anchor_observations is not None
+                else None
+            )
             finite = all(bool(torch.isfinite(parameter).all().item()) for parameter in self.policy.parameters()) and all(
                 bool(torch.isfinite(parameter).all().item()) for parameter in self.critic.parameters()
             )
@@ -354,6 +370,12 @@ class OnlinePPOUpdater:
             reason = "non_finite_parameters"
         elif not within_range:
             reason = "parameter_limit"
+        elif (
+            self.config.max_anchor_mse is not None
+            and anchor_mse is not None
+            and anchor_mse > self.config.max_anchor_mse
+        ):
+            reason = "anchor_mse"
         elif self.config.target_kl is not None and approx_kl > self.config.target_kl:
             reason = "target_kl"
         if reason is not None:

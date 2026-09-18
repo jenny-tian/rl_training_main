@@ -29,6 +29,8 @@ class RewardWeights:
     pre_step_clearance_target: float = 0.06
     pre_step_foot_forward_weight: float = 2.0
     pre_step_foot_forward_target: float = 0.04
+    lateral_deviation_weight: float = 1.0
+    lateral_deviation_limit: float = 1.65
     minimum_reward: float = -10.0
     maximum_reward: float = 5.0
     rough_swing_lift_weight: float = 0.0
@@ -45,6 +47,7 @@ def compute_online_reward(
     pre_step_clearance_mask: torch.Tensor | None = None,
     progress_stalled_mask: torch.Tensor | None = None,
     completion_mask: torch.Tensor | None = None,
+    lateral_deviation: torch.Tensor | None = None,
     rough_swing_mask: torch.Tensor | None = None,
     swing_lift: torch.Tensor | None = None,
 ) -> torch.Tensor:
@@ -184,6 +187,20 @@ def compute_online_reward(
         completion_term = weights.completion_bonus * torch.nan_to_num(
             completion_mask, nan=0.0, posinf=1.0, neginf=0.0
         ).clamp(0.0, 1.0)
+    if lateral_deviation is None:
+        lateral_deviation_term = torch.zeros_like(velocity_term)
+    else:
+        if lateral_deviation.shape != velocity_term.shape:
+            raise ValueError("lateral_deviation must have shape (batch, 1)")
+        if weights.lateral_deviation_limit <= 0.0:
+            raise ValueError("lateral_deviation_limit must be positive")
+        normalized_lateral = torch.nan_to_num(
+            lateral_deviation / weights.lateral_deviation_limit,
+            nan=0.0,
+            posinf=10.0,
+            neginf=-10.0,
+        )
+        lateral_deviation_term = weights.lateral_deviation_weight * normalized_lateral.square()
     rough_swing_term = torch.zeros_like(velocity_term)
     if rough_swing_mask is not None and weights.rough_swing_lift_weight > 0.0:
         if rough_swing_mask.shape != velocity_term.shape:
@@ -211,6 +228,7 @@ def compute_online_reward(
         + progress_term
         + post_step_progress_term
         + completion_term
+        - lateral_deviation_term
         + pre_step_clearance_term
         + pre_step_foot_forward_term
         + rough_swing_term

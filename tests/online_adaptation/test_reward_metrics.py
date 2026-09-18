@@ -93,6 +93,17 @@ def test_reward_increases_with_normalized_forward_progress():
     assert moving.item() - stalled.item() == 0.5
 
 
+def test_lateral_deviation_penalty_discourages_leaving_completion_lane():
+    residual = torch.zeros(1, 12)
+    centered = compute_online_reward(
+        signals(), residual, residual, RewardWeights(), lateral_deviation=torch.zeros(1, 1)
+    )
+    outside = compute_online_reward(
+        signals(), residual, residual, RewardWeights(), lateral_deviation=torch.full((1, 1), 1.65)
+    )
+    assert outside.item() < centered.item()
+
+
 def test_stalled_progress_is_penalized_even_when_robot_remains_stable():
     residual = torch.zeros(1, 12)
     weights = RewardWeights(stall_penalty_weight=2.0)

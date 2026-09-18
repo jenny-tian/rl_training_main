@@ -101,6 +101,24 @@ def test_force_zero_residual_removes_joint_round_trip_noise_exactly():
     assert torch.equal(forced.action, base_action)
 
 
+def test_float32_joint_round_trip_noise_is_not_reported_as_projection():
+    filt = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2)))
+    base_action = torch.full((1, 12), 0.12345)
+    noisy_state = state()
+    noisy_state = SafetyState(
+        **{
+            **noisy_state.__dict__,
+            "default_joint_pos": torch.full((1, 12), 0.1),
+            "action_scale": torch.full((1, 12), 0.3),
+        }
+    )
+
+    decision = filt.project(base_action, torch.full_like(base_action, 0.01), noisy_state)
+
+    assert not decision.projected.item()
+    torch.testing.assert_close(decision.residual, torch.full_like(base_action, 0.01))
+
+
 def test_force_zero_residual_preserves_only_joint_limit_correction_memory():
     filt = SafetyFilter(
         SafetyLimits(residual_limits=torch.full((12,), 0.2), residual_rate_limit=0.05)

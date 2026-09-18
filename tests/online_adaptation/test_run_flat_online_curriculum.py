@@ -323,6 +323,18 @@ def _write_strict_worker_result(tmp_path: Path, **overrides) -> tuple[Path, Epis
         "completion_reached": True,
         "completion_mode": "full_track_v1",
         "progress_cost_version": "remaining_plus_safety_penalty_v1",
+        "completion_qualification_version": "in_lane_obstacle_interaction_edge_slip_v3",
+        "completion_qualification_passed": True,
+        "initial_y": 0.0,
+        "max_abs_lateral_deviation_m": 0.0,
+        "allowed_lateral_deviation_m": 0.65,
+        "lateral_violation_steps": 0,
+        "edge_slip_events": 0,
+        "challenge_start_x": -7.0,
+        "challenge_end_x": -5.0,
+        "challenge_observation_steps": 100,
+        "challenge_swing_steps": 20,
+        "stable_completion_steps": 100,
         "cost": 0.0,
         "protocol_sha256": protocol_sha256,
         "experiment_checkpoint_out_sha256": checkpoint_sha256,
@@ -368,6 +380,31 @@ def test_classifier_accepts_safe_partial_progress_as_finite_failure(tmp_path):
 
     assert outcome.passed is False
     assert outcome.cost == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"completion_qualification_passed": True, "lateral_violation_steps": 1},
+        {"completion_qualification_passed": True, "challenge_observation_steps": 1},
+        {"completion_qualification_passed": True, "challenge_swing_steps": 1},
+        {"completion_qualification_passed": True, "stable_completion_steps": 1},
+    ],
+)
+def test_classifier_rejects_qualification_flag_that_disagrees_with_evidence(
+    tmp_path, overrides
+):
+    episode_dir, request, protocol_sha256 = _write_strict_worker_result(
+        tmp_path, **overrides
+    )
+
+    with pytest.raises(RuntimeError, match="qualification flag"):
+        classify_worker_result(
+            episode_dir,
+            returncode=0,
+            request=request,
+            expected_protocol_sha256=protocol_sha256,
+        )
 
 
 @pytest.mark.parametrize(

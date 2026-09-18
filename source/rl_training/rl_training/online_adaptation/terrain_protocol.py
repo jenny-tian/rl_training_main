@@ -7,7 +7,11 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from numbers import Real
 
-from .track_completion import FULL_TRACK_COMPLETION_MODE, PROGRESS_COST_VERSION
+from .track_completion import (
+    COMPLETION_QUALIFICATION_VERSION,
+    FULL_TRACK_COMPLETION_MODE,
+    PROGRESS_COST_VERSION,
+)
 
 
 MAX_PROTOCOL_INTEGER = 2**63 - 1
@@ -196,8 +200,18 @@ class FlatOnlineProtocol:
     max_total_steps: int = 200_000
     max_steps_per_episode: int = 2_000
     completion_mode: str = FULL_TRACK_COMPLETION_MODE
+    completion_qualification_version: str = COMPLETION_QUALIFICATION_VERSION
     step_clearance_margin_m: float = 0.5
     track_end_buffer_m: float = 0.5
+    lateral_margin_m: float = 0.35
+    required_swing_lift_m: float = 0.02
+    min_challenge_observation_steps: int = 20
+    min_challenge_swing_steps: int = 4
+    min_stable_completion_steps: int = 50
+    max_completion_velocity_error: float = 0.25
+    max_completion_tilt_rms: float = 0.20
+    max_completion_foot_slip: float = 0.35
+    edge_slip_margin_m: float = 0.35
     progress_cost_version: str = PROGRESS_COST_VERSION
     novelty_baseline_mode: str = "strict_flat_probe_frozen_v1"
     progress_novelty_version: str = "forward_stall_v1"
@@ -227,6 +241,11 @@ class FlatOnlineProtocol:
         _validate_positive_integer(self.max_steps_per_episode, "max_steps_per_episode")
         if not isinstance(self.completion_mode, str) or not self.completion_mode.strip():
             raise ValueError("completion_mode must be a nonempty string")
+        if (
+            not isinstance(self.completion_qualification_version, str)
+            or not self.completion_qualification_version.strip()
+        ):
+            raise ValueError("completion_qualification_version must be a nonempty string")
         if not isinstance(self.progress_cost_version, str) or not self.progress_cost_version.strip():
             raise ValueError("progress_cost_version must be a nonempty string")
         for name in (
@@ -256,6 +275,37 @@ class FlatOnlineProtocol:
             "track_end_buffer_m",
             _normalize_nonnegative_real(self.track_end_buffer_m, "track_end_buffer_m"),
         )
+        object.__setattr__(
+            self,
+            "lateral_margin_m",
+            _normalize_nonnegative_real(self.lateral_margin_m, "lateral_margin_m"),
+        )
+        if self.lateral_margin_m >= 2.0:
+            raise ValueError("lateral_margin_m leaves no valid 4 m center corridor")
+        object.__setattr__(
+            self,
+            "required_swing_lift_m",
+            _normalize_nonnegative_real(self.required_swing_lift_m, "required_swing_lift_m"),
+        )
+        if self.required_swing_lift_m <= 0.0:
+            raise ValueError("required_swing_lift_m must be positive")
+        for name in (
+            "min_challenge_observation_steps",
+            "min_challenge_swing_steps",
+            "min_stable_completion_steps",
+        ):
+            _validate_positive_integer(getattr(self, name), name)
+        for name in (
+            "max_completion_velocity_error",
+            "max_completion_tilt_rms",
+            "max_completion_foot_slip",
+            "edge_slip_margin_m",
+        ):
+            object.__setattr__(
+                self,
+                name,
+                _normalize_nonnegative_real(getattr(self, name), name),
+            )
         if sum(stage.max_episodes for stage in self.stages) > self.max_total_episodes:
             raise ValueError("stage episode budgets must not exceed max_total_episodes")
 
