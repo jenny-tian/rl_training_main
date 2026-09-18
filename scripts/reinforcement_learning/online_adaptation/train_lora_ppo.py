@@ -293,6 +293,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="penalty on mean-action drift from the frozen base actor",
     )
     parser.add_argument(
+        "--flat-anchor-observations", default=None,
+        help="verified reconstructed source-flat observations; teacher means are recomputed on these inputs",
+    )
+    parser.add_argument(
         "--max-reference-mse",
         type=_positive_float,
         default=1e-4,
@@ -347,6 +351,7 @@ def main() -> int:
             build_critic_observation, migrate_critic_context,
         )
         from rl_training.online_adaptation.ppo_task_reward import success_absorbing_reward
+        from rl_training.online_adaptation.ppo_source_anchor import load_source_anchor
         from rl_training.online_adaptation.ppo_runtime_config import (
             apply_ppo_runtime_config,
             read_ppo_runtime_config,
@@ -440,6 +445,17 @@ def main() -> int:
             if not isinstance(policy_obs, torch.Tensor) or policy_obs.ndim != 2:
                 raise RuntimeError("policy observation must have shape [1, obs_dim]")
             obs_dim = int(policy_obs.shape[-1])
+            source_anchor_observations = source_anchor_means = None
+            source_anchor_metadata = None
+            if args.flat_anchor_observations is not None:
+                source_observations, source_anchor_metadata = load_source_anchor(
+                    args.flat_anchor_observations, base_checkpoint_path=args.base_checkpoint,
+                )
+                if source_observations.shape[1] != obs_dim:
+                    raise ValueError("source-flat anchor width differs from the frozen policy input")
+                source_anchor_observations = source_observations.to(device=args.device)
+                with torch.no_grad():
+                    source_anchor_means = reference_policy.mean_action(source_anchor_observations).detach()
             critic = nn.Sequential(
                 nn.Linear(obs_dim + 3, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
             ).to(args.device)
@@ -521,6 +537,11 @@ def main() -> int:
                      "checkpoint_migration": checkpoint_migration,
                      "completion_terminal_reward": completion_terminal_reward,
                      "critic_time_horizon_steps": critic_time_horizon,
+                     "reference_anchor_distribution": (
+                         "fixed_reconstructed_source_flat_v1" if source_anchor_metadata is not None
+                         else "current_online_observations_v1"
+                     ),
+                     "source_anchor_metadata": source_anchor_metadata,
                      "effective_runtime_config": effective_runtime_config,
                      "initial_policy_version": initial_policy_version},
                     indent=2, default=str,
@@ -558,6 +579,18 @@ def main() -> int:
             )
             anchor_observations = []
             anchor_means = []
+
+            def reference_anchor_batch():
+                if source_anchor_observations is not None:
+                    return {
+                        "flat_anchor_observations": source_anchor_observations,
+                        "flat_anchor_means": source_anchor_means,
+                    }
+                return {
+                    "flat_anchor_observations": torch.cat(anchor_observations, dim=0),
+                    "flat_anchor_means": torch.cat(anchor_means, dim=0),
+                }
+
             pending_valid_steps = 0
             invalid_rollout_blocks = 0
 
@@ -818,8 +851,7 @@ def main() -> int:
                     if pending_valid_steps > 0:
                         stats = session.update(
                             force=True,
-                            flat_anchor_observations=torch.cat(anchor_observations, dim=0),
-                            flat_anchor_means=torch.cat(anchor_means, dim=0),
+                            **reference_anchor_batch(),
                         )
                         if stats is not None:
                             update_records.append(stats.__dict__)
@@ -873,8 +905,7 @@ def main() -> int:
                         updates_stream.flush()
                     else:
                         stats = session.update(
-                            flat_anchor_observations=torch.cat(anchor_observations, dim=0),
-                            flat_anchor_means=torch.cat(anchor_means, dim=0),
+                            **reference_anchor_batch(),
                         )
                         anchor_observations.clear()
                         anchor_means.clear()
@@ -924,6 +955,11 @@ def main() -> int:
                     "trial_deadline_steps": args.trial_deadline_steps,
                     "discount_gamma": args.gamma,
                     "completion_terminal_reward": completion_terminal_reward,
+                    "reference_anchor_distribution": (
+                        "fixed_reconstructed_source_flat_v1" if source_anchor_metadata is not None
+                        else "current_online_observations_v1"
+                    ),
+                    "source_anchor_metadata": source_anchor_metadata,
                     "effective_runtime_config": effective_runtime_config,
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
@@ -975,6 +1011,11 @@ def main() -> int:
                 "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
                 "completion_terminal_reward": completion_terminal_reward,
                 "critic_time_horizon_steps": critic_time_horizon,
+                "reference_anchor_distribution": (
+                    "fixed_reconstructed_source_flat_v1" if source_anchor_metadata is not None
+                    else "current_online_observations_v1"
+                ),
+                "source_anchor_metadata": source_anchor_metadata,
                 "effective_runtime_config": effective_runtime_config,
                 "evaluation_only": bool(args.evaluation_only),
                 "steps": steps,

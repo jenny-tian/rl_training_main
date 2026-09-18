@@ -198,6 +198,8 @@ def test_reference_anchor_limit_rejects_policy_drift_and_restores_actor():
     )
     assert not stats.accepted
     assert stats.rejection_reason == "anchor_mse"
+    assert stats.candidate_anchor_mse is not None
+    assert stats.candidate_anchor_mse > updater.config.max_anchor_mse
     for key, value in before.items():
         torch.testing.assert_close(policy.state_dict()[key], value)
 

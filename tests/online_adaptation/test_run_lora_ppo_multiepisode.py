@@ -28,6 +28,7 @@ def _args(tmp_path: Path) -> Namespace:
         simulation_seed=7,
         training_seed_stride=1,
         physical_gpu=1,
+        single_gpu_renderer=False,
         max_episodes=100,
         max_steps_per_episode=2000,
         probe_interval=5,
@@ -36,6 +37,7 @@ def _args(tmp_path: Path) -> Namespace:
         actor_lr=5e-5,
         critic_lr=5e-5,
         reference_anchor_coef=1.0,
+        flat_anchor_observations=None,
         max_reference_mse=1e-4,
         stability_window=10,
         stability_min_success_rate=0.8,
@@ -198,6 +200,28 @@ def test_resumed_training_propagates_requested_rates_and_video(tmp_path):
     assert float(command[command.index("--critic-lr") + 1]) == 3e-4
     assert "--video" in command
     assert command[command.index("--video-length") + 1] == "2000"
+
+
+def test_source_flat_anchor_is_forwarded_to_training_and_probe(tmp_path):
+    args = _args(tmp_path)
+    args.flat_anchor_observations = str(tmp_path / "source_anchor.pt")
+    for command in (
+        build_training_command(args, tmp_path / "episode", tmp_path / "previous.pt"),
+        build_probe_command(args, tmp_path / "probe", tmp_path / "previous.pt"),
+    ):
+        assert command[command.index("--flat-anchor-observations") + 1] == args.flat_anchor_observations
+
+
+def test_single_gpu_rendering_keeps_physics_on_the_requested_device(tmp_path):
+    args = _args(tmp_path)
+    args.single_gpu_renderer = True
+    args.physical_gpu = 3
+    command = build_training_command(args, tmp_path / "episode", None)
+    assert command[command.index("--device") + 1] == "cuda:3"
+    settings = next(value for value in command if value.startswith("--kit_args="))
+    assert "--/renderer/activeGpu=3" in settings
+    assert "--/renderer/multiGpu/enabled=false" in settings
+    assert "--/renderer/multiGpu/autoEnable=false" in settings
 
 
 def test_state_accumulates_updates_and_detects_stable_window(tmp_path):

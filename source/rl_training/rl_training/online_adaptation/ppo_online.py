@@ -89,6 +89,7 @@ class PPOUpdateStats:
     explained_variance: float | None = None
     num_valid_samples: int = 0
     total_rollout_samples: int = 0
+    candidate_anchor_mse: float | None = None
 
 
 def _as_column(value: Tensor, name: str) -> Tensor:
@@ -419,6 +420,7 @@ class OnlinePPOUpdater:
                 False, reason, approx_kl, total_actor / total_count, total_value / total_count,
                 total_entropy / total_count, total_clip / total_count, total_count,
                 self.policy_version, self.policy_version,
+                candidate_anchor_mse=anchor_mse,
                 **diagnostics,
             )
         previous = self.policy_version
@@ -427,6 +429,7 @@ class OnlinePPOUpdater:
             True, None, approx_kl, total_actor / total_count, total_value / total_count,
             total_entropy / total_count, total_clip / total_count, total_count,
             previous, self.policy_version,
+            candidate_anchor_mse=anchor_mse,
             **diagnostics,
         )
 

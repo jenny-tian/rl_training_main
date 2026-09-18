@@ -65,6 +65,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--simulation-seed", type=int, default=7)
     parser.add_argument("--training-seed-stride", type=_positive_int, default=1)
     parser.add_argument("--physical-gpu", type=int, choices=(0, 1, 3), default=1)
+    parser.add_argument("--single-gpu-renderer", action="store_true")
     parser.add_argument("--max-episodes", type=_positive_int, default=100)
     parser.add_argument("--max-steps-per-episode", type=_positive_int, default=2_000)
     parser.add_argument("--probe-interval", type=_positive_int, default=5)
@@ -78,6 +79,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--actor-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--critic-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--reference-anchor-coef", type=_nonnegative_float, default=1.0)
+    parser.add_argument("--flat-anchor-observations", default=None)
     parser.add_argument("--max-reference-mse", type=_positive_float, default=1e-4)
     parser.add_argument("--stability-window", type=_positive_int, default=10)
     parser.add_argument("--stability-min-success-rate", type=_unit_interval, default=0.8)
@@ -165,6 +167,14 @@ def _common_command(
     ]
     if checkpoint is not None:
         command.extend(("--checkpoint-in", str(checkpoint)))
+    if args.flat_anchor_observations is not None:
+        command.extend(("--flat-anchor-observations", str(Path(args.flat_anchor_observations).resolve())))
+    if args.single_gpu_renderer:
+        command.append(
+            f"--kit_args=--/renderer/activeGpu={args.physical_gpu} "
+            "--/renderer/multiGpu/enabled=false --/renderer/multiGpu/autoEnable=false "
+            "--/renderer/multiGpu/maxGpuCount=1"
+        )
     return command
 
 
@@ -440,7 +450,7 @@ def _record(path: Path, record: Mapping[str, object]) -> None:
 
 
 def _manifest(args: argparse.Namespace) -> dict[str, Any]:
-    return {
+    manifest = {
         "schema_version": SCHEMA_VERSION,
         "experiment": "fixed_development_lora_ppo_multiepisode_v8",
         "learning_contract": "requested_ppo_absorbing_success_critic_context_v7",
@@ -483,6 +493,18 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         "video_episodes": args.video_episodes,
         "video_probes": args.video_probes,
     }
+    if args.flat_anchor_observations is not None:
+        source_anchor = Path(args.flat_anchor_observations).resolve()
+        asset = source_anchor / "source_anchor.pt" if source_anchor.is_dir() else source_anchor
+        manifest.update(
+            experiment="fixed_development_lora_ppo_multiepisode_v9",
+            reference_anchor_distribution="fixed_reconstructed_source_flat_v1",
+            flat_anchor_observations=str(source_anchor),
+            flat_anchor_observations_sha256=sha256_file(asset),
+        )
+    if args.single_gpu_renderer:
+        manifest["renderer_device_policy"] = "single_physical_gpu_v1"
+    return manifest
 
 
 def _manifest_matches(saved: Mapping[str, object], expected: Mapping[str, object]) -> bool:
