@@ -189,6 +189,7 @@ def test_failed_episode_candidate_is_trained_until_next_probe(tmp_path, monkeypa
             "completion_qualified": False, "fell": True, "safety_violation": False,
             "reset_count": 1, "steps": 100, "max_x": 0.7, "updates": 1,
             "rollbacks": 0, "policy_version": len(calls),
+            "stop_reason": "terminated", "command_verified_steps": 100,
         }))
 
     monkeypatch.setattr(runner, "_run", fake_run)
@@ -200,3 +201,7 @@ def test_failed_episode_candidate_is_trained_until_next_probe(tmp_path, monkeypa
     )
     state = json.loads((Path(args.output_dir) / "learning_state.json").read_text())
     assert state["resume_checkpoint"] == str(initial.resolve())  # rejected by probe
+    records = [json.loads(line) for line in
+               (Path(args.output_dir) / "episodes.jsonl").read_text().splitlines()]
+    assert all(row["stop_reason"] == "terminated" and row["command_verified_steps"] == 100
+               for row in records)

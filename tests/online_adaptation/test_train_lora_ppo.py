@@ -2,12 +2,119 @@ import pytest
 
 from scripts.reinforcement_learning.online_adaptation.train_lora_ppo import (
     CONTACT_TERMINATION_PROTOCOL,
+    _assert_forward_command,
     _capture_step_state,
     _completion_passed,
+    _configure_forward_command,
+    _lateral_deviation,
     _learning_boundary,
+    _pin_forward_observation,
     _rollback_reason,
+    _task_failure_reason,
     build_parser,
 )
+
+
+def test_fixed_command_disables_independent_special_modes_and_low_speed_deadband():
+    from types import SimpleNamespace
+
+    cfg = SimpleNamespace(
+        ranges=SimpleNamespace(), rel_zero_vel_envs=0.07,
+        rel_only_lin_y_envs=0.07, rel_only_lin_x_envs=0.07,
+        rel_only_ang_z_envs=0.07, planar_velocity_deadband=0.2,
+        command_acceleration_limits=(0.1, 0.1, 0.1),
+        only_lin_x_magnitude_range=(0.1, 0.6),
+    )
+    _configure_forward_command(cfg, 0.1)
+    assert cfg.ranges.lin_vel_x == (0.1, 0.1)
+    assert cfg.ranges.lin_vel_y == cfg.ranges.ang_vel_z == (0.0, 0.0)
+    assert (cfg.rel_zero_vel_envs, cfg.rel_only_lin_y_envs,
+            cfg.rel_only_lin_x_envs, cfg.rel_only_ang_z_envs) == (0.0,) * 4
+    assert cfg.planar_velocity_deadband == 0.0
+    assert cfg.command_acceleration_limits is None
+    assert cfg.only_lin_x_magnitude_range is None
+
+
+def test_pin_refreshes_stale_policy_observation_after_reset_only_when_needed():
+    from types import SimpleNamespace
+    import torch
+
+    term = SimpleNamespace(
+        vel_command_b=torch.zeros(1, 3), target_vel_command_b=torch.zeros(1, 3),
+        is_standing_env=torch.ones(1, dtype=torch.bool),
+        is_heading_env=torch.ones(1, dtype=torch.bool),
+    )
+    manager = SimpleNamespace(
+        get_command=lambda _: term.vel_command_b, get_term=lambda _: term,
+    )
+    calls = []
+
+    def compute():
+        calls.append(True)
+        return {"policy": term.vel_command_b.clone()}
+
+    wrapper = SimpleNamespace(unwrapped=SimpleNamespace(command_manager=manager),
+                              get_observations=compute)
+    stale = {"policy": torch.zeros(1, 3)}
+    refreshed = _pin_forward_observation(wrapper, stale, 0.3)
+    assert refreshed["policy"].tolist()[0] == pytest.approx([0.3, 0.0, 0.0])
+    assert not term.is_standing_env.any() and not term.is_heading_env.any()
+    assert _pin_forward_observation(wrapper, refreshed, 0.3) is refreshed
+    assert len(calls) == 1  # no duplicate history/noise sampling on ordinary steps
+
+
+@pytest.mark.parametrize("command", [(0.0, 0.0, 0.0), (0.3, 0.1, 0.0),
+                                     (0.3, 0.0, 0.1), (float("nan"), 0.0, 0.0)])
+def test_command_override_during_physics_is_rejected_before_learning(command):
+    from types import SimpleNamespace
+    import torch
+
+    signals = SimpleNamespace(command_lin_vel_xy=torch.tensor([command[:2]]),
+                              command_ang_vel_z=torch.tensor([[command[2]]]))
+    with pytest.raises(RuntimeError, match="refusing PPO data"):
+        _assert_forward_command(signals, 0.3)
+    signals.command_lin_vel_xy = torch.tensor([[0.3, 0.0]])
+    signals.command_ang_vel_z.zero_()
+    _assert_forward_command(signals, 0.3)
+
+
+@pytest.mark.parametrize("stage, failure", [("rough_4cm", "lateral_violation"),
+                                          ("step_4cm", "edge_slip")])
+def test_first_irreversible_qualification_failure_is_a_terminal_learning_boundary(stage, failure):
+    import torch
+    from rl_training.online_adaptation.track_completion import TrackCompletion
+
+    completion = TrackCompletion.start(
+        stage_name=stage, initial_x=0.0, initial_y=0.0,
+        flat_length=3.0, step_length=2.0, track_length=20.0,
+        step_clearance_margin_m=0.5, track_end_buffer_m=0.5,
+        lane_width_m=2.0, track_width_m=4.0,
+    )
+    assert not completion.qualification_satisfied
+    assert _task_failure_reason(completion) is None  # approach still needs gait evidence
+    feet = [0.2, -0.2, 0.2, -0.2]
+    slip = 0.0
+    if failure == "lateral_violation":
+        feet[0] = completion.allowed_lateral_deviation_m + 0.01
+    else:
+        slip = completion.max_completion_foot_slip + 0.01
+    completion.observe_pose(completion.challenge_start_x, 0.0, foot_y=feet, foot_slip=slip)
+    reason = _task_failure_reason(completion)
+    assert reason == failure
+    assert _learning_boundary(
+        retain_failures=True, rollback_reason=None, completion_passed=False,
+        environment_done=False, task_failure_reason=reason,
+    ) == failure
+    assert _learning_boundary(
+        retain_failures=False, rollback_reason=None, completion_passed=False,
+        environment_done=False, task_failure_reason=reason,
+    ) is None  # conservative mode still rolls back instead of retaining the candidate
+    deviation = _lateral_deviation(torch.zeros(1, 1), torch.tensor([feet]), 0.0)
+    assert deviation.item() == pytest.approx(max(abs(y) for y in feet))
+    # Returning inside the lane or eventually reaching the end cannot erase failure.
+    completion.observe_pose(completion.target_x, 0.0, foot_y=[0.0] * 4, foot_slip=0.0)
+    assert _task_failure_reason(completion) == failure
+    assert not _completion_passed(completion, fell=False, safety_violation=False, reset_count=0)
 
 
 def test_terminal_diagnostics_survive_in_place_simulator_reset():

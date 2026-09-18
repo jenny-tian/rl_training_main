@@ -20,7 +20,74 @@ from isaaclab.app import AppLauncher
 
 
 CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
-LEARNING_CONTRACT = "boundary_samples_prereset_sticky_safety_v4"
+LEARNING_CONTRACT = "fixed_command_qualification_boundary_v5"
+
+
+def _configure_forward_command(command_cfg, forward_speed: float) -> None:
+    """Disable all sampled special modes for this fixed-forward experiment."""
+    command_cfg.resampling_time_range = (1.0e9, 1.0e9)
+    command_cfg.rel_standing_envs = 0.0
+    command_cfg.rel_heading_envs = 0.0
+    command_cfg.heading_command = False
+    command_cfg.ranges.lin_vel_x = (forward_speed, forward_speed)
+    command_cfg.ranges.lin_vel_y = (0.0, 0.0)
+    command_cfg.ranges.ang_vel_z = (0.0, 0.0)
+    # UniformThresholdVelocityCommand samples these independently of the
+    # standard standing ratio, even when all three ranges are fixed.
+    for name in ("rel_zero_vel_envs", "rel_only_lin_y_envs",
+                 "rel_only_lin_x_envs", "rel_only_ang_z_envs",
+                 "planar_velocity_deadband"):
+        if hasattr(command_cfg, name):
+            setattr(command_cfg, name, 0.0)
+    for name in ("command_acceleration_limits", "only_lin_x_magnitude_range"):
+        if hasattr(command_cfg, name):
+            setattr(command_cfg, name, None)
+
+
+def _pin_forward_observation(wrapped_env, observation, forward_speed: float):
+    """Refresh stale observations only if pinning changes their command."""
+    import torch
+    from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import pin_forward_command
+
+    command = wrapped_env.unwrapped.command_manager.get_command("base_velocity")
+    expected = command.new_tensor([forward_speed, 0.0, 0.0]).expand_as(command[:, :3])
+    changed = not torch.equal(command[:, :3], expected)
+    pin_forward_command(wrapped_env.unwrapped, forward_speed=forward_speed)
+    return wrapped_env.get_observations() if changed else observation
+
+
+def _assert_forward_command(signals, forward_speed: float) -> None:
+    """Reject contaminated transitions before they enter the PPO buffer."""
+    import torch
+
+    expected = signals.command_lin_vel_xy.new_tensor([forward_speed, 0.0])
+    if not (
+        torch.isclose(signals.command_lin_vel_xy, expected, rtol=0.0, atol=1e-6).all()
+        and torch.isclose(signals.command_ang_vel_z,
+                          torch.zeros_like(signals.command_ang_vel_z), rtol=0.0, atol=1e-6).all()
+    ):
+        raise RuntimeError("fixed forward command changed during the physics step; refusing PPO data")
+
+
+def _task_failure_reason(completion) -> str | None:
+    # These events permanently disqualify the trial. Missing gait evidence
+    # alone is provisional and must not terminate an otherwise valid approach.
+    if completion is None or not completion.strict_qualification_enabled:
+        return None
+    if completion.edge_slip_events:
+        return "edge_slip"
+    if completion.lateral_violation_steps:
+        return "lateral_violation"
+    return None
+
+
+def _lateral_deviation(base_y, foot_y, initial_y: float):
+    import torch
+
+    return torch.maximum(
+        (base_y - initial_y).abs(),
+        (foot_y - initial_y).abs().amax(dim=-1, keepdim=True),
+    )
 
 
 def _capture_step_state(adapter):
@@ -52,9 +119,11 @@ def _completion_passed(completion, *, fell: bool, safety_violation: bool, reset_
 
 
 def _learning_boundary(*, retain_failures: bool, rollback_reason: str | None,
-                       completion_passed: bool, environment_done: bool) -> str | None:
-    if rollback_reason is not None and retain_failures:
-        return rollback_reason
+                       completion_passed: bool, environment_done: bool,
+                       task_failure_reason: str | None = None) -> str | None:
+    failure_reason = rollback_reason or task_failure_reason
+    if failure_reason is not None:
+        return failure_reason if retain_failures else None
     if completion_passed:
         return "completion"
     if environment_done and rollback_reason is None:
@@ -141,7 +210,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="record and enforce the formal reset-relative completion qualification",
     )
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--forward-speed", type=float, default=0.3)
+    parser.add_argument("--forward-speed", type=_positive_float, default=0.3)
     parser.add_argument("--max-steps", type=_positive_int, default=2_000)
     parser.add_argument("--rollout-steps", type=_positive_int, default=256)
     parser.add_argument("--output", default="logs/online_adaptation/lora_ppo")
@@ -210,7 +279,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--terminal-failure-penalty",
         type=_negative_float,
         default=-8.0,
-        help="reward assigned to a physical termination row",
+        help="reward assigned to a physical or strict qualification failure row",
     )
     parser.add_argument(
         "--retain-terminal-learning",
@@ -277,13 +346,7 @@ def main() -> int:
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
         env_cfg.seed = args.seed
         env_cfg.scene.num_envs = 1
-        env_cfg.commands.base_velocity.resampling_time_range = (1.0e9, 1.0e9)
-        env_cfg.commands.base_velocity.rel_standing_envs = 0.0
-        env_cfg.commands.base_velocity.rel_heading_envs = 0.0
-        env_cfg.commands.base_velocity.heading_command = False
-        env_cfg.commands.base_velocity.ranges.lin_vel_x = (args.forward_speed, args.forward_speed)
-        env_cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
+        _configure_forward_command(env_cfg.commands.base_velocity, args.forward_speed)
         env_cfg.terminations.time_out = None
         geometry = development_geometry(args.terrain_stage, args.terrain_seed)
         apply_geometry_to_env_cfg(env_cfg, geometry)
@@ -337,6 +400,7 @@ def main() -> int:
             ).to(args.device)
             reference_policy.eval()
             probe_obs, _ = wrapped_env.reset()
+            probe_obs = _pin_forward_observation(wrapped_env, probe_obs, args.forward_speed)
             if not isinstance(probe_obs, dict) and not hasattr(probe_obs, "get"):
                 raise RuntimeError("RSL-RL online PPO requires grouped policy observations")
             policy_obs = probe_obs["policy"]
@@ -434,6 +498,7 @@ def main() -> int:
             rollback_records = []
             terminal_learning_records = []
             completion_stop = False
+            task_failure_reason = None
             fell = False
             safety_violation = False
             reset_count = 0
@@ -442,6 +507,7 @@ def main() -> int:
             for step in range(args.max_steps):
                 previous_residual = current_residual.detach().clone()
                 terminal_capture.clear()
+                observation = _pin_forward_observation(wrapped_env, observation, args.forward_speed)
                 obs_tensor = observation["policy"]
                 control_policy, version = publisher.current()
                 with torch.no_grad():
@@ -480,6 +546,7 @@ def main() -> int:
                 else:
                     step_state = _capture_step_state(reward_adapter)
                 signals = step_state["signals"]
+                _assert_forward_command(signals, args.forward_speed)
                 swing_lift = swing_lift_tracker.observe(signals.foot_height, signals.foot_contact)
                 velocity_error = torch.linalg.vector_norm(
                     signals.base_lin_vel_xy - signals.command_lin_vel_xy, dim=-1, keepdim=True
@@ -530,6 +597,10 @@ def main() -> int:
                     track_completion, fell=fell, safety_violation=safety_violation,
                     reset_count=reset_count,
                 )
+                task_failure_reason = _task_failure_reason(track_completion)
+                lateral_deviation = _lateral_deviation(
+                    step_state["base_y"], step_state["foot_y"], initial_y
+                )
                 # Failure learning must finish the current on-policy block
                 # before any rollback changes its policy version.  Continuing
                 # after the first severe contact used to erase this block,
@@ -539,6 +610,7 @@ def main() -> int:
                     rollback_reason=rollback_reason,
                     completion_passed=completion_passed,
                     environment_done=environment_done,
+                    task_failure_reason=task_failure_reason,
                 )
                 learning_terminated = terminated | torch.full_like(
                     terminated, learning_boundary not in (None, "truncated")
@@ -558,10 +630,11 @@ def main() -> int:
                     completion_mask=torch.full_like(
                         forward_progress, float(completion_passed)
                     ),
-                    lateral_deviation=(step_state["base_y"] - initial_y).abs(),
+                    lateral_deviation=lateral_deviation,
                 ).to(dtype=torch.float32)
                 previous_x = current_x
-                if bool(terminated.any().item()) or learning_boundary == "severe_nonfoot_contact":
+                if (bool(terminated.any().item()) or learning_boundary == "severe_nonfoot_contact"
+                        or task_failure_reason is not None):
                     reward_tensor = torch.full_like(
                         reward_tensor, float(args.terminal_failure_penalty)
                     ).to(dtype=torch.float32)
@@ -595,6 +668,9 @@ def main() -> int:
                     "foot_y": step_state["foot_y"].reshape(-1).cpu().tolist(),
                     "foot_slip": float(signals.foot_slip.mean()),
                     "velocity_error": float(velocity_error.mean()),
+                    "command_lin_vel_xy": signals.command_lin_vel_xy.reshape(-1).cpu().tolist(),
+                    "command_ang_vel_z": float(signals.command_ang_vel_z.mean()),
+                    "base_lin_vel_xy": signals.base_lin_vel_xy.reshape(-1).cpu().tolist(),
                     "tilt_rms": float(tilt_rms.mean()),
                     "nonfoot_contact": bool(signals.nonfoot_contact.any().item()),
                     "max_nonfoot_contact_force_n": max_nonfoot_contact_force_n,
@@ -610,9 +686,10 @@ def main() -> int:
                     ),
                     "ppo_valid": bool((~safety_decision.projected & ~safety_decision.paused).all()),
                     "forward_progress": float(forward_progress.mean()),
-                    "lateral_deviation": float((step_state["base_y"] - initial_y).abs().mean()),
+                    "lateral_deviation": float(lateral_deviation.mean()),
                     "progress_stalled": bool(progress_decision.stalled),
                     "rollback_reason": rollback_reason or "",
+                    "task_failure_reason": task_failure_reason,
                     "completion_passed": completion_passed,
                     "learning_boundary": learning_boundary,
                     "learning_terminated": bool(learning_terminated.any()),
@@ -663,8 +740,8 @@ def main() -> int:
                     terminal_learning_records.append(boundary_record)
                     updates_stream.write(json.dumps(boundary_record, sort_keys=True) + "\n")
                     updates_stream.flush()
-                elif not args.evaluation_only and rollback_reason is not None:
-                    rollback = session.rollback(rollback_reason)
+                elif not args.evaluation_only and (rollback_reason or task_failure_reason) is not None:
+                    rollback = session.rollback(rollback_reason or task_failure_reason)
                     anchor_observations.clear()
                     anchor_means.clear()
                     pending_valid_steps = 0
@@ -713,6 +790,9 @@ def main() -> int:
                 if completion_passed:
                     completion_stop = True
                     stop_reason = "completion"
+                    break
+                if task_failure_reason is not None:
+                    stop_reason = rollback_reason or task_failure_reason
                     break
                 if args.retain_terminal_learning and learning_boundary is not None:
                     stop_reason = learning_boundary
@@ -787,6 +867,10 @@ def main() -> int:
                 "fell": fell,
                 "safety_violation": safety_violation,
                 "stop_reason": stop_reason,
+                "task_failure_reason": task_failure_reason,
+                "command_verified_steps": steps,
+                "command_forward_min": min(row["command_lin_vel_xy"][0] for row in rows),
+                "command_forward_max": max(row["command_lin_vel_xy"][0] for row in rows),
                 "updates": 0 if args.evaluation_only else len(update_records),
                 "accepted_updates": sum(bool(record["accepted"]) for record in update_records),
                 "rejected_updates": sum(not bool(record["accepted"]) for record in update_records),
@@ -814,7 +898,7 @@ def main() -> int:
                 "rollbacks": 0 if args.evaluation_only else len(rollback_records),
                 "terminal_learning_updates": (
                     sum(record["update_attempted"] and record["reason"] in (
-                        "terminated", "severe_nonfoot_contact"
+                        "terminated", "severe_nonfoot_contact", "lateral_violation", "edge_slip"
                     ) for record in terminal_learning_records)
                 ),
                 "boundary_learning_updates": sum(record["update_attempted"] for record in terminal_learning_records),
