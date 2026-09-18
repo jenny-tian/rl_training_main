@@ -6,13 +6,238 @@ from scripts.reinforcement_learning.online_adaptation.train_lora_ppo import (
     _capture_step_state,
     _completion_passed,
     _configure_forward_command,
+    _evaluation_mode,
+    _finalize_checkpoint,
     _lateral_deviation,
     _learning_boundary,
     _pin_forward_observation,
+    _prepare_evaluation_args,
     _rollback_reason,
     _task_failure_reason,
     build_parser,
 )
+
+
+def test_flat_probe_forces_frozen_sampling_without_track_or_task_deadline():
+    args = build_parser().parse_args([
+        "--base-checkpoint", "base.pt", "--flat-retention-probe",
+        "--require-track-completion", "--trial-deadline-steps", "2000",
+    ])
+    _prepare_evaluation_args(args)
+    assert args.evaluation_only
+    assert not args.require_track_completion
+    assert args.trial_deadline_steps is None
+    assert _evaluation_mode(args) == "base_frozen"
+
+
+def test_flat_probe_rejects_continuing_across_physical_resets():
+    args = build_parser().parse_args([
+        "--base-checkpoint", "base.pt", "--flat-retention-probe", "--continue-after-termination",
+    ])
+    with pytest.raises(SystemExit, match="cannot continue"):
+        _prepare_evaluation_args(args)
+
+
+def test_regular_terrain_training_keeps_its_existing_deadline_and_qualification():
+    args = build_parser().parse_args([
+        "--base-checkpoint", "base.pt", "--require-track-completion", "--trial-deadline-steps", "2000",
+    ])
+    _prepare_evaluation_args(args)
+    assert not args.evaluation_only
+    assert args.require_track_completion
+    assert args.trial_deadline_steps == 2000
+    assert _evaluation_mode(args) == "online_learning"
+
+
+@pytest.mark.parametrize("checkpoint", [None, "learned.pt"])
+@pytest.mark.parametrize("flat", [False, True])
+def test_frozen_base_or_learned_evaluation_passes_main_validation_without_launching_simulator(
+    monkeypatch, checkpoint, flat,
+):
+    from types import SimpleNamespace
+    from scripts.reinforcement_learning.online_adaptation import train_lora_ppo as worker
+
+    options = ["--base-checkpoint", "base.pt", "--evaluation-only"]
+    if checkpoint:
+        options.extend(("--checkpoint-in", checkpoint))
+    if flat:
+        options.append("--flat-retention-probe")
+    args = build_parser().parse_args(options)
+    seen = []
+
+    class LaunchReached(Exception):
+        pass
+
+    def fake_launcher(prepared):
+        seen.append(prepared)
+        raise LaunchReached
+
+    monkeypatch.setattr(worker, "build_parser", lambda: SimpleNamespace(parse_args=lambda: args))
+    monkeypatch.setattr(worker, "AppLauncher", fake_launcher)
+    with pytest.raises(LaunchReached):
+        worker.main()
+    assert seen == [args]
+    assert args.evaluation_only
+    assert _evaluation_mode(args) == ("learned_frozen" if checkpoint else "base_frozen")
+
+
+def test_plane_configuration_keeps_robot_material_command_and_physical_safety():
+    from types import SimpleNamespace
+    from rl_training.online_adaptation.flat_retention import configure_flat_retention_plane
+
+    material, robot, command, observation = object(), object(), object(), object()
+    contact, orientation, gait_curriculum = object(), object(), object()
+    cfg = SimpleNamespace(
+        scene=SimpleNamespace(num_envs=20, robot=robot, terrain=SimpleNamespace(
+            terrain_type="generator", terrain_generator=object(), physics_material=material,
+        )),
+        commands=command, observations=observation,
+        terminations=SimpleNamespace(
+            time_out=object(), terrain_out_of_bounds=object(), illegal_contact=contact,
+            bad_orientation_2=orientation,
+        ),
+        curriculum=SimpleNamespace(terrain_levels=object(), gait_level=gait_curriculum),
+    )
+    geometry = configure_flat_retention_plane(cfg)
+    assert geometry == {"terrain_type": "plane", "terrain_generator": None}
+    assert cfg.scene.num_envs == 1
+    assert cfg.scene.terrain.terrain_type == "plane"
+    assert cfg.scene.terrain.terrain_generator is None
+    assert cfg.terminations.terrain_out_of_bounds is cfg.terminations.time_out is None
+    assert cfg.curriculum.terrain_levels is None
+    assert cfg.scene.robot is robot and cfg.scene.terrain.physics_material is material
+    assert cfg.commands is command and cfg.observations is observation
+    assert cfg.terminations.illegal_contact is contact
+    assert cfg.terminations.bad_orientation_2 is orientation
+    assert cfg.curriculum.gait_level is gait_curriculum
+
+
+def _flat_rows(count, *, step_dt=0.02, initial_x=0.0):
+    return [{
+        "step": index,
+        "base_x": initial_x + 0.3 * step_dt * index,
+        "base_lin_vel_xy": [0.3, 0.0],
+        "command_lin_vel_xy": [0.3, 0.0],
+        "done": False,
+    } for index in range(1, count + 1)]
+
+
+def _flat_metrics(rows, *, step_dt=0.02, initial_x=0.0, max_steps=None, **physical_flags):
+    from rl_training.online_adaptation.flat_retention import summarize_flat_retention
+
+    return summarize_flat_retention(
+        rows, initial_x=initial_x, step_dt=step_dt,
+        max_steps=len(rows) if max_steps is None else max_steps,
+        **{"fell": False, "safety_violation": False, "reset_count": 0, **physical_flags},
+    )
+
+
+def test_flat_2000_step_trial_has_1750_steady_samples_and_no_track_end():
+    metrics = _flat_metrics(_flat_rows(2000))
+    assert metrics["sample_count"] == 2000
+    assert metrics["steady_sample_count"] == 1750
+    assert metrics["steady_duration_seconds"] == 35.0
+    assert metrics["steady_velocity_x_mae"] == metrics["steady_velocity_y_mae"] == 0.0
+    assert metrics["net_forward_m"] == pytest.approx(12.0)
+    assert metrics["steady_net_forward_m"] == pytest.approx(10.5)
+    assert metrics["full_sample_budget"] and metrics["comparison_eligible"]
+    assert "passed" not in metrics
+
+
+def test_flat_metrics_exclude_warmup_and_include_displacement_from_its_boundary():
+    rows = _flat_rows(252, initial_x=10.0)
+    for row in rows[:250]:
+        row["base_lin_vel_xy"] = [30.0, -30.0]
+        row["base_x"] = 10.0 + row["step"] / 250.0
+    rows[250].update(base_x=11.10, base_lin_vel_xy=[0.4, 0.2])
+    rows[251].update(base_x=11.05, base_lin_vel_xy=[0.2, -0.2])
+
+    metrics = _flat_metrics(rows, initial_x=10.0)
+
+    assert metrics["steady_sample_count"] == 2
+    assert metrics["steady_velocity_x_mae"] == pytest.approx(0.1)
+    assert metrics["steady_velocity_y_mae"] == pytest.approx(0.2)
+    assert metrics["steady_velocity_xy_mae"] == pytest.approx(0.15)
+    assert metrics["steady_velocity_xy_l2_mean"] == pytest.approx(0.05 ** 0.5)
+    assert metrics["net_forward_m"] == pytest.approx(1.05)  # Final, not maximum x.
+    assert metrics["steady_start_x"] == pytest.approx(11.0)
+    assert metrics["steady_net_forward_m"] == pytest.approx(0.05)  # Includes step 251.
+
+
+def test_flat_metrics_interpolate_the_five_second_boundary_between_samples():
+    metrics = _flat_metrics(_flat_rows(170, step_dt=0.03), step_dt=0.03)
+    assert metrics["steady_sample_count"] == 4
+    assert metrics["steady_start_x"] == pytest.approx(1.5)
+    assert metrics["steady_net_forward_m"] == pytest.approx(0.03)
+    assert metrics["steady_duration_seconds"] == pytest.approx(0.1)
+
+
+@pytest.mark.parametrize("steps", [100, 250])
+def test_flat_trial_without_samples_after_five_seconds_is_not_comparable(steps):
+    import json
+
+    metrics = _flat_metrics(_flat_rows(steps))
+    assert metrics["steady_sample_count"] == 0
+    assert not metrics["steady_data_available"]
+    assert not metrics["comparison_eligible"]
+    assert metrics["steady_velocity_x_mae"] is None
+    assert metrics["steady_velocity_xy_mae"] is None
+    assert metrics["steady_net_forward_m"] is None
+    json.dumps(metrics, allow_nan=False)
+
+
+def test_flat_metrics_do_not_include_positions_or_errors_after_a_reset():
+    rows = _flat_rows(260)
+    rows[252]["done"] = True
+    for row in rows[253:]:
+        row["base_x"] = 100.0
+        row["base_lin_vel_xy"] = [30.0, 30.0]
+    metrics = _flat_metrics(rows, reset_count=1)
+    assert metrics["sample_count"] == 253
+    assert metrics["steady_sample_count"] == 3
+    assert metrics["post_reset_samples_excluded"] == 7
+    assert metrics["net_forward_m"] == pytest.approx(1.518)
+    assert metrics["steady_net_forward_m"] == pytest.approx(0.018)
+    assert metrics["steady_velocity_x_mae"] == 0.0
+    assert not metrics["comparison_eligible"]
+
+
+@pytest.mark.parametrize("physical_flags", [
+    {"fell": True}, {"safety_violation": True}, {"reset_count": 1}, {"max_steps": 300},
+])
+def test_flat_comparison_requires_full_budget_and_no_physical_failure(physical_flags):
+    metrics = _flat_metrics(_flat_rows(260), **physical_flags)
+    assert metrics["steady_data_available"]
+    assert not metrics["comparison_eligible"]
+
+
+@pytest.mark.parametrize("evaluation_only", [False, True])
+def test_checkpoint_finalization_keeps_exact_frozen_candidate_and_training_default(evaluation_only):
+    import copy
+    import torch
+    from torch import nn
+    from rl_training.online_adaptation.online_session import OnlinePPOSession
+    from rl_training.online_adaptation.ppo_online import OnlinePPOUpdater
+
+    session = OnlinePPOSession(OnlinePPOUpdater(nn.Linear(2, 1), nn.Linear(2, 1)))
+    stable = copy.deepcopy(session.updater.policy.state_dict())
+    state = session.state_dict()
+    state["updater"]["policy"]["bias"].add_(1.0)
+    state["updater"]["policy_version"] = 1
+    state["has_unverified_candidate"] = True
+    session.load_state_dict(state)
+    candidate = copy.deepcopy(session.updater.policy.state_dict())
+
+    result = _finalize_checkpoint(
+        session, evaluation_only=evaluation_only,
+        retain_terminal_learning=False, completion_stop=False,
+    )
+
+    assert result.restored_unverified_candidate is (not evaluation_only)
+    expected = candidate if evaluation_only else stable
+    for key, value in expected.items():
+        torch.testing.assert_close(session.updater.policy.state_dict()[key], value)
+    assert session.counters.update_attempts == 0
 
 
 def test_fixed_command_disables_independent_special_modes_and_low_speed_deadband():

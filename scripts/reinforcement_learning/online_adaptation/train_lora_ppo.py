@@ -25,6 +25,29 @@ REWARD_CONTRACT = "absorbing_success_explicit_task_deadline_v4"
 CRITIC_OBSERVATION_SCHEMA = "policy_plus_body_velocity_xy_elapsed_v1"
 
 
+def _prepare_evaluation_args(args: argparse.Namespace) -> None:
+    if args.flat_retention_probe:
+        if args.continue_after_termination:
+            raise SystemExit("--flat-retention-probe cannot continue after a physical termination")
+        args.evaluation_only = True
+        args.require_track_completion = False
+        args.trial_deadline_steps = None
+
+
+def _evaluation_mode(args: argparse.Namespace) -> str:
+    if not args.evaluation_only:
+        return "online_learning"
+    return "learned_frozen" if args.checkpoint_in else "base_frozen"
+
+
+def _finalize_checkpoint(session, *, evaluation_only: bool,
+                         retain_terminal_learning: bool, completion_stop: bool):
+    # Frozen evaluation must save the same candidate it actually evaluated.
+    return session.finalize_for_checkpoint(
+        restore_unverified_candidate=not (evaluation_only or retain_terminal_learning or completion_stop)
+    )
+
+
 def _configure_forward_command(command_cfg, forward_speed: float) -> None:
     """Disable all sampled special modes for this fixed-forward experiment."""
     command_cfg.resampling_time_range = (1.0e9, 1.0e9)
@@ -247,7 +270,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--evaluation-only",
         action="store_true",
-        help="run the loaded policy deterministically without collecting or updating PPO data",
+        help="run a checkpoint, or the frozen base without one, deterministically without PPO updates",
+    )
+    parser.add_argument(
+        "--flat-retention-probe",
+        action="store_true",
+        help="evaluate on an infinite plane with steady velocity/progress metrics and no track qualification",
     )
     parser.add_argument(
         "--continue-after-termination",
@@ -323,8 +351,7 @@ def main() -> int:
     args = build_parser().parse_args()
     if not args.base_checkpoint:
         raise SystemExit("--base-checkpoint is required")
-    if args.evaluation_only and not args.checkpoint_in:
-        raise SystemExit("--evaluation-only requires --checkpoint-in")
+    _prepare_evaluation_args(args)
     if args.retain_terminal_learning and args.continue_after_termination:
         raise SystemExit("terminal learning cannot continue the failed physical trial")
     # AppLauncher consumes this flag while constructing the simulation.  Set
@@ -352,6 +379,9 @@ def main() -> int:
         )
         from rl_training.online_adaptation.ppo_task_reward import success_absorbing_reward
         from rl_training.online_adaptation.ppo_source_anchor import load_source_anchor
+        from rl_training.online_adaptation.flat_retention import (
+            configure_flat_retention_plane, summarize_flat_retention,
+        )
         from rl_training.online_adaptation.ppo_runtime_config import (
             apply_ppo_runtime_config,
             read_ppo_runtime_config,
@@ -386,8 +416,16 @@ def main() -> int:
         env_cfg.scene.num_envs = 1
         _configure_forward_command(env_cfg.commands.base_velocity, args.forward_speed)
         env_cfg.terminations.time_out = None
-        geometry = development_geometry(args.terrain_stage, args.terrain_seed)
-        apply_geometry_to_env_cfg(env_cfg, geometry)
+        if args.flat_retention_probe:
+            terrain_geometry = configure_flat_retention_plane(env_cfg)
+        else:
+            geometry = development_geometry(args.terrain_stage, args.terrain_seed)
+            apply_geometry_to_env_cfg(env_cfg, geometry)
+            terrain_geometry = {
+                "step_height": geometry.step_height,
+                "rough_amplitude": geometry.rough_amplitude,
+                "seed": geometry.seed,
+            }
         protocol = default_flat_online_protocol()
         if args.protocol_sha256 is not None and args.protocol_sha256 != protocol.sha256():
             raise ValueError("protocol SHA-256 does not match the active formal protocol")
@@ -445,6 +483,8 @@ def main() -> int:
             if not isinstance(policy_obs, torch.Tensor) or policy_obs.ndim != 2:
                 raise RuntimeError("policy observation must have shape [1, obs_dim]")
             obs_dim = int(policy_obs.shape[-1])
+            if args.flat_retention_probe and obs_dim != 45:
+                raise RuntimeError("flat retention requires the deployed 45-dimensional Lite3 actor observation")
             source_anchor_observations = source_anchor_means = None
             source_anchor_metadata = None
             if args.flat_anchor_observations is not None:
@@ -517,7 +557,7 @@ def main() -> int:
             )
             initial_policy_version = effective_runtime_config.pop("policy_version")
             reward_weights = RewardWeights()
-            completion_terminal_reward = success_absorbing_reward(
+            completion_terminal_reward = None if args.flat_retention_probe else success_absorbing_reward(
                 args.gamma,
                 continuing_reward_upper_bound=(reward_weights.velocity_weight
                                                + reward_weights.yaw_weight
@@ -530,6 +570,9 @@ def main() -> int:
             (output / "config.json").write_text(
                 json.dumps(
                     {**vars(args), "contact_termination": CONTACT_TERMINATION_PROTOCOL,
+                     "mode": _evaluation_mode(args),
+                     "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
+                     "terrain_geometry": terrain_geometry,
                      "learning_contract": LEARNING_CONTRACT,
                      "sampling_contract": SAMPLING_CONTRACT,
                      "reward_contract": REWARD_CONTRACT,
@@ -923,6 +966,9 @@ def main() -> int:
                     completion_stop = True
                     stop_reason = "completion"
                     break
+                if args.flat_retention_probe and (rollback_reason is not None or safety_violation):
+                    stop_reason = rollback_reason or "safety_pause"
+                    break
                 if task_failure_reason is not None:
                     stop_reason = rollback_reason or task_failure_reason
                     break
@@ -936,8 +982,9 @@ def main() -> int:
                 ):
                     stop_reason = "terminated" if fell else "truncated"
                     break
-            finalization = session.finalize_for_checkpoint(
-                restore_unverified_candidate=not (args.retain_terminal_learning or completion_stop)
+            finalization = _finalize_checkpoint(
+                session, evaluation_only=args.evaluation_only,
+                retain_terminal_learning=args.retain_terminal_learning, completion_stop=completion_stop,
             )
             finalization_record = {"event": "finalize_stable", **finalization.__dict__}
             updates_stream.write(json.dumps(finalization_record, sort_keys=True) + "\n")
@@ -946,6 +993,8 @@ def main() -> int:
             torch.save(
                 {
                     "schema_version": 1,
+                    "mode": _evaluation_mode(args),
+                    "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                     "learning_contract": LEARNING_CONTRACT,
                     "sampling_contract": SAMPLING_CONTRACT,
                     "reward_contract": REWARD_CONTRACT,
@@ -964,11 +1013,7 @@ def main() -> int:
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
                     "contact_termination": CONTACT_TERMINATION_PROTOCOL,
-                    "terrain_geometry": {
-                        "step_height": geometry.step_height,
-                        "rough_amplitude": geometry.rough_amplitude,
-                        "seed": geometry.seed,
-                    },
+                    "terrain_geometry": terrain_geometry,
                     "lora_rank": args.rank,
                     "lora_parameter_count": lora_parameter_count(adapted_model),
                     "session": session.state_dict(),
@@ -1004,7 +1049,8 @@ def main() -> int:
                 }
             )
             summary = {
-                "mode": "learned_frozen" if args.evaluation_only else "online_learning",
+                "mode": _evaluation_mode(args),
+                "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                 "learning_contract": LEARNING_CONTRACT,
                 "sampling_contract": SAMPLING_CONTRACT,
                 "reward_contract": REWARD_CONTRACT,
@@ -1084,6 +1130,22 @@ def main() -> int:
                 "checkpoint_in": str(args.checkpoint_in) if args.checkpoint_in else None,
                 "policy_version": int(updater.policy_version),
             }
+            if args.flat_retention_probe:
+                # A flat retention measurement is not a terrain qualification
+                # or a retention pass. Paired acceptance is evaluated outside
+                # this worker from its measured data and physical flags.
+                for key in (
+                    "passed", "completion_qualified", "completion_qualification_version",
+                    "completion_qualification_passed", "completion_evidence", "edge_slip_events",
+                    "completion_stop", "completion_mode", "completion_target_x", "completion_reached",
+                    "strict_qualification_enabled", "protocol_sha256",
+                ):
+                    summary.pop(key, None)
+                summary["flat_retention"] = summarize_flat_retention(
+                    rows, initial_x=initial_x, step_dt=control_step_dt, max_steps=args.max_steps,
+                    fell=fell, safety_violation=safety_violation, reset_count=reset_count,
+                )
+                summary["terrain_geometry"] = terrain_geometry
             (output / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=False) + "\n",
                 encoding="utf-8",
