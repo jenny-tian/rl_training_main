@@ -1,0 +1,42 @@
+{
+  "adapting_residual_gain": 0.1,
+  "comparison_seed": 101,
+  "episodes_completed": 23,
+  "fall_handling": "preserve_updater_reset_episode_v1",
+  "first_completion_episode": 23,
+  "forward_speed": 0.3,
+  "interaction_steps": 43994,
+  "measurement_mode": "first_safe_step_completion_without_acceptance_deadline_v3",
+  "note": "The cap bounds compute only; it is not a 100-episode acceptance requirement.",
+  "observation_cap_episodes": 500,
+  "post_step_residual_gain": 0.1,
+  "residual_gain": 0.05,
+  "same_seed_controls": {
+    "base": {
+      "completion_reached": false,
+      "fell": false,
+      "interaction_steps": 2000,
+      "max_x": -6.838303089141846,
+      "safety_violation": false,
+      "second_half_tilt_rms": 0.15685496163382961,
+      "second_half_velocity_error": 0.29995763979677215,
+      "video": "artifacts/online_validation_20260812/step4cm_fixed06_v24_fall_softreset_gpu2/controls/base/seed-101/videos/rl-video-step-0.mp4"
+    },
+    "forward_speed": 0.3,
+    "residual_frozen": {
+      "completion_reached": false,
+      "fell": false,
+      "interaction_steps": 2000,
+      "max_x": -6.839322566986084,
+      "safety_violation": false,
+      "second_half_tilt_rms": 0.16892104525149637,
+      "second_half_velocity_error": 0.3000143858640163,
+      "video": "artifacts/online_validation_20260812/step4cm_fixed06_v24_fall_softreset_gpu2/controls/residual_frozen/seed-101/videos/rl-video-step-0.mp4"
+    },
+    "residual_gain": 0.05,
+    "schema_version": 1,
+    "seed": 101
+  },
+  "schema_version": 1,
+  "status": "safe_completion_observed"
+}

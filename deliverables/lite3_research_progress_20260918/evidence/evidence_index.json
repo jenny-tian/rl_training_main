@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "snapshot_created_utc": "2026-09-18T06:00:03.468097+00:00",
+  "scope": "只复制小型原始JSON，不运行仿真、不复制模型或视频。所有结果为历史/开发证据，非当前算法最终排名。",
+  "source_root": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation",
+  "files": [
+    {
+      "file": "paired_five_seeds.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/paired_rough4cm_development_v1/comparison_development_v1.json",
+      "sha256": "7ca1ae2af65ca4b8e30fe9784a48768deb86067ba9f8daea3449f6e00059719c",
+      "bytes": 1962,
+      "interpretation_boundary": "五个开发地形 seed 的路线筛选；无路线通过安全完成门槛。LoRA 平均控制步包括事故后 reset，不等同安全存活2000步；completed_budget_runs=1。"
+    },
+    {
+      "file": "paired_seed101.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/paired_seed101_2000/comparison_contact3_sync_v4.json",
+      "sha256": "c66c0ac9aeb5bfdd786bb3c2c2391e11ed1cd3d188c1fc7c938cf59fa9b7d8e8",
+      "bytes": 3345,
+      "interpretation_boundary": "单开发 seed101，控制预算2000；LoRA 1934步非法接触后继续，SAC1460步结束；最大位移仅首个 reset 前。不能据此给算法排名或宣称泛化。"
+    },
+    {
+      "file": "lora_v3b/learning_state.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/learning_state.json",
+      "sha256": "09487818736bd83271a59d170698de7d96af239b4172ae22ab1c725b963ec9c7",
+      "bytes": 3191,
+      "interpretation_boundary": "v3b 续接 corrected_v2 ep25，训练100回合12次成功、38次跌倒，未达稳定标准；final为probe选出的ep80，并非第100回合模型。"
+    },
+    {
+      "file": "lora_v3b/run_manifest.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/run_manifest.json",
+      "sha256": "15ea929b19d23e9c12f8a1f225e72959345dd7cc76fd28363f6b6bb7aff2f25a",
+      "bytes": 1267,
+      "interpretation_boundary": "v3b 续接 corrected_v2 ep25，训练100回合12次成功、38次跌倒，未达稳定标准；final为probe选出的ep80，并非第100回合模型。"
+    },
+    {
+      "file": "lora_v3b/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/summary.json",
+      "sha256": "09487818736bd83271a59d170698de7d96af239b4172ae22ab1c725b963ec9c7",
+      "bytes": 3191,
+      "interpretation_boundary": "v3b 续接 corrected_v2 ep25，训练100回合12次成功、38次跌倒，未达稳定标准；final为probe选出的ep80，并非第100回合模型。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-103/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-103/summary.json",
+      "sha256": "b9af4f81c24c5bdf83c577faf042e402dd12f52edc217fbbd660749345748fe4",
+      "bytes": 2566,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-103/config.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-103/config.json",
+      "sha256": "0d03f37d7b83ae251b0cc0291f4cc4a4af01f1daa67e08dc447635dccef76968",
+      "bytes": 2025,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-107/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-107/summary.json",
+      "sha256": "7f4225e2481c32725346f908a261a58c40f604943f719b3a6f8d5776401b086e",
+      "bytes": 2595,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-107/config.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-107/config.json",
+      "sha256": "b91ee92fd25e2a09b42a355ea46d93fdac99a39e2337f4150073db83ae48509e",
+      "bytes": 2025,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-109/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-109/summary.json",
+      "sha256": "73708e2f6eba486f68acb90d3c9b7b06e5d5ce9b266e0432be61ceed54d1c809",
+      "bytes": 2599,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-109/config.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-109/config.json",
+      "sha256": "cc807a378cadfc6b046bceab1c3614e9ebfbe789f02c9ffd600ced367413df95",
+      "bytes": 2025,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-113/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-113/summary.json",
+      "sha256": "72c17ba1dde7083c74c895424b74164936165f884babfa6f73a6ac0e2c13b72e",
+      "bytes": 2561,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "lora_v3b/final_validation/seed-113/config.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/lora_ppo_multiepisode/seed101_edge_slip_v2_100ep_corrected_v3b/final_validation/seed-113/config.json",
+      "sha256": "5f86999d317d6b5afbc9264a61fa70935069dcbd153713d9917eaad390ce15be",
+      "bytes": 2025,
+      "interpretation_boundary": "开发验证四地形seed之一；learned_frozen，关闭更新。103/113合格完成，107/109失败；不得称全新sealed结果。"
+    },
+    {
+      "file": "sac_v13/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/summary.json",
+      "sha256": "1fb0e74ed40b9917dabc1b21e1779b534832ff03d8745597d19dece860039032",
+      "bytes": 23289,
+      "interpretation_boundary": "100回合开发训练，47成功、25跌倒、650 Actor更新、143性能回滚，稳定成功为null。20seed冻结复测10/20 vs base9/20，4救回/3退化；源JSON明确为重复使用benchmark而非盲测。"
+    },
+    {
+      "file": "sac_v13/learning_state.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/learning_state.json",
+      "sha256": "e6dca78c3e56a5c2d72d0e478dbc1221e7638ccb321b4ab78e12ed72ff4e55f4",
+      "bytes": 8570,
+      "interpretation_boundary": "100回合开发训练，47成功、25跌倒、650 Actor更新、143性能回滚，稳定成功为null。20seed冻结复测10/20 vs base9/20，4救回/3退化；源JSON明确为重复使用benchmark而非盲测。"
+    },
+    {
+      "file": "sac_v13/run_manifest.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/run_manifest.json",
+      "sha256": "97bb82657099c39d5514c88b91e2cc5aca3a160fa92c3c4a80ba987b1f4ff63e",
+      "bytes": 8451,
+      "interpretation_boundary": "100回合开发训练，47成功、25跌倒、650 Actor更新、143性能回滚，稳定成功为null。20seed冻结复测10/20 vs base9/20，4救回/3退化；源JSON明确为重复使用benchmark而非盲测。"
+    },
+    {
+      "file": "sac_v13/best_checkpoint.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/best_checkpoint.json",
+      "sha256": "0d0254b83a8281df118ee1118f3c18a18dc85085cbfaf9d649bdd3533b7a71ea",
+      "bytes": 868,
+      "interpretation_boundary": "100回合开发训练，47成功、25跌倒、650 Actor更新、143性能回滚，稳定成功为null。20seed冻结复测10/20 vs base9/20，4救回/3退化；源JSON明确为重复使用benchmark而非盲测。"
+    },
+    {
+      "file": "residual_proprio49_retention_candidate.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/proprio49_drift1e5_candidate.json",
+      "sha256": "e33fdc08c96525c7a3f9d47c922a8a4cbb19962b443ee5b1a80ab2a26aeac174",
+      "bytes": 2738,
+      "interpretation_boundary": "49维纯本体感知开发候选v8，五seed平地保持5/5；台阶2cm基础策略也能完成，因此不能据此证明在线学习带来地形收益。"
+    },
+    {
+      "file": "asset_validation.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/asset_validation.json",
+      "sha256": "da1002a55b2c7fc4f87eb8eb39b74cc5e45b72ace544657012cac409ebe612bd",
+      "bytes": 1724,
+      "interpretation_boundary": "资产provenance和100000条平地replay核验，不能代替性能实验。"
+    },
+    {
+      "file": "historical_v24/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/online_validation_20260812/step4cm_fixed06_v24_fall_softreset_gpu2/summary.json",
+      "sha256": "e35d5d991c19c16c11e61942316ae747b7f6bb175b9ca05c20c5475250442cea",
+      "bytes": 1570,
+      "interpretation_boundary": "历史4cm功能验证：第23集首次成功，总43994步；顶层对照seed101，而成功集seed107，不能做严格同seed因果比较。"
+    },
+    {
+      "file": "historical_v24/episode23_summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/online_validation_20260812/step4cm_fixed06_v24_fall_softreset_gpu2/episodes/episode-0023/episode_summary.json",
+      "sha256": "f17065b5e409bc5ec4afc7700f61c49b049c05510484e1da567cfa2c0a667e48",
+      "bytes": 3031,
+      "interpretation_boundary": "seed107，1238步完成，Actor更新0、参数不变、Critic更新775；依靠跨回合累积策略，不是成功当集Actor更新证据。"
+    },
+    {
+      "file": "sac_transition_budget/summary.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_transition_budget_v1/summary.json",
+      "sha256": "2dfce674b32d60d75d55ddd749d41448e52d41c3c46ca121559f2be7b44480cb",
+      "bytes": 4128,
+      "interpretation_boundary": "28回合开发学习；第20回合开发选择模型的4场景验证为3/4，不是固定预算末模型的独立封存结果。"
+    },
+    {
+      "file": "sac_transition_budget/learning_state.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_transition_budget_v1/learning_state.json",
+      "sha256": "d7195c031438b391b3f08f77cdc8f55cfc4e474e46b748cdd254077ee6f62092",
+      "bytes": 4253,
+      "interpretation_boundary": "28回合开发学习；第20回合开发选择模型的4场景验证为3/4，不是固定预算末模型的独立封存结果。"
+    },
+    {
+      "file": "sac_transition_budget/run_manifest.json",
+      "original_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_transition_budget_v1/run_manifest.json",
+      "sha256": "b00ce1d822748b7315328b327bfbac4aecbf19fb1ff2bd187b5bd0593fd38ad3",
+      "bytes": 8533,
+      "interpretation_boundary": "28回合开发学习；第20回合开发选择模型的4场景验证为3/4，不是固定预算末模型的独立封存结果。"
+    }
+  ],
+  "metric_correction": "旧汇总JSON将velocity_error描述为forward error；当前worker实际计算平面速度向量误差L2范数。报告保留数字并按源码校正含义。"
+}

@@ -1,0 +1,759 @@
+{
+  "actor_updates": 650,
+  "base_control_passed": false,
+  "best_checkpoint": {
+    "base": {
+      "count": 4,
+      "falls": 1,
+      "mean_tilt_rms": 0.09537717984467325,
+      "mean_velocity_error": 0.1465849232258309,
+      "successes": 3
+    },
+    "checkpoint_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/episodes/episode-0050/experiment.pt",
+    "checkpoint_sha256": "38329236682b95ad34fcdada7c505b92d116f3680f77f4ea9e3e774770fa148d",
+    "episode": 50,
+    "flat_retention_passed": true,
+    "learned_frozen": {
+      "count": 4,
+      "falls": 1,
+      "mean_tilt_rms": 0.1131677755874348,
+      "mean_velocity_error": 0.1876603769341644,
+      "successes": 2
+    },
+    "learning_enabled": false,
+    "passed": false,
+    "rank": [
+      2,
+      -1,
+      -1.0217372924089432,
+      -0.1876603769341644,
+      -0.1131677755874348
+    ],
+    "seeds": [
+      103,
+      107,
+      109,
+      113
+    ]
+  },
+  "consecutive_successes": 3,
+  "critic_updates": 144508,
+  "cumulative_success_rate": 0.47,
+  "episodes_completed": 100,
+  "falls": 25,
+  "first_success_episode": 1,
+  "flat_probes": [
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "69131ec386dd6f9289d30decad9e998c9c101f7b4d278399fd48b70733a1072c",
+      "episode": 10,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.013118566447280922,
+        "mean_velocity_error": 0.03705144551338522,
+        "successes": 5
+      },
+      "passed": false
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "90a8cfbc9e30ced90d7bad831faccbc7a428285b4462a1b7e21b4833f6aead68",
+      "episode": 20,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.015979883408778896,
+        "mean_velocity_error": 0.03134421980609682,
+        "successes": 5
+      },
+      "passed": false
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "89955fe097cea6c5fe4ebefe1e5f11d66a7283c71dddc3e57f4f5d7b67e64def",
+      "episode": 30,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.014577435207917383,
+        "mean_velocity_error": 0.03224458712025884,
+        "successes": 5
+      },
+      "passed": false
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "c2f89824302888f8d49bdfa55bcc9b4f93a704b20fdf68ff78258ecf74d94468",
+      "episode": 40,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.010290818664283156,
+        "mean_velocity_error": 0.032492862812310695,
+        "successes": 5
+      },
+      "passed": false
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "38329236682b95ad34fcdada7c505b92d116f3680f77f4ea9e3e774770fa148d",
+      "episode": 50,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.009471550250972433,
+        "mean_velocity_error": 0.02944234058606867,
+        "successes": 5
+      },
+      "passed": true
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "65de018886bf56b10a4d7283964bdbaa8aed8ac63d6eb2c78451ccff9a12fc71",
+      "episode": 60,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.008576810881861945,
+        "mean_velocity_error": 0.03587626686999534,
+        "successes": 5
+      },
+      "passed": false
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "31f2c90f36c5be06d4196010a754e4e7f032c53ce5bff62d494bb11c04173f0e",
+      "episode": 70,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.009416834695782108,
+        "mean_velocity_error": 0.0276087787956374,
+        "successes": 5
+      },
+      "passed": true
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "f6831836c3891f15de6d62b1464dd942eba002dd1cea43f7ebd33a951831501a",
+      "episode": 80,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.009931697298413183,
+        "mean_velocity_error": 0.027960311701987473,
+        "successes": 5
+      },
+      "passed": true
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "ccd5a45f16603f5663e0b83d163f2537b8ff7ce1cbd701c4e38bd7d515802db4",
+      "episode": 90,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.009516237158337743,
+        "mean_velocity_error": 0.03204487410751473,
+        "successes": 5
+      },
+      "passed": false
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "9955fefa524d79de95ccc48ddf4b7f7cbf979c762eee95641ae263f6d0651a94",
+      "episode": 100,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.010178056982156168,
+        "mean_velocity_error": 0.03207811408180499,
+        "successes": 5
+      },
+      "passed": false
+    }
+  ],
+  "flat_retention_failures": 7,
+  "initial_residual_control_passed": false,
+  "last_policy_parameter_l2": 0.16455350816249847,
+  "latest_development_validation": {
+    "base": {
+      "count": 4,
+      "falls": 1,
+      "mean_tilt_rms": 0.09537717984467325,
+      "mean_velocity_error": 0.1465849232258309,
+      "successes": 3
+    },
+    "checkpoint_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/episodes/episode-0100/experiment.pt",
+    "checkpoint_sha256": "9955fefa524d79de95ccc48ddf4b7f7cbf979c762eee95641ae263f6d0651a94",
+    "episode": 100,
+    "flat_retention_passed": false,
+    "learned_frozen": {
+      "count": 4,
+      "falls": 1,
+      "mean_tilt_rms": 0.10537239583917601,
+      "mean_velocity_error": 0.16528359166334183,
+      "successes": 2
+    },
+    "learning_enabled": false,
+    "passed": false,
+    "rank": [
+      2,
+      -1,
+      -0.4337316155433655,
+      -0.16528359166334183,
+      -0.10537239583917601
+    ],
+    "seeds": [
+      103,
+      107,
+      109,
+      113
+    ]
+  },
+  "latest_flat_retention_passed": false,
+  "max_consecutive_successes": 6,
+  "max_policy_residual_mse": 9.994939318858087e-06,
+  "performance_rollbacks": 143,
+  "policy_drift_interpretation": "local_to_each_novelty_adaptation_episode_not_clean_initializer",
+  "recent_success_rate": 0.5,
+  "rollbacks": 143,
+  "safety_rollbacks": 0,
+  "safety_violations": 3,
+  "schema_version": 1,
+  "sealed_evaluation": {
+    "checkpoint_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_multiepisode/seed101_v13_statefix/episodes/episode-0050/experiment.pt",
+    "checkpoint_selection": "frozen_development_validation",
+    "checkpoint_sha256": "38329236682b95ad34fcdada7c505b92d116f3680f77f4ea9e3e774770fa148d",
+    "count": 20,
+    "falls": 5,
+    "frozen_success_rate": 0.45,
+    "frozen_success_rate_wilson95": [
+      0.2581978582556243,
+      0.6579146575496577
+    ],
+    "frozen_successes": 9,
+    "interpretation": "reused_heldout_benchmark_not_blind_confirmatory",
+    "learned_success_rate_wilson95": [
+      0.2992980081982123,
+      0.7007019918017877
+    ],
+    "learning_enabled": false,
+    "mean_tilt_rms": 0.11891712538741372,
+    "mean_velocity_error": 0.1901490068734934,
+    "paired_with_frozen": [
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.15562399667920546,
+        "frozen_velocity_error": 0.23304517427179963,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.12471198666209476,
+        "learned_velocity_error": 0.20398664597379507,
+        "terrain_seed": 1009
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.18147707004624772,
+        "frozen_velocity_error": 0.24183503036242976,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.19453187714517117,
+        "learned_velocity_error": 0.2998424168229103,
+        "terrain_seed": 1013
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.06860218477392754,
+        "frozen_velocity_error": 0.11006043047369304,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.06434304707275097,
+        "learned_velocity_error": 0.11216096172903442,
+        "terrain_seed": 1019
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.06564845723874115,
+        "frozen_velocity_error": 0.09615809243078839,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.05392882186775909,
+        "learned_velocity_error": 0.09746264111202352,
+        "terrain_seed": 1021
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.09218657030828632,
+        "frozen_velocity_error": 0.14989696696944785,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.11336033734328607,
+        "learned_velocity_error": 0.17586945417967131,
+        "terrain_seed": 1031
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.1670073038016449,
+        "frozen_velocity_error": 0.23683132989457134,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.17072616538717733,
+        "learned_velocity_error": 0.27875607259584784,
+        "terrain_seed": 1033
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.21199061519707488,
+        "frozen_velocity_error": 0.287105472397213,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.19823406302246147,
+        "learned_velocity_error": 0.2871778844149305,
+        "terrain_seed": 1039
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.09023057905706897,
+        "frozen_velocity_error": 0.13525251890341541,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.08562793588702335,
+        "learned_velocity_error": 0.13439895030809568,
+        "terrain_seed": 1049
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.07469076478507002,
+        "frozen_velocity_error": 0.12093649194112341,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.09028351065204587,
+        "learned_velocity_error": 0.14960719171348352,
+        "terrain_seed": 1051
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.1236053836595756,
+        "frozen_velocity_error": 0.17405711928691875,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.13130086835380644,
+        "learned_velocity_error": 0.21947020109184087,
+        "terrain_seed": 1061
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.1160738812945022,
+        "frozen_velocity_error": 0.19500509657315812,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.11227963075384241,
+        "learned_velocity_error": 0.1724549868479174,
+        "terrain_seed": 1063
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.10842435734119339,
+        "frozen_velocity_error": 0.16342745443297074,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.11224692181439605,
+        "learned_velocity_error": 0.18500144253403414,
+        "terrain_seed": 1069
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.16232414844632148,
+        "frozen_velocity_error": 0.2971142356991768,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.10920249106987155,
+        "learned_velocity_error": 0.17366808283051277,
+        "terrain_seed": 1087
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.10191780554238133,
+        "frozen_velocity_error": 0.15914873051947567,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.09098843064643197,
+        "learned_velocity_error": 0.14150674902871874,
+        "terrain_seed": 1091
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.1882324155447224,
+        "frozen_velocity_error": 0.2493026791918991,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.10694076377014311,
+        "learned_velocity_error": 0.17106710788968427,
+        "terrain_seed": 1093
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.2101888143569231,
+        "frozen_velocity_error": 0.29824313364923,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.1041802807955637,
+        "learned_velocity_error": 0.15654141196927113,
+        "terrain_seed": 1097
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.0985575154533601,
+        "frozen_velocity_error": 0.1637244878040853,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.15576963660120963,
+        "learned_velocity_error": 0.29984083685278895,
+        "terrain_seed": 1103
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.26258821940422056,
+        "frozen_velocity_error": 0.30023698592185977,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.12340742011658398,
+        "learned_velocity_error": 0.18924086401409299,
+        "terrain_seed": 1109
+      },
+      {
+        "frozen_passed": false,
+        "frozen_tilt_rms": 0.12444182441567142,
+        "frozen_velocity_error": 0.1881427981558512,
+        "learned_passed": false,
+        "learned_tilt_rms": 0.14425914293748793,
+        "learned_velocity_error": 0.21023881087894553,
+        "terrain_seed": 1117
+      },
+      {
+        "frozen_passed": true,
+        "frozen_tilt_rms": 0.100076901905875,
+        "frozen_velocity_error": 0.16242544568740414,
+        "learned_passed": true,
+        "learned_tilt_rms": 0.09201917584916791,
+        "learned_velocity_error": 0.14468742468226942,
+        "terrain_seed": 1123
+      }
+    ],
+    "per_seed": [
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1934,
+        "max_x": 4.506981372833252,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.12471198666209476,
+        "second_half_velocity_error": 0.20398664597379507,
+        "terrain_seed": 1009
+      },
+      {
+        "completion_remaining_m": 4.951259940862656,
+        "fell": false,
+        "interaction_steps": 2000,
+        "max_x": -0.45125994086265564,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.19453187714517117,
+        "second_half_velocity_error": 0.2998424168229103,
+        "terrain_seed": 1013
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1629,
+        "max_x": 4.500643730163574,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.06434304707275097,
+        "second_half_velocity_error": 0.11216096172903442,
+        "terrain_seed": 1019
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1678,
+        "max_x": 4.501088619232178,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.05392882186775909,
+        "second_half_velocity_error": 0.09746264111202352,
+        "terrain_seed": 1021
+      },
+      {
+        "completion_remaining_m": 1.6227812767028809,
+        "fell": true,
+        "interaction_steps": 1699,
+        "max_x": 2.877218723297119,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.11336033734328607,
+        "second_half_velocity_error": 0.17586945417967131,
+        "terrain_seed": 1031
+      },
+      {
+        "completion_remaining_m": 5.161068081855774,
+        "fell": true,
+        "interaction_steps": 1125,
+        "max_x": -0.6610680818557739,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.17072616538717733,
+        "second_half_velocity_error": 0.27875607259584784,
+        "terrain_seed": 1033
+      },
+      {
+        "completion_remaining_m": 4.660988464951515,
+        "fell": true,
+        "interaction_steps": 1292,
+        "max_x": -0.1609884649515152,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.19823406302246147,
+        "second_half_velocity_error": 0.2871778844149305,
+        "terrain_seed": 1039
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1599,
+        "max_x": 4.503190040588379,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.08562793588702335,
+        "second_half_velocity_error": 0.13439895030809568,
+        "terrain_seed": 1049
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1719,
+        "max_x": 4.503173351287842,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.09028351065204587,
+        "second_half_velocity_error": 0.14960719171348352,
+        "terrain_seed": 1051
+      },
+      {
+        "completion_remaining_m": 0.39696455001831055,
+        "fell": false,
+        "interaction_steps": 2000,
+        "max_x": 4.1030354499816895,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.13130086835380644,
+        "second_half_velocity_error": 0.21947020109184087,
+        "terrain_seed": 1061
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1890,
+        "max_x": 4.501295566558838,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.11227963075384241,
+        "second_half_velocity_error": 0.1724549868479174,
+        "terrain_seed": 1063
+      },
+      {
+        "completion_remaining_m": 0.5806260108947754,
+        "fell": false,
+        "interaction_steps": 2000,
+        "max_x": 3.9193739891052246,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.11224692181439605,
+        "second_half_velocity_error": 0.18500144253403414,
+        "terrain_seed": 1069
+      },
+      {
+        "completion_remaining_m": 4.00625666975975,
+        "fell": true,
+        "interaction_steps": 896,
+        "max_x": 0.49374333024024963,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.10920249106987155,
+        "second_half_velocity_error": 0.17366808283051277,
+        "terrain_seed": 1087
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1671,
+        "max_x": 4.502096652984619,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.09098843064643197,
+        "second_half_velocity_error": 0.14150674902871874,
+        "terrain_seed": 1091
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1974,
+        "max_x": 4.50649356842041,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.10694076377014311,
+        "second_half_velocity_error": 0.17106710788968427,
+        "terrain_seed": 1093
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1863,
+        "max_x": 4.500871181488037,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.1041802807955637,
+        "second_half_velocity_error": 0.15654141196927113,
+        "terrain_seed": 1097
+      },
+      {
+        "completion_remaining_m": 4.354970321059227,
+        "fell": false,
+        "interaction_steps": 2000,
+        "max_x": 0.145029678940773,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.15576963660120963,
+        "second_half_velocity_error": 0.29984083685278895,
+        "terrain_seed": 1103
+      },
+      {
+        "completion_remaining_m": 2.810248851776123,
+        "fell": true,
+        "interaction_steps": 1094,
+        "max_x": 1.689751148223877,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.12340742011658398,
+        "second_half_velocity_error": 0.18924086401409299,
+        "terrain_seed": 1109
+      },
+      {
+        "completion_remaining_m": 0.2512216567993164,
+        "fell": false,
+        "interaction_steps": 2000,
+        "max_x": 4.248778343200684,
+        "passed": false,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.14425914293748793,
+        "second_half_velocity_error": 0.21023881087894553,
+        "terrain_seed": 1117
+      },
+      {
+        "completion_remaining_m": 0.0,
+        "fell": false,
+        "interaction_steps": 1708,
+        "max_x": 4.503280162811279,
+        "passed": true,
+        "safety_violation": false,
+        "second_half_tilt_rms": 0.09201917584916791,
+        "second_half_velocity_error": 0.14468742468226942,
+        "terrain_seed": 1123
+      }
+    ],
+    "regressed_seeds": [
+      1031,
+      1061,
+      1069
+    ],
+    "rescued_seeds": [
+      1009,
+      1063,
+      1093,
+      1097
+    ],
+    "schema_version": 1,
+    "seeds": [
+      1009,
+      1013,
+      1019,
+      1021,
+      1031,
+      1033,
+      1039,
+      1049,
+      1051,
+      1061,
+      1063,
+      1069,
+      1087,
+      1091,
+      1093,
+      1097,
+      1103,
+      1109,
+      1117,
+      1123
+    ],
+    "success_rate": 0.5,
+    "successes": 10,
+    "terrain_split": "sealed"
+  },
+  "sealed_evaluation_complete": true,
+  "stability_criterion": {
+    "minimum_consecutive_successes": 3,
+    "minimum_success_rate": 0.8,
+    "requires_current_flat_retention": true,
+    "requires_frozen_development_improvement": true,
+    "window": 10
+  },
+  "stable_success_episode": null,
+  "status": "episode_cap_reached",
+  "successes": 47,
+  "terrain_seed": 101
+}

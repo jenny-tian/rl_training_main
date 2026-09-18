@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080">
+<rect width="100%" height="100%" fill="white"/>
+<text x="50" y="54.56" fill="#325f88" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="37" font-weight="500" text-anchor="start">双候选在线学习闭环</text>
+<rect x="50" y="88" width="1500" height="100" rx="12" fill="#f1f6fa" stroke="#b7c7d5" stroke-width="2"/>
+<text x="800" y="133.16" fill="#325f88" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="32" font-weight="500" text-anchor="middle">共同起点：唯一平地 PPO 基座 W0</text>
+<text x="800" y="173.88" fill="#68798a" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="26" font-weight="400" text-anchor="middle">A / B 分别运行；每个 session 独立初始化学习参数、优化器与数据</text>
+<rect x="50" y="322" width="225" height="116" rx="12" fill="#f7f9fb" stroke="#b7c7d5" stroke-width="2"/>
+<text x="162" y="366.4" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">本体观测</text>
+<text x="162" y="411.4" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">o(t)</text>
+<rect x="335" y="235" width="470" height="128" rx="12" fill="#f1f6fa" stroke="#b7c7d5" stroke-width="2"/>
+<text x="570" y="276.4" fill="#325f88" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">A  LoRA-PPO · 45 维</text>
+<text x="570" y="333.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">冻结 W0，仅更新低秩参数</text>
+<rect x="335" y="406" width="470" height="128" rx="12" fill="#f1f6fa" stroke="#b7c7d5" stroke-width="2"/>
+<text x="570" y="447.4" fill="#325f88" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">B  SAC · 49 维 × 25 帧</text>
+<text x="570" y="499.88" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="26" font-weight="400" text-anchor="middle">历史接口；冻结 PPO + 动作残差</text>
+<rect x="875" y="322" width="250" height="116" rx="12" fill="#f7f9fb" stroke="#b7c7d5" stroke-width="2"/>
+<text x="1000" y="365.52" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="29" font-weight="500" text-anchor="middle">共同动作过滤</text>
+<text x="1000" y="410.52" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="29" font-weight="500" text-anchor="middle">限幅 / 平滑</text>
+<rect x="1190" y="322" width="360" height="116" rx="12" fill="#f7f9fb" stroke="#b7c7d5" stroke-width="2"/>
+<text x="1370" y="366.4" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">Lite3 / Isaac Lab</text>
+<text x="1370" y="411.4" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">执行动作 a(t)</text>
+<polyline points="275,380 302,380 302,299 335,299" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="335.00,299.00 321.00,293.00 321.00,305.00" fill="#718aa1"/>
+<polyline points="302,380 302,470 335,470" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="335.00,470.00 321.00,464.00 321.00,476.00" fill="#718aa1"/>
+<polyline points="805,299 839,299 839,380 875,380" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="875.00,380.00 861.00,374.00 861.00,386.00" fill="#718aa1"/>
+<polyline points="805,470 839,470 839,380" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="1125,380 1190,380" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1190.00,380.00 1176.00,374.00 1176.00,386.00" fill="#718aa1"/>
+<text x="800" y="579.88" fill="#68798a" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="26" font-weight="400" text-anchor="middle">统一 45 维单帧对照待验收；候选分别运行，不串联</text>
+<polyline points="1370,438 1370,601 162,601 162,438" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="162.00,438.00 156.00,452.00 168.00,452.00" fill="#718aa1"/>
+<rect x="822" y="579" width="484" height="43" rx="0" fill="white" stroke="white" stroke-width="1"/>
+<text x="1063" y="607.76" fill="#68798a" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="27" font-weight="400" text-anchor="middle">新观测 o(t+1) 与回报 r(t)</text>
+<rect x="50" y="666" width="1500" height="258" rx="12" fill="#f7f9fb" stroke="#b7c7d5" stroke-width="2"/>
+<text x="77" y="713.52" fill="#325f88" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="29" font-weight="500" text-anchor="start">学习旁路：新交互驱动参数更新与版本发布</text>
+<polyline points="162,601 32,601 32,820 75,820" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round" stroke-dasharray="9 7"/>
+<polygon points="75.00,820.00 61.00,814.00 61.00,826.00" fill="#718aa1"/>
+<rect x="75" y="762" width="210" height="116" rx="12" fill="white" stroke="#b7c7d5" stroke-width="2"/>
+<rect x="325" y="762" width="280" height="116" rx="12" fill="white" stroke="#b7c7d5" stroke-width="2"/>
+<rect x="645" y="762" width="260" height="116" rx="12" fill="white" stroke="#b7c7d5" stroke-width="2"/>
+<rect x="945" y="762" width="230" height="116" rx="12" fill="white" stroke="#b7c7d5" stroke-width="2"/>
+<rect x="1215" y="762" width="305" height="116" rx="12" fill="white" stroke="#b7c7d5" stroke-width="2"/>
+<text x="180" y="809.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">新交互</text>
+<text x="180" y="853.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">o, a, r, o′</text>
+<text x="465" y="809.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">PPO rollout</text>
+<text x="465" y="853.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">或 SAC replay</text>
+<text x="775" y="809.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">参数优化</text>
+<text x="775" y="853.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">候选版本验证</text>
+<text x="1060" y="809.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">验证通过</text>
+<text x="1060" y="853.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">版本发布</text>
+<text x="1367" y="809.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">控制端装载</text>
+<text x="1367" y="853.64" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="28" font-weight="400" text-anchor="middle">执行候选版本</text>
+<polyline points="285,820 325,820" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="325.00,820.00 311.00,814.00 311.00,826.00" fill="#718aa1"/>
+<polyline points="605,820 645,820" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="645.00,820.00 631.00,814.00 631.00,826.00" fill="#718aa1"/>
+<polyline points="905,820 945,820" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="945.00,820.00 931.00,814.00 931.00,826.00" fill="#718aa1"/>
+<polyline points="1175,820 1215,820" fill="none" stroke="#718aa1" stroke-width="3" stroke-linejoin="round"/>
+<polygon points="1215.00,820.00 1201.00,814.00 1201.00,826.00" fill="#718aa1"/>
+<text x="801" y="972.4" fill="#325f88" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="30" font-weight="500" text-anchor="middle">冻结评测</text>
+<text x="800" y="1020.52" fill="#26394c" font-family="Noto Sans CJK SC, Noto Sans CJK JP, sans-serif" font-size="29" font-weight="400" text-anchor="middle">关闭参数更新，保留已学 LoRA / 残差参数，执行相同控制链路</text>
+</svg>

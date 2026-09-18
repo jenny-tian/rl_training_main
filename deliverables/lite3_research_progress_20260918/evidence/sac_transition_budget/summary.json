@@ -1,0 +1,146 @@
+{
+  "actor_updates": 68,
+  "base_control_passed": false,
+  "best_checkpoint": {
+    "base": {
+      "count": 4,
+      "falls": 1,
+      "mean_tilt_rms": 0.09537717984467325,
+      "mean_velocity_error": 0.1465849232258309,
+      "successes": 3
+    },
+    "checkpoint_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_transition_budget_v1/episodes/episode-0020/experiment.pt",
+    "checkpoint_sha256": "f00af79d48a3aa298a2b1203db859e205db1e4cda2ef13278e63907fbfaeee5a",
+    "episode": 20,
+    "flat_retention_passed": true,
+    "learned_frozen": {
+      "count": 4,
+      "falls": 0,
+      "mean_tilt_rms": 0.09018994091923335,
+      "mean_velocity_error": 0.1554894464346065,
+      "successes": 3
+    },
+    "learning_enabled": false,
+    "passed": false,
+    "rank": [
+      3,
+      0,
+      -0.1564207673072815,
+      -0.1554894464346065,
+      -0.09018994091923335
+    ],
+    "seeds": [
+      103,
+      107,
+      109,
+      113
+    ]
+  },
+  "consecutive_successes": 0,
+  "critic_updates": 23282,
+  "cumulative_success_rate": 0.35714285714285715,
+  "episodes_completed": 28,
+  "falls": 10,
+  "first_success_episode": 1,
+  "flat_probes": [
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "28a67d05f2d5980edc1aa912b03a086098af05ee9625a10438d24cf2495b98ff",
+      "episode": 10,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.012322002374572667,
+        "mean_velocity_error": 0.02933065426628696,
+        "successes": 5
+      },
+      "passed": true
+    },
+    {
+      "base": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.01420997388419778,
+        "mean_velocity_error": 0.028798866188020827,
+        "successes": 5
+      },
+      "checkpoint_sha256": "f00af79d48a3aa298a2b1203db859e205db1e4cda2ef13278e63907fbfaeee5a",
+      "episode": 20,
+      "learned_frozen": {
+        "count": 5,
+        "falls": 0,
+        "mean_tilt_rms": 0.012183441379111188,
+        "mean_velocity_error": 0.026942529275369987,
+        "successes": 5
+      },
+      "passed": true
+    }
+  ],
+  "flat_retention_failures": 0,
+  "initial_residual_control_passed": false,
+  "last_policy_parameter_l2": 0.1743929386138916,
+  "latest_development_validation": {
+    "base": {
+      "count": 4,
+      "falls": 1,
+      "mean_tilt_rms": 0.09537717984467325,
+      "mean_velocity_error": 0.1465849232258309,
+      "successes": 3
+    },
+    "checkpoint_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/semester_2026/09/rocky_road_transition_budget_v1/episodes/episode-0020/experiment.pt",
+    "checkpoint_sha256": "f00af79d48a3aa298a2b1203db859e205db1e4cda2ef13278e63907fbfaeee5a",
+    "episode": 20,
+    "flat_retention_passed": true,
+    "learned_frozen": {
+      "count": 4,
+      "falls": 0,
+      "mean_tilt_rms": 0.09018994091923335,
+      "mean_velocity_error": 0.1554894464346065,
+      "successes": 3
+    },
+    "learning_enabled": false,
+    "passed": false,
+    "rank": [
+      3,
+      0,
+      -0.1564207673072815,
+      -0.1554894464346065,
+      -0.09018994091923335
+    ],
+    "seeds": [
+      103,
+      107,
+      109,
+      113
+    ]
+  },
+  "latest_flat_retention_passed": true,
+  "max_consecutive_successes": 3,
+  "max_policy_residual_mse": 9.263014362659305e-06,
+  "performance_rollbacks": 22,
+  "policy_drift_interpretation": "local_to_each_novelty_adaptation_episode_not_clean_initializer",
+  "recent_success_rate": 0.2,
+  "rollbacks": 22,
+  "safety_rollbacks": 0,
+  "safety_violations": 0,
+  "schema_version": 1,
+  "sealed_evaluation": null,
+  "sealed_evaluation_complete": false,
+  "stability_criterion": {
+    "minimum_consecutive_successes": 3,
+    "minimum_success_rate": 0.8,
+    "requires_current_flat_retention": true,
+    "requires_frozen_development_improvement": true,
+    "window": 10
+  },
+  "stable_success_episode": null,
+  "status": "running",
+  "successes": 10,
+  "terrain_seed": 101
+}

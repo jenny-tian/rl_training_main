@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-09-06",
+  "status": "verified_for_reuse",
+  "base_checkpoint": {
+    "path": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+    "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "manifest_sha256": "da3e80d90aac722965dafdfea18b337076e45051247ea0c80b0f21fc232ff999",
+    "task": "Flat-Deeprobotics-Lite3-v0",
+    "terrain_assertion": "plane-only",
+    "ppo_observation_contract": "existing_45_dim_actor_interface",
+    "reused": true
+  },
+  "flat_replay": {
+    "path": "artifacts/online_validation_20260805/flat_replay_model1998_formal/flat_replay.pt",
+    "sha256": "65530abb816757bb354f490825bc783d2e1e91c011c386ef14d1cdd95218f881",
+    "manifest": "artifacts/online_validation_20260805/flat_replay_model1998_formal/flat_replay_manifest.json",
+    "manifest_sha256": "f380b26e9964f15f788a39d280a68054318e174f55e86d842cfe87fe077d246c",
+    "transition_count": 100000,
+    "frame_dim": 49,
+    "history_length": 25,
+    "action_dim": 12,
+    "frozen": true,
+    "falls": 0,
+    "safety_invalid_rows": 0,
+    "tensor_finite_check": true,
+    "reused": true,
+    "semantic_review": "reward_and_terminal_fields_read; full runtime recheck scheduled before residual initialization",
+    "full_file_sha256_rechecked": true,
+    "replay_hash_matches_manifest": true,
+    "baseline_manifest_hash_matches_replay_manifest": true
+  },
+  "legacy_pilot_boundary": {
+    "v10_and_v24_residuals_have_step_experience": true,
+    "usable_for_engineering_pilot": true,
+    "usable_as_flat_only_paper_initialization": false
+  },
+  "next_gate": "run_flat_retention_seed7_short_rollout"
+}
