@@ -24,12 +24,15 @@ def _args(tmp_path: Path) -> Namespace:
         max_steps_per_episode=2000,
         probe_interval=5,
         action_std=0.01,
+        actor_lr=5e-5,
+        critic_lr=5e-5,
         reference_anchor_coef=1.0,
         max_reference_mse=1e-4,
         stability_window=10,
         stability_min_success_rate=0.8,
         stability_min_consecutive_successes=3,
         video_probes=False,
+        video_episodes=False,
     )
 
 
@@ -53,6 +56,17 @@ def test_probe_is_deterministic_and_can_change_validation_seed(tmp_path):
     assert "--evaluation-only" in command
     assert command[command.index("--terrain-seed") + 1] == "109"
     assert "--stop-after-termination" not in command
+
+
+def test_resumed_training_propagates_requested_rates_and_video(tmp_path):
+    args = _args(tmp_path)
+    args.actor_lr, args.critic_lr = 1e-5, 3e-4
+    args.video_episodes = True
+    command = build_training_command(args, tmp_path / "episode", tmp_path / "verified.pt")
+    assert float(command[command.index("--actor-lr") + 1]) == 1e-5
+    assert float(command[command.index("--critic-lr") + 1]) == 3e-4
+    assert "--video" in command
+    assert command[command.index("--video-length") + 1] == "2000"
 
 
 def test_state_accumulates_updates_and_detects_stable_window(tmp_path):

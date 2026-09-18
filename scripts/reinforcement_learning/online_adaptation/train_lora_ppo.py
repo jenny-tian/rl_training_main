@@ -20,7 +20,7 @@ from isaaclab.app import AppLauncher
 
 
 CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
-LEARNING_CONTRACT = "fixed_command_qualification_boundary_v5"
+LEARNING_CONTRACT = "requested_action_ppo_runtime_config_v6"
 
 
 def _configure_forward_command(command_cfg, forward_speed: float) -> None:
@@ -242,7 +242,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--action-std",
         type=_positive_float,
         default=0.01,
-        help="initial Gaussian exploration standard deviation for online LoRA PPO",
+        help="Gaussian exploration standard deviation, applied after restoring training state",
     )
     parser.add_argument("--residual-rate-limit", type=_positive_float, default=0.03)
     parser.add_argument("--actor-lr", type=_positive_float, default=5e-5)
@@ -317,7 +317,11 @@ def main() -> int:
         from rl_training.online_adaptation.lora import inject_lora, lora_parameter_count, mark_only_lora_trainable
         from rl_training.online_adaptation.online_session import OnlinePPOSession
         from rl_training.online_adaptation.ppo_online import OnlinePPOUpdater, PPOConfig
-        from rl_training.online_adaptation.ppo_rollout import PPORollout
+        from rl_training.online_adaptation.ppo_safety import SAMPLING_CONTRACT, requested_action_rollout
+        from rl_training.online_adaptation.ppo_runtime_config import (
+            apply_ppo_runtime_config,
+            read_ppo_runtime_config,
+        )
         from rl_training.online_adaptation.progress_novelty import ForwardProgressMonitor
         from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
@@ -449,6 +453,24 @@ def main() -> int:
                 if not isinstance(checkpoint_session, dict):
                     raise ValueError("online PPO checkpoint is missing session state")
                 session.load_state_dict(checkpoint_session)
+            effective_runtime_config = (
+                read_ppo_runtime_config(session)
+                if args.evaluation_only else apply_ppo_runtime_config(
+                    session, action_std=args.action_std,
+                    actor_lr=args.actor_lr, critic_lr=args.critic_lr,
+                )
+            )
+            initial_policy_version = effective_runtime_config.pop("policy_version")
+            (output / "config.json").write_text(
+                json.dumps(
+                    {**vars(args), "contact_termination": CONTACT_TERMINATION_PROTOCOL,
+                     "learning_contract": LEARNING_CONTRACT,
+                     "sampling_contract": SAMPLING_CONTRACT,
+                     "effective_runtime_config": effective_runtime_config,
+                     "initial_policy_version": initial_policy_version},
+                    indent=2, default=str,
+                ) + "\n", encoding="utf-8",
+            )
             reward_adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped, terrain_feature_source="proprio")
             initial_x = float(reward_adapter.base_x().mean().item())
             initial_y = float(reward_adapter.base_y().mean().item())
@@ -639,27 +661,25 @@ def main() -> int:
                         reward_tensor, float(args.terminal_failure_penalty)
                     ).to(dtype=torch.float32)
                 if not args.evaluation_only:
-                    valid_mask = (~safety_decision.projected & ~safety_decision.paused).to(
-                        dtype=torch.float32
-                    )
                     with torch.no_grad():
                         next_value_raw = critic(value_observation)
                         next_value = next_value_raw * (~learning_terminated).to(dtype=next_value_raw.dtype)
-                    session.append(PPORollout(
-                        observations=obs_tensor.detach(),
-                        actions=requested_action.detach(),
-                        old_log_probs=old_log_prob.detach(),
-                        old_values=old_value.detach(),
-                        rewards=reward_tensor.detach(),
-                        terminated=learning_terminated.detach(),
-                        truncated=learning_truncated.detach(),
-                        next_values=next_value.detach(),
+                    transition = requested_action_rollout(
+                        observations=obs_tensor,
+                        requested_actions=requested_action,
+                        old_log_probs=old_log_prob,
+                        old_values=old_value,
+                        rewards=reward_tensor,
+                        terminated=learning_terminated,
+                        truncated=learning_truncated,
+                        next_values=next_value,
                         policy_version=version,
-                        valid_mask=valid_mask.detach(),
-                    ))
+                        safety_decision=safety_decision,
+                    )
+                    session.append(transition)
                     anchor_observations.append(obs_tensor.detach())
                     anchor_means.append(reference_mean.detach())
-                    pending_valid_steps += int(valid_mask.sum().item())
+                    pending_valid_steps += int(transition.valid_mask.sum().item())
                 rows.append({
                     "step": step + 1,
                     "reward": float(reward_tensor.mean()),
@@ -684,7 +704,7 @@ def main() -> int:
                     "safety_projection_max_abs": float(
                         (current_residual - requested_residual).abs().max()
                     ),
-                    "ppo_valid": bool((~safety_decision.projected & ~safety_decision.paused).all()),
+                    "ppo_valid": bool((~safety_decision.paused).all()),
                     "forward_progress": float(forward_progress.mean()),
                     "lateral_deviation": float(lateral_deviation.mean()),
                     "progress_stalled": bool(progress_decision.stalled),
@@ -764,7 +784,7 @@ def main() -> int:
                         anchor_means.clear()
                         pending_valid_steps = 0
                         record = {
-                            "event": "discard_no_executed_action_match",
+                            "event": "discard_all_paused",
                             "discarded_transitions": discarded,
                             "policy_version": updater.policy_version,
                         }
@@ -815,6 +835,8 @@ def main() -> int:
                 {
                     "schema_version": 1,
                     "learning_contract": LEARNING_CONTRACT,
+                    "sampling_contract": SAMPLING_CONTRACT,
+                    "effective_runtime_config": effective_runtime_config,
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
                     "contact_termination": CONTACT_TERMINATION_PROTOCOL,
@@ -860,6 +882,8 @@ def main() -> int:
             summary = {
                 "mode": "learned_frozen" if args.evaluation_only else "online_learning",
                 "learning_contract": LEARNING_CONTRACT,
+                "sampling_contract": SAMPLING_CONTRACT,
+                "effective_runtime_config": effective_runtime_config,
                 "evaluation_only": bool(args.evaluation_only),
                 "steps": steps,
                 "max_steps": args.max_steps,
@@ -929,16 +953,6 @@ def main() -> int:
             }
             (output / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=False) + "\n",
-                encoding="utf-8",
-            )
-            (output / "config.json").write_text(
-                json.dumps(
-                    {**vars(args), "contact_termination": CONTACT_TERMINATION_PROTOCOL,
-                     "learning_contract": LEARNING_CONTRACT},
-                    indent=2,
-                    default=str,
-                )
-                + "\n",
                 encoding="utf-8",
             )
         finally:

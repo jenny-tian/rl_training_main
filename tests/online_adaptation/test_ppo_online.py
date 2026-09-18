@@ -1,4 +1,5 @@
 import copy
+import json
 
 import pytest
 import torch
@@ -121,6 +122,80 @@ def test_reference_anchor_limit_rejects_policy_drift_and_restores_actor():
     assert stats.rejection_reason == "anchor_mse"
     for key, value in before.items():
         torch.testing.assert_close(policy.state_dict()[key], value)
+
+
+def make_diagnostic_rollout(policy, critic, *, rewards, valid_mask):
+    with torch.no_grad():
+        critic.linear.weight.copy_(torch.tensor([[1.0, 0.0]]))
+        critic.linear.bias.zero_()
+        observations = torch.tensor([[1.0, 0.0], [99.0, 0.0], [2.0, 0.0], [4.0, 0.0]])
+        distribution = policy.get_distribution(observations)
+        actions = distribution.mean + torch.tensor([[0.2], [0.4], [-0.3], [0.1]])
+        return PPORollout(
+            observations=observations,
+            actions=actions,
+            old_log_probs=distribution.log_prob(actions).sum(-1, keepdim=True),
+            old_values=critic(observations),
+            rewards=torch.tensor(rewards).reshape(-1, 1),
+            terminated=torch.ones(4, 1),
+            truncated=torch.zeros(4, 1),
+            next_values=torch.zeros(4, 1),
+            valid_mask=torch.tensor(valid_mask).reshape(-1, 1),
+        )
+
+
+@pytest.mark.parametrize("target_kl,accepted", [(None, True), (1e-12, False)])
+def test_update_diagnostics_measure_raw_valid_rows_before_acceptance_or_rejection(target_kl, accepted):
+    torch.manual_seed(21)
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(
+        policy,
+        critic,
+        PPOConfig(target_kl=target_kl, actor_lr=0.1, critic_lr=0.1, epochs=3, minibatch_size=4),
+    )
+    # The masked row must not influence means, variance, or the unique count.
+    # Every row terminates, so its return is exactly its reward.
+    rollout = make_diagnostic_rollout(
+        policy, critic, rewards=[2.0, 1000.0, 4.0, 8.0], valid_mask=[1, 0, 1, 1]
+    )
+    critic_before = copy.deepcopy(critic.state_dict())
+    stats = updater.update(rollout)
+
+    assert stats.accepted is accepted
+    assert stats.value_mean == pytest.approx(7.0 / 3.0)
+    assert stats.return_mean == pytest.approx(14.0 / 3.0)
+    assert stats.advantage_mean == pytest.approx(7.0 / 3.0)
+    assert stats.advantage_std == pytest.approx((14.0 / 9.0) ** 0.5)
+    assert stats.explained_variance == pytest.approx(0.75)
+    assert stats.num_valid_samples == 3
+    assert stats.total_rollout_samples == 4
+    assert stats.num_samples == 9  # Three epochs, preserving the existing metric.
+    json.dumps(stats.__dict__, allow_nan=False)
+    if accepted:
+        with torch.no_grad():
+            current_value_mean = float(critic(rollout.observations)[rollout.valid_mask.bool()].mean())
+        assert current_value_mean != pytest.approx(stats.value_mean)
+    else:
+        assert stats.rejection_reason == "target_kl"
+        for key, value in critic_before.items():
+            torch.testing.assert_close(critic.state_dict()[key], value)
+
+
+@pytest.mark.parametrize("valid_mask", [[1, 0, 1, 1], [1, 0, 0, 0]])
+def test_constant_valid_returns_have_no_explained_variance_and_serialize_as_null(valid_mask):
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(policy, critic, PPOConfig(target_kl=None, minibatch_size=4))
+    rollout = make_diagnostic_rollout(
+        policy, critic, rewards=[7.0, 1000.0, 7.0, 7.0], valid_mask=valid_mask
+    )
+    stats = updater.update(rollout)
+    assert stats.accepted
+    assert stats.return_mean == 7.0
+    assert stats.explained_variance is None
+    assert stats.num_valid_samples == sum(valid_mask)
+    if sum(valid_mask) == 1:
+        assert stats.advantage_std == 0.0
+    assert json.loads(json.dumps(stats.__dict__, allow_nan=False))["explained_variance"] is None
 
 
 def test_rollout_rejects_mixed_episode_endings_and_non_requested_actions():

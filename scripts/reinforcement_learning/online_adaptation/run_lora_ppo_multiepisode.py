@@ -63,12 +63,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-steps-per-episode", type=_positive_int, default=2_000)
     parser.add_argument("--probe-interval", type=_positive_int, default=5)
     parser.add_argument("--action-std", type=_positive_float, default=0.01)
+    parser.add_argument("--actor-lr", type=_positive_float, default=5e-5)
+    parser.add_argument("--critic-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--reference-anchor-coef", type=_nonnegative_float, default=1.0)
     parser.add_argument("--max-reference-mse", type=_positive_float, default=1e-4)
     parser.add_argument("--stability-window", type=_positive_int, default=10)
     parser.add_argument("--stability-min-success-rate", type=_unit_interval, default=0.8)
     parser.add_argument("--stability-min-consecutive-successes", type=_positive_int, default=3)
     parser.add_argument("--video-probes", action="store_true")
+    parser.add_argument("--video-episodes", action="store_true")
     return parser
 
 
@@ -112,9 +115,9 @@ def _common_command(
         "--residual-rate-limit",
         "0.03",
         "--actor-lr",
-        "0.00005",
+        str(args.actor_lr),
         "--critic-lr",
-        "0.00005",
+        str(args.critic_lr),
         "--nonfoot-contact-rollback-force",
         "20",
         "--ppo-epochs",
@@ -159,7 +162,7 @@ def build_training_command(
     episode: int = 1,
 ) -> list[str]:
     simulation_seed = args.simulation_seed + (episode - 1) * args.training_seed_stride
-    return [
+    command = [
         *_common_command(
             args,
             run_dir,
@@ -168,6 +171,9 @@ def build_training_command(
         ),
         "--stop-after-termination",
     ]
+    if args.video_episodes:
+        command.extend(("--video", "--video-length", str(args.max_steps_per_episode)))
+    return command
 
 
 def build_probe_command(
@@ -387,8 +393,9 @@ def _record(path: Path, record: Mapping[str, object]) -> None:
 def _manifest(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
-        "experiment": "fixed_development_lora_ppo_multiepisode_v5",
-        "learning_contract": "fixed_command_qualification_boundary_v5",
+        "experiment": "fixed_development_lora_ppo_multiepisode_v6",
+        "learning_contract": "requested_action_ppo_runtime_config_v6",
+        "sampling_contract": "requested_gaussian_through_fixed_safety_v1",
         "candidate_retention": "retain_until_deterministic_probe_v1",
         "base_checkpoint": str(Path(args.base_checkpoint).resolve()),
         "base_checkpoint_sha256": sha256_file(args.base_checkpoint),
@@ -405,6 +412,8 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         "max_steps_per_episode": args.max_steps_per_episode,
         "probe_interval": args.probe_interval,
         "action_std": args.action_std,
+        "actor_lr": args.actor_lr,
+        "critic_lr": args.critic_lr,
         "reference_anchor_coef": args.reference_anchor_coef,
         "max_reference_mse": args.max_reference_mse,
         "reward_contract": "progress_stall_completion_body_feet_failure_v3",
@@ -413,6 +422,8 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         "protocol_sha256": default_flat_online_protocol().sha256(),
         "completion_qualification_version": default_flat_online_protocol().completion_qualification_version,
         "physical_gpu": args.physical_gpu,
+        "video_episodes": args.video_episodes,
+        "video_probes": args.video_probes,
     }
 
 

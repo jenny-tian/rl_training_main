@@ -80,6 +80,15 @@ class PPOUpdateStats:
     num_samples: int
     policy_version_before: int
     policy_version_after: int
+    # Diagnostics use each valid rollout row once, before any optimization or
+    # advantage normalization.  num_samples retains its epoch-weighted count.
+    value_mean: float | None = None
+    return_mean: float | None = None
+    advantage_mean: float | None = None
+    advantage_std: float | None = None
+    explained_variance: float | None = None
+    num_valid_samples: int = 0
+    total_rollout_samples: int = 0
 
 
 def _as_column(value: Tensor, name: str) -> Tensor:
@@ -292,6 +301,29 @@ class OnlinePPOUpdater:
             valid = torch.ones_like(advantages)
         if not bool((valid.sum() > 0).item()):
             raise ValueError("rollout contains no valid rows")
+        # Saved values are the critic predictions made while collecting this
+        # block.  Compute diagnostics before normalizing advantages or changing
+        # the critic, so rejected candidates report the same input statistics.
+        valid_rows = valid.bool()
+        diagnostic_values = rollout.old_values.detach()[valid_rows].to(dtype=torch.float64)
+        diagnostic_returns = returns.detach()[valid_rows].to(dtype=torch.float64)
+        diagnostic_advantages = advantages.detach()[valid_rows].to(dtype=torch.float64)
+        return_variance = float(diagnostic_returns.var(unbiased=False))
+        explained_variance = None
+        if math.isfinite(return_variance) and return_variance > 0.0:
+            residual_variance = float((diagnostic_returns - diagnostic_values).var(unbiased=False))
+            candidate_explained_variance = 1.0 - residual_variance / return_variance
+            if math.isfinite(candidate_explained_variance):
+                explained_variance = candidate_explained_variance
+        diagnostics = {
+            "value_mean": float(diagnostic_values.mean()),
+            "return_mean": float(diagnostic_returns.mean()),
+            "advantage_mean": float(diagnostic_advantages.mean()),
+            "advantage_std": float(diagnostic_advantages.std(unbiased=False)),
+            "explained_variance": explained_variance,
+            "num_valid_samples": diagnostic_advantages.numel(),
+            "total_rollout_samples": rollout.length,
+        }
         if self.config.normalize_advantages:
             selected = advantages[valid.bool()]
             advantages = (advantages - selected.mean()) / selected.std(unbiased=False).clamp_min(1e-8)
@@ -384,6 +416,7 @@ class OnlinePPOUpdater:
                 False, reason, approx_kl, total_actor / total_count, total_value / total_count,
                 total_entropy / total_count, total_clip / total_count, total_count,
                 self.policy_version, self.policy_version,
+                **diagnostics,
             )
         previous = self.policy_version
         self.policy_version += 1
@@ -391,6 +424,7 @@ class OnlinePPOUpdater:
             True, None, approx_kl, total_actor / total_count, total_value / total_count,
             total_entropy / total_count, total_clip / total_count, total_count,
             previous, self.policy_version,
+            **diagnostics,
         )
 
 
