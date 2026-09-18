@@ -16,6 +16,7 @@ from rl_training.online_adaptation.terrain_protocol import default_flat_online_p
 
 TASK = "RockyRoad-Deeprobotics-Lite3-v0"
 SCHEMA_VERSION = 1
+PROBE_FAILURE_POLICIES = ("rollback", "continue_candidate")
 
 
 def _positive_int(value: str) -> int:
@@ -54,6 +55,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="optional verified LoRA checkpoint used as the initial and recovery branch",
     )
+    parser.add_argument(
+        "--initial-training-checkpoint",
+        default=None,
+        help="optional unverified checkpoint used only to start the training branch",
+    )
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("--terrain-seed", type=int, default=101)
     parser.add_argument("--simulation-seed", type=int, default=7)
@@ -62,6 +68,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-episodes", type=_positive_int, default=100)
     parser.add_argument("--max-steps-per-episode", type=_positive_int, default=2_000)
     parser.add_argument("--probe-interval", type=_positive_int, default=5)
+    parser.add_argument(
+        "--probe-failure-policy",
+        choices=PROBE_FAILURE_POLICIES,
+        default="rollback",
+        help="rollback to verified recovery or continue training the unverified candidate after a failed probe",
+    )
     parser.add_argument("--action-std", type=_positive_float, default=0.01)
     parser.add_argument("--actor-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--critic-lr", type=_positive_float, default=5e-5)
@@ -271,13 +283,29 @@ def apply_probe_result(
     probe_passed: bool,
     training_success: bool,
     fallback_checkpoint: Path | None = None,
+    probe_failure_policy: str = "rollback",
 ) -> tuple[dict[str, Any], Path | None]:
-    """Choose the next branch, preferring a deterministically verified checkpoint."""
+    """Choose a training continuation; only a passing frozen probe promotes it."""
 
+    if probe_failure_policy not in PROBE_FAILURE_POLICIES:
+        raise ValueError("unknown probe failure policy")
     updated = dict(state)
+    updated["probe_failure_policy"] = probe_failure_policy
+    updated["probe_failures"] = int(updated.get("probe_failures", updated.get("probe_rollbacks", 0)))
+    updated["probe_rollbacks"] = int(updated.get("probe_rollbacks", 0))
+    updated["probe_retained_candidates"] = int(updated.get("probe_retained_candidates", 0))
     current_path = str(checkpoint.resolve())
     current_sha256 = sha256_file(checkpoint)
+    latest_probe = {
+        "episode": episode,
+        "successful_completion": probe_passed,
+        "checkpoint_sha256": current_sha256,
+        "continuation_checkpoint": current_path,
+        "rollback_checkpoint": None,
+    }
+    updated["latest_probe"] = latest_probe
     if probe_passed:
+        latest_probe["action"] = "promote"
         updated.update(
             {
                 "best_checkpoint": current_path,
@@ -296,16 +324,29 @@ def apply_probe_result(
         )
         return updated, checkpoint
 
+    updated["probe_failures"] += 1
+    if probe_failure_policy == "continue_candidate":
+        updated["probe_retained_candidates"] += 1
+        updated["resume_checkpoint"] = current_path
+        latest_probe["action"] = "continue_candidate"
+        return updated, checkpoint
+
     fallback = (
         str(fallback_checkpoint.resolve())
         if fallback_checkpoint is not None
         else updated.get("recovery_checkpoint") or updated.get("best_checkpoint")
     )
-    updated["probe_rollbacks"] = int(updated.get("probe_rollbacks", 0)) + 1
+    fallback = str(Path(str(fallback)).resolve()) if fallback is not None else None
+    rolled_back = fallback != current_path
+    updated["probe_rollbacks"] += int(rolled_back)
     updated["resume_checkpoint"] = fallback
-    if fallback is not None:
-        updated["recovery_checkpoint"] = fallback
-        updated["recovery_checkpoint_sha256"] = sha256_file(Path(str(fallback)))
+    latest_probe.update(
+        action="rollback" if rolled_back else "unchanged",
+        continuation_checkpoint=fallback,
+        rollback_checkpoint=fallback if rolled_back else None,
+    )
+    # A fallback selection is not new verification. In particular, an
+    # explicitly supplied training checkpoint must not become recovery here.
     return updated, Path(str(fallback)) if fallback is not None else None
 
 
@@ -327,6 +368,9 @@ def _initial_state(args: argparse.Namespace) -> dict[str, Any]:
         str(Path(args.initial_checkpoint).resolve()) if args.initial_checkpoint else None
     )
     initial_sha256 = sha256_file(args.initial_checkpoint) if args.initial_checkpoint else None
+    initial_training_checkpoint = (
+        str(Path(args.initial_training_checkpoint).resolve()) if args.initial_training_checkpoint else None
+    )
     return {
         "schema_version": SCHEMA_VERSION,
         "status": "running",
@@ -349,7 +393,7 @@ def _initial_state(args: argparse.Namespace) -> dict[str, Any]:
         "policy_version": 0,
         "latest_checkpoint": None,
         "latest_checkpoint_sha256": None,
-        "resume_checkpoint": initial_checkpoint,
+        "resume_checkpoint": initial_training_checkpoint or initial_checkpoint,
         "recovery_checkpoint": initial_checkpoint,
         "recovery_checkpoint_sha256": initial_sha256,
         "recovery_checkpoint_episode": 0 if initial_checkpoint else None,
@@ -360,7 +404,10 @@ def _initial_state(args: argparse.Namespace) -> dict[str, Any]:
         "best_checkpoint_sha256": initial_sha256,
         "best_checkpoint_episode": 0 if initial_checkpoint else None,
         "best_checkpoint_source": "initial_verified_checkpoint" if initial_checkpoint else None,
+        "probe_failure_policy": args.probe_failure_policy,
+        "probe_failures": 0,
         "probe_rollbacks": 0,
+        "probe_retained_candidates": 0,
         "latest_probe": None,
         "stability_window": args.stability_window,
         "stability_min_success_rate": args.stability_min_success_rate,
@@ -395,11 +442,12 @@ def _record(path: Path, record: Mapping[str, object]) -> None:
 def _manifest(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
-        "experiment": "fixed_development_lora_ppo_multiepisode_v7",
+        "experiment": "fixed_development_lora_ppo_multiepisode_v8",
         "learning_contract": "requested_ppo_absorbing_success_critic_context_v7",
         "sampling_contract": "requested_gaussian_through_fixed_safety_v1",
         "critic_observation_schema": "policy_plus_body_velocity_xy_elapsed_v1",
-        "candidate_retention": "retain_until_deterministic_probe_v1",
+        "candidate_retention": "verified_recovery_with_optional_training_continuation_v2",
+        "probe_failure_policy": args.probe_failure_policy,
         "base_checkpoint": str(Path(args.base_checkpoint).resolve()),
         "base_checkpoint_sha256": sha256_file(args.base_checkpoint),
         "initial_checkpoint": (
@@ -407,6 +455,12 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         ),
         "initial_checkpoint_sha256": (
             sha256_file(args.initial_checkpoint) if args.initial_checkpoint else None
+        ),
+        "initial_training_checkpoint": (
+            str(Path(args.initial_training_checkpoint).resolve()) if args.initial_training_checkpoint else None
+        ),
+        "initial_training_checkpoint_sha256": (
+            sha256_file(args.initial_training_checkpoint) if args.initial_training_checkpoint else None
         ),
         "terrain_seed": args.terrain_seed,
         "simulation_seed": args.simulation_seed,
@@ -431,6 +485,21 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def _manifest_matches(saved: Mapping[str, object], expected: Mapping[str, object]) -> bool:
+    if saved == expected:
+        return True
+    # The v7 supervisor had only rollback and no separate initial candidate.
+    # Its existing manifest remains valid only with those same defaults.
+    if expected["probe_failure_policy"] != "rollback" or expected["initial_training_checkpoint"] is not None:
+        return False
+    legacy = dict(expected)
+    for key in ("probe_failure_policy", "initial_training_checkpoint", "initial_training_checkpoint_sha256"):
+        legacy.pop(key)
+    legacy["experiment"] = "fixed_development_lora_ppo_multiepisode_v7"
+    legacy["candidate_retention"] = "retain_until_deterministic_probe_v1"
+    return saved == legacy
+
+
 def _prepare(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
     if args.stability_min_consecutive_successes > args.stability_window:
         raise ValueError("consecutive success requirement exceeds stability window")
@@ -438,16 +507,23 @@ def _prepare(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
         raise ValueError("terrain seed must belong to the development split")
     if args.initial_checkpoint is not None and not Path(args.initial_checkpoint).is_file():
         raise ValueError("initial checkpoint does not exist")
+    if args.initial_training_checkpoint is not None and not Path(args.initial_training_checkpoint).is_file():
+        raise ValueError("initial training checkpoint does not exist")
+    if args.probe_failure_policy not in PROBE_FAILURE_POLICIES:
+        raise ValueError("unknown probe failure policy")
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
     manifest = _manifest(args)
     manifest_path = output / "run_manifest.json"
-    if manifest_path.exists() and _load_json(manifest_path) != manifest:
+    if manifest_path.exists() and not _manifest_matches(_load_json(manifest_path), manifest):
         raise ValueError("resume configuration differs from the saved manifest")
     if not manifest_path.exists():
         write_json_atomic(manifest_path, manifest)
     state_path = output / "learning_state.json"
     state = _load_json(state_path) if state_path.exists() else _initial_state(args)
+    state.setdefault("probe_failure_policy", args.probe_failure_policy)
+    state.setdefault("probe_failures", int(state.get("probe_rollbacks", 0)))
+    state.setdefault("probe_retained_candidates", 0)
     # Only a deterministic probe can promote the recovery branch.  A failed
     # training episode still carries useful updates until the next probe.
     best_is_probe_verified = state.get("best_checkpoint_source") == "deterministic_probe"
@@ -501,11 +577,6 @@ def main() -> int:
             probe_dir = output / "probes" / f"episode-{episode:04d}" / f"seed-{args.terrain_seed}"
             _run(build_probe_command(args, probe_dir, candidate_checkpoint), probe_dir)
             probe_summary = _load_json(probe_dir / "summary.json")
-            state["latest_probe"] = {
-                "episode": episode,
-                "successful_completion": _successful(probe_summary),
-                "checkpoint_sha256": sha256_file(candidate_checkpoint),
-            }
             state, checkpoint = apply_probe_result(
                 state,
                 episode=episode,
@@ -517,9 +588,7 @@ def main() -> int:
                     if recovery_before_episode
                     else None
                 ),
-            )
-            state["latest_probe"]["rollback_checkpoint"] = (
-                str(checkpoint.resolve()) if checkpoint is not None else None
+                probe_failure_policy=args.probe_failure_policy,
             )
         write_json_atomic(output / "learning_state.json", state)
         if probe_due and stable_success_reached(
