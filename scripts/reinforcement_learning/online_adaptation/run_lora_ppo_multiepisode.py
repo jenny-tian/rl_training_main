@@ -66,6 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--training-seed-stride", type=_positive_int, default=1)
     parser.add_argument("--physical-gpu", type=int, choices=(0, 1, 3), default=1)
     parser.add_argument("--single-gpu-renderer", action="store_true")
+    parser.add_argument("--proprioceptive-context", action="store_true")
     parser.add_argument("--max-episodes", type=_positive_int, default=100)
     parser.add_argument("--max-steps-per-episode", type=_positive_int, default=2_000)
     parser.add_argument("--probe-interval", type=_positive_int, default=5)
@@ -169,6 +170,8 @@ def _common_command(
         command.extend(("--checkpoint-in", str(checkpoint)))
     if args.flat_anchor_observations is not None:
         command.extend(("--flat-anchor-observations", str(Path(args.flat_anchor_observations).resolve())))
+    if args.proprioceptive_context:
+        command.append("--proprioceptive-context")
     if args.single_gpu_renderer:
         command.append(
             f"--kit_args=--/renderer/activeGpu={args.physical_gpu} "
@@ -504,6 +507,17 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         )
     if args.single_gpu_renderer:
         manifest["renderer_device_policy"] = "single_physical_gpu_v1"
+    if args.proprioceptive_context:
+        from rl_training.online_adaptation.ppo_context_policy import CONTEXT_POLICY_OBSERVATION_SCHEMA
+
+        manifest.update(
+            experiment="fixed_development_lora_ppo_multiepisode_v10",
+            learning_contract="requested_ppo_proprioceptive_context_v10",
+            actor_observation_schema=CONTEXT_POLICY_OBSERVATION_SCHEMA,
+            critic_observation_schema="policy45_velocity_xy_elapsed_odometry3_v1",
+            proprioceptive_context=True,
+            source_anchor_context="zero_initial_context_only",
+        )
     return manifest
 
 

@@ -23,6 +23,9 @@ CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
 LEARNING_CONTRACT = "requested_ppo_absorbing_success_critic_context_v7"
 REWARD_CONTRACT = "absorbing_success_explicit_task_deadline_v4"
 CRITIC_OBSERVATION_SCHEMA = "policy_plus_body_velocity_xy_elapsed_v1"
+BASE_POLICY_OBSERVATION_SCHEMA = "lite3_policy45_v1"
+CONTEXT_LEARNING_CONTRACT = "requested_ppo_proprioceptive_context_v10"
+CONTEXT_CRITIC_OBSERVATION_SCHEMA = "policy45_velocity_xy_elapsed_odometry3_v1"
 
 
 def _prepare_evaluation_args(args: argparse.Namespace) -> None:
@@ -46,6 +49,76 @@ def _finalize_checkpoint(session, *, evaluation_only: bool,
     return session.finalize_for_checkpoint(
         restore_unverified_candidate=not (evaluation_only or retain_terminal_learning or completion_stop)
     )
+
+
+def _append_odometry_context(observation, context):
+    """Append a separately measured context without changing the base input."""
+    import torch
+
+    if context is None:
+        return observation
+    if (not isinstance(observation, torch.Tensor) or observation.ndim != 2
+            or not isinstance(context, torch.Tensor)
+            or context.shape != (observation.shape[0], 3)
+            or context.device != observation.device
+            or not context.is_floating_point()
+            or not bool(torch.isfinite(context).all().item())):
+        raise ValueError("odometry context must be finite [N, 3] on the observation device")
+    cast_context = context.to(dtype=observation.dtype)
+    if not bool(torch.isfinite(cast_context).all().item()):
+        raise ValueError("odometry context is not finite in the observation dtype")
+    return torch.cat((observation, cast_context), dim=-1)
+
+
+def _prepare_checkpoint_session(checkpoint, *, policy, base_obs_dim: int,
+                                proprioceptive_context: bool):
+    """Validate observation meaning before losslessly extending a checkpoint."""
+    from rl_training.online_adaptation.ppo_critic_context import migrate_critic_context
+    from rl_training.online_adaptation.ppo_context_policy import (
+        CONTEXT_POLICY_OBSERVATION_SCHEMA, migrate_context_policy,
+    )
+
+    state = checkpoint.get("session")
+    if not isinstance(state, dict):
+        raise ValueError("online PPO checkpoint is missing session state")
+    try:
+        widths = [int(state[branch]["critic"]["0.weight"].shape[1])
+                  for branch in ("updater", "stable_state")]
+    except (KeyError, IndexError, TypeError, AttributeError) as error:
+        raise ValueError("checkpoint has an invalid critic input weight") from error
+    if widths[0] != widths[1]:
+        raise ValueError("active and stable critic observation widths must match")
+    width = widths[0]
+    actor_schema = checkpoint.get("actor_observation_schema", BASE_POLICY_OBSERVATION_SCHEMA)
+    critic_schema = checkpoint.get("critic_observation_schema")
+    contextual_source = actor_schema == CONTEXT_POLICY_OBSERVATION_SCHEMA
+    if actor_schema not in (BASE_POLICY_OBSERVATION_SCHEMA, CONTEXT_POLICY_OBSERVATION_SCHEMA):
+        raise ValueError("checkpoint actor observation schema is not supported")
+    if contextual_source:
+        if not proprioceptive_context:
+            raise ValueError("contextual checkpoint requires --proprioceptive-context")
+        if width != base_obs_dim + 6 or critic_schema != CONTEXT_CRITIC_OBSERVATION_SCHEMA:
+            raise ValueError("contextual checkpoint critic observation schema does not match")
+    elif width == base_obs_dim + 3:
+        if critic_schema != CRITIC_OBSERVATION_SCHEMA:
+            raise ValueError("checkpoint critic observation schema does not match the requested context")
+    elif width != base_obs_dim or critic_schema not in (None, "policy_v1"):
+        raise ValueError("legacy checkpoint critic observation width/schema is not supported")
+
+    record = {
+        "source_learning_contract": checkpoint.get("learning_contract"),
+        "actor_observation_from": actor_schema,
+        "actor_observation_to": (CONTEXT_POLICY_OBSERVATION_SCHEMA if proprioceptive_context
+                                 else BASE_POLICY_OBSERVATION_SCHEMA),
+        "critic_input_from": width,
+        "critic_input_to": base_obs_dim + (6 if proprioceptive_context else 3),
+    }
+    if not contextual_source:
+        state = migrate_critic_context(state, policy_obs_dim=base_obs_dim)
+    if proprioceptive_context:
+        state = migrate_critic_context(state, policy_obs_dim=base_obs_dim + 3)
+        state = migrate_context_policy(state, target_policy=policy)
+    return state, record
 
 
 def _configure_forward_command(command_cfg, forward_speed: float) -> None:
@@ -278,6 +351,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="evaluate on an infinite plane with steady velocity/progress metrics and no track qualification",
     )
     parser.add_argument(
+        "--proprioceptive-context", action="store_true",
+        help="add body-velocity dead reckoning to a zero-initialized contextual adaptation head",
+    )
+    parser.add_argument(
         "--continue-after-termination",
         action="store_true",
         help="keep consuming the step budget after a termination when a stop boundary is active",
@@ -375,8 +452,12 @@ def main() -> int:
         from rl_training.online_adaptation.ppo_online import OnlinePPOUpdater, PPOConfig
         from rl_training.online_adaptation.ppo_safety import SAMPLING_CONTRACT, requested_action_rollout
         from rl_training.online_adaptation.ppo_critic_context import (
-            build_critic_observation, migrate_critic_context,
+            build_critic_observation,
         )
+        from rl_training.online_adaptation.ppo_context_policy import (
+            CONTEXT_POLICY_OBSERVATION_SCHEMA, ContextGatedPolicy,
+        )
+        from rl_training.online_adaptation.ppo_odometry import PlanarProprioOdometry
         from rl_training.online_adaptation.ppo_task_reward import success_absorbing_reward
         from rl_training.online_adaptation.ppo_source_anchor import load_source_anchor
         from rl_training.online_adaptation.flat_retention import (
@@ -485,6 +566,26 @@ def main() -> int:
             obs_dim = int(policy_obs.shape[-1])
             if args.flat_retention_probe and obs_dim != 45:
                 raise RuntimeError("flat retention requires the deployed 45-dimensional Lite3 actor observation")
+            if args.proprioceptive_context:
+                if obs_dim != 45:
+                    raise RuntimeError("proprioceptive context requires the 45-dimensional frozen actor")
+                policy = ContextGatedPolicy(policy, rank=args.rank).to(args.device)
+            learning_contract = CONTEXT_LEARNING_CONTRACT if args.proprioceptive_context else LEARNING_CONTRACT
+            actor_observation_schema = (
+                CONTEXT_POLICY_OBSERVATION_SCHEMA if args.proprioceptive_context else BASE_POLICY_OBSERVATION_SCHEMA
+            )
+            critic_observation_schema = (
+                CONTEXT_CRITIC_OBSERVATION_SCHEMA if args.proprioceptive_context else CRITIC_OBSERVATION_SCHEMA
+            )
+            odometry_metadata = ({
+                "estimator": "planar_body_velocity_midpoint_integration_v1",
+                "inputs": ["body_linear_velocity_xy", "body_angular_velocity_z", "control_step_dt"],
+                "context": ["sin_estimated_heading", "cos_estimated_heading_minus_one", "estimated_y_over_1.65"],
+                "lateral_context_clip": [-2.0, 2.0],
+                "reset": "zero_at_each_physical_episode",
+                "initial_heading_assumption": "fixed_spawn_orientation",
+                "source_anchor_context": "zero_initial_context_only",
+            } if args.proprioceptive_context else None)
             source_anchor_observations = source_anchor_means = None
             source_anchor_metadata = None
             if args.flat_anchor_observations is not None:
@@ -496,8 +597,14 @@ def main() -> int:
                 source_anchor_observations = source_observations.to(device=args.device)
                 with torch.no_grad():
                     source_anchor_means = reference_policy.mean_action(source_anchor_observations).detach()
+                if args.proprioceptive_context:
+                    source_anchor_observations = _append_odometry_context(
+                        source_anchor_observations,
+                        source_anchor_observations.new_zeros((source_anchor_observations.shape[0], 3)),
+                    )
+            critic_input_dim = obs_dim + (6 if args.proprioceptive_context else 3)
             critic = nn.Sequential(
-                nn.Linear(obs_dim + 3, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
+                nn.Linear(critic_input_dim, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
             ).to(args.device)
             updater = OnlinePPOUpdater(
                 policy,
@@ -535,18 +642,10 @@ def main() -> int:
                     raise ValueError("unsupported online PPO checkpoint")
                 if loaded_checkpoint.get("lora_rank") != args.rank:
                     raise ValueError("checkpoint LoRA rank differs from the requested rank")
-                checkpoint_session = loaded_checkpoint.get("session")
-                if not isinstance(checkpoint_session, dict):
-                    raise ValueError("online PPO checkpoint is missing session state")
-                checkpoint_migration = {
-                    "source_learning_contract": loaded_checkpoint.get("learning_contract"),
-                    "critic_input_from": int(checkpoint_session["updater"]["critic"]["0.weight"].shape[1]),
-                    "critic_input_to": obs_dim + 3,
-                }
-                if (checkpoint_migration["critic_input_from"] == obs_dim + 3
-                        and loaded_checkpoint.get("critic_observation_schema") != CRITIC_OBSERVATION_SCHEMA):
-                    raise ValueError("checkpoint critic observation schema does not match the requested context")
-                checkpoint_session = migrate_critic_context(checkpoint_session, policy_obs_dim=obs_dim)
+                checkpoint_session, checkpoint_migration = _prepare_checkpoint_session(
+                    loaded_checkpoint, policy=policy, base_obs_dim=obs_dim,
+                    proprioceptive_context=args.proprioceptive_context,
+                )
                 session.load_state_dict(checkpoint_session)
             effective_runtime_config = (
                 read_ppo_runtime_config(session)
@@ -573,10 +672,14 @@ def main() -> int:
                      "mode": _evaluation_mode(args),
                      "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                      "terrain_geometry": terrain_geometry,
-                     "learning_contract": LEARNING_CONTRACT,
+                     "learning_contract": learning_contract,
                      "sampling_contract": SAMPLING_CONTRACT,
                      "reward_contract": REWARD_CONTRACT,
-                     "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
+                     "actor_observation_schema": actor_observation_schema,
+                     "critic_observation_schema": critic_observation_schema,
+                     "odometry": odometry_metadata,
+                     "actor_input_dim": obs_dim + (3 if args.proprioceptive_context else 0),
+                     "critic_input_dim": critic_input_dim,
                      "checkpoint_migration": checkpoint_migration,
                      "completion_terminal_reward": completion_terminal_reward,
                      "critic_time_horizon_steps": critic_time_horizon,
@@ -615,6 +718,8 @@ def main() -> int:
             previous_residual = torch.zeros_like(current_residual)
             previous_x = reward_adapter.base_x().detach().clone()
             control_step_dt = float(env_cfg.sim.dt) * float(getattr(env_cfg, "decimation", 1))
+            odometry = (PlanarProprioOdometry(1, args.device, dtype=policy_obs.dtype)
+                        if args.proprioceptive_context else None)
             progress_monitor = ForwardProgressMonitor(min_delta_m=0.05, stall_steps=100)
             progress_monitor.observe(
                 base_x=initial_x,
@@ -660,14 +765,16 @@ def main() -> int:
                 previous_residual = current_residual.detach().clone()
                 terminal_capture.clear()
                 observation = _pin_forward_observation(wrapped_env, observation, args.forward_speed)
-                obs_tensor = observation["policy"]
-                critic_obs_tensor = build_critic_observation(
-                    obs_tensor, reward_adapter.robot.data.root_lin_vel_b[:, :2],
+                base_obs_tensor = observation["policy"]
+                current_context = odometry.context() if odometry is not None else None
+                obs_tensor = _append_odometry_context(base_obs_tensor, current_context)
+                critic_obs_tensor = _append_odometry_context(build_critic_observation(
+                    base_obs_tensor, reward_adapter.robot.data.root_lin_vel_b[:, :2],
                     step=step, max_steps=critic_time_horizon,
-                )
+                ), current_context)
                 control_policy, version = publisher.current()
                 with torch.no_grad():
-                    reference_mean = reference_policy.mean_action(obs_tensor)
+                    reference_mean = reference_policy.mean_action(base_obs_tensor)
                     if args.evaluation_only:
                         requested_action = control_policy.mean_action(obs_tensor)
                         control_mean = requested_action
@@ -704,6 +811,12 @@ def main() -> int:
                 else:
                     step_state = _capture_step_state(reward_adapter)
                 signals = step_state["signals"]
+                # Integrate the physical transition before resetting the estimator.
+                # For a done row these are detached PRE-reset sensor readings.
+                next_context = (odometry.observe(
+                    signals.base_lin_vel_xy, signals.base_ang_vel_z, step_dt=control_step_dt,
+                ) if odometry is not None else None)
+                next_odometry_state = odometry.snapshot() if odometry is not None else None
                 _assert_forward_command(signals, args.forward_speed)
                 swing_lift = swing_lift_tracker.observe(signals.foot_height, signals.foot_contact)
                 velocity_error = torch.linalg.vector_norm(
@@ -807,10 +920,10 @@ def main() -> int:
                     ).to(dtype=torch.float32)
                 if not args.evaluation_only:
                     with torch.no_grad():
-                        next_critic_observation = build_critic_observation(
+                        next_critic_observation = _append_odometry_context(build_critic_observation(
                             value_observation, signals.base_lin_vel_xy,
                             step=step + 1, max_steps=critic_time_horizon,
-                        )
+                        ), next_context)
                         next_value_raw = critic(next_critic_observation)
                         next_value = next_value_raw * (~learning_terminated).to(dtype=next_value_raw.dtype)
                     transition = requested_action_rollout(
@@ -848,6 +961,12 @@ def main() -> int:
                     "command_lin_vel_xy": signals.command_lin_vel_xy.reshape(-1).cpu().tolist(),
                     "command_ang_vel_z": float(signals.command_ang_vel_z.mean()),
                     "base_lin_vel_xy": signals.base_lin_vel_xy.reshape(-1).cpu().tolist(),
+                    "base_ang_vel_z": float(signals.base_ang_vel_z.mean()),
+                    "odometry_context": current_context.reshape(-1).cpu().tolist() if current_context is not None else None,
+                    "next_odometry_context": next_context.reshape(-1).cpu().tolist() if next_context is not None else None,
+                    "next_odometry_state": ({
+                        key: value.reshape(-1).cpu().tolist() for key, value in next_odometry_state.items()
+                    } if next_odometry_state is not None else None),
                     "tilt_rms": float(tilt_rms.mean()),
                     "nonfoot_contact": bool(signals.nonfoot_contact.any().item()),
                     "max_nonfoot_contact_force_n": max_nonfoot_contact_force_n,
@@ -874,6 +993,8 @@ def main() -> int:
                 })
                 observation = next_observation
                 if environment_done:
+                    if odometry is not None:
+                        odometry.reset(done)
                     safety_filter.reset_temporal_state()
                     swing_lift_tracker.reset(done)
                     previous_x = reward_adapter.base_x().detach().clone()
@@ -995,10 +1116,12 @@ def main() -> int:
                     "schema_version": 1,
                     "mode": _evaluation_mode(args),
                     "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
-                    "learning_contract": LEARNING_CONTRACT,
+                    "learning_contract": learning_contract,
                     "sampling_contract": SAMPLING_CONTRACT,
                     "reward_contract": REWARD_CONTRACT,
-                    "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
+                    "actor_observation_schema": actor_observation_schema,
+                    "critic_observation_schema": critic_observation_schema,
+                    "odometry": odometry_metadata,
                     "checkpoint_migration": checkpoint_migration,
                     "critic_time_horizon_steps": critic_time_horizon,
                     "trial_deadline_steps": args.trial_deadline_steps,
@@ -1016,6 +1139,7 @@ def main() -> int:
                     "terrain_geometry": terrain_geometry,
                     "lora_rank": args.rank,
                     "lora_parameter_count": lora_parameter_count(adapted_model),
+                    "trainable_policy_parameter_count": sum(p.numel() for p in policy.parameters() if p.requires_grad),
                     "session": session.state_dict(),
                     "rows": rows,
                     "updates": update_records,
@@ -1051,10 +1175,12 @@ def main() -> int:
             summary = {
                 "mode": _evaluation_mode(args),
                 "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
-                "learning_contract": LEARNING_CONTRACT,
+                "learning_contract": learning_contract,
                 "sampling_contract": SAMPLING_CONTRACT,
                 "reward_contract": REWARD_CONTRACT,
-                "critic_observation_schema": CRITIC_OBSERVATION_SCHEMA,
+                "actor_observation_schema": actor_observation_schema,
+                "critic_observation_schema": critic_observation_schema,
+                "odometry": odometry_metadata,
                 "completion_terminal_reward": completion_terminal_reward,
                 "critic_time_horizon_steps": critic_time_horizon,
                 "reference_anchor_distribution": (

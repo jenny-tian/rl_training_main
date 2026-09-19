@@ -29,6 +29,7 @@ def _args(tmp_path: Path) -> Namespace:
         training_seed_stride=1,
         physical_gpu=1,
         single_gpu_renderer=False,
+        proprioceptive_context=False,
         max_episodes=100,
         max_steps_per_episode=2000,
         probe_interval=5,
@@ -52,6 +53,7 @@ def test_parser_defaults_to_rollback_and_accepts_a_separate_training_candidate()
     defaults = parser.parse_args(["--base-checkpoint", "base.pt", "--output-dir", "run"])
     assert defaults.probe_failure_policy == "rollback"
     assert defaults.initial_training_checkpoint is None
+    assert not defaults.proprioceptive_context
     args = parser.parse_args([
         "--base-checkpoint", "base.pt", "--output-dir", "run",
         "--initial-checkpoint", "verified.pt", "--initial-training-checkpoint", "candidate.pt",
@@ -60,6 +62,23 @@ def test_parser_defaults_to_rollback_and_accepts_a_separate_training_candidate()
     assert args.initial_checkpoint == "verified.pt"
     assert args.initial_training_checkpoint == "candidate.pt"
     assert args.probe_failure_policy == "continue_candidate"
+
+
+def test_contextual_training_and_probe_share_input_schema_and_change_resume_manifest(tmp_path):
+    args = _args(tmp_path)
+    Path(args.base_checkpoint).write_bytes(b"base")
+    _prepare(args)
+    args.proprioceptive_context = True
+    manifest = _manifest(args)
+    assert manifest["experiment"] == "fixed_development_lora_ppo_multiepisode_v10"
+    assert manifest["learning_contract"] == "requested_ppo_proprioceptive_context_v10"
+    assert manifest["critic_observation_schema"] == "policy45_velocity_xy_elapsed_odometry3_v1"
+    assert manifest["source_anchor_context"] == "zero_initial_context_only"
+    train = build_training_command(args, tmp_path / "train", None)
+    probe = build_probe_command(args, tmp_path / "probe", tmp_path / "candidate.pt")
+    assert "--proprioceptive-context" in train and "--proprioceptive-context" in probe
+    with pytest.raises(ValueError, match="saved manifest"):
+        _prepare(args)
 
 
 @pytest.mark.parametrize("with_verified", [False, True])

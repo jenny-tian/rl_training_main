@@ -5,9 +5,12 @@ source /home/tjx/anaconda3/etc/profile.d/conda.sh
 conda activate env_isaaclab
 
 WORKTREE=/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation
-OUTPUT_ROOT="$WORKTREE/artifacts/semester_2026/09/rocky_road_online_sealed20"
+# Strict completion qualification is a new protocol boundary.  Keep its
+# outputs separate from the legacy sealed20 run, whose summaries predate the
+# in-lane obstacle-interaction evidence and must not be mixed into validation.
+OUTPUT_ROOT="$WORKTREE/artifacts/semester_2026/09/rocky_road_online_sealed20_strict_v1"
 BASE_CHECKPOINT="$WORKTREE/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt"
-RESIDUAL_CHECKPOINT="$WORKTREE/artifacts/semester_2026/09/rocky_road_online/initializer49/residual_sac_initial.pt"
+RESIDUAL_CHECKPOINT="$WORKTREE/artifacts/semester_2026/09/rocky_road_online/v12_fix_validation_20260910/initializer/residual_sac_initial.pt"
 FLAT_REPLAY="$WORKTREE/artifacts/online_validation_20260805/flat_replay_model1998_formal/flat_replay.pt"
 NOVELTY_BASELINE="$WORKTREE/artifacts/online_validation_20260811/step4cm_fixed03_same_seed_v19_qcal_detmean_gpu2/novelty_baseline.json"
 NOVELTY_SHA256=397ebdc2da4be4c2e284b5b837644a2574ec4f5e80e2f3ac1bcf4a3be399a3ee

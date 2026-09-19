@@ -86,6 +86,13 @@ def _finite_float(value: str) -> float:
     return parsed
 
 
+def _nonnegative_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed) or parsed < 0.0:
+        raise argparse.ArgumentTypeError("must be finite and nonnegative")
+    return parsed
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--base-checkpoint", required=True)
@@ -107,6 +114,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--post-step-residual-gain", type=_unit_interval, default=0.25)
     parser.add_argument("--residual-rate-limit", type=_positive_float, default=0.05)
     parser.add_argument("--actor-updates-per-second", type=_positive_float, default=0.5)
+    parser.add_argument("--critic-updates-per-transition", type=_nonnegative_float, default=0.5)
+    parser.add_argument("--actor-updates-per-transition", type=_nonnegative_float, default=0.005)
     parser.add_argument("--control-timeout-ms", type=_positive_float, default=50.0)
     parser.add_argument("--target-q-min", type=_finite_float, default=None)
     parser.add_argument("--target-q-max", type=_finite_float, default=None)
@@ -184,6 +193,12 @@ def _worker_args(
         rough_swing_lift_weight=args.rough_swing_lift_weight,
         rough_swing_lift_target=args.rough_swing_lift_target,
         actor_updates_per_second=args.actor_updates_per_second,
+        critic_updates_per_transition=getattr(
+            args, "critic_updates_per_transition", 0.5
+        ),
+        actor_updates_per_transition=getattr(
+            args, "actor_updates_per_transition", 0.005
+        ),
         adaptation_min_replay_size=128,
         stalled_actor_replay_stride=16,
         control_timeout_ms=args.control_timeout_ms,
@@ -605,6 +620,7 @@ def _copy_novelty_baseline(source: Path, destination: Path) -> None:
 
 
 def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> dict[str, Any]:
+    protocol = protocol_for_configuration(configuration, target_stage=args.terrain_stage)
     inputs = {
         name: str(Path(getattr(args, name)).resolve())
         for name in (
@@ -640,7 +656,22 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
         "residual_rate_limit": getattr(args, "residual_rate_limit", 0.03),
         "critic_action_semantics": "requested_residual_before_safety_v1",
         "replay_schema_version": 2,
+        "completion_qualification_version": protocol.completion_qualification_version,
+        "lateral_margin_m": protocol.lateral_margin_m,
+        "required_swing_lift_m": protocol.required_swing_lift_m,
+        "min_challenge_observation_steps": protocol.min_challenge_observation_steps,
+        "min_challenge_swing_steps": protocol.min_challenge_swing_steps,
+        "min_stable_completion_steps": protocol.min_stable_completion_steps,
+        "max_completion_velocity_error": protocol.max_completion_velocity_error,
+        "max_completion_tilt_rms": protocol.max_completion_tilt_rms,
+        "max_completion_foot_slip": protocol.max_completion_foot_slip,
         "actor_updates_per_second": args.actor_updates_per_second,
+        "critic_updates_per_transition": getattr(
+            args, "critic_updates_per_transition", 0.5
+        ),
+        "actor_updates_per_transition": getattr(
+            args, "actor_updates_per_transition", 0.005
+        ),
         "control_timeout_ms": args.control_timeout_ms,
         "target_q_min": args.target_q_min,
         "target_q_max": args.target_q_max,
@@ -1627,6 +1658,9 @@ def run_experiment(args: argparse.Namespace) -> int:
             returncode,
             request=request,
             expected_protocol_sha256=_protocol_sha256(args, configuration),
+            protocol=protocol_for_configuration(
+                configuration, target_stage=args.terrain_stage
+            ),
         )
         summary = _require_rollout_outputs(run_dir, video=args.video)
         if outcome.passed is not summary.get("passed"):
