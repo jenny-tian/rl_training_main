@@ -598,3 +598,36 @@ def test_invalid_validation_metrics_cannot_select_a_winner():
     with pytest.raises(RuntimeError, match="finite"):
         _validation_rank([{"passed": True, "fell": False, "second_half_velocity_error": float("nan"),
                            "second_half_tilt_rms": .1, "completion_remaining_m": 0}])
+
+
+def test_synchronous_actor_budget_reaches_worker_without_relaxing_drift_guard(tmp_path):
+    args = _args(tmp_path, update_schedule='control-step', actor_updates_per_transition=0.02)
+    (tmp_path / 'novelty_baseline.json').write_text('{}', encoding='utf-8')
+    command = build_training_command(args, _target_configuration(args), output=tmp_path, episode=1)
+    assert _value(command, '--update-schedule') == 'control-step'
+    assert float(_value(command, '--actor-updates-per-transition')) == 0.02
+    assert float(_value(command, '--max-policy-residual-mse')) == 1e-5
+    assert _value(command, '--terrain-feature-source') == 'proprio'
+
+
+def test_development_pilot_can_skip_reused_sealed_evaluation():
+    args = build_parser().parse_args(['--base-checkpoint', 'base.pt', '--base-manifest', 'base.json',
+        '--initial-residual-checkpoint', 'initial.pt', '--flat-replay', 'flat.pt',
+        '--novelty-baseline', 'novelty.json', '--frozen-benchmark-dir', 'benchmark',
+        '--output-dir', 'out', '--no-sealed-evaluation', '--update-schedule', 'control-step'])
+    assert not args.sealed_evaluation
+    assert args.update_schedule == 'control-step'
+
+
+def test_update_schedule_is_bound_to_run_manifest(tmp_path, monkeypatch):
+    from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as runner
+    args = _args(tmp_path)
+    monkeypatch.setattr(runner, 'sha256_file', lambda path: 'fixed')
+    monkeypatch.setattr(runner, '_validate_input_lineage', lambda args: {})
+    monkeypatch.setattr(runner, '_frozen_benchmark_provenance', lambda args: {})
+    monkeypatch.setattr(runner, '_git_provenance', lambda: {})
+    before = _manifest(args, _target_configuration(args))
+    assert 'update_schedule' not in before
+    args.update_schedule = 'control-step'
+    after = _manifest(args, _target_configuration(args))
+    assert after['update_schedule'] == 'control-step' and before != after

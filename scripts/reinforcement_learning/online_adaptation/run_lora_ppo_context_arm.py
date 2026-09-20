@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import shutil
 
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 from scripts.reinforcement_learning.online_adaptation.run_lora_ppo_multiepisode import (
@@ -54,6 +55,43 @@ def retention_checks(baseline: dict, candidate: dict) -> dict[str, bool]:
     return checks
 
 
+def run_evaluation(command: list[str], log: Path, environment: dict, *, resume: bool = False) -> None:
+    """Require a result artifact even when simulator shutdown reports exit zero.
+
+    Retry once in a fresh output directory; archive the complete failed attempt.
+    Successful cached evaluations are reusable only with the same worker args.
+    """
+    output = Path(command[command.index('--output') + 1])
+    command_file = output / 'command.json'
+    if resume and (output / 'summary.json').is_file():
+        saved = json.loads(command_file.read_text())['command']
+        if saved[3:] != command[3:]:
+            raise ValueError(f'evaluation arguments changed: {output}')
+        json.loads((output / 'summary.json').read_text())
+        return
+    for attempt in range(2):
+        if output.exists():
+            # Includes a previous incomplete invocation when explicitly resumed.
+            if (output / log.name).exists():
+                if not resume and attempt == 0:
+                    raise FileExistsError(f'evaluation output already exists: {output}')
+                index = 1
+                archived = output.with_name(output.name + f'.incomplete-{index}')
+                while archived.exists():
+                    index += 1
+                    archived = output.with_name(output.name + f'.incomplete-{index}')
+                shutil.move(str(output), str(archived))
+        output.mkdir(parents=True, exist_ok=True)
+        write_json_atomic(command_file, {'command': command})
+        with log.open('x') as stream:
+            result = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, env=environment)
+        summary = output / 'summary.json'
+        if result.returncode == 0 and summary.is_file():
+            json.loads(summary.read_text())
+            return
+    raise RuntimeError(f'evaluation produced no successful summary after two attempts: {output}')
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base-checkpoint', required=True)
@@ -71,6 +109,10 @@ def main() -> None:
     parser.add_argument('--max-episodes', type=_positive_int, default=20)
     parser.add_argument('--wait-for-gpu', action='store_true',
                         help='queue on the shared GPU lock without interrupting an existing arm')
+    parser.add_argument('--probe-interval', type=_positive_int, default=5)
+    parser.add_argument('--probe-failure-policy', choices=('rollback', 'continue_candidate'), default='continue_candidate')
+    parser.add_argument('--resume-evaluation', action='store_true',
+                        help='reuse completed training and matching evaluations; finish only missing evaluations')
     args = parser.parse_args()
     if args.final_action_std is not None and (args.final_action_std > args.action_std or
             (args.max_episodes < 2 and args.final_action_std != args.action_std)):
@@ -79,7 +121,7 @@ def main() -> None:
     root.mkdir(parents=True, exist_ok=True)
     lock = (root / 'arm.lock').open('a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    if (root / 'arm_plan.json').exists():
+    if (root / 'arm_plan.json').exists() and not args.resume_evaluation:
         raise RuntimeError('Use a new output directory; do not overwrite an existing experiment')
     scripts = Path(__file__).resolve().parent
     train = [sys.executable, '-u', str(scripts / 'run_lora_ppo_multiepisode.py'),
@@ -89,8 +131,8 @@ def main() -> None:
              '--output-dir', str(root / 'training'), '--physical-gpu', str(args.gpu),
              '--single-gpu-renderer', '--terrain-seed', '101', '--simulation-seed', str(args.simulation_seed),
              '--training-seed-stride', '1', '--max-episodes', str(args.max_episodes),
-             '--max-steps-per-episode', '2000', '--probe-interval', '5',
-             '--probe-failure-policy', 'continue_candidate', '--video-probes',
+             '--max-steps-per-episode', '2000', '--probe-interval', str(args.probe_interval),
+             '--probe-failure-policy', args.probe_failure_policy, '--video-probes',
              '--action-std', str(args.action_std), '--actor-lr', str(args.actor_lr), '--critic-lr', '0.0003',
              '--reference-anchor-coef', '100', '--max-reference-mse', '0.0001',
              '--stability-window', '10', '--stability-min-success-rate', '0.8',
@@ -104,7 +146,7 @@ def main() -> None:
                   '--terrain-anchor-coef', str(args.terrain_anchor_coef)]
         if args.max_terrain_anchor_mse is not None:
             train += ['--max-terrain-anchor-mse', str(args.max_terrain_anchor_mse)]
-    write_json_atomic(root / 'arm_plan.json', {
+    plan = {
         'context': args.context, 'command': train,
         'terrain_anchor_coef': args.terrain_anchor_coef,
         'max_terrain_anchor_mse': args.max_terrain_anchor_mse,
@@ -115,11 +157,23 @@ def main() -> None:
         'flat_velocity_error_tolerance': 'max(0.005 m/s, 0.05 * baseline)',
         'note': 'Development pilot; context adds parameters and consumes initialization RNG. '
                 'Matching seeds do not imply bitwise identical stochastic trajectories.',
-    })
+    }
+    if args.resume_evaluation:
+        saved = json.loads((root / 'arm_plan.json').read_text())
+        if (saved['command'][3:] != train[3:] or saved['base_sha256'] != plan['base_sha256']
+                or saved['initial_sha256'] != plan['initial_sha256']):
+            raise ValueError('evaluation resume configuration differs from saved arm plan')
+        if not (root / 'training/summary.json').is_file():
+            raise ValueError('evaluation resume requires completed training')
+    else:
+        write_json_atomic(root / 'arm_plan.json', plan)
     environment = dict(os.environ)
     environment.pop('DISPLAY', None)
 
     def run(command: list[str], log: Path) -> None:
+        if '--evaluation-only' in command:
+            run_evaluation(command, log, environment, resume=args.resume_evaluation)
+            return
         log.parent.mkdir(parents=True, exist_ok=True)
         with log.open('x') as stream:
             subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT,
@@ -132,7 +186,8 @@ def main() -> None:
         gpu_lock = Path(f'/tmp/lite3-rocky-multiepisode-gpu-{args.gpu}.lock').open('a')
         fcntl.flock(gpu_lock, fcntl.LOCK_EX | (0 if args.wait_for_gpu else fcntl.LOCK_NB))
         write_json_atomic(root / 'arm_status.json', {'status': 'training'})
-        run(train, root / 'supervisor.log')
+        if not args.resume_evaluation:
+            run(train, root / 'supervisor.log')
         state = json.loads((root / 'training/summary.json').read_text())
         selected = state['final_checkpoint']
         targets = evaluation_targets(state, args.initial_checkpoint)
@@ -149,7 +204,6 @@ def main() -> None:
         for seed in (101, 103, 107, 109, 113):
             output = root / 'latest_candidate_validation' / f'seed-{seed}'
             command = build_probe_command(probe_args, output, Path(latest['checkpoint']), terrain_seed=seed)
-            write_json_atomic(output / 'command.json', {'command': command})
             run(command, output / 'runtime.log')
             summary = json.loads((output / 'summary.json').read_text())
             candidate_results.append({'seed': seed, 'successful_completion': _successful(summary)})
@@ -183,7 +237,6 @@ def main() -> None:
                     command += ['--checkpoint-in', target['checkpoint']]
                     if args.context:
                         command.append('--proprioceptive-context')
-                write_json_atomic(output / 'command.json', {'command': command})
                 run(command, output / 'runtime.log')
                 pair[name] = json.loads((output / 'summary.json').read_text())
             for target in targets:

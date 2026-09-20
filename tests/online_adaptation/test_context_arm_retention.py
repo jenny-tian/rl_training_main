@@ -80,6 +80,8 @@ def test_arm_evaluates_latest_candidate_even_when_selected_model_is_old(tmp_path
                 record['completion_qualified'] = False
         directory.mkdir(parents=True, exist_ok=True)
         (directory / 'summary.json').write_text(json.dumps(record))
+        from types import SimpleNamespace
+        return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(arm.subprocess, 'run', fake_run)
     lock_calls = []
@@ -114,3 +116,50 @@ def test_arm_evaluates_latest_candidate_even_when_selected_model_is_old(tmp_path
     latest_flat = [c for c in flat_commands if '--checkpoint-in' in c and
                    c[c.index('--checkpoint-in') + 1] == str(latest)]
     assert len(latest_flat) == 3
+    original_calls = len(commands)
+    arm.sys.argv.append('--resume-evaluation')
+    arm.main()
+    assert len(commands) == original_calls
+    base.write_bytes(b'changed checkpoint')
+    with pytest.raises(ValueError, match='resume configuration'):
+        arm.main()
+
+
+def test_zero_exit_without_summary_retries_and_preserves_failed_attempt(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+    from scripts.reinforcement_learning.online_adaptation import run_lora_ppo_context_arm as arm
+    output = tmp_path / 'probe'
+    command = ['python', '-u', 'worker.py', '--evaluation-only', '--output', str(output)]
+    calls = []
+    def fake_run(*args, **kwargs):
+        calls.append(args)
+        if len(calls) == 1:
+            (output / 'failure.txt').write_text('remote asset unavailable')
+        else:
+            (output / 'summary.json').write_text('{}')
+        return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(arm.subprocess, 'run', fake_run)
+    arm.run_evaluation(command, output / 'runtime.log', {})
+    assert len(calls) == 2
+    assert (tmp_path / 'probe.incomplete-1/failure.txt').read_text() == 'remote asset unavailable'
+    assert (output / 'summary.json').is_file()
+    arm.run_evaluation(command, output / 'runtime.log', {}, resume=True)
+    assert len(calls) == 2
+    with pytest.raises(ValueError, match='arguments changed'):
+        arm.run_evaluation(command + ['--seed', '9'], output / 'runtime.log', {}, resume=True)
+
+
+def test_missing_evaluation_result_has_bounded_retries(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    from scripts.reinforcement_learning.online_adaptation import run_lora_ppo_context_arm as arm
+    output = tmp_path / 'probe'
+    command = ['python', '-u', 'worker.py', '--evaluation-only', '--output', str(output)]
+    calls = []
+    def fake_run(*args, **kwargs):
+        calls.append(args)
+        return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(arm.subprocess, 'run', fake_run)
+    with pytest.raises(RuntimeError, match='two attempts'):
+        arm.run_evaluation(command, output / 'runtime.log', {})
+    assert len(calls) == 2

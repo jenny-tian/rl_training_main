@@ -113,6 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--adapting-residual-gain", type=_unit_interval, default=0.25)
     parser.add_argument("--post-step-residual-gain", type=_unit_interval, default=0.25)
     parser.add_argument("--residual-rate-limit", type=_positive_float, default=0.05)
+    parser.add_argument("--update-schedule", choices=("wall-clock", "control-step"), default="wall-clock")
     parser.add_argument("--actor-updates-per-second", type=_positive_float, default=0.5)
     parser.add_argument("--critic-updates-per-transition", type=_nonnegative_float, default=0.5)
     parser.add_argument("--actor-updates-per-transition", type=_nonnegative_float, default=0.005)
@@ -137,7 +138,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--physical-gpu", type=int, choices=(0, 1), default=0)
     parser.add_argument("--headless", action="store_true", default=True)
     parser.add_argument("--video", action="store_true", default=True)
-    parser.add_argument("--sealed-evaluation", action="store_true", default=True)
+    parser.add_argument("--sealed-evaluation", action=argparse.BooleanOptionalAction, default=True)
     return parser
 
 
@@ -259,6 +260,7 @@ def build_training_command(
         _worker_args(args, configuration, output=output), request
     )
     _replace_option(command, "--seed", args.simulation_seed)
+    command.extend(("--update-schedule", getattr(args, "update_schedule", "wall-clock")))
     _append_runtime_options(command, args)
     return command
 
@@ -631,7 +633,7 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
             "novelty_baseline",
         )
     }
-    return {
+    manifest = {
         "schema_version": RUNNER_SCHEMA_VERSION,
         "experiment": "fixed_development_rocky_road_multiepisode_v1",
         "task": ROCKY_ROAD_TASK,
@@ -706,6 +708,9 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
             "hash names rough_4cm but does not encode CLI amplitude overrides"
         ),
     }
+    if getattr(args, "update_schedule", "wall-clock") != "wall-clock":
+        manifest["update_schedule"] = args.update_schedule
+    return manifest
 
 
 def _validate_input_lineage(args: argparse.Namespace) -> dict[str, Any]:
