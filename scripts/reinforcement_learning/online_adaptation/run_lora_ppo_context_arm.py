@@ -18,7 +18,7 @@ import sys
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 from scripts.reinforcement_learning.online_adaptation.run_lora_ppo_multiepisode import (
     build_parser as supervisor_parser, build_probe_command, _successful,
-    _nonnegative_float, _positive_float,
+    _nonnegative_float, _positive_float, _positive_int,
 )
 
 
@@ -64,14 +64,21 @@ def main() -> None:
     parser.add_argument('--context', action='store_true')
     parser.add_argument('--terrain-anchor-coef', type=_nonnegative_float, default=0.0)
     parser.add_argument('--max-terrain-anchor-mse', type=_positive_float, default=None)
+    parser.add_argument('--action-std', type=_positive_float, default=0.03)
+    parser.add_argument('--final-action-std', type=_positive_float, default=None)
+    parser.add_argument('--actor-lr', type=_positive_float, default=0.00015)
+    parser.add_argument('--simulation-seed', type=int, default=7)
+    parser.add_argument('--max-episodes', type=_positive_int, default=20)
+    parser.add_argument('--wait-for-gpu', action='store_true',
+                        help='queue on the shared GPU lock without interrupting an existing arm')
     args = parser.parse_args()
+    if args.final_action_std is not None and (args.final_action_std > args.action_std or
+            (args.max_episodes < 2 and args.final_action_std != args.action_std)):
+        parser.error('noise decay requires final std <= initial std and at least two episodes')
     root = Path(args.output).resolve()
     root.mkdir(parents=True, exist_ok=True)
     lock = (root / 'arm.lock').open('a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    # Use the same lock as the other Lite3 multiepisode launchers.
-    gpu_lock = Path(f'/tmp/lite3-rocky-multiepisode-gpu-{args.gpu}.lock').open('a')
-    fcntl.flock(gpu_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     if (root / 'arm_plan.json').exists():
         raise RuntimeError('Use a new output directory; do not overwrite an existing experiment')
     scripts = Path(__file__).resolve().parent
@@ -80,14 +87,16 @@ def main() -> None:
              '--initial-checkpoint', args.initial_checkpoint,
              '--flat-anchor-observations', args.flat_anchor_observations,
              '--output-dir', str(root / 'training'), '--physical-gpu', str(args.gpu),
-             '--single-gpu-renderer', '--terrain-seed', '101', '--simulation-seed', '7',
-             '--training-seed-stride', '1', '--max-episodes', '20',
+             '--single-gpu-renderer', '--terrain-seed', '101', '--simulation-seed', str(args.simulation_seed),
+             '--training-seed-stride', '1', '--max-episodes', str(args.max_episodes),
              '--max-steps-per-episode', '2000', '--probe-interval', '5',
              '--probe-failure-policy', 'continue_candidate', '--video-probes',
-             '--action-std', '0.03', '--actor-lr', '0.00015', '--critic-lr', '0.0003',
+             '--action-std', str(args.action_std), '--actor-lr', str(args.actor_lr), '--critic-lr', '0.0003',
              '--reference-anchor-coef', '100', '--max-reference-mse', '0.0001',
              '--stability-window', '10', '--stability-min-success-rate', '0.8',
              '--stability-min-consecutive-successes', '3']
+    if args.final_action_std is not None:
+        train += ['--final-action-std', str(args.final_action_std)]
     if args.context:
         train.append('--proprioceptive-context')
     if args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None:
@@ -116,8 +125,13 @@ def main() -> None:
             subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT,
                            env=environment, check=True)
 
-    write_json_atomic(root / 'arm_status.json', {'status': 'training'})
     try:
+        # The output lock prevents duplicate queue entries for this arm. The GPU
+        # lock spans both training and all evaluation, just as in prior pilots.
+        write_json_atomic(root / 'arm_status.json', {'status': 'waiting_for_gpu', 'gpu': args.gpu})
+        gpu_lock = Path(f'/tmp/lite3-rocky-multiepisode-gpu-{args.gpu}.lock').open('a')
+        fcntl.flock(gpu_lock, fcntl.LOCK_EX | (0 if args.wait_for_gpu else fcntl.LOCK_NB))
+        write_json_atomic(root / 'arm_status.json', {'status': 'training'})
         run(train, root / 'supervisor.log')
         state = json.loads((root / 'training/summary.json').read_text())
         selected = state['final_checkpoint']

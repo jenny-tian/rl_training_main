@@ -60,6 +60,8 @@ def test_arm_evaluates_latest_candidate_even_when_selected_model_is_old(tmp_path
         commands.append(command)
         if '--output-dir' in command:
             assert command[command.index('--terrain-reference-checkpoint') + 1] == str(initial)
+            assert float(command[command.index('--actor-lr') + 1]) == 5e-5
+            assert float(command[command.index('--final-action-std') + 1]) == 0.01
             directory = Path(command[command.index('--output-dir') + 1])
             record = dict(final_checkpoint=str(selected), latest_checkpoint=str(latest),
                           status='budget_exhausted', stable_success_episode=None,
@@ -80,11 +82,21 @@ def test_arm_evaluates_latest_candidate_even_when_selected_model_is_old(tmp_path
         (directory / 'summary.json').write_text(json.dumps(record))
 
     monkeypatch.setattr(arm.subprocess, 'run', fake_run)
-    monkeypatch.setattr(arm.fcntl, 'flock', lambda *args: None)
+    lock_calls = []
+    def fake_lock(file, flags):
+        lock_calls.append(flags)
+        if len(lock_calls) == 2:
+            assert json.loads((output / 'arm_status.json').read_text())['status'] == 'waiting_for_gpu'
+            assert (output / 'arm_plan.json').exists()
+            assert not commands
+            expected = arm.fcntl.LOCK_EX | (0 if selected_is_latest else arm.fcntl.LOCK_NB)
+            assert flags == expected
+    monkeypatch.setattr(arm.fcntl, 'flock', fake_lock)
     monkeypatch.setattr(arm.sys, 'argv', ['arm', '--base-checkpoint', str(base),
         '--initial-checkpoint', str(initial), '--flat-anchor-observations', str(tmp_path / 'anchor'),
         '--output', str(output), '--gpu', '1', '--context', '--terrain-anchor-coef', '100',
-        '--max-terrain-anchor-mse', '0.0001'])
+        '--max-terrain-anchor-mse', '0.0001', '--actor-lr', '0.00005', '--final-action-std', '0.01',
+        *(['--wait-for-gpu'] if selected_is_latest else [])])
     arm.main()
     status = json.loads((output / 'arm_status.json').read_text())
     assert status['status'] == 'complete'

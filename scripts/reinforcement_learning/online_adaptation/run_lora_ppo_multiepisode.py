@@ -77,6 +77,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="rollback to verified recovery or continue training the unverified candidate after a failed probe",
     )
     parser.add_argument("--action-std", type=_positive_float, default=0.01)
+    parser.add_argument("--final-action-std", type=_positive_float, default=None,
+                        help="geometrically decay exploration to this value over max-episodes")
     parser.add_argument("--actor-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--critic-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--reference-anchor-coef", type=_nonnegative_float, default=1.0)
@@ -184,6 +186,29 @@ def _common_command(
     return command
 
 
+def episode_action_std(args: argparse.Namespace, episode: int) -> float:
+    """Schedule by absolute episode index so a resume never restarts decay.
+
+    Distribution changes happen only between workers, before an empty rollout.
+    Frozen probes still execute the checkpoint mean without any noise.
+    """
+    if not 1 <= episode <= args.max_episodes:
+        raise ValueError("episode must be within the configured training budget")
+    initial, final = args.action_std, args.final_action_std
+    if final is None:
+        return initial
+    if final > initial:
+        raise ValueError("final action std must not exceed initial action std")
+    if args.max_episodes < 2 and final != initial:
+        raise ValueError("noise decay requires at least two episodes")
+    if episode == 1:
+        return initial
+    if episode == args.max_episodes:
+        return final
+    fraction = (episode - 1) / (args.max_episodes - 1)
+    return math.exp((1 - fraction) * math.log(initial) + fraction * math.log(final))
+
+
 def build_training_command(
     args: argparse.Namespace,
     run_dir: Path,
@@ -201,6 +226,7 @@ def build_training_command(
         ),
         "--stop-after-termination",
     ]
+    command[command.index("--action-std") + 1] = str(episode_action_std(args, episode))
     if args.terrain_reference_checkpoint:
         command.extend(("--terrain-reference-checkpoint", str(Path(args.terrain_reference_checkpoint).resolve()),
                         "--terrain-anchor-coef", str(args.terrain_anchor_coef)))
@@ -463,6 +489,7 @@ def _record(path: Path, record: Mapping[str, object]) -> None:
 
 
 def _manifest(args: argparse.Namespace) -> dict[str, Any]:
+    episode_action_std(args, 1)  # Validate before creating any experiment manifest.
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "experiment": "fixed_development_lora_ppo_multiepisode_v8",
@@ -538,6 +565,12 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         }
     elif args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None:
         raise ValueError("terrain anchor constraints require --terrain-reference-checkpoint")
+    if args.final_action_std is not None:
+        manifest["exploration_schedule"] = {
+            "kind": "geometric_by_absolute_episode_v1",
+            "initial_std": args.action_std, "final_std": args.final_action_std,
+            "episodes": args.max_episodes,
+        }
     return manifest
 
 

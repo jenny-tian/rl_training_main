@@ -203,3 +203,32 @@ def test_unrepresentable_std_is_rejected_atomically(std_field, action_std):
 
     assert_tree_equal(session.state_dict(), before)
     assert_settings(session, action_std=0.01, actor_lr=5e-5, critic_lr=5e-5)
+
+
+def test_episode_decay_reaches_restored_controller_and_rollback_without_changing_mean(tmp_path):
+    from scripts.reinforcement_learning.online_adaptation.run_lora_ppo_multiepisode import (
+        build_parser, build_training_command,
+    )
+    args = build_parser().parse_args(['--base-checkpoint', 'base.pt', '--output-dir', str(tmp_path),
+        '--action-std', '0.03', '--final-action-std', '0.01', '--max-episodes', '20',
+        '--actor-lr', '0.00005', '--critic-lr', '0.0003'])
+    previous = make_session(action_std=0.03, actor_lr=0.00015)
+    append_rollout(previous)
+    assert previous.update().accepted
+    checkpoint = previous.state_dict()
+    observations = torch.randn(4, 2)
+    before_mean = previous.updater.policy.get_distribution(observations).mean.detach()
+    resumed = make_session()
+    resumed.load_state_dict(checkpoint)
+    command = build_training_command(args, tmp_path / 'e20', tmp_path / 'e19.pt', episode=20)
+    applied = apply_ppo_runtime_config(resumed,
+        action_std=float(command[command.index('--action-std') + 1]),
+        actor_lr=float(command[command.index('--actor-lr') + 1]),
+        critic_lr=float(command[command.index('--critic-lr') + 1]))
+    assert_settings(resumed, action_std=0.01, actor_lr=5e-5, critic_lr=0.0003)
+    torch.testing.assert_close(resumed.updater.policy.get_distribution(observations).mean, before_mean)
+    assert applied['policy_version'] == checkpoint['updater']['policy_version'] + 1
+    assert_tree_equal(resumed.updater.actor_optimizer.state_dict()['state'],
+                      checkpoint['updater']['actor_optimizer']['state'])
+    resumed.rollback('test')
+    assert_settings(resumed, action_std=0.01, actor_lr=5e-5, critic_lr=0.0003)

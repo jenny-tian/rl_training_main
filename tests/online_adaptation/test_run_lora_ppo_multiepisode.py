@@ -35,6 +35,7 @@ def _args(tmp_path: Path) -> Namespace:
         probe_interval=5,
         probe_failure_policy="rollback",
         action_std=0.01,
+        final_action_std=None,
         actor_lr=5e-5,
         critic_lr=5e-5,
         reference_anchor_coef=1.0,
@@ -560,3 +561,47 @@ def test_fixed_terrain_anchor_survives_episode_changes_and_manifest_detects_repl
     original = _manifest(args)
     teacher.write_bytes(b'replaced')
     assert _manifest(args) != original
+
+
+def test_exploration_decay_endpoints_and_resume_use_absolute_episode(tmp_path):
+    from scripts.reinforcement_learning.online_adaptation.run_lora_ppo_multiepisode import episode_action_std
+    args = _args(tmp_path)
+    args.action_std, args.final_action_std, args.max_episodes = 0.03, 0.01, 20
+    values = [episode_action_std(args, episode) for episode in range(1, 21)]
+    assert values[0] == 0.03 and values[-1] == 0.01
+    assert all(a > b for a, b in zip(values, values[1:]))
+    # Resume reconstructs the same episode-12 command instead of resetting noise.
+    resumed = build_parser().parse_args(['--base-checkpoint', args.base_checkpoint,
+        '--output-dir', args.output_dir, '--action-std', '0.03', '--final-action-std', '0.01',
+        '--max-episodes', '20'])
+    command = build_training_command(resumed, tmp_path / 'episode12', tmp_path / 'e11.pt', episode=12)
+    assert float(command[command.index('--action-std') + 1]) == values[11]
+    assert '--final-action-std' not in command  # Worker distribution stays fixed within the episode.
+    probe = build_probe_command(resumed, tmp_path / 'probe', tmp_path / 'e12.pt')
+    assert '--evaluation-only' in probe and '--final-action-std' not in probe
+
+
+@pytest.mark.parametrize('episodes,final', [(1, 0.01), (20, 0.04)])
+def test_invalid_decay_cannot_create_manifest(tmp_path, episodes, final):
+    args = _args(tmp_path)
+    Path(args.base_checkpoint).write_bytes(b'base')
+    args.action_std, args.final_action_std, args.max_episodes = 0.03, final, episodes
+    with pytest.raises(ValueError, match='noise decay|final action std'):
+        _prepare(args)
+    assert not (Path(args.output_dir) / 'run_manifest.json').exists()
+
+
+def test_noise_schedule_change_rejects_resume_but_default_keeps_old_manifest(tmp_path):
+    args = _args(tmp_path)
+    Path(args.base_checkpoint).write_bytes(b'base')
+    args.action_std = 0.03
+    output, _ = _prepare(args)
+    assert 'exploration_schedule' not in _manifest(args)
+    args.final_action_std = 0.01
+    with pytest.raises(ValueError, match='saved manifest'):
+        _prepare(args)
+    output.joinpath('run_manifest.json').write_text(json.dumps(_manifest(args)))
+    _prepare(args)
+    args.final_action_std = 0.02
+    with pytest.raises(ValueError, match='saved manifest'):
+        _prepare(args)
