@@ -36,6 +36,8 @@ class PPOConfig:
     value_coef: float = 0.5
     flat_anchor_coef: float = 0.0
     max_anchor_mse: float | None = None
+    terrain_anchor_coef: float = 0.0
+    max_terrain_anchor_mse: float | None = None
     max_grad_norm: float = 1.0
     target_kl: float | None = 0.01
     normalize_advantages: bool = True
@@ -58,6 +60,12 @@ class PPOConfig:
             raise ValueError("target_kl must be positive or None")
         if not math.isfinite(self.flat_anchor_coef) or self.flat_anchor_coef < 0:
             raise ValueError("flat_anchor_coef must be finite and non-negative")
+        if not math.isfinite(self.terrain_anchor_coef) or self.terrain_anchor_coef < 0:
+            raise ValueError("terrain_anchor_coef must be finite and non-negative")
+        if self.max_terrain_anchor_mse is not None and (
+            not math.isfinite(self.max_terrain_anchor_mse) or self.max_terrain_anchor_mse <= 0
+        ):
+            raise ValueError("max_terrain_anchor_mse must be positive or None")
         if self.max_anchor_mse is not None and (
             not math.isfinite(self.max_anchor_mse) or self.max_anchor_mse <= 0
         ):
@@ -90,6 +98,7 @@ class PPOUpdateStats:
     num_valid_samples: int = 0
     total_rollout_samples: int = 0
     candidate_anchor_mse: float | None = None
+    candidate_terrain_anchor_mse: float | None = None
 
 
 def _as_column(value: Tensor, name: str) -> Tensor:
@@ -186,6 +195,7 @@ class OnlinePPOUpdater:
         config: PPOConfig | None = None,
         *,
         policy_version: int = 0,
+        terrain_reference_policy: nn.Module | None = None,
     ) -> None:
         if not isinstance(policy, nn.Module) or not isinstance(critic, nn.Module):
             raise TypeError("policy and critic must be torch modules")
@@ -194,6 +204,14 @@ class OnlinePPOUpdater:
         self.policy = policy
         self.critic = critic
         self.config = config or PPOConfig()
+        if (self.config.terrain_anchor_coef or self.config.max_terrain_anchor_mse is not None) and terrain_reference_policy is None:
+            raise ValueError("terrain anchor constraints require a fixed terrain reference policy")
+        # External experiment asset: never replaced by a resumed training
+        # checkpoint or a rollback. Own a frozen copy, isolated from callers.
+        self.terrain_reference_policy = (
+            copy.deepcopy(terrain_reference_policy).eval().requires_grad_(False)
+            if terrain_reference_policy is not None else None
+        )
         self.policy_version = policy_version
         actor_parameters = [parameter for parameter in policy.parameters() if parameter.requires_grad]
         if not actor_parameters:
@@ -302,6 +320,12 @@ class OnlinePPOUpdater:
             valid = torch.ones_like(advantages)
         if not bool((valid.sum() > 0).item()):
             raise ValueError("rollout contains no valid rows")
+        terrain_means = None
+        if self.terrain_reference_policy is not None:
+            with torch.no_grad():
+                terrain_means = _policy_mean(self.terrain_reference_policy, rollout.observations).detach()
+            if terrain_means.shape != rollout.actions.shape or not bool(torch.isfinite(terrain_means).all().item()):
+                raise ValueError("terrain reference must produce finite means matching rollout actions")
         # Saved values are the critic predictions made while collecting this
         # block.  Compute diagnostics before normalizing advantages or changing
         # the critic, so rejected candidates report the same input statistics.
@@ -358,6 +382,8 @@ class OnlinePPOUpdater:
                 if flat_anchor_observations is not None and self.config.flat_anchor_coef:
                     anchor_loss = self._flat_anchor_loss(flat_anchor_observations, flat_anchor_means)
                 actor_loss = policy_loss - self.config.entropy_coef * entropy.mean() + self.config.flat_anchor_coef * anchor_loss
+                if terrain_means is not None and self.config.terrain_anchor_coef:
+                    actor_loss = actor_loss + self.config.terrain_anchor_coef * self._flat_anchor_loss(obs, terrain_means[idx])
                 self.actor_optimizer.zero_grad(set_to_none=True)
                 actor_loss.backward()
                 if self.config.max_grad_norm:
@@ -394,6 +420,11 @@ class OnlinePPOUpdater:
                 if flat_anchor_observations is not None
                 else None
             )
+            terrain_anchor_mse = (
+                float(self._flat_anchor_loss(rollout.observations[valid[:, 0].bool()],
+                                             terrain_means[valid[:, 0].bool()]))
+                if terrain_means is not None else None
+            )
             finite = all(bool(torch.isfinite(parameter).all().item()) for parameter in self.policy.parameters()) and all(
                 bool(torch.isfinite(parameter).all().item()) for parameter in self.critic.parameters()
             )
@@ -414,6 +445,12 @@ class OnlinePPOUpdater:
             reason = "anchor_mse"
         elif self.config.target_kl is not None and approx_kl > self.config.target_kl:
             reason = "target_kl"
+        elif terrain_anchor_mse is not None and (
+            not math.isfinite(terrain_anchor_mse)
+            or (self.config.max_terrain_anchor_mse is not None
+                and terrain_anchor_mse > self.config.max_terrain_anchor_mse)
+        ):
+            reason = "terrain_anchor_mse"
         if reason is not None:
             self._restore(snapshot)
             return PPOUpdateStats(
@@ -421,6 +458,7 @@ class OnlinePPOUpdater:
                 total_entropy / total_count, total_clip / total_count, total_count,
                 self.policy_version, self.policy_version,
                 candidate_anchor_mse=anchor_mse,
+                candidate_terrain_anchor_mse=terrain_anchor_mse,
                 **diagnostics,
             )
         previous = self.policy_version
@@ -430,6 +468,7 @@ class OnlinePPOUpdater:
             total_entropy / total_count, total_clip / total_count, total_count,
             previous, self.policy_version,
             candidate_anchor_mse=anchor_mse,
+            candidate_terrain_anchor_mse=terrain_anchor_mse,
             **diagnostics,
         )
 

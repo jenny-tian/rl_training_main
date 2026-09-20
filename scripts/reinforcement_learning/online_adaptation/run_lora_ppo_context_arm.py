@@ -1,7 +1,7 @@
-"""Run one arm of a context ablation, then measure physical flat retention.
+"""Run a context/terrain-anchor arm, then evaluate learned and selected models.
 
-Launch two instances on separate GPUs with identical arguments except --context,
---gpu and --output. The initial checkpoint must have passed a frozen terrain
+Launch matched instances on separate GPUs, varying either --context or the
+terrain-anchor options. The initial checkpoint must have passed a frozen terrain
 probe. Run from an archived code tree to keep a long experiment reproducible.
 """
 
@@ -16,6 +16,25 @@ import subprocess
 import sys
 
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
+from scripts.reinforcement_learning.online_adaptation.run_lora_ppo_multiepisode import (
+    build_parser as supervisor_parser, build_probe_command, _successful,
+    _nonnegative_float, _positive_float,
+)
+
+
+def evaluation_targets(state: dict, initial_checkpoint: str) -> list[dict]:
+    """Never substitute the selected recovery model for the latest learned model."""
+    initial_sha = sha256_file(initial_checkpoint)
+    targets = {}
+    for role, key in (("selected", "final_checkpoint"), ("latest_candidate", "latest_checkpoint")):
+        checkpoint = str(Path(state[key]).resolve())
+        digest = sha256_file(checkpoint)
+        target = targets.setdefault(digest, {
+            "checkpoint": checkpoint, "sha256": digest, "roles": [],
+            "is_initial_checkpoint": digest == initial_sha,
+        })
+        target["roles"].append(role)
+    return list(targets.values())
 
 
 def retention_checks(baseline: dict, candidate: dict) -> dict[str, bool]:
@@ -43,6 +62,8 @@ def main() -> None:
     parser.add_argument('--output', required=True)
     parser.add_argument('--gpu', type=int, choices=(0, 1, 3), required=True)
     parser.add_argument('--context', action='store_true')
+    parser.add_argument('--terrain-anchor-coef', type=_nonnegative_float, default=0.0)
+    parser.add_argument('--max-terrain-anchor-mse', type=_positive_float, default=None)
     args = parser.parse_args()
     root = Path(args.output).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -69,8 +90,15 @@ def main() -> None:
              '--stability-min-consecutive-successes', '3']
     if args.context:
         train.append('--proprioceptive-context')
+    if args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None:
+        train += ['--terrain-reference-checkpoint', args.initial_checkpoint,
+                  '--terrain-anchor-coef', str(args.terrain_anchor_coef)]
+        if args.max_terrain_anchor_mse is not None:
+            train += ['--max-terrain-anchor-mse', str(args.max_terrain_anchor_mse)]
     write_json_atomic(root / 'arm_plan.json', {
         'context': args.context, 'command': train,
+        'terrain_anchor_coef': args.terrain_anchor_coef,
+        'max_terrain_anchor_mse': args.max_terrain_anchor_mse,
         'base_sha256': sha256_file(args.base_checkpoint),
         'initial_sha256': sha256_file(args.initial_checkpoint),
         'flat_retention_seeds': [7, 8, 9],
@@ -93,14 +121,38 @@ def main() -> None:
         run(train, root / 'supervisor.log')
         state = json.loads((root / 'training/summary.json').read_text())
         selected = state['final_checkpoint']
+        targets = evaluation_targets(state, args.initial_checkpoint)
+        write_json_atomic(root / 'evaluation_targets.json', {'targets': targets})
+        # The supervisor's final_validation describes its selected model only.
+        # Independently probe the actual last training candidate on all five
+        # development layouts, even when all periodic probes failed.
+        latest = next(t for t in targets if 'latest_candidate' in t['roles'])
+        write_json_atomic(root / 'arm_status.json', {
+            'status': 'latest_candidate_validation', 'targets': targets,
+        })
+        probe_args = supervisor_parser().parse_args(train[3:])
+        candidate_results = []
+        for seed in (101, 103, 107, 109, 113):
+            output = root / 'latest_candidate_validation' / f'seed-{seed}'
+            command = build_probe_command(probe_args, output, Path(latest['checkpoint']), terrain_seed=seed)
+            write_json_atomic(output / 'command.json', {'command': command})
+            run(command, output / 'runtime.log')
+            summary = json.loads((output / 'summary.json').read_text())
+            candidate_results.append({'seed': seed, 'successful_completion': _successful(summary)})
+            write_json_atomic(root / 'latest_candidate_validation.json', {
+                **latest, 'count': len(candidate_results),
+                'successes': sum(r['successful_completion'] for r in candidate_results),
+                'results': candidate_results,
+            })
         write_json_atomic(root / 'arm_status.json', {
             'status': 'flat_retention', 'selected_checkpoint': selected,
-            'selected_sha256': sha256_file(selected),
+            'selected_sha256': sha256_file(selected), 'targets': targets,
         })
         results = []
         for seed in (7, 8, 9):
             pair = {}
-            for name in ('baseline', 'candidate'):
+            jobs = [('baseline', None)] + [(t['roles'][0], t) for t in targets]
+            for name, target in jobs:
                 output = root / 'flat_retention' / f'seed-{seed}' / name
                 command = [sys.executable, '-u', str(scripts / 'train_lora_ppo.py'),
                            '--base-checkpoint', args.base_checkpoint,
@@ -113,23 +165,31 @@ def main() -> None:
                            '--/renderer/multiGpu/enabled=false '
                            '--/renderer/multiGpu/autoEnable=false '
                            '--/renderer/multiGpu/maxGpuCount=1']
-                if name == 'candidate':
-                    command += ['--checkpoint-in', selected]
+                if target is not None:
+                    command += ['--checkpoint-in', target['checkpoint']]
                     if args.context:
                         command.append('--proprioceptive-context')
                 write_json_atomic(output / 'command.json', {'command': command})
                 run(command, output / 'runtime.log')
                 pair[name] = json.loads((output / 'summary.json').read_text())
-            baseline, candidate = pair['baseline'], pair['candidate']
-            checks = retention_checks(baseline, candidate)
-            results.append({'seed': seed, 'checks': checks, 'passed': all(checks.values()),
-                            'baseline': baseline['flat_retention'], 'candidate': candidate['flat_retention']})
+            for target in targets:
+                name = target['roles'][0]
+                baseline, candidate = pair['baseline'], pair[name]
+                checks = retention_checks(baseline, candidate)
+                results.append({'seed': seed, 'target': target, 'checks': checks,
+                                'passed': all(checks.values()),
+                                'baseline': baseline['flat_retention'], 'candidate': candidate['flat_retention']})
             write_json_atomic(root / 'flat_retention_results.json', {'pairs': results})
         write_json_atomic(root / 'arm_status.json', {
             'status': 'complete', 'training_status': state['status'],
             'stable_success_episode': state['stable_success_episode'],
             'selected_checkpoint': selected, 'selected_sha256': sha256_file(selected),
-            'flat_retention_passed': all(r['passed'] for r in results),
+            'targets': targets,
+            'flat_retention_passed': all(r['passed'] for r in results if 'selected' in r['target']['roles']),
+            'latest_candidate_flat_retention_passed': all(
+                r['passed'] for r in results if 'latest_candidate' in r['target']['roles']),
+            'latest_candidate_validation': {**latest, 'results': candidate_results,
+                                           'successes': sum(r['successful_completion'] for r in candidate_results)},
             'final_validation': state['final_validation'],
         })
     except Exception as error:

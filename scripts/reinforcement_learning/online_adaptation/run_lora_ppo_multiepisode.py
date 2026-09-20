@@ -82,6 +82,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reference-anchor-coef", type=_nonnegative_float, default=1.0)
     parser.add_argument("--flat-anchor-observations", default=None)
     parser.add_argument("--max-reference-mse", type=_positive_float, default=1e-4)
+    parser.add_argument("--terrain-reference-checkpoint", default=None)
+    parser.add_argument("--terrain-anchor-coef", type=_nonnegative_float, default=0.0)
+    parser.add_argument("--max-terrain-anchor-mse", type=_positive_float, default=None)
     parser.add_argument("--stability-window", type=_positive_int, default=10)
     parser.add_argument("--stability-min-success-rate", type=_unit_interval, default=0.8)
     parser.add_argument("--stability-min-consecutive-successes", type=_positive_int, default=3)
@@ -198,6 +201,13 @@ def build_training_command(
         ),
         "--stop-after-termination",
     ]
+    if args.terrain_reference_checkpoint:
+        command.extend(("--terrain-reference-checkpoint", str(Path(args.terrain_reference_checkpoint).resolve()),
+                        "--terrain-anchor-coef", str(args.terrain_anchor_coef)))
+        if args.max_terrain_anchor_mse is not None:
+            command.extend(("--max-terrain-anchor-mse", str(args.max_terrain_anchor_mse)))
+    elif args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None:
+        raise ValueError("terrain anchor constraints require --terrain-reference-checkpoint")
     if args.video_episodes:
         command.extend(("--video", "--video-length", str(args.max_steps_per_episode)))
     return command
@@ -518,6 +528,16 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
             proprioceptive_context=True,
             source_anchor_context="zero_initial_context_only",
         )
+    if args.terrain_reference_checkpoint:
+        manifest["terrain_anchor"] = {
+            "checkpoint": str(Path(args.terrain_reference_checkpoint).resolve()),
+            "sha256": sha256_file(args.terrain_reference_checkpoint),
+            "coefficient": args.terrain_anchor_coef,
+            "max_mse": args.max_terrain_anchor_mse,
+            "contract": "fixed_terrain_teacher_on_valid_rollout_observations_v1",
+        }
+    elif args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None:
+        raise ValueError("terrain anchor constraints require --terrain-reference-checkpoint")
     return manifest
 
 

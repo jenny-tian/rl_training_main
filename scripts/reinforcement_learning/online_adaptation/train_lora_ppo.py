@@ -121,6 +121,17 @@ def _prepare_checkpoint_session(checkpoint, *, policy, base_obs_dim: int,
     return state, record
 
 
+def _terrain_reference_from_checkpoint(checkpoint, *, policy, base_obs_dim, proprioceptive_context):
+    """Migrate a fixed teacher independently of the resumed learning state."""
+    reference = copy.deepcopy(policy)
+    state, _ = _prepare_checkpoint_session(
+        checkpoint, policy=reference, base_obs_dim=base_obs_dim,
+        proprioceptive_context=proprioceptive_context,
+    )
+    reference.load_state_dict(state["updater"]["policy"])
+    return reference.eval().requires_grad_(False)
+
+
 def _configure_forward_command(command_cfg, forward_speed: float) -> None:
     """Disable all sampled special modes for this fixed-forward experiment."""
     command_cfg.resampling_time_range = (1.0e9, 1.0e9)
@@ -407,6 +418,9 @@ def build_parser() -> argparse.ArgumentParser:
         default=1e-4,
         help="reject a PPO candidate whose mean-action MSE from the frozen base actor exceeds this value",
     )
+    parser.add_argument("--terrain-reference-checkpoint", default=None)
+    parser.add_argument("--terrain-anchor-coef", type=_nonnegative_float, default=0.0)
+    parser.add_argument("--max-terrain-anchor-mse", type=_positive_float, default=None)
     parser.add_argument("--max-grad-norm", type=_positive_float, default=1.0)
     parser.add_argument("--max-parameter-abs", type=_positive_float, default=None)
     parser.add_argument(
@@ -429,6 +443,8 @@ def main() -> int:
     if not args.base_checkpoint:
         raise SystemExit("--base-checkpoint is required")
     _prepare_evaluation_args(args)
+    if (args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None) and not args.terrain_reference_checkpoint:
+        raise SystemExit("terrain anchor constraints require --terrain-reference-checkpoint")
     if args.retain_terminal_learning and args.continue_after_termination:
         raise SystemExit("terminal learning cannot continue the failed physical trial")
     # AppLauncher consumes this flag while constructing the simulation.  Set
@@ -606,6 +622,27 @@ def main() -> int:
             critic = nn.Sequential(
                 nn.Linear(critic_input_dim, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
             ).to(args.device)
+            terrain_reference = None
+            terrain_anchor_metadata = None
+            if args.terrain_reference_checkpoint:
+                from rl_training.online_adaptation.provenance import sha256_file
+
+                terrain_checkpoint = torch.load(args.terrain_reference_checkpoint, map_location=args.device,
+                                                weights_only=False)
+                if terrain_checkpoint.get("schema_version") != 1 or terrain_checkpoint.get("lora_rank") != args.rank:
+                    raise ValueError("terrain reference checkpoint schema/rank differs from the requested policy")
+                terrain_reference = _terrain_reference_from_checkpoint(
+                    terrain_checkpoint, policy=policy, base_obs_dim=obs_dim,
+                    proprioceptive_context=args.proprioceptive_context,
+                )
+                terrain_anchor_metadata = {
+                    "contract": "fixed_terrain_teacher_on_valid_rollout_observations_v1",
+                    "checkpoint": str(Path(args.terrain_reference_checkpoint).resolve()),
+                    "sha256": sha256_file(args.terrain_reference_checkpoint),
+                    "coefficient": args.terrain_anchor_coef,
+                    "max_mse": args.max_terrain_anchor_mse,
+                }
+                del terrain_checkpoint
             updater = OnlinePPOUpdater(
                 policy,
                 critic,
@@ -621,10 +658,13 @@ def main() -> int:
                     value_coef=args.value_coef,
                     flat_anchor_coef=args.reference_anchor_coef,
                     max_anchor_mse=args.max_reference_mse,
+                    terrain_anchor_coef=args.terrain_anchor_coef,
+                    max_terrain_anchor_mse=args.max_terrain_anchor_mse,
                     max_grad_norm=args.max_grad_norm,
                     target_kl=args.target_kl,
                     max_parameter_abs=args.max_parameter_abs,
                 ),
+                terrain_reference_policy=terrain_reference,
             )
             from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
 
@@ -688,6 +728,7 @@ def main() -> int:
                          else "current_online_observations_v1"
                      ),
                      "source_anchor_metadata": source_anchor_metadata,
+                     "terrain_anchor_metadata": terrain_anchor_metadata,
                      "effective_runtime_config": effective_runtime_config,
                      "initial_policy_version": initial_policy_version},
                     indent=2, default=str,
@@ -1132,6 +1173,7 @@ def main() -> int:
                         else "current_online_observations_v1"
                     ),
                     "source_anchor_metadata": source_anchor_metadata,
+                "terrain_anchor_metadata": terrain_anchor_metadata,
                     "effective_runtime_config": effective_runtime_config,
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
@@ -1188,6 +1230,7 @@ def main() -> int:
                     else "current_online_observations_v1"
                 ),
                 "source_anchor_metadata": source_anchor_metadata,
+                "terrain_anchor_metadata": terrain_anchor_metadata,
                 "effective_runtime_config": effective_runtime_config,
                 "evaluation_only": bool(args.evaluation_only),
                 "steps": steps,

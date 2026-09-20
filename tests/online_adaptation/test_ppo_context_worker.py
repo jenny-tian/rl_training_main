@@ -140,3 +140,17 @@ def test_actor_current_and_critic_terminal_inputs_keep_distinct_odometry_across_
 def test_invalid_odometry_cannot_enter_actor_or_critic_rollouts(context):
     with pytest.raises(ValueError, match="context"):
         _append_odometry_context(torch.zeros(1, 45), context)
+
+
+def test_terrain_teacher_migration_uses_fixed_checkpoint_not_resumed_actor():
+    from scripts.reinforcement_learning.online_adaptation.train_lora_ppo import _terrain_reference_from_checkpoint
+    checkpoint, original, _ = _checkpoint()
+    target = ContextGatedPolicy(copy.deepcopy(original))
+    with torch.no_grad():
+        target.context_B.weight.fill_(0.3)
+    teacher = _terrain_reference_from_checkpoint(checkpoint, policy=target, base_obs_dim=45,
+                                                 proprioceptive_context=True)
+    inputs = torch.randn(6, 48)
+    torch.testing.assert_close(teacher.mean_action(inputs), original.mean_action(inputs[:, :45]), atol=0, rtol=0)
+    assert all(not p.requires_grad for p in teacher.parameters())
+    assert torch.count_nonzero(target.context_B.weight) > 0

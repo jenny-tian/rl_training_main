@@ -320,3 +320,97 @@ def test_updater_state_dict_round_trip_includes_version_and_optimizer_state():
     broken["policy_version"] = -1
     with pytest.raises(ValueError, match="policy_version"):
         restored.load_state_dict(broken)
+
+
+@pytest.mark.parametrize('field,value', [('terrain_anchor_coef', -1), ('terrain_anchor_coef', float('nan')),
+                                       ('max_terrain_anchor_mse', 0), ('max_terrain_anchor_mse', float('inf'))])
+def test_terrain_anchor_rejects_invalid_config(field, value):
+    with pytest.raises(ValueError, match=field):
+        PPOConfig(**{field: value})
+
+
+def test_terrain_anchor_requires_explicit_teacher():
+    with pytest.raises(ValueError, match='fixed terrain reference'):
+        OnlinePPOUpdater(GaussianPolicy(), Value(), PPOConfig(terrain_anchor_coef=100))
+
+
+def test_terrain_anchor_rejection_restores_actor_critic_and_both_optimizers():
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(policy, critic,
+        PPOConfig(target_kl=None, actor_lr=0.01, critic_lr=0.01, max_terrain_anchor_mse=1e-14),
+        terrain_reference_policy=policy)
+    # Populate optimizer states so restoration covers more than empty Adam slots.
+    for model, optimizer in ((policy, updater.actor_optimizer), (critic, updater.critic_optimizer)):
+        optimizer.zero_grad()
+        sum(p.square().sum() for p in model.parameters()).backward()
+        optimizer.step()
+    before = updater.state_dict()
+    stats = updater.update(make_rollout(policy, critic))
+    assert not stats.accepted and stats.rejection_reason == 'terrain_anchor_mse'
+    assert stats.candidate_terrain_anchor_mse > 1e-14
+    after = updater.state_dict()
+    def equal(a, b):
+        if isinstance(a, torch.Tensor):
+            torch.testing.assert_close(a, b, atol=0, rtol=0)
+        elif isinstance(a, dict):
+            assert a.keys() == b.keys()
+            for k in a: equal(a[k], b[k])
+        elif isinstance(a, (tuple, list)):
+            assert len(a) == len(b)
+            for x, y in zip(a, b): equal(x, y)
+        else:
+            assert a == b
+    equal(before, after)
+
+
+def test_fixed_teacher_survives_caller_changes_and_training_checkpoint_restore():
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(policy, critic, terrain_reference_policy=policy)
+    observations = torch.randn(4, 2)
+    original = policy.mean_action(observations).detach().clone()
+    with torch.no_grad():
+        policy.linear.bias.add_(3)
+    updater.load_state_dict(updater.state_dict())
+    torch.testing.assert_close(updater.terrain_reference_policy.mean_action(observations), original)
+    assert all(not p.requires_grad for p in updater.terrain_reference_policy.parameters())
+    assert not updater.terrain_reference_policy.training
+
+
+def test_terrain_anchor_soft_penalty_reduces_drift_without_flat_data():
+    torch.manual_seed(5)
+    teacher, critic = GaussianPolicy(), Value()
+    candidate = copy.deepcopy(teacher)
+    with torch.no_grad():
+        candidate.linear.bias.add_(0.1)
+    rollout = make_rollout(candidate, critic, length=64)
+    anchored = OnlinePPOUpdater(copy.deepcopy(candidate), copy.deepcopy(critic),
+        PPOConfig(target_kl=None, actor_lr=0.005, epochs=5, terrain_anchor_coef=100),
+        terrain_reference_policy=teacher)
+    control = OnlinePPOUpdater(copy.deepcopy(candidate), copy.deepcopy(critic),
+        PPOConfig(target_kl=None, actor_lr=0.005, epochs=5), terrain_reference_policy=teacher)
+    torch.manual_seed(3)
+    a = anchored.update(rollout)
+    torch.manual_seed(3)
+    c = control.update(rollout)
+    assert a.accepted and c.accepted
+    assert a.candidate_terrain_anchor_mse < c.candidate_terrain_anchor_mse
+    assert all(p.grad is None for p in anchored.terrain_reference_policy.parameters())
+
+
+def test_terrain_anchor_ignores_invalid_rollout_rows():
+    policy, critic = GaussianPolicy(), Value()
+    teacher = copy.deepcopy(policy)
+    with torch.no_grad():
+        teacher.linear.weight.add_(1)
+    rollout = make_rollout(policy, critic)
+    obs = torch.zeros_like(rollout.observations)
+    obs[-1].fill_(1e6)
+    mask = torch.ones_like(rollout.rewards)
+    mask[-1] = 0
+    rollout = replace(rollout, observations=obs, valid_mask=mask,
+                      old_log_probs=policy.get_distribution(obs).log_prob(rollout.actions).detach())
+    updater = OnlinePPOUpdater(policy, critic, PPOConfig(target_kl=None, max_terrain_anchor_mse=1e-5),
+                               terrain_reference_policy=teacher)
+    stats = updater.update(rollout)
+    assert stats.accepted
+    assert stats.candidate_terrain_anchor_mse < 1e-5

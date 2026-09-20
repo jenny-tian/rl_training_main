@@ -38,6 +38,9 @@ def _args(tmp_path: Path) -> Namespace:
         actor_lr=5e-5,
         critic_lr=5e-5,
         reference_anchor_coef=1.0,
+        terrain_reference_checkpoint=None,
+        terrain_anchor_coef=0.0,
+        max_terrain_anchor_mse=None,
         flat_anchor_observations=None,
         max_reference_mse=1e-4,
         stability_window=10,
@@ -537,3 +540,23 @@ def test_failed_probe_selects_the_correct_next_training_branch_without_changing_
     assert state["latest_probe"]["rollback_checkpoint"] == (str(verified.resolve()) if failure_policy == "rollback" else None)
     validation = [command for command, path in calls if path.parent.name == "final_validation"]
     assert validation and all(command[command.index("--checkpoint-in") + 1] == str(verified.resolve()) for command in validation)
+
+
+def test_fixed_terrain_anchor_survives_episode_changes_and_manifest_detects_replacement(tmp_path):
+    args = _args(tmp_path)
+    Path(args.base_checkpoint).write_bytes(b'base')
+    teacher = tmp_path / 'teacher.pt'
+    teacher.write_bytes(b'verified terrain')
+    args.terrain_reference_checkpoint = str(teacher)
+    args.terrain_anchor_coef = 100
+    args.max_terrain_anchor_mse = 0.0001
+    checkpoint = tmp_path / 'newly-trained.pt'
+    command = build_training_command(args, tmp_path / 'episode2', checkpoint, episode=2)
+    assert command[command.index('--checkpoint-in') + 1] == str(checkpoint)
+    assert command[command.index('--terrain-reference-checkpoint') + 1] == str(teacher)
+    assert command[command.index('--terrain-anchor-coef') + 1] == '100'
+    probe = build_probe_command(args, tmp_path / 'probe', checkpoint)
+    assert '--terrain-reference-checkpoint' not in probe
+    original = _manifest(args)
+    teacher.write_bytes(b'replaced')
+    assert _manifest(args) != original
