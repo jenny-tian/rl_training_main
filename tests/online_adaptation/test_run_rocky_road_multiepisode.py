@@ -600,6 +600,38 @@ def test_invalid_validation_metrics_cannot_select_a_winner():
                            "second_half_tilt_rms": .1, "completion_remaining_m": 0}])
 
 
+def test_failed_development_probe_restores_selected_checkpoint_for_next_episode(tmp_path, monkeypatch):
+    from scripts.reinforcement_learning.online_adaptation import run_rocky_road_multiepisode as module
+
+    output = tmp_path / "run"
+    selected = output / "episodes" / "episode-0001" / "experiment.pt"
+    selected.parent.mkdir(parents=True)
+    selected.write_bytes(b"verified-best")
+    current = output / "experiment.pt"
+    current.write_bytes(b"degraded-latest")
+    state = {
+        "episodes_completed": 1,
+        "latest_flat_retention_passed": True,
+        "best_checkpoint": None,
+    }
+    report = {
+        "episode": 1,
+        "checkpoint_path": str(selected),
+        "checkpoint_sha256": module.sha256_file(selected),
+        "flat_retention_passed": True,
+        "rank": [1, 0, 0, 0, 0],
+        "passed": False,
+    }
+    monkeypatch.setattr(module, "_run_development_validation", lambda *args, **kwargs: report)
+    monkeypatch.setattr(module, "write_json_atomic", lambda path, value: path.write_text(json.dumps(value)))
+
+    module._record_development_validation(None, None, output=output, state=state)
+
+    assert current.read_bytes() == b"verified-best"
+    assert state["development_rollbacks"] == 1
+    assert state["last_development_rollback_checkpoint"] == str(selected.resolve())
+
+
 def test_synchronous_actor_budget_reaches_worker_without_relaxing_drift_guard(tmp_path):
     args = _args(tmp_path, update_schedule='control-step', actor_updates_per_transition=0.02)
     (tmp_path / 'novelty_baseline.json').write_text('{}', encoding='utf-8')

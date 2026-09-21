@@ -1243,6 +1243,22 @@ def _record_development_validation(args, configuration, *, output, state):
     state["best_checkpoint"] = select_best_checkpoint(state["best_checkpoint"], report)
     if state["best_checkpoint"] is not None:
         write_json_atomic(output / "best_checkpoint.json", state["best_checkpoint"])
+        # A failed frozen terrain probe must not leave the next episode
+        # continuing from the degraded latest checkpoint. Keep the selected
+        # checkpoint as the actual online continuation when it is available.
+        selected = Path(state["best_checkpoint"]["checkpoint_path"])
+        current = output / "experiment.pt"
+        if report.get("passed") is not True and selected.resolve() != current.resolve():
+            if not selected.is_file():
+                raise RuntimeError("best development checkpoint is unavailable for rollback")
+            shutil.copy2(selected, current)
+            current.with_suffix(current.suffix + ".sha256").write_text(
+                sha256_file(current) + "\n", encoding="ascii"
+            )
+            state["latest_checkpoint"] = str(selected.resolve())
+            state["latest_checkpoint_sha256"] = sha256_file(selected)
+            state["development_rollbacks"] = int(state.get("development_rollbacks", 0)) + 1
+            state["last_development_rollback_checkpoint"] = str(selected.resolve())
     write_json_atomic(output / "learning_state.json", state)
 
 
