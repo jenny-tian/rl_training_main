@@ -367,6 +367,48 @@ def test_passing_frozen_probe_promotes_candidate_under_either_failure_policy(tmp
     assert promoted["probe_failures"] == promoted["probe_rollbacks"] == promoted["probe_retained_candidates"] == 0
 
 
+@pytest.mark.parametrize("failure_policy", ["rollback", "continue_candidate"])
+def test_training_safety_violation_blocks_probe_promotion(tmp_path, failure_policy):
+    args = _args(tmp_path)
+    recovery = tmp_path / "recovery.pt"
+    candidate = tmp_path / "candidate.pt"
+    recovery.write_bytes(b"recovery")
+    candidate.write_bytes(b"candidate")
+    args.initial_checkpoint = str(recovery)
+    state = _initial_state(args)
+    state["best_checkpoint"] = str(recovery.resolve())
+    state["recovery_checkpoint"] = str(recovery.resolve())
+
+    updated, selected = apply_probe_result(
+        state,
+        episode=5,
+        checkpoint=candidate,
+        probe_passed=True,
+        training_success=True,
+        training_safety_violation=True,
+        probe_failure_policy=failure_policy,
+    )
+
+    assert updated["latest_probe"]["successful_completion"] is True
+    assert updated["latest_probe"]["promotion_allowed"] is False
+    assert updated["latest_probe"]["training_safety_violation"] is True
+    assert updated["best_checkpoint"] == str(recovery.resolve())
+    assert updated["recovery_checkpoint"] == str(recovery.resolve())
+    if failure_policy == "rollback":
+        assert selected == recovery
+        assert updated["latest_probe"]["action"] == "rollback"
+        assert updated["latest_probe"]["rollback_checkpoint"] == str(recovery.resolve())
+        assert updated["resume_checkpoint"] == str(recovery.resolve())
+        assert updated["probe_rollbacks"] == 1
+    else:
+        assert selected == candidate
+        assert updated["latest_probe"]["action"] == "continue_candidate"
+        assert updated["latest_probe"]["rollback_checkpoint"] is None
+        assert updated["resume_checkpoint"] == str(candidate.resolve())
+        assert updated["probe_rollbacks"] == 0
+    assert updated["probe_failures"] == 1
+
+
 def test_failed_probe_without_verified_recovery_rolls_back_to_base_by_default(tmp_path):
     args = _args(tmp_path)
     candidate = tmp_path / "candidate.pt"

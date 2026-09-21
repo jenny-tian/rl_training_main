@@ -68,5 +68,12 @@ qualification requirements unchanged. The next bounded SAC pilot will use the
 original actor budget with this development-probe rollback enabled; results
 will be compared against the clean 0.005 arm above.
 
+The LoRA/PPO episode supervisor was then corrected so a candidate that triggers
+a training-time safety violation cannot become a recovery checkpoint merely
+because its later frozen probe passes. The probe remains necessary for
+promotion, but it no longer erases safety evidence from the training rollout;
+the default policy rolls back to the previously verified recovery checkpoint.
+This is a supervisor-safety fix and does not claim improved PPO performance.
+
 CPU online-adaptation tests currently pass before the final full-suite run for
 this repair. Physical conclusions remain pending that bounded pilot.

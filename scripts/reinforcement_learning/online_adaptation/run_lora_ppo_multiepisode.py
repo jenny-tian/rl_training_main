@@ -331,6 +331,7 @@ def apply_probe_result(
     checkpoint: Path,
     probe_passed: bool,
     training_success: bool,
+    training_safety_violation: bool = False,
     fallback_checkpoint: Path | None = None,
     probe_failure_policy: str = "rollback",
 ) -> tuple[dict[str, Any], Path | None]:
@@ -345,15 +346,24 @@ def apply_probe_result(
     updated["probe_retained_candidates"] = int(updated.get("probe_retained_candidates", 0))
     current_path = str(checkpoint.resolve())
     current_sha256 = sha256_file(checkpoint)
+    if not isinstance(training_safety_violation, bool):
+        raise ValueError("training_safety_violation must be a bool")
+    # A deterministic probe can pass after the training rollout itself
+    # triggered a safety violation. That checkpoint is not eligible for
+    # recovery: promoting it would erase the safety evidence and allow the
+    # next episode to continue from a policy that just violated the guard.
+    promotion_allowed = probe_passed and not training_safety_violation
     latest_probe = {
         "episode": episode,
         "successful_completion": probe_passed,
+        "promotion_allowed": promotion_allowed,
+        "training_safety_violation": training_safety_violation,
         "checkpoint_sha256": current_sha256,
         "continuation_checkpoint": current_path,
         "rollback_checkpoint": None,
     }
     updated["latest_probe"] = latest_probe
-    if probe_passed:
+    if promotion_allowed:
         latest_probe["action"] = "promote"
         updated.update(
             {
@@ -672,6 +682,7 @@ def main() -> int:
                 checkpoint=candidate_checkpoint,
                 probe_passed=_successful(probe_summary),
                 training_success=episode_success,
+                training_safety_violation=bool(summary.get("safety_violation") is True),
                 fallback_checkpoint=(
                     Path(str(recovery_before_episode))
                     if recovery_before_episode
