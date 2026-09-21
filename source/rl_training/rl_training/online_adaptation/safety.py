@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import math
 import torch
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 
 from rl_training.lite3_stability_contract import (
     LITE3_MAX_PROJECTED_GRAVITY_XY,
@@ -20,6 +21,54 @@ class SafetyLimits:
     max_joint_velocity: float = 30.0
     nonfoot_contact_grace_steps: int = 10
     stable_steps_to_resume: int = 25
+    risk_gate_enabled: bool = False
+    risk_gate_min_scale: float = 0.25
+    risk_gate_tilt_start: float = 0.35
+    risk_gate_tilt_end: float = 0.65
+    risk_gate_height_start: float = 0.28
+    risk_gate_height_end: float = 0.20
+    risk_gate_joint_velocity_start: float = 15.0
+    risk_gate_joint_velocity_end: float = 30.0
+    risk_gate_contact_scale: float = 0.5
+
+    def __post_init__(self) -> None:
+        bounded = ("risk_gate_min_scale", "risk_gate_contact_scale")
+        for name in bounded:
+            value = float(getattr(self, name))
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must be in [0, 1]")
+        for start, end, name in (
+            (self.risk_gate_tilt_start, self.risk_gate_tilt_end, "tilt"),
+            (self.risk_gate_joint_velocity_start, self.risk_gate_joint_velocity_end, "joint velocity"),
+        ):
+            if not math.isfinite(start) or not math.isfinite(end):
+                raise ValueError(f"risk gate {name} thresholds must be finite")
+            if start < 0 or end < 0:
+                raise ValueError(f"risk gate {name} thresholds must be nonnegative")
+            if float(end) <= float(start):
+                raise ValueError(f"risk gate {name} end must exceed start")
+        for value, name in (
+            (self.risk_gate_height_start, "height start"),
+            (self.risk_gate_height_end, "height end"),
+        ):
+            if not math.isfinite(value) or value < 0:
+                raise ValueError(f"risk gate {name} must be finite and nonnegative")
+        if self.risk_gate_height_end >= self.risk_gate_height_start:
+            raise ValueError("risk gate height end must be below start")
+
+    def risk_gate_contract(self) -> dict | None:
+        if not self.risk_gate_enabled:
+            return None
+        return {"semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(self)}
+
+
+def risk_gate_kwargs(args) -> dict:
+    """Resolve the same defaults for direct callers, workers, and supervisors."""
+    return {
+        item.name: getattr(args, item.name, item.default)
+        for item in fields(SafetyLimits)
+        if item.name.startswith("risk_gate_")
+    }
 
 
 class SafetyFilter:
@@ -35,6 +84,37 @@ class SafetyFilter:
         self._paused: torch.Tensor | None = None
         self._stable_steps: torch.Tensor | None = None
         self._contact_steps: torch.Tensor | None = None
+
+    def _risk_gate(self, state: SafetyState) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return a conservative risk score and residual scale per environment.
+
+        The gate gives the learned residual a continuously shrinking trust
+        region before the hard safety pause is reached.  The frozen base
+        action remains available throughout.
+        """
+        gravity = state.projected_gravity_xy.norm(dim=-1, keepdim=True)
+        tilt = (
+            (gravity - self.limits.risk_gate_tilt_start)
+            / (self.limits.risk_gate_tilt_end - self.limits.risk_gate_tilt_start)
+        ).clamp(0.0, 1.0)
+        height = (
+            (self.limits.risk_gate_height_start - state.base_height)
+            / (self.limits.risk_gate_height_start - self.limits.risk_gate_height_end)
+        ).clamp(0.0, 1.0)
+        joint_velocity = state.joint_vel.abs().amax(dim=-1, keepdim=True)
+        velocity = (
+            (joint_velocity - self.limits.risk_gate_joint_velocity_start)
+            / (
+                self.limits.risk_gate_joint_velocity_end
+                - self.limits.risk_gate_joint_velocity_start
+            )
+        ).clamp(0.0, 1.0)
+        contact = state.nonfoot_contact.to(dtype=gravity.dtype) * self.limits.risk_gate_contact_scale
+        risk = torch.maximum(torch.maximum(tilt, height), torch.maximum(velocity, contact))
+        scale = 1.0 - (1.0 - self.limits.risk_gate_min_scale) * risk
+        if not self.limits.risk_gate_enabled:
+            scale = torch.ones_like(scale)
+        return risk, scale
 
     def reset_temporal_state(self) -> None:
         """Clear pause, contact, and residual history at a deployment handoff."""
@@ -66,6 +146,8 @@ class SafetyFilter:
         assert self._paused is not None
         assert self._stable_steps is not None
         assert self._contact_steps is not None
+
+        risk_score, risk_scale = self._risk_gate(state)
 
         gravity_unsafe = state.projected_gravity_xy.norm(dim=-1, keepdim=True) > self.limits.max_projected_gravity_xy
         height_unsafe = state.base_height < self.limits.min_base_height
@@ -101,10 +183,16 @@ class SafetyFilter:
 
         limits = self.limits.residual_limits.to(device=raw_residual.device, dtype=raw_residual.dtype)
         residual = torch.maximum(torch.minimum(raw_residual, limits), -limits)
+        residual = residual * risk_scale
         residual = torch.maximum(
             torch.minimum(residual, self._previous_residual + self.limits.residual_rate_limit),
             self._previous_residual - self.limits.residual_rate_limit,
         )
+        if self.limits.risk_gate_enabled:
+            # A newly reduced safety envelope takes priority over slew history.
+            # Recovery still passes through the normal rate limit.
+            envelope = limits * risk_scale
+            residual = torch.maximum(torch.minimum(residual, envelope), -envelope)
         if force_zero_residual:
             residual = torch.zeros_like(residual)
         residual_guard = paused | contact_active | tilt_guard
@@ -160,4 +248,6 @@ class SafetyFilter:
             paused=paused.clone(),
             projected=changed,
             reasons=tuple(reasons),
+            risk_score=risk_score.detach().clone(),
+            risk_scale=risk_scale.detach().clone(),
         )

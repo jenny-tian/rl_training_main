@@ -35,7 +35,17 @@ from rl_training.online_adaptation.types import UpdateStats
 from rl_training.online_adaptation.swing_lift import SwingLiftTracker, rough_swing_reward_active
 from rl_training.online_adaptation.training_contract import training_contract, validate_training_contract
 
-from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser
+from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser, risk_gate_kwargs
+
+
+def risk_gate_record(decision) -> dict[str, float | None]:
+    risk = getattr(decision, "risk_score", None)
+    scale = getattr(decision, "risk_scale", None)
+    return {
+        "risk_score": float(risk.mean()) if risk is not None else None,
+        "risk_score_max": float(risk.max()) if risk is not None else None,
+        "risk_scale": float(scale.mean()) if scale is not None else None,
+    }
 
 
 def control_is_deterministic(
@@ -1333,6 +1343,7 @@ def main() -> int:
             safety_limits = SafetyLimits(
                 residual_limits=normal_limits,
                 residual_rate_limit=args.residual_rate_limit,
+                **risk_gate_kwargs(args),
             )
             online_agent = OnlineAdaptationAgent(
                 num_envs=1,
@@ -1384,7 +1395,8 @@ def main() -> int:
                 rough_swing_lift_target=args.rough_swing_lift_target,
             )
             current_training_contract = training_contract(
-                online_agent.updater.config, reward_weights, target_semantics=args.target_semantics
+                online_agent.updater.config, reward_weights, target_semantics=args.target_semantics,
+                risk_gate=safety_limits.risk_gate_contract(),
             )
             swing_lift_tracker = SwingLiftTracker()
             restored_experiment = None
@@ -1648,6 +1660,7 @@ def main() -> int:
 
             config = {
                 "arguments": vars(args),
+                "risk_gate": {"semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args)},
                 "critic_action_semantics": "requested_residual_before_safety_v1",
                 "replay_schema_version": 2,
                 "agent": asdict(runtime_config),
@@ -1785,6 +1798,7 @@ def main() -> int:
                         learning_enabled=learning_enabled,
                         novelty_state=novelty_decision.state,
                     )
+                    action_residual_gain = online_agent.residual_gain
                     decision = online_agent.begin_step(
                         frame,
                         base_action,
@@ -2286,6 +2300,8 @@ def main() -> int:
                     "post_step_recovery_active": post_step_recovery_active,
                     "post_step_checkpointed": post_step_checkpointed,
                     "effective_residual_gain": online_agent.residual_gain,
+                    "action_residual_gain": action_residual_gain,
+                    **risk_gate_record(decision),
                     "pre_step_clearance_active": pre_step_clearance_active,
                     "rough_swing_reward_active": rough_swing_active,
                     "foot_lift_from_contact_m": swing_lift[0].tolist(),

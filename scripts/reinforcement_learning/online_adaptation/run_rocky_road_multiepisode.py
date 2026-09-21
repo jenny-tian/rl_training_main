@@ -27,6 +27,9 @@ from typing import Any, Mapping
 
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+from scripts.reinforcement_learning.online_adaptation.cli import (
+    add_risk_gate_args, risk_gate_kwargs, validate_risk_gate_args,
+)
 from scripts.reinforcement_learning.online_adaptation.run_flat_online_curriculum import (
     FLAT_RETENTION_SEEDS,
     EpisodeRequest,
@@ -95,6 +98,7 @@ def _nonnegative_float(value: str) -> float:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
+    add_risk_gate_args(parser)
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--base-manifest", required=True)
     parser.add_argument("--initial-residual-checkpoint", required=True)
@@ -167,6 +171,7 @@ def _worker_args(
     output: Path,
 ) -> Namespace:
     return Namespace(
+        **risk_gate_kwargs(args),
         base_checkpoint=args.base_checkpoint,
         base_manifest=args.base_manifest,
         initial_residual_checkpoint=args.initial_residual_checkpoint,
@@ -710,6 +715,9 @@ def _manifest(args: argparse.Namespace, configuration: TargetConfiguration) -> d
     }
     if getattr(args, "update_schedule", "wall-clock") != "wall-clock":
         manifest["update_schedule"] = args.update_schedule
+    manifest["risk_gate"] = {
+        "semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args),
+    }
     return manifest
 
 
@@ -859,6 +867,7 @@ def _git_provenance() -> dict[str, object]:
 def _prepare_output(
     args: argparse.Namespace, configuration: TargetConfiguration
 ) -> Path:
+    validate_risk_gate_args(build_parser(), args)
     for name in (
         "base_checkpoint",
         "base_manifest",

@@ -5,6 +5,7 @@ import math
 
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
 from rl_training.lite3_stability_contract import LITE3_MAX_PROJECTED_GRAVITY_XY
+from rl_training.online_adaptation.safety import SafetyLimits, risk_gate_kwargs
 
 SOURCE_TASK = "OnlineAdapt-Deeprobotics-Lite3-v0"
 STRICT_FLAT_BASELINE_TASK = "Flat-Deeprobotics-Lite3-v0"
@@ -82,6 +83,7 @@ def _fraction_float(value: str) -> float:
 class _PlayArgumentParser(argparse.ArgumentParser):
     def parse_args(self, args=None, namespace=None):
         parsed = super().parse_args(args=args, namespace=namespace)
+        validate_risk_gate_args(self, parsed)
         protocol = default_flat_online_protocol()
         if parsed.terrain_split is None:
             parsed.terrain_split = "sealed" if parsed.evaluation_only else "development"
@@ -114,6 +116,35 @@ class _PlayArgumentParser(argparse.ArgumentParser):
         if parsed.terrain_seed not in allowed_seeds:
             self.error(f"--terrain-seed must be a {parsed.terrain_split} seed")
         return parsed
+
+
+def add_risk_gate_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--risk-gate", dest="risk_gate_enabled", action=argparse.BooleanOptionalAction,
+        default=False, help="enable state-risk residual gating for a new experiment",
+    )
+    for name, default in risk_gate_kwargs(None).items():
+        if name == "risk_gate_enabled":
+            continue
+        parser.add_argument(
+            "--" + name.replace("_", "-"), default=default,
+            type=_unit_interval_float if name.endswith("scale") else _nonnegative_float,
+        )
+
+
+def validate_risk_gate_args(parser: argparse.ArgumentParser, args) -> None:
+    try:
+        SafetyLimits(residual_limits=None, **risk_gate_kwargs(args))
+    except ValueError as error:
+        parser.error(str(error))
+
+
+def append_risk_gate_options(command: list[str], args) -> None:
+    # Explicitly bind even the disabled mode across episode subprocesses.
+    config = risk_gate_kwargs(args)
+    command.append("--risk-gate" if config.pop("risk_gate_enabled") else "--no-risk-gate")
+    for name, value in config.items():
+        command.extend(("--" + name.replace("_", "-"), str(value)))
 
 
 def _add_app_launcher_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
@@ -266,6 +297,7 @@ def build_play_parser() -> argparse.ArgumentParser:
             description="Run the single-pass Lite3 online-adaptation demonstration."
         )
     )
+    add_risk_gate_args(parser)
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--residual-checkpoint")
     parser.add_argument("--mode", choices=("base", "residual_frozen", "online"), default="online")

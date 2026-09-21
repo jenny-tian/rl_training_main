@@ -17,6 +17,8 @@ import traceback
 from pathlib import Path
 
 from isaaclab.app import AppLauncher
+from rl_training.online_adaptation.safety import risk_gate_kwargs
+from scripts.reinforcement_learning.online_adaptation.cli import add_risk_gate_args
 
 
 CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
@@ -386,6 +388,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Gaussian exploration standard deviation, applied after restoring training state",
     )
     parser.add_argument("--residual-rate-limit", type=_positive_float, default=0.03)
+    add_risk_gate_args(parser)
     parser.add_argument("--actor-lr", type=_positive_float, default=5e-5)
     parser.add_argument("--critic-lr", type=_positive_float, default=5e-5)
     parser.add_argument(
@@ -682,6 +685,14 @@ def main() -> int:
                     raise ValueError("unsupported online PPO checkpoint")
                 if loaded_checkpoint.get("lora_rank") != args.rank:
                     raise ValueError("checkpoint LoRA rank differs from the requested rank")
+                expected_risk_gate = {
+                    "semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args),
+                }
+                saved_risk_gate = loaded_checkpoint.get("risk_gate")
+                if saved_risk_gate is not None and saved_risk_gate != expected_risk_gate:
+                    raise ValueError("checkpoint risk-gate configuration differs from the requested run")
+                if args.risk_gate_enabled and saved_risk_gate is None:
+                    raise ValueError("enabled risk gate requires a checkpoint created with the same gate")
                 checkpoint_session, checkpoint_migration = _prepare_checkpoint_session(
                     loaded_checkpoint, policy=policy, base_obs_dim=obs_dim,
                     proprioceptive_context=args.proprioceptive_context,
@@ -752,6 +763,7 @@ def main() -> int:
             safety_filter = SafetyFilter(SafetyLimits(
                 residual_limits=torch.tensor([0.24, 0.20, 0.20] * 4, device=args.device),
                 residual_rate_limit=args.residual_rate_limit,
+                **risk_gate_kwargs(args),
             ))
             observation = probe_obs
             terminal_capture = {}
@@ -1016,6 +1028,9 @@ def main() -> int:
                     "safety_projected": bool(safety_decision.projected.any()),
                     "safety_paused": bool(safety_decision.paused.any()),
                     "safety_reasons": list(safety_decision.reasons),
+                    "risk_score": float(safety_decision.risk_score.mean()) if safety_decision.risk_score is not None else None,
+                    "risk_score_max": float(safety_decision.risk_score.max()) if safety_decision.risk_score is not None else None,
+                    "risk_scale": float(safety_decision.risk_scale.mean()) if safety_decision.risk_scale is not None else None,
                     "requested_residual_max_abs": float(requested_residual.abs().max()),
                     "executed_residual_max_abs": float(current_residual.abs().max()),
                     "safety_projection_max_abs": float(
@@ -1178,6 +1193,7 @@ def main() -> int:
                     "base_checkpoint": str(args.base_checkpoint),
                     "checkpoint_load": checkpoint_load,
                     "contact_termination": CONTACT_TERMINATION_PROTOCOL,
+                    "risk_gate": {"semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args)},
                     "terrain_geometry": terrain_geometry,
                     "lora_rank": args.rank,
                     "lora_parameter_count": lora_parameter_count(adapted_model),
@@ -1296,6 +1312,7 @@ def main() -> int:
                 "completion_stop": completion_stop,
                 "protocol_sha256": protocol.sha256(),
                 "contact_termination": CONTACT_TERMINATION_PROTOCOL,
+                "risk_gate": {"semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args)},
                 "checkpoint_in": str(args.checkpoint_in) if args.checkpoint_in else None,
                 "policy_version": int(updater.policy_version),
             }

@@ -195,9 +195,12 @@ def _option(command: list[str], name: str, value: object) -> None:
 
 
 def build_worker_command(args: Namespace, request: EpisodeRequest) -> list[str]:
+    from scripts.reinforcement_learning.online_adaptation.cli import append_risk_gate_options
+
     run_dir = episode_directory(args.output_dir, request.episode)
     checkpoint_out = run_dir / "experiment.pt"
     command = [sys.executable, str(Path(__file__).with_name("play_online_adaptation.py"))]
+    append_risk_gate_options(command, args)
     options = [
         ("--base-checkpoint", args.base_checkpoint),
         ("--mode", "online"),
@@ -327,10 +330,13 @@ def build_retention_probe_command(
     run_dir: str | Path,
     learned_checkpoint: str | Path,
 ) -> list[str]:
+    from scripts.reinforcement_learning.online_adaptation.cli import append_risk_gate_options
+
     if mode not in {"base", "learned_frozen"}:
         raise ValueError("retention probe mode must be base or learned_frozen")
     worker_mode = "base" if mode == "base" else "residual_frozen"
     command = [sys.executable, str(Path(__file__).with_name("play_online_adaptation.py"))]
+    append_risk_gate_options(command, args)
     options = [
         ("--base-checkpoint", args.base_checkpoint),
         ("--mode", worker_mode),

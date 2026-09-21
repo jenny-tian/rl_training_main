@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from rl_training.lite3_stability_contract import (
@@ -54,6 +55,66 @@ def test_rate_and_joint_target_projection():
     decision = filt.project(torch.zeros(1, 12), torch.ones(1, 12), state())
     assert torch.allclose(decision.residual, torch.full((1, 12), 0.05))
     assert decision.projected.item()
+
+
+def test_risk_gate_preserves_full_residual_at_low_risk():
+    filt = SafetyFilter(
+        SafetyLimits(
+            residual_limits=torch.full((12,), 0.2),
+            residual_rate_limit=1.0,
+            risk_gate_enabled=True,
+        )
+    )
+    decision = filt.project(torch.zeros(1, 12), torch.full((1, 12), 0.1), state())
+    torch.testing.assert_close(decision.risk_score, torch.zeros(1, 1))
+    torch.testing.assert_close(decision.risk_scale, torch.ones(1, 1))
+    torch.testing.assert_close(decision.residual, torch.full((1, 12), 0.1))
+
+
+def test_risk_gate_scales_residual_inside_hard_safety_margin():
+    filt = SafetyFilter(
+        SafetyLimits(
+            residual_limits=torch.full((12,), 0.2),
+            residual_rate_limit=1.0,
+            risk_gate_enabled=True,
+        )
+    )
+    decision = filt.project(
+        torch.zeros(1, 12), torch.full((1, 12), 0.2), state(tilt=0.50)
+    )
+    # Tilt is halfway through [0.35, 0.65], so the default envelope is 0.625.
+    torch.testing.assert_close(decision.risk_score, torch.full((1, 1), 0.5))
+    torch.testing.assert_close(decision.risk_scale, torch.full((1, 1), 0.625))
+    torch.testing.assert_close(decision.residual, torch.full((1, 12), 0.125))
+    assert not decision.paused.item()
+
+
+def test_risk_gate_keeps_base_action_before_hard_pause():
+    filt = SafetyFilter(
+        SafetyLimits(
+            residual_limits=torch.full((12,), 0.2),
+            residual_rate_limit=1.0,
+            risk_gate_enabled=True,
+        )
+    )
+    decision = filt.project(
+        torch.full((1, 12), 0.5), torch.full((1, 12), 0.2), state(tilt=0.54)
+    )
+    assert not decision.paused.item()
+    assert torch.all(decision.residual > 0)
+    assert torch.all(decision.residual < 0.2)
+    assert torch.all(decision.action > 0.5)
+
+
+def test_risk_gate_parameters_validate_direction_and_bounds():
+    with pytest.raises(ValueError, match="risk gate tilt end"):
+        SafetyLimits(
+            residual_limits=torch.ones(12),
+            risk_gate_tilt_start=0.7,
+            risk_gate_tilt_end=0.6,
+        )
+    with pytest.raises(ValueError, match="risk_gate_min_scale"):
+        SafetyLimits(residual_limits=torch.ones(12), risk_gate_min_scale=1.1)
 
 
 def test_force_zero_residual_bypasses_learned_rate_limit_memory():

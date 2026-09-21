@@ -68,6 +68,8 @@ class SafetyDecision:
     projected: torch.Tensor
     reasons: tuple[str, ...]
     actor_version: int | None = None
+    risk_score: torch.Tensor | None = None
+    risk_scale: torch.Tensor | None = None
 
 
 @dataclass(frozen=True)
