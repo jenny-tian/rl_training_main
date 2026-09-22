@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "status": "development_candidate_not_final",
+  "selection_date": "2026-09-07",
+  "base_checkpoint": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "clean_initializer": "artifacts/semester_2026/09/clean_residual_initializer_v1_retry/residual_sac_initial.pt",
+  "clean_initializer_sha256": "7f20968c4cd0d652711b8ade9ac5f7c179ff163613231d48080338d274aa073c",
+  "candidate_experiment_checkpoint": "artifacts/semester_2026/09/t05_step2cm_proprio49_drift1e5_v1/episodes/episode-0001/experiment.pt",
+  "candidate_experiment_checkpoint_sha256": "eb42f3f541f7a900d95320182143164872672c3c098abb8a34e4c7fe278ce570",
+  "actor_version": 8,
+  "terrain_feature_source": "proprio",
+  "frame_dim": 49,
+  "history_length": 25,
+  "action_dim": 12,
+  "development_policy_drift_limit": 0.00001,
+  "source_step_trial": {
+    "terrain_stage": "step_2cm",
+    "terrain_seed": 101,
+    "forward_speed_mps": 0.3,
+    "steps": 689,
+    "completion_reached": true,
+    "fell": false,
+    "safety_violation": false,
+    "actor_updates": 8,
+    "max_policy_residual_mse": 0.000009398252586834133,
+    "video": "artifacts/semester_2026/09/t05_step2cm_proprio49_drift1e5_v1/episodes/episode-0001/videos/rl-video-step-0.mp4"
+  },
+  "flat_retention": {
+    "forward_speed_mps": 0.3,
+    "steps_per_seed": 1000,
+    "seeds": [7, 11, 19, 23, 31],
+    "passes": 5,
+    "falls": 0,
+    "resets": 0,
+    "safety_violations": 0,
+    "base_mean_second_half_velocity_error": 0.028776984986211222,
+    "candidate_mean_second_half_velocity_error": 0.02757400778969577,
+    "candidate_to_base_velocity_error_ratio": 0.9581965519635963,
+    "base_mean_second_half_tilt_rms": 0.014211031284771697,
+    "candidate_mean_second_half_tilt_rms": 0.013124671949021793,
+    "candidate_to_base_tilt_ratio": 0.9235552076425285,
+    "video_directories": [
+      "artifacts/semester_2026/09/t05_proprio49_drift1e5_v8_flat_seed7/videos",
+      "artifacts/semester_2026/09/t05_proprio49_drift1e5_v8_flat_seed11/videos",
+      "artifacts/semester_2026/09/t05_proprio49_drift1e5_v8_flat_seed19/videos",
+      "artifacts/semester_2026/09/t05_proprio49_drift1e5_v8_flat_seed23/videos",
+      "artifacts/semester_2026/09/t05_proprio49_drift1e5_v8_flat_seed31/videos"
+    ]
+  },
+  "limitations": [
+    "The frozen PPO base also completes the current 2 cm track under the matched protocol.",
+    "This candidate demonstrates bounded online updating and flat retention, not causal terrain improvement.",
+    "The 1e-5 drift limit is a development value and is not a sealed publication threshold."
+  ]
+}

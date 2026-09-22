@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "task": "RockyRoad-Deeprobotics-Lite3-v0",
+  "terrain_stage": "rough_4cm",
+  "terrain_seeds": [101, 103, 107, 109, 113],
+  "algorithm_seed": 7,
+  "forward_speed": 0.3,
+  "max_steps": 2000,
+  "contact_termination": "sustained_nonfoot_contact_5n_3steps_v1",
+  "metric_definitions": {
+    "max_forward_displacement_m": "maximum before-first-reset progress",
+    "velocity_error": "arithmetic mean of per-step absolute forward velocity error in the second half",
+    "tilt_rms": "sqrt(mean(per-step tilt_norm squared)) in the second half"
+  },
+  "aggregate": {
+    "base_frozen": {
+      "mean_steps": 1656.4,
+      "terminated_runs": 4,
+      "runs": 5,
+      "termination_rate": 0.8,
+      "mean_max_forward_displacement_m": 6.929954028129577,
+      "mean_second_half_velocity_error": 0.1760867670883132,
+      "mean_second_half_tilt_rms": 0.1329560092597531,
+      "completed_budget_runs": 1
+    },
+    "lora_ppo": {
+      "mean_steps": 2000.0,
+      "terminated_runs": 4,
+      "runs": 5,
+      "termination_rate": 0.8,
+      "mean_max_forward_displacement_m": 8.155175113677979,
+      "mean_second_half_velocity_error": 0.1419170460440233,
+      "mean_second_half_tilt_rms": 0.11610573736700373,
+      "completed_budget_runs": 1,
+      "complete_rollout_updates_per_run": 7
+    },
+    "residual_sac_control_step": {
+      "mean_steps": 1485.2,
+      "terminated_runs": 5,
+      "runs": 5,
+      "termination_rate": 1.0,
+      "mean_max_forward_displacement_m": 7.384571051597595,
+      "mean_second_half_velocity_error": 0.14654059278299983,
+      "mean_second_half_tilt_rms": 0.11427962038235469,
+      "completed_budget_runs": 0,
+      "critic_updates_per_transition": 0.5,
+      "actor_updates_per_transition": 0.005
+    }
+  },
+  "decision": "LoRA-PPO development candidate; no route passes safety/completion gate",
+  "next_gate": "LoRA development freeze with flat retention and completion qualification before 20 sealed seeds"
+}

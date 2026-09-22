@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-15",
+  "task": "RockyRoad-Deeprobotics-Lite3-v0",
+  "terrain_stage": "rough_4cm",
+  "terrain_seed": 101,
+  "algorithm_seed": 7,
+  "forward_speed": 0.3,
+  "max_steps": 2000,
+  "contact_termination": "sustained_nonfoot_contact_5n_3steps_v1",
+  "base_checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "metric_definitions": {
+    "max_forward_displacement_m": "maximum world X before the first reset minus the first logged world X",
+    "velocity_error": "arithmetic mean of per-step absolute forward velocity error in each half",
+    "tilt_rms": "sqrt(mean(per-step tilt_norm squared)) in each half"
+  },
+  "runs": {
+    "base_frozen": {
+      "directory": "base_frozen_contact3_v3",
+      "steps": 2000,
+      "termination_step": null,
+      "termination_reason": null,
+      "max_forward_displacement_m": 4.15227198600769,
+      "velocity_error_first_half": 0.121680770638166,
+      "velocity_error_second_half": 0.29977402871847153,
+      "tilt_rms_first_half": 0.11770342933547917,
+      "tilt_rms_second_half": 0.21025986966579774,
+      "nonfoot_contact_frames_first_half": 0,
+      "nonfoot_contact_frames_second_half": 0,
+      "critic_updates": 0,
+      "actor_updates": 0
+    },
+    "lora_ppo": {
+      "directory": "lora_ppo_stable_finalize_v4",
+      "steps": 2000,
+      "termination_step": 1934,
+      "termination_reason": "illegal_contact",
+      "max_forward_displacement_m": 8.32187819480896,
+      "velocity_error_first_half": 0.10643698473274708,
+      "velocity_error_second_half": 0.11901151910797489,
+      "tilt_rms_first_half": 0.11885419645655727,
+      "tilt_rms_second_half": 0.10911638275341481,
+      "nonfoot_contact_frames_first_half": 0,
+      "nonfoot_contact_frames_second_half": 3,
+      "complete_rollout_updates": 7,
+      "discarded_final_transitions": 66,
+      "final_active_version": 9,
+      "final_stable_version": 9,
+      "pending_rollout": false
+    },
+    "residual_sac": {
+      "directory": "residual_sac_contact3_sync_v3",
+      "repeat_directory": "residual_sac_contact3_sync_repeat_v3",
+      "update_schedule": "control-step",
+      "steps": 1460,
+      "termination_step": 1460,
+      "termination_reason": "illegal_contact",
+      "max_forward_displacement_m": 6.71937370300293,
+      "velocity_error_first_half": 0.07119288034992267,
+      "velocity_error_second_half": 0.1704421146600571,
+      "tilt_rms_first_half": 0.07358343224934248,
+      "tilt_rms_second_half": 0.1284196544835594,
+      "nonfoot_contact_frames_first_half": 0,
+      "nonfoot_contact_frames_second_half": 3,
+      "critic_updates": 732,
+      "actor_updates": 2,
+      "actor_update_steps": [856, 1056],
+      "repeat_non_timing_rows_exact": true,
+      "repeat_actor_events_exact": true,
+      "repeat_summary_exact": true,
+      "checkpoint_sha256": {
+        "residual_before.pt": "5fd48061fabfa439a7c4b47b1b66f932aca3ab60655ef1f327f4d1cd09cab4db",
+        "residual_after.pt": "e0d28edde45d895dab8ff93e53914a523ce852bee55c187011aed03500b05910",
+        "experiment.pt": "4cb4777ba10b45df7125c578faba0f6da91dd3f921f0386258c3b545795c8d99"
+      }
+    }
+  },
+  "decision": "insufficient evidence for route selection",
+  "next_gate": "paired development seeds 101, 103, 107, 109, 113 plus flat retention before sealed evaluation"
+}
