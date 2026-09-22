@@ -102,6 +102,9 @@ def main() -> None:
     parser.add_argument('--context', action='store_true')
     parser.add_argument('--terrain-anchor-coef', type=_nonnegative_float, default=0.0)
     parser.add_argument('--max-terrain-anchor-mse', type=_positive_float, default=None)
+    parser.add_argument('--reference-anchor-coef', type=_nonnegative_float, default=10.0)
+    parser.add_argument('--max-reference-mse', type=_positive_float, default=5e-4)
+    parser.add_argument('--safety-projection-penalty', type=_nonnegative_float, default=10.0)
     parser.add_argument('--action-std', type=_positive_float, default=0.03)
     parser.add_argument('--final-action-std', type=_positive_float, default=None)
     parser.add_argument('--actor-lr', type=_positive_float, default=0.00015)
@@ -134,7 +137,9 @@ def main() -> None:
              '--max-steps-per-episode', '2000', '--probe-interval', str(args.probe_interval),
              '--probe-failure-policy', args.probe_failure_policy, '--video-probes',
              '--action-std', str(args.action_std), '--actor-lr', str(args.actor_lr), '--critic-lr', '0.0003',
-             '--reference-anchor-coef', '100', '--max-reference-mse', '0.0001',
+             '--reference-anchor-coef', str(args.reference_anchor_coef),
+             '--max-reference-mse', str(args.max_reference_mse),
+             '--safety-projection-penalty', str(args.safety_projection_penalty),
              '--stability-window', '10', '--stability-min-success-rate', '0.8',
              '--stability-min-consecutive-successes', '3']
     if args.final_action_std is not None:
@@ -150,6 +155,9 @@ def main() -> None:
         'context': args.context, 'command': train,
         'terrain_anchor_coef': args.terrain_anchor_coef,
         'max_terrain_anchor_mse': args.max_terrain_anchor_mse,
+        'reference_anchor_coef': args.reference_anchor_coef,
+        'max_reference_mse': args.max_reference_mse,
+        'safety_projection_penalty': args.safety_projection_penalty,
         'base_sha256': sha256_file(args.base_checkpoint),
         'initial_sha256': sha256_file(args.initial_checkpoint),
         'flat_retention_seeds': [7, 8, 9],

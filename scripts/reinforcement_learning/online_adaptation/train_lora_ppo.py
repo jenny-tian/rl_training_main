@@ -23,7 +23,7 @@ from scripts.reinforcement_learning.online_adaptation.cli import add_risk_gate_a
 
 CONTACT_TERMINATION_PROTOCOL = "sustained_nonfoot_contact_5n_3steps_v1"
 LEARNING_CONTRACT = "requested_ppo_absorbing_success_critic_context_v7"
-REWARD_CONTRACT = "absorbing_success_explicit_task_deadline_v4"
+REWARD_CONTRACT = "absorbing_success_explicit_task_deadline_projection_penalty_v5"
 CRITIC_OBSERVATION_SCHEMA = "policy_plus_body_velocity_xy_elapsed_v1"
 BASE_POLICY_OBSERVATION_SCHEMA = "lite3_policy45_v1"
 CONTEXT_LEARNING_CONTRACT = "requested_ppo_proprioceptive_context_v10"
@@ -431,6 +431,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=_negative_float,
         default=-8.0,
         help="reward assigned to a physical or strict qualification failure row",
+    )
+    parser.add_argument(
+        "--safety-projection-penalty",
+        type=_nonnegative_float,
+        default=0.0,
+        help="penalty coefficient for squared requested-versus-executed action mismatch",
     )
     parser.add_argument(
         "--retain-terminal-learning",
@@ -959,6 +965,10 @@ def main() -> int:
                         forward_progress, float(completion_passed)
                     ),
                     lateral_deviation=lateral_deviation,
+                    action_projection_mismatch=(
+                        requested_action - executed_action
+                    ).square().mean(dim=-1, keepdim=True),
+                    action_projection_penalty=args.safety_projection_penalty,
                 ).to(dtype=torch.float32)
                 previous_x = current_x
                 if completion_passed:
@@ -1035,6 +1045,13 @@ def main() -> int:
                     "executed_residual_max_abs": float(current_residual.abs().max()),
                     "safety_projection_max_abs": float(
                         (current_residual - requested_residual).abs().max()
+                    ),
+                    "safety_projection_mismatch_mse": float(
+                        (executed_action - requested_action).square().mean()
+                    ),
+                    "safety_projection_penalty": float(
+                        args.safety_projection_penalty
+                        * (executed_action - requested_action).square().mean()
                     ),
                     "ppo_valid": bool((~safety_decision.paused).all()),
                     "forward_progress": float(forward_progress.mean()),
@@ -1277,6 +1294,13 @@ def main() -> int:
                 "max_safety_projection_abs": max(
                     (float(row["safety_projection_max_abs"]) for row in rows), default=0.0
                 ),
+                "mean_safety_projection_mismatch_mse": _mean(
+                    "safety_projection_mismatch_mse", 0, steps
+                ),
+                "total_safety_projection_penalty": sum(
+                    float(row["safety_projection_penalty"]) for row in rows
+                ),
+                "safety_projection_penalty_coefficient": args.safety_projection_penalty,
                 "ppo_valid_fraction": (
                     sum(bool(row["ppo_valid"]) for row in rows) / steps if steps else 0.0
                 ),

@@ -466,6 +466,7 @@ def test_parser_has_planned_low_rank_ppo_defaults():
     assert args.reference_anchor_coef == 1.0
     assert args.max_reference_mse == 1e-4
     assert args.terminal_failure_penalty == -8.0
+    assert args.safety_projection_penalty == 0.0
     assert args.retain_terminal_learning is False
     assert args.terrain_stage == "rough_4cm"
     assert args.terrain_seed == 101

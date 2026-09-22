@@ -50,6 +50,8 @@ def compute_online_reward(
     lateral_deviation: torch.Tensor | None = None,
     rough_swing_mask: torch.Tensor | None = None,
     swing_lift: torch.Tensor | None = None,
+    action_projection_mismatch: torch.Tensor | None = None,
+    action_projection_penalty: float = 0.0,
 ) -> torch.Tensor:
     velocity_error = torch.sum(
         (signals.base_lin_vel_xy - signals.command_lin_vel_xy).square(), dim=-1, keepdim=True
@@ -223,6 +225,18 @@ def compute_online_reward(
             weights.rough_swing_lift_weight * swing_score * support * progress
             * torch.nan_to_num(rough_swing_mask, nan=0.0).clamp(0.0, 1.0)
         )
+    if not isinstance(action_projection_penalty, (int, float)) or not torch.isfinite(
+        torch.as_tensor(action_projection_penalty)
+    ) or action_projection_penalty < 0.0:
+        raise ValueError("action_projection_penalty must be finite and non-negative")
+    if action_projection_mismatch is None:
+        projection_penalty = torch.zeros_like(velocity_term)
+    else:
+        if action_projection_mismatch.shape != velocity_term.shape:
+            raise ValueError("action_projection_mismatch must have shape (batch, 1)")
+        projection_penalty = float(action_projection_penalty) * torch.nan_to_num(
+            action_projection_mismatch, nan=0.0, posinf=1.0e6, neginf=0.0
+        ).clamp_min(0.0)
     reward = (
         weights.velocity_weight * velocity_term
         + progress_term
@@ -243,5 +257,6 @@ def compute_online_reward(
         - weights.nonfoot_contact_weight * signals.nonfoot_contact
         - post_step_term
         - stall_penalty
+        - projection_penalty
     )
     return torch.clamp(reward, weights.minimum_reward, weights.maximum_reward)

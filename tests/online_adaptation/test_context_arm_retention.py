@@ -62,6 +62,9 @@ def test_arm_evaluates_latest_candidate_even_when_selected_model_is_old(tmp_path
             assert command[command.index('--terrain-reference-checkpoint') + 1] == str(initial)
             assert float(command[command.index('--actor-lr') + 1]) == 5e-5
             assert float(command[command.index('--final-action-std') + 1]) == 0.01
+            assert float(command[command.index('--reference-anchor-coef') + 1]) == 10.0
+            assert float(command[command.index('--max-reference-mse') + 1]) == 5e-4
+            assert float(command[command.index('--safety-projection-penalty') + 1]) == 10.0
             directory = Path(command[command.index('--output-dir') + 1])
             record = dict(final_checkpoint=str(selected), latest_checkpoint=str(latest),
                           status='budget_exhausted', stable_success_episode=None,

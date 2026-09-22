@@ -84,6 +84,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reference-anchor-coef", type=_nonnegative_float, default=1.0)
     parser.add_argument("--flat-anchor-observations", default=None)
     parser.add_argument("--max-reference-mse", type=_positive_float, default=1e-4)
+    parser.add_argument("--safety-projection-penalty", type=_nonnegative_float, default=0.0)
     parser.add_argument("--terrain-reference-checkpoint", default=None)
     parser.add_argument("--terrain-anchor-coef", type=_nonnegative_float, default=0.0)
     parser.add_argument("--max-terrain-anchor-mse", type=_positive_float, default=None)
@@ -102,6 +103,7 @@ def _common_command(
     *,
     simulation_seed: int | None = None,
 ) -> list[str]:
+    projection_penalty = float(getattr(args, "safety_projection_penalty", 0.0))
     script = Path(__file__).with_name("train_lora_ppo.py")
     command = [
         "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
@@ -162,6 +164,8 @@ def _common_command(
         str(args.reference_anchor_coef),
         "--max-reference-mse",
         str(args.max_reference_mse),
+        "--safety-projection-penalty",
+        str(projection_penalty),
         "--terminal-failure-penalty",
         "-8",
         "--retain-terminal-learning",
@@ -533,7 +537,8 @@ def _manifest(args: argparse.Namespace) -> dict[str, Any]:
         "critic_lr": args.critic_lr,
         "reference_anchor_coef": args.reference_anchor_coef,
         "max_reference_mse": args.max_reference_mse,
-        "reward_contract": "absorbing_success_explicit_task_deadline_v4",
+        "reward_contract": "absorbing_success_explicit_task_deadline_projection_penalty_v5",
+        "safety_projection_penalty": float(getattr(args, "safety_projection_penalty", 0.0)),
         "trial_deadline_steps": args.max_steps_per_episode,
         "terminal_failure_penalty": -8.0,
         "retain_terminal_learning": True,

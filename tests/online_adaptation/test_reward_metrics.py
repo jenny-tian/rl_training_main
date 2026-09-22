@@ -93,6 +93,31 @@ def test_reward_increases_with_normalized_forward_progress():
     assert moving.item() - stalled.item() == 0.5
 
 
+def test_reward_penalizes_requested_action_that_safety_filter_will_change():
+    residual = torch.zeros(1, 12)
+    mismatch = torch.full((1, 1), 0.04)
+    baseline = compute_online_reward(signals(), residual, residual, RewardWeights())
+    unchanged = compute_online_reward(
+        signals(), residual, residual, RewardWeights(),
+        action_projection_mismatch=mismatch, action_projection_penalty=0.0,
+    )
+    penalized = compute_online_reward(
+        signals(), residual, residual, RewardWeights(),
+        action_projection_mismatch=mismatch, action_projection_penalty=10.0,
+    )
+    torch.testing.assert_close(unchanged, baseline)
+    torch.testing.assert_close(penalized, baseline - 0.4)
+
+
+@pytest.mark.parametrize("value", [-1.0, float("nan")])
+def test_projection_penalty_rejects_invalid_coefficient(value):
+    with pytest.raises(ValueError, match="action_projection_penalty"):
+        compute_online_reward(
+            signals(), torch.zeros(1, 12), torch.zeros(1, 12), RewardWeights(),
+            action_projection_penalty=value,
+        )
+
+
 def test_lateral_deviation_penalty_discourages_leaving_completion_lane():
     residual = torch.zeros(1, 12)
     centered = compute_online_reward(

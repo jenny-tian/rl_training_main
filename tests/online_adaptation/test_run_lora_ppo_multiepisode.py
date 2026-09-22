@@ -44,6 +44,7 @@ def _args(tmp_path: Path) -> Namespace:
         max_terrain_anchor_mse=None,
         flat_anchor_observations=None,
         max_reference_mse=1e-4,
+        safety_projection_penalty=0.0,
         stability_window=10,
         stability_min_success_rate=0.8,
         stability_min_consecutive_successes=3,
@@ -621,6 +622,17 @@ def test_exploration_decay_endpoints_and_resume_use_absolute_episode(tmp_path):
     assert '--final-action-std' not in command  # Worker distribution stays fixed within the episode.
     probe = build_probe_command(resumed, tmp_path / 'probe', tmp_path / 'e12.pt')
     assert '--evaluation-only' in probe and '--final-action-std' not in probe
+
+
+def test_training_command_forwards_projection_penalty_and_anchor_settings(tmp_path):
+    args = _args(tmp_path)
+    args.safety_projection_penalty = 10.0
+    args.reference_anchor_coef = 10.0
+    args.max_reference_mse = 5e-4
+    command = build_training_command(args, tmp_path / 'episode1', None, episode=1)
+    assert float(command[command.index('--safety-projection-penalty') + 1]) == 10.0
+    assert float(command[command.index('--reference-anchor-coef') + 1]) == 10.0
+    assert float(command[command.index('--max-reference-mse') + 1]) == 5e-4
 
 
 @pytest.mark.parametrize('episodes,final', [(1, 0.01), (20, 0.04)])
