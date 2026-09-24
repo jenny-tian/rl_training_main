@@ -31,7 +31,13 @@ exported/
 **/wandb/*
 **/.neptune/*
 docker/artifacts/
+# Experiment outputs (checkpoints, replays, videos); ~113 GB locally
+artifacts/
 *.tmp
+
+# Office/WPS lock files
+.~*
+~$*
 
 # Isaac-Sim packman
 _isaac_sim*
