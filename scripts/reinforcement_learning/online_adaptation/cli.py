@@ -81,6 +81,12 @@ def _fraction_float(value: str) -> float:
 
 
 class _PlayArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        # Keep the validation text available on SystemExit for callers/tests that
+        # need to distinguish a semantic CLI rejection from argparse syntax help.
+        error = SystemExit(message)
+        raise error
+
     def parse_args(self, args=None, namespace=None):
         parsed = super().parse_args(args=args, namespace=namespace)
         validate_risk_gate_args(self, parsed)
@@ -89,6 +95,18 @@ class _PlayArgumentParser(argparse.ArgumentParser):
             parsed.terrain_split = "sealed" if parsed.evaluation_only else "development"
         if parsed.mode == "online" and parsed.experiment_checkpoint_out is None:
             self.error("--experiment-checkpoint-out is required for online mode")
+        if parsed.latent_code_dim and parsed.terrain_feature_source != "height_scan":
+            self.error("--latent-code-dim requires --terrain-feature-source height_scan")
+        if parsed.latent_code_dim and not parsed.risk_gate_enabled:
+            self.error("--latent-code-dim requires --risk-gate")
+        if parsed.latent_code_dim and parsed.mode == "base":
+            self.error("--latent-code-dim cannot be used with --mode base")
+        if parsed.latent_code_dim and parsed.latent_residual_fraction <= 0.0:
+            self.error("--latent-residual-fraction must be positive when latent SAC is enabled")
+        if parsed.latent_code_dim > 12:
+            self.error("--latent-code-dim cannot exceed the 12-dimensional action space")
+        if parsed.latent_decoder is not None and not parsed.latent_code_dim:
+            self.error("--latent-decoder requires --latent-code-dim")
         if parsed.flat_retention_probe and parsed.require_track_completion:
             self.error("flat-retention probes cannot require track completion")
         if parsed.novelty_baseline_out and not (
@@ -189,6 +207,8 @@ def build_train_parser() -> argparse.ArgumentParser:
         "--terrain-feature-source", choices=("proprio", "geometry", "height_scan"), default="geometry"
     )
     parser.add_argument("--terrain-min-valid-fraction", type=_fraction_float, default=0.90)
+    parser.add_argument("--latent-code-dim", type=_positive_int, default=0)
+    parser.add_argument("--latent-residual-fraction", type=_unit_interval_float, default=0.25)
     return parser
 
 
@@ -422,6 +442,18 @@ def build_play_parser() -> argparse.ArgumentParser:
         help="require an explicit residual observation width at runtime",
     )
     parser.add_argument("--terrain-min-valid-fraction", type=_fraction_float, default=0.90)
+    parser.add_argument(
+        "--latent-code-dim", type=_positive_int, default=0,
+        help="enable latent-space SAC with this compact steering-code dimension; requires height_scan",
+    )
+    parser.add_argument(
+        "--latent-residual-fraction", type=_unit_interval_float, default=0.25,
+        help="per-joint residual bound as a fraction of the standard action limits",
+    )
+    parser.add_argument(
+        "--latent-decoder", default=None,
+        help="optional immutable teacher decoder artifact produced by fit_low_rank_teacher_decoder",
+    )
     parser.add_argument("--n-step", type=int, choices=(1, 3, 5), default=1)
     parser.add_argument(
         "--target-semantics",

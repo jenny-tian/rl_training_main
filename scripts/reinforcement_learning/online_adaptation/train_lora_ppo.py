@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import copy
 import argparse
+import hashlib
 import json
 import math
 import traceback
@@ -26,8 +27,18 @@ LEARNING_CONTRACT = "requested_ppo_absorbing_success_critic_context_v7"
 REWARD_CONTRACT = "absorbing_success_explicit_task_deadline_projection_penalty_v5"
 CRITIC_OBSERVATION_SCHEMA = "policy_plus_body_velocity_xy_elapsed_v1"
 BASE_POLICY_OBSERVATION_SCHEMA = "lite3_policy45_v1"
+HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA = "base45_heightscan10_gated_residual_v2"
 CONTEXT_LEARNING_CONTRACT = "requested_ppo_proprioceptive_context_v10"
 CONTEXT_CRITIC_OBSERVATION_SCHEMA = "policy45_velocity_xy_elapsed_odometry3_v1"
+HEIGHT_SCAN_CRITIC_OBSERVATION_SCHEMA = "policy45_heightscan10_velocity_xy_elapsed_v2"
+
+
+def _sha256_file(path: str | Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _prepare_evaluation_args(args: argparse.Namespace) -> None:
@@ -72,12 +83,48 @@ def _append_odometry_context(observation, context):
     return torch.cat((observation, cast_context), dim=-1)
 
 
+def _append_height_scan(observation, scan):
+    """Append the fixed ten-feature terrain summary to a 45D actor input."""
+    import torch
+
+    if (not isinstance(observation, torch.Tensor) or observation.ndim != 2
+            or observation.shape[1] != 45
+            or not isinstance(scan, torch.Tensor) or scan.shape != (observation.shape[0], 10)
+            or scan.device != observation.device or not scan.is_floating_point()):
+        raise ValueError("height scan must be finite [N, 10] on the observation device")
+    scan = scan.to(dtype=observation.dtype)
+    if not bool(torch.isfinite(scan).all().item()):
+        raise ValueError("height scan contains non-finite values")
+    return torch.cat((observation, scan), dim=-1)
+
+
+def _height_scan_observation(observation, reward_adapter, *, require_valid: bool = False):
+    """Build a scan observation and refuse to train on an unavailable sensor."""
+    import torch
+
+    scan = reward_adapter.terrain_features()
+    valid = reward_adapter.terrain_valid
+    if scan is None or not isinstance(valid, torch.Tensor) or valid.shape != (observation.shape[0], 1):
+        raise RuntimeError("height scanner did not provide a validity mask")
+    if not bool(getattr(reward_adapter, "height_scanner_available", True)):
+        raise RuntimeError("height scanner entity is unavailable; refusing zero-feature training data")
+    if require_valid and not bool(valid.all().item()):
+        raise RuntimeError("height scanner produced an invalid scan; refusing zero-feature training data")
+    if not bool(valid.all().item()):
+        # Preserve the fixed observation width while keeping invalid sensor
+        # data out of the actor and critic.
+        scan = scan.new_zeros(scan.shape)
+    return _append_height_scan(observation, scan)
+
+
 def _prepare_checkpoint_session(checkpoint, *, policy, base_obs_dim: int,
-                                proprioceptive_context: bool):
+                                proprioceptive_context: bool,
+                                height_scan_adapter: bool = False):
     """Validate observation meaning before losslessly extending a checkpoint."""
     from rl_training.online_adaptation.ppo_critic_context import migrate_critic_context
     from rl_training.online_adaptation.ppo_context_policy import (
-        CONTEXT_POLICY_OBSERVATION_SCHEMA, migrate_context_policy,
+        CONTEXT_POLICY_OBSERVATION_SCHEMA, HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA,
+        migrate_context_policy, migrate_height_scan_policy,
     )
 
     state = checkpoint.get("session")
@@ -94,13 +141,22 @@ def _prepare_checkpoint_session(checkpoint, *, policy, base_obs_dim: int,
     actor_schema = checkpoint.get("actor_observation_schema", BASE_POLICY_OBSERVATION_SCHEMA)
     critic_schema = checkpoint.get("critic_observation_schema")
     contextual_source = actor_schema == CONTEXT_POLICY_OBSERVATION_SCHEMA
-    if actor_schema not in (BASE_POLICY_OBSERVATION_SCHEMA, CONTEXT_POLICY_OBSERVATION_SCHEMA):
+    scan_source = actor_schema == HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA
+    if actor_schema not in (BASE_POLICY_OBSERVATION_SCHEMA, CONTEXT_POLICY_OBSERVATION_SCHEMA,
+                            HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA):
         raise ValueError("checkpoint actor observation schema is not supported")
+    if scan_source and not height_scan_adapter:
+        raise ValueError("height-scan checkpoint requires --height-scan-adapter")
+    if height_scan_adapter and contextual_source:
+        raise ValueError("contextual checkpoint cannot be resumed as a height-scan adapter")
     if contextual_source:
         if not proprioceptive_context:
             raise ValueError("contextual checkpoint requires --proprioceptive-context")
         if width != base_obs_dim + 6 or critic_schema != CONTEXT_CRITIC_OBSERVATION_SCHEMA:
             raise ValueError("contextual checkpoint critic observation schema does not match")
+    elif scan_source:
+        if width != base_obs_dim + 13 or critic_schema != HEIGHT_SCAN_CRITIC_OBSERVATION_SCHEMA:
+            raise ValueError("height-scan checkpoint critic observation schema does not match")
     elif width == base_obs_dim + 3:
         if critic_schema != CRITIC_OBSERVATION_SCHEMA:
             raise ValueError("checkpoint critic observation schema does not match the requested context")
@@ -110,25 +166,32 @@ def _prepare_checkpoint_session(checkpoint, *, policy, base_obs_dim: int,
     record = {
         "source_learning_contract": checkpoint.get("learning_contract"),
         "actor_observation_from": actor_schema,
-        "actor_observation_to": (CONTEXT_POLICY_OBSERVATION_SCHEMA if proprioceptive_context
-                                 else BASE_POLICY_OBSERVATION_SCHEMA),
+        "actor_observation_to": (HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA if height_scan_adapter else
+                                  CONTEXT_POLICY_OBSERVATION_SCHEMA if proprioceptive_context else BASE_POLICY_OBSERVATION_SCHEMA),
         "critic_input_from": width,
-        "critic_input_to": base_obs_dim + (6 if proprioceptive_context else 3),
+        "critic_input_to": base_obs_dim + (13 if height_scan_adapter else 6 if proprioceptive_context else 3),
     }
-    if not contextual_source:
-        state = migrate_critic_context(state, policy_obs_dim=base_obs_dim)
+    if not contextual_source and not scan_source:
+        state = migrate_critic_context(state, policy_obs_dim=base_obs_dim,
+                                        context_dim=13 if height_scan_adapter else 3)
+    elif scan_source:
+        state = migrate_critic_context(state, policy_obs_dim=base_obs_dim, context_dim=13)
     if proprioceptive_context:
         state = migrate_critic_context(state, policy_obs_dim=base_obs_dim + 3)
         state = migrate_context_policy(state, target_policy=policy)
+    elif height_scan_adapter:
+        state = migrate_height_scan_policy(state, target_policy=policy)
     return state, record
 
 
-def _terrain_reference_from_checkpoint(checkpoint, *, policy, base_obs_dim, proprioceptive_context):
+def _terrain_reference_from_checkpoint(checkpoint, *, policy, base_obs_dim, proprioceptive_context,
+                                       height_scan_adapter: bool = False):
     """Migrate a fixed teacher independently of the resumed learning state."""
     reference = copy.deepcopy(policy)
     state, _ = _prepare_checkpoint_session(
         checkpoint, policy=reference, base_obs_dim=base_obs_dim,
         proprioceptive_context=proprioceptive_context,
+        height_scan_adapter=height_scan_adapter,
     )
     reference.load_state_dict(state["updater"]["policy"])
     return reference.eval().requires_grad_(False)
@@ -330,6 +393,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--terrain-seed", type=int, default=101)
     parser.add_argument(
+        "--terrain-split",
+        choices=("train", "development", "sealed"),
+        default="development",
+        help="terrain protocol split; train is restricted to the formal teacher seeds",
+    )
+    parser.add_argument(
+        "--teacher-training",
+        action="store_true",
+        help="train the height-scan-conditioned teacher on the formal train split",
+    )
+    parser.add_argument(
         "--protocol-sha256",
         default=None,
         help="expected formal terrain/completion protocol hash",
@@ -366,6 +440,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--proprioceptive-context", action="store_true",
         help="add body-velocity dead reckoning to a zero-initialized contextual adaptation head",
+    )
+    parser.add_argument(
+        "--height-scan-adapter", action="store_true",
+        help="append ten height-scan summary features to a zero-initialized terrain adapter",
     )
     parser.add_argument(
         "--continue-after-termination",
@@ -452,6 +530,23 @@ def main() -> int:
     if not args.base_checkpoint:
         raise SystemExit("--base-checkpoint is required")
     _prepare_evaluation_args(args)
+    formal_train_seeds = (101, 103, 107)
+    if args.terrain_split == "train" and args.terrain_seed not in formal_train_seeds:
+        raise SystemExit("train terrain split accepts only formal teacher seeds 101, 103, 107")
+    if args.teacher_training:
+        if args.terrain_split != "train":
+            raise SystemExit("--teacher-training requires --terrain-split train")
+        if not args.height_scan_adapter:
+            raise SystemExit("--teacher-training requires --height-scan-adapter")
+        if args.evaluation_only and not args.checkpoint_in:
+            raise SystemExit("teacher evaluation requires --checkpoint-in")
+        if not Path(args.base_checkpoint).is_file():
+            raise SystemExit("--teacher-training base checkpoint must exist")
+    base_checkpoint_sha256 = (
+        _sha256_file(args.base_checkpoint) if args.teacher_training else None
+    )
+    if args.terrain_split == "sealed" and not args.evaluation_only:
+        raise SystemExit("sealed terrain is evaluation-only; use --evaluation-only")
     if (args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None) and not args.terrain_reference_checkpoint:
         raise SystemExit("terrain anchor constraints require --terrain-reference-checkpoint")
     if args.retain_terminal_learning and args.continue_after_termination:
@@ -480,7 +575,8 @@ def main() -> int:
             build_critic_observation,
         )
         from rl_training.online_adaptation.ppo_context_policy import (
-            CONTEXT_POLICY_OBSERVATION_SCHEMA, ContextGatedPolicy,
+            CONTEXT_POLICY_OBSERVATION_SCHEMA, HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA,
+            ContextGatedPolicy, HeightScanGatedPolicy,
         )
         from rl_training.online_adaptation.ppo_odometry import PlanarProprioOdometry
         from rl_training.online_adaptation.ppo_task_reward import success_absorbing_reward
@@ -507,6 +603,8 @@ def main() -> int:
             apply_geometry_to_env_cfg,
             default_flat_online_protocol,
             development_geometry,
+            formal_train_geometry,
+            sealed_geometry,
         )
         from rl_training.online_adaptation.swing_lift import SwingLiftTracker
         from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import (
@@ -525,8 +623,15 @@ def main() -> int:
         if args.flat_retention_probe:
             terrain_geometry = configure_flat_retention_plane(env_cfg)
         else:
-            geometry = development_geometry(args.terrain_stage, args.terrain_seed)
-            apply_geometry_to_env_cfg(env_cfg, geometry)
+            if args.terrain_split == "train":
+                geometry = formal_train_geometry(args.terrain_stage, args.terrain_seed)
+                apply_geometry_to_env_cfg(env_cfg, geometry)
+            elif args.terrain_split == "development":
+                geometry = development_geometry(args.terrain_stage, args.terrain_seed)
+                apply_geometry_to_env_cfg(env_cfg, geometry)
+            else:
+                geometry = sealed_geometry(args.terrain_seed)
+                apply_geometry_to_env_cfg(env_cfg, geometry)
             terrain_geometry = {
                 "step_height": geometry.step_height,
                 "rough_amplitude": geometry.rough_amplitude,
@@ -595,11 +700,19 @@ def main() -> int:
                 if obs_dim != 45:
                     raise RuntimeError("proprioceptive context requires the 45-dimensional frozen actor")
                 policy = ContextGatedPolicy(policy, rank=args.rank).to(args.device)
+            if args.height_scan_adapter and args.proprioceptive_context:
+                raise RuntimeError("height-scan adapter and proprioceptive context are mutually exclusive")
+            if args.height_scan_adapter:
+                if obs_dim != 45:
+                    raise RuntimeError("height-scan adapter requires the 45-dimensional frozen actor")
+                policy = HeightScanGatedPolicy(policy, rank=args.rank).to(args.device)
             learning_contract = CONTEXT_LEARNING_CONTRACT if args.proprioceptive_context else LEARNING_CONTRACT
             actor_observation_schema = (
+                HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA if args.height_scan_adapter else
                 CONTEXT_POLICY_OBSERVATION_SCHEMA if args.proprioceptive_context else BASE_POLICY_OBSERVATION_SCHEMA
             )
             critic_observation_schema = (
+                HEIGHT_SCAN_CRITIC_OBSERVATION_SCHEMA if args.height_scan_adapter else
                 CONTEXT_CRITIC_OBSERVATION_SCHEMA if args.proprioceptive_context else CRITIC_OBSERVATION_SCHEMA
             )
             odometry_metadata = ({
@@ -627,7 +740,12 @@ def main() -> int:
                         source_anchor_observations,
                         source_anchor_observations.new_zeros((source_anchor_observations.shape[0], 3)),
                     )
-            critic_input_dim = obs_dim + (6 if args.proprioceptive_context else 3)
+                elif args.height_scan_adapter:
+                    source_anchor_observations = torch.cat(
+                        (source_anchor_observations,
+                         source_anchor_observations.new_zeros((source_anchor_observations.shape[0], 10))), dim=-1
+                    )
+            critic_input_dim = obs_dim + (13 if args.height_scan_adapter else 6 if args.proprioceptive_context else 3)
             critic = nn.Sequential(
                 nn.Linear(critic_input_dim, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
             ).to(args.device)
@@ -643,6 +761,7 @@ def main() -> int:
                 terrain_reference = _terrain_reference_from_checkpoint(
                     terrain_checkpoint, policy=policy, base_obs_dim=obs_dim,
                     proprioceptive_context=args.proprioceptive_context,
+                    height_scan_adapter=args.height_scan_adapter,
                 )
                 terrain_anchor_metadata = {
                     "contract": "fixed_terrain_teacher_on_valid_rollout_observations_v1",
@@ -689,6 +808,12 @@ def main() -> int:
                 )
                 if not isinstance(loaded_checkpoint, dict) or loaded_checkpoint.get("schema_version") != 1:
                     raise ValueError("unsupported online PPO checkpoint")
+                if args.teacher_training and loaded_checkpoint.get("teacher_contract") != "height_scan_privileged_teacher_v2":
+                    raise ValueError("teacher training can resume only a height-scan teacher checkpoint")
+                if args.teacher_training and loaded_checkpoint.get("protocol_sha256") != protocol.sha256():
+                    raise ValueError("teacher checkpoint protocol hash differs from the active protocol")
+                if args.teacher_training and loaded_checkpoint.get("base_checkpoint_sha256") != base_checkpoint_sha256:
+                    raise ValueError("teacher checkpoint was initialized from a different base policy")
                 if loaded_checkpoint.get("lora_rank") != args.rank:
                     raise ValueError("checkpoint LoRA rank differs from the requested rank")
                 expected_risk_gate = {
@@ -702,6 +827,7 @@ def main() -> int:
                 checkpoint_session, checkpoint_migration = _prepare_checkpoint_session(
                     loaded_checkpoint, policy=policy, base_obs_dim=obs_dim,
                     proprioceptive_context=args.proprioceptive_context,
+                    height_scan_adapter=args.height_scan_adapter,
                 )
                 session.load_state_dict(checkpoint_session)
             effective_runtime_config = (
@@ -727,6 +853,10 @@ def main() -> int:
                 json.dumps(
                     {**vars(args), "contact_termination": CONTACT_TERMINATION_PROTOCOL,
                      "mode": _evaluation_mode(args),
+                     "teacher_training": bool(args.teacher_training),
+                     "teacher_contract": (
+                         "height_scan_privileged_teacher_v2" if args.teacher_training else None
+                     ),
                      "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                      "terrain_geometry": terrain_geometry,
                      "learning_contract": learning_contract,
@@ -735,7 +865,7 @@ def main() -> int:
                      "actor_observation_schema": actor_observation_schema,
                      "critic_observation_schema": critic_observation_schema,
                      "odometry": odometry_metadata,
-                     "actor_input_dim": obs_dim + (3 if args.proprioceptive_context else 0),
+                     "actor_input_dim": obs_dim + (10 if args.height_scan_adapter else 3 if args.proprioceptive_context else 0),
                      "critic_input_dim": critic_input_dim,
                      "checkpoint_migration": checkpoint_migration,
                      "completion_terminal_reward": completion_terminal_reward,
@@ -751,7 +881,12 @@ def main() -> int:
                     indent=2, default=str,
                 ) + "\n", encoding="utf-8",
             )
-            reward_adapter = Lite3IsaacLabAdapter(wrapped_env.unwrapped, terrain_feature_source="proprio")
+            reward_adapter = Lite3IsaacLabAdapter(
+                wrapped_env.unwrapped,
+                terrain_feature_source="height_scan" if args.height_scan_adapter else "proprio",
+            )
+            if args.height_scan_adapter and not reward_adapter.height_scanner_available:
+                raise RuntimeError("height-scan adapter requires the Isaac Lab height_scanner entity")
             initial_x = float(reward_adapter.base_x().mean().item())
             initial_y = float(reward_adapter.base_y().mean().item())
             track_completion = None
@@ -804,6 +939,10 @@ def main() -> int:
             def capture_terminal_state(env_ids):
                 ids = torch.as_tensor(env_ids, dtype=torch.long, device=args.device)
                 terminal_observation = wrapped_env.unwrapped.observation_manager.compute()["policy"]
+                if args.height_scan_adapter:
+                    terminal_observation = _height_scan_observation(
+                        terminal_observation, reward_adapter, require_valid=False
+                    )
                 terminal_capture["ids"] = ids
                 terminal_capture["observation"] = terminal_observation.detach().clone()
                 terminal_capture["state"] = _capture_step_state(reward_adapter)
@@ -826,11 +965,16 @@ def main() -> int:
                 observation = _pin_forward_observation(wrapped_env, observation, args.forward_speed)
                 base_obs_tensor = observation["policy"]
                 current_context = odometry.context() if odometry is not None else None
-                obs_tensor = _append_odometry_context(base_obs_tensor, current_context)
-                critic_obs_tensor = _append_odometry_context(build_critic_observation(
-                    base_obs_tensor, reward_adapter.robot.data.root_lin_vel_b[:, :2],
+                actor_obs_tensor = (
+                    _height_scan_observation(base_obs_tensor, reward_adapter)
+                    if args.height_scan_adapter else base_obs_tensor
+                )
+                obs_tensor = _append_odometry_context(actor_obs_tensor, current_context)
+                critic_base = build_critic_observation(
+                    actor_obs_tensor, reward_adapter.robot.data.root_lin_vel_b[:, :2],
                     step=step, max_steps=critic_time_horizon,
-                ), current_context)
+                )
+                critic_obs_tensor = _append_odometry_context(critic_base, current_context)
                 control_policy, version = publisher.current()
                 with torch.no_grad():
                     reference_mean = reference_policy.mean_action(base_obs_tensor)
@@ -868,6 +1012,8 @@ def main() -> int:
                     value_observation = terminal_capture["observation"]
                     step_state = terminal_capture["state"]
                 else:
+                    if args.height_scan_adapter:
+                        value_observation = _height_scan_observation(value_observation, reward_adapter)
                     step_state = _capture_step_state(reward_adapter)
                 signals = step_state["signals"]
                 # Integrate the physical transition before resetting the estimator.
@@ -1188,6 +1334,14 @@ def main() -> int:
                 {
                     "schema_version": 1,
                     "mode": _evaluation_mode(args),
+                    "teacher_training": bool(args.teacher_training),
+                    "teacher_contract": (
+                        "height_scan_privileged_teacher_v2" if args.teacher_training else None
+                    ),
+                    "terrain_split": args.terrain_split,
+                    "terrain_seed": args.terrain_seed,
+                    "protocol_sha256": protocol.sha256(),
+                    "base_checkpoint_sha256": base_checkpoint_sha256,
                     "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                     "learning_contract": learning_contract,
                     "sampling_contract": SAMPLING_CONTRACT,
@@ -1266,6 +1420,14 @@ def main() -> int:
                 "terrain_anchor_metadata": terrain_anchor_metadata,
                 "effective_runtime_config": effective_runtime_config,
                 "evaluation_only": bool(args.evaluation_only),
+                "terrain_split": args.terrain_split,
+                "terrain_seed": args.terrain_seed,
+                "protocol_sha256": protocol.sha256(),
+                "base_checkpoint_sha256": base_checkpoint_sha256,
+                "teacher_training": bool(args.teacher_training),
+                "teacher_contract": (
+                    "height_scan_privileged_teacher_v2" if args.teacher_training else None
+                ),
                 "steps": steps,
                 "max_steps": args.max_steps,
                 "reset_count": reset_count,

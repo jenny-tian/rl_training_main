@@ -5,6 +5,7 @@ import torch
 import pytest
 
 from rl_training.online_adaptation.isaaclab_adapter import (
+    DEFAULT_HEIGHT_SCAN_CONFIG,
     Lite3IsaacLabAdapter,
     compose_proprio_frame,
 )
@@ -256,6 +257,10 @@ def test_height_scan_source_appends_summary_and_reports_validity():
     torch.testing.assert_close(frame[:, 49:], expected)
     assert adapter.terrain_valid.tolist() == [[True]]
     assert adapter.terrain_metadata()["terrain_feature_source"] == "height_scan"
+
+
+def test_default_height_scan_grid_matches_isaac_xy_sensor_layout():
+    assert (DEFAULT_HEIGHT_SCAN_CONFIG.rows, DEFAULT_HEIGHT_SCAN_CONFIG.cols) == (15, 23)
 
 
 def test_height_scan_missing_sensor_fails_closed():

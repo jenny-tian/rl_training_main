@@ -15,6 +15,7 @@ from scripts.reinforcement_learning.online_adaptation.run_lora_ppo_multiepisode 
     apply_probe_result,
     stable_success_reached,
     update_state,
+    _configure_validation_seeds,
 )
 
 
@@ -25,6 +26,8 @@ def _args(tmp_path: Path) -> Namespace:
         initial_training_checkpoint=None,
         output_dir=str(tmp_path / "run"),
         terrain_seed=101,
+        train_seeds=None,
+        validation_seeds=None,
         simulation_seed=7,
         training_seed_stride=1,
         physical_gpu=1,
@@ -34,6 +37,7 @@ def _args(tmp_path: Path) -> Namespace:
         max_steps_per_episode=2000,
         probe_interval=5,
         probe_failure_policy="rollback",
+        training_failure_policy="continue_candidate",
         action_std=0.01,
         final_action_std=None,
         actor_lr=5e-5,
@@ -50,6 +54,7 @@ def _args(tmp_path: Path) -> Namespace:
         stability_min_consecutive_successes=3,
         video_probes=False,
         video_episodes=False,
+        risk_gate_enabled=False,
     )
 
 
@@ -67,6 +72,36 @@ def test_parser_defaults_to_rollback_and_accepts_a_separate_training_candidate()
     assert args.initial_checkpoint == "verified.pt"
     assert args.initial_training_checkpoint == "candidate.pt"
     assert args.probe_failure_policy == "continue_candidate"
+
+
+def test_validation_defaults_to_heldout_development_and_rejects_overlap(tmp_path):
+    args = _args(tmp_path)
+    args.train_seeds = "101,103,107"
+    _configure_validation_seeds(args)
+    assert args.validation_seed_values == (109,)
+    assert args.validation_split == "development"
+
+    args.validation_seeds = "103,109"
+    with pytest.raises(ValueError, match="training and validation seeds must be disjoint"):
+        _configure_validation_seeds(args)
+
+
+def test_sealed_probe_command_binds_evaluation_split(tmp_path):
+    args = _args(tmp_path)
+    command = build_probe_command(
+        args, tmp_path / "probe", tmp_path / "candidate.pt",
+        terrain_seed=1009, terrain_split="sealed",
+    )
+    assert command[command.index("--terrain-split") + 1] == "sealed"
+    assert command[command.index("--terrain-seed") + 1] == "1009"
+
+
+def test_sealed_seed_cannot_be_used_for_tuning_validation(tmp_path):
+    args = _args(tmp_path)
+    args.train_seeds = "101,103,107"
+    args.validation_seeds = "1009"
+    with pytest.raises(ValueError, match="sealed seeds are final-test only"):
+        _configure_validation_seeds(args)
 
 
 def test_contextual_training_and_probe_share_input_schema_and_change_resume_manifest(tmp_path):

@@ -110,86 +110,49 @@ python scripts/reinforcement_learning/rsl_rl/play.py --task=Rough-Deeprobotics-M
 
 ## Lite3 online terrain adaptation (simulation only)
 
+The current project documentation is maintained in
+[`docs/lite3-project-documentation-20260923.md`](docs/lite3-project-documentation-20260923.md)
+and the implementation baseline is summarized in [`design.md`](design.md).
+
 > [!WARNING]
-> This workflow is currently for Isaac Lab simulation only. It does **not** authorize unprotected online
-> exploration on a real Lite3. A real-robot deployment must add an independently validated hardware safety
-> controller, emergency stop, operator supervision, timing watchdogs, and staged low-energy testing. The online
-> residual policy uses proprioception only; height scans and cameras are not Actor inputs.
+> This workflow is for Isaac Lab simulation research. It does not authorize
+> unprotected online exploration on a real Lite3. Real-robot use requires an
+> independently validated hardware safety controller, emergency stop, operator
+> supervision, timing watchdogs, and staged low-energy tests.
 
-The demonstration keeps the PPO locomotion policy frozen and trains only a bounded residual SAC policy. Source
-pretraining explicitly rejects boxes and stairs. Evaluation is one continuous pass from a 3 m flat prefix into a
-held-out box-height track, with no automatic reset after a fall. The current single-seed Lite3 demo is validated at
-`--forward-speed 0.3`; `0.5` remains a stress case that can still fail on seed 7.
+The adaptation stack keeps a flat PPO locomotion policy as the nominal controller
+and supports two independently evaluated routes:
 
-First train the base PPO policy on the strict flat task, then select a checkpoint only from that flat-only run:
+- **Direct LoRA-PPO:** freeze the base Actor and update only low-rank adapter
+  matrices plus a separate Critic.
+- **Residual SAC:** freeze PPO and learn a bounded residual under novelty and
+  safety gates.
 
-```bash
-python scripts/reinforcement_learning/rsl_rl/train.py \
-  --task Flat-Deeprobotics-Lite3-v0 \
-  --num_envs 4096 --seed 42 --max_iterations 10000 \
-  --run_name flat_only_seed42 --headless
+Both routes distinguish the policy request action (`a_req`) from the projected
+executed action (`a_exec`). The replay/rollout contract, terminal handling,
+candidate rollback, flat-retention probe and sealed-test isolation are part of
+the current implementation. The latent residual, height-scan teacher and
+steering-inversion utilities are available for the next RGLS experiments, but
+are not yet an end-to-end validated result. FlowDAgger is not the training
+algorithm used by this repository; only its latent action-inversion idea is
+considered as an optional initialization reference.
 
-FLAT_ROOT=logs/rsl_rl/deeprobotics_lite3_flat
-FLAT_RUN="$(find "$FLAT_ROOT" -maxdepth 1 -type d -name '*_flat_only_seed42' | sort | tail -1)"
-test -n "$FLAT_RUN" && test -d "$FLAT_RUN"
-BASE_CHECKPOINT="$(find "$FLAT_RUN" -maxdepth 1 -type f -name 'model_*.pt' | sort -V | tail -1)"
-test -n "$BASE_CHECKPOINT" && test -f "$BASE_CHECKPOINT"
-
-python scripts/reinforcement_learning/online_adaptation/qualify_base_policy.py \
-  --base-checkpoint "$BASE_CHECKPOINT" --headless \
-  --task Flat-Deeprobotics-Lite3-v0 \
-  --output logs/online_adaptation/base_qualification.json
-```
-
-Only after qualification passes, pretrain the residual on the source-only task:
+Run component tests with:
 
 ```bash
-python scripts/reinforcement_learning/online_adaptation/train_residual_sac.py \
-  --base-checkpoint "$BASE_CHECKPOINT" \
-  --task OnlineAdapt-Deeprobotics-Lite3-v0 \
-  --num-envs 1024 --headless \
-  --log-dir logs/online_adaptation/lite3_source
+pytest -q tests/online_adaptation
 ```
 
-Run the three held-out modes with the same seed and command:
+The exact simulation commands, checkpoint requirements and result-reporting
+rules are documented in the project guide linked above. Use the sealed evaluator
+only after a checkpoint has been selected on the development protocol:
 
 ```bash
-RESIDUAL_CHECKPOINT=logs/online_adaptation/lite3_deploy_base_residual_pretrain_256env_2000_20260727/latest.pt
-
-python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
-  --base-checkpoint "$BASE_CHECKPOINT" --mode base --seed 7 --headless \
-  --forward-speed 0.3 \
-  --run-dir logs/online_adaptation/demo/base
-
-python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
-  --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
-  --mode residual_frozen --seed 7 --headless \
-  --forward-speed 0.3 \
-  --run-dir logs/online_adaptation/demo/residual_frozen
-
-python scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py \
-  --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
-  --mode online --seed 7 --headless --video \
-  --forward-speed 0.3 \
-  --run-dir logs/online_adaptation/demo/online
+python scripts/reinforcement_learning/online_adaptation/run_lora_ppo_sealed_test.py \
+  --base-checkpoint /path/to/flat/model.pt \
+  --checkpoint /path/to/selected/latest.pt \
+  --output-dir artifacts/final_test/run
 ```
-
-Run the required ten-seed comparison:
-
-```bash
-python scripts/reinforcement_learning/online_adaptation/compare_online_adaptation.py \
-  --base-checkpoint "$BASE_CHECKPOINT" --residual-checkpoint "$RESIDUAL_CHECKPOINT" \
-  --seeds 7 11 19 23 31 43 59 71 83 97 --max-steps 1750 --headless --video \
-  --output-dir logs/online_adaptation/heldout_10_seed
-```
-
-Pretraining checkpoints and TensorBoard events are written below the selected `--log-dir`. Each demonstration
-directory contains `metrics.jsonl`, `summary.json`, `config.json`, `residual_before.pt`, `residual_after.pt`,
-TensorBoard events, and optional `videos/`. Comparison output contains `comparison.csv`, `comparison.json`,
-`comparison.md`, and velocity, tilt, and success-rate plots. Safety projection limits residual HipX actions to
-0.24, HipY/Knee actions to 0.20, limits per-step residual change, clamps physical joint targets with a 0.02 rad
-margin, disables residuals near large tilt or transient non-foot contact, pauses on excessive tilt/low height/high
-joint speed/sustained non-foot contact/control timeout, and requires a stable window before resuming adaptation.
 
 ## Multi-gpu acceleration
 * To train with multiple GPUs, use the following command, where --nproc_per_node represents the number of available GPUs:

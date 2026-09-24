@@ -18,6 +18,60 @@ def test_train_defaults_keep_heldout_task_out_of_pretraining():
     assert args.replay_capacity == 10_000
     assert args.terrain_feature_source == "geometry"
     assert args.terrain_min_valid_fraction == 0.90
+    assert args.latent_code_dim == 0
+    assert args.latent_residual_fraction == 0.25
+
+
+def test_play_parser_requires_height_scan_for_latent_actor():
+    with pytest.raises(SystemExit, match="latent-code-dim requires"):
+        build_play_parser().parse_args([
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--latent-code-dim", "4",
+        ])
+    with pytest.raises(SystemExit, match="latent-code-dim requires --risk-gate"):
+        build_play_parser().parse_args([
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--terrain-feature-source", "height_scan",
+            "--latent-code-dim", "4",
+        ])
+    args = build_play_parser().parse_args([
+        "--base-checkpoint", "base.pt",
+        "--experiment-checkpoint-out", "experiment.pt",
+        "--terrain-feature-source", "height_scan",
+        "--risk-gate",
+        "--latent-code-dim", "4",
+    ])
+    assert args.latent_code_dim == 4
+
+    with pytest.raises(SystemExit, match="cannot be used with --mode base"):
+        build_play_parser().parse_args([
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--mode", "base",
+            "--terrain-feature-source", "height_scan",
+            "--risk-gate",
+            "--latent-code-dim", "4",
+        ])
+
+    with pytest.raises(SystemExit, match="latent-residual-fraction must be positive"):
+        build_play_parser().parse_args([
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--terrain-feature-source", "height_scan",
+            "--risk-gate",
+            "--latent-code-dim", "4",
+            "--latent-residual-fraction", "0",
+        ])
+
+    with pytest.raises(SystemExit, match="latent-decoder requires"):
+        build_play_parser().parse_args([
+            "--base-checkpoint", "base.pt",
+            "--experiment-checkpoint-out", "experiment.pt",
+            "--terrain-feature-source", "height_scan",
+            "--latent-decoder", "decoder.pt",
+        ])
 
 
 def test_train_can_resume_residual_checkpoint():

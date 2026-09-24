@@ -1,6 +1,6 @@
 import torch
 
-from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
+from rl_training.online_adaptation.networks import LatentResidualActor, ResidualActor, TwinCritic
 
 LIMITS = torch.tensor([0.24, 0.20, 0.20] * 4)
 
@@ -48,3 +48,48 @@ def test_twin_critic_returns_two_columns():
     )
     assert q1.shape == q2.shape == (8, 1)
     assert q1.data_ptr() != q2.data_ptr()
+
+
+def test_latent_actor_decodes_bounded_action_and_keeps_decoder_frozen():
+    actor = LatentResidualActor(
+        frame_dim=49,
+        action_dim=12,
+        code_dim=4,
+        history_dim=16,
+        action_limits=LIMITS,
+    )
+    history = torch.zeros(8, 25, 49)
+    frame = torch.zeros(8, 49)
+    base = torch.zeros(8, 12)
+
+    action, log_prob, mean = actor.sample(history, frame, base, deterministic=True)
+
+    assert action.shape == mean.shape == (8, 12)
+    assert log_prob.shape == (8, 1)
+    assert torch.equal(action, torch.zeros_like(action))
+    assert torch.equal(mean, torch.zeros_like(mean))
+    assert not actor.decoder_matrix.requires_grad
+
+    stochastic, stochastic_log_prob, _ = actor.sample(history, frame, base)
+    assert stochastic.shape == (8, 12)
+    assert stochastic_log_prob.shape == (8, 1)
+    assert torch.all(stochastic.abs() <= LIMITS + 1e-6)
+
+
+def test_latent_actor_critic_gradient_updates_code_policy_not_decoder():
+    actor = LatentResidualActor(
+        frame_dim=49,
+        action_dim=12,
+        code_dim=4,
+        history_dim=16,
+        action_limits=LIMITS,
+    )
+    history = torch.randn(5, 25, 49)
+    frame = torch.randn(5, 49)
+    base = torch.randn(5, 12)
+    residual, log_prob, _ = actor.sample(history, frame, base)
+    loss = residual.square().mean() + log_prob.mean()
+    loss.backward()
+
+    assert any(parameter.grad is not None for name, parameter in actor.named_parameters() if name != "decoder_matrix")
+    assert actor.decoder_matrix.grad is None

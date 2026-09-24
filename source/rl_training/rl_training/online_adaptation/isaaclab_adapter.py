@@ -22,7 +22,9 @@ TERRAIN_DISTANCE_SCALE_M = 1.0
 TERRAIN_HEIGHT_SCALE_M = 0.10
 TERRAIN_FORWARD_SCALE_M = 0.50
 TerrainFeatureSource = Literal["proprio", "geometry", "height_scan"]
-DEFAULT_HEIGHT_SCAN_CONFIG = HeightScanConfig(rows=23, cols=15)
+# Isaac Lab GridPatternCfg(size=(1.6, 1.0), resolution=0.07) produces
+# 23 forward x 15 lateral samples; ray_hits_w reshapes to [lateral, forward].
+DEFAULT_HEIGHT_SCAN_CONFIG = HeightScanConfig(rows=15, cols=23)
 
 
 def select_joint_order(value: torch.Tensor, joint_ids: list[int] | torch.Tensor) -> torch.Tensor:
@@ -237,6 +239,7 @@ class Lite3IsaacLabAdapter:
                 zeros.shape[0], 1, dtype=torch.bool, device=zeros.device
             )
             return zeros
+
         try:
             hits = scanner.data.ray_hits_w
             if not isinstance(hits, torch.Tensor) or hits.ndim != 3 or hits.shape[-1] != 3:
@@ -263,9 +266,18 @@ class Lite3IsaacLabAdapter:
             )
             return zeros
 
+    def terrain_features(self) -> torch.Tensor | None:
+        """Return the configured terrain features and update validity diagnostics."""
+        return self._terrain_features()
+
     @property
     def terrain_valid(self) -> torch.Tensor:
         return self._terrain_valid.detach().clone()
+
+    @property
+    def height_scanner_available(self) -> bool:
+        """Whether the configured height-scanner entity was found at startup."""
+        return self._height_scanner is not None
 
     def terrain_metadata(self) -> dict[str, object]:
         metadata: dict[str, object] = {
@@ -277,6 +289,7 @@ class Lite3IsaacLabAdapter:
                 {
                     "height_scanner_name": self.height_scanner_name,
                     "height_scan": asdict(self.height_scan_config),
+                    "grid_layout": "lateral_rows_forward_columns_v2",
                 }
             )
         return metadata

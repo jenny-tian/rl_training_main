@@ -16,6 +16,7 @@ from rl_training.online_adaptation.terrain_protocol import (
     TerrainGeometry,
     default_flat_online_protocol,
     development_geometry,
+    formal_train_geometry,
     sealed_geometry,
 )
 from rl_training.online_adaptation.track_completion import TrackCompletion
@@ -61,6 +62,7 @@ def test_terrain_protocol_is_part_of_the_public_package_api():
         "FlatOnlineProtocol": FlatOnlineProtocol,
         "default_flat_online_protocol": default_flat_online_protocol,
         "development_geometry": development_geometry,
+        "formal_train_geometry": formal_train_geometry,
         "sealed_geometry": sealed_geometry,
         "TrackCompletion": TrackCompletion,
     }
@@ -91,6 +93,13 @@ def test_default_protocol_has_exact_disjoint_seed_sets():
     assert protocol.sealed_seeds == SEALED_SEEDS
     assert len(protocol.sealed_seeds) == 20
     assert set(protocol.development_seeds).isdisjoint(protocol.sealed_seeds)
+
+
+def test_formal_train_geometry_accepts_only_reserved_teacher_seeds():
+    assert [formal_train_geometry("rough_4cm", seed).seed for seed in (101, 103, 107)] == [101, 103, 107]
+    for seed in (109, 113, 1009):
+        with pytest.raises(ValueError, match="formal train split"):
+            formal_train_geometry("rough_4cm", seed)
 
 
 def test_sealed_geometry_uses_deterministic_step_cycle_and_fixed_roughness():

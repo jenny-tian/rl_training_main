@@ -15,7 +15,9 @@ from .rsl_rl_compat import RslMLPPolicyAdapter
 
 
 CONTEXT_POLICY_OBSERVATION_SCHEMA = "base45_context3_gated_residual_v1"
+HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA = "base45_heightscan10_gated_residual_v2"
 _HEAD_NAMES = ("context_A.weight", "context_B.weight")
+_SCAN_HEAD_NAMES = ("scan_A.weight", "scan_B.weight")
 
 
 class ContextGatedPolicy(nn.Module):
@@ -82,6 +84,69 @@ class ContextGatedPolicy(nn.Module):
             raise TypeError("ContextGatedPolicy requires the base actor's diagonal Gaussian Normal")
         mean = self._gated_mean(base_observations, context, base_distribution.mean)
         return Normal(mean, base_distribution.scale, validate_args=base_distribution._validate_args)
+
+    def evaluate_actions(self, observations: Tensor, actions: Tensor) -> tuple[Tensor, Tensor]:
+        distribution = self.get_distribution(observations)
+        return distribution.log_prob(actions).sum(dim=-1), distribution.entropy().sum(dim=-1)
+
+
+class HeightScanGatedPolicy(nn.Module):
+    """Zero-output terrain adapter that preserves the frozen 45D actor.
+
+    The ten scan summary features are gated through a low-rank branch, so the
+    initial policy is exactly the proprio-only actor and only the new branch
+    needs online adaptation.
+    """
+
+    base_observation_dim = 45
+    scan_dim = 10
+    action_dim = 12
+
+    def __init__(self, base_policy: RslMLPPolicyAdapter, *, rank: int = 2) -> None:
+        super().__init__()
+        if not isinstance(base_policy, RslMLPPolicyAdapter):
+            raise TypeError("base_policy must be an RslMLPPolicyAdapter")
+        if base_policy.action_transform is not clip_lite3_policy_action:
+            raise ValueError("base_policy must already use the canonical Lite3 action transform")
+        if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= self.scan_dim:
+            raise ValueError("rank must be a positive integer <= 10")
+        reference = next((p for p in base_policy.parameters() if p.ndim == 2 and p.shape[1] == 45), None)
+        if reference is None or not reference.is_floating_point():
+            raise ValueError("base_policy must expose a floating-point 45D input layer")
+        self.base_policy = base_policy
+        self.scan_A = nn.Linear(self.scan_dim, rank, bias=False, device=reference.device, dtype=reference.dtype)
+        self.scan_B = nn.Linear(rank, self.action_dim, bias=False, device=reference.device, dtype=reference.dtype)
+        self.rank = rank
+        nn.init.normal_(self.scan_A.weight, mean=0.0, std=1.0 / math.sqrt(self.scan_dim))
+        nn.init.zeros_(self.scan_B.weight)
+
+    def _split(self, observations: Tensor) -> tuple[Tensor, Tensor]:
+        if not isinstance(observations, Tensor) or observations.ndim != 2 or observations.shape[1] != 55:
+            raise ValueError("height-scan policy observations must have shape [N, 55] = [base45, scan10]")
+        if (
+            not observations.is_floating_point()
+            or observations.device != self.scan_A.weight.device
+            or observations.dtype != self.scan_A.weight.dtype
+            or not bool(torch.isfinite(observations).all().item())
+        ):
+            raise ValueError("height-scan observations must be finite and match the policy dtype/device")
+        return observations[:, :45], observations[:, 45:]
+
+    def _mean(self, base: Tensor, scan: Tensor, base_mean: Tensor) -> Tensor:
+        correction = self.scan_B(self.scan_A(scan))
+        return clip_lite3_policy_action(base_mean + correction)
+
+    def mean_action(self, observations: Tensor) -> Tensor:
+        base, scan = self._split(observations)
+        return self._mean(base, scan, self.base_policy.mean_action(base))
+
+    def forward(self, observations: Tensor) -> Tensor:
+        return self.mean_action(observations)
+
+    def get_distribution(self, observations: Tensor) -> Normal:
+        base, scan = self._split(observations)
+        dist = self.base_policy.get_distribution(base)
+        return Normal(self._mean(base, scan, dist.mean), dist.scale, validate_args=dist._validate_args)
 
     def evaluate_actions(self, observations: Tensor, actions: Tensor) -> tuple[Tensor, Tensor]:
         distribution = self.get_distribution(observations)
@@ -223,4 +288,47 @@ def migrate_context_policy(
     return result
 
 
-__all__ = ["CONTEXT_POLICY_OBSERVATION_SCHEMA", "ContextGatedPolicy", "migrate_context_policy"]
+def migrate_height_scan_policy(
+    session_state: dict[str, Any],
+    *,
+    target_policy: HeightScanGatedPolicy,
+) -> dict[str, Any]:
+    """Wrap a legacy/base LoRA session with a zero-output scan adapter."""
+    if not isinstance(target_policy, HeightScanGatedPolicy):
+        raise TypeError("target_policy must be a HeightScanGatedPolicy")
+    if not isinstance(session_state, dict) or session_state.get("schema_version") != 1:
+        raise ValueError("incompatible online PPO session schema")
+    if session_state.get("pending_rollout") is not None:
+        raise ValueError("height-scan migration requires pending_rollout=None")
+    full_template = target_policy.state_dict()
+    base_template = target_policy.base_policy.state_dict()
+    base_trainables = [(name, value) for name, value in target_policy.base_policy.named_parameters() if value.requires_grad]
+    full_trainables = [(name, value) for name, value in target_policy.named_parameters() if value.requires_grad]
+    expected = ["base_policy." + name for name, _ in base_trainables] + list(_SCAN_HEAD_NAMES)
+    if [name for name, _ in full_trainables] != expected:
+        raise ValueError("height-scan trainable order is incompatible")
+    result = copy.deepcopy(session_state)
+    for branch_name in ("updater", "stable_state"):
+        branch = result.get(branch_name)
+        policy_state = branch.get("policy") if isinstance(branch, dict) else None
+        optimizer = branch.get("actor_optimizer") if isinstance(branch, dict) else None
+        if set(policy_state or {}) == set(full_template):
+            _validate_policy_state(policy_state, full_template, label=branch_name)
+            _validate_actor_optimizer(optimizer, policy_state, full_trainables, label=branch_name)
+            continue
+        _validate_policy_state(policy_state, base_template, label=branch_name)
+        ids = _validate_actor_optimizer(optimizer, policy_state, base_trainables, label=branch_name)
+        branch["policy"] = {"base_policy." + name: value for name, value in policy_state.items()}
+        branch["policy"].update({
+            "scan_A.weight": target_policy.scan_A.weight.detach().clone(),
+            "scan_B.weight": torch.zeros_like(target_policy.scan_B.weight.detach()),
+        })
+        new_ids = [max(ids) + 1, max(ids) + 2]
+        optimizer["param_groups"][0]["params"] = ids + new_ids
+        if "param_names" in optimizer["param_groups"][0]:
+            optimizer["param_groups"][0]["param_names"] = expected
+        _validate_actor_optimizer(optimizer, branch["policy"], full_trainables, label=branch_name)
+    return result
+
+
+__all__ = ["CONTEXT_POLICY_OBSERVATION_SCHEMA", "HEIGHT_SCAN_POLICY_OBSERVATION_SCHEMA", "ContextGatedPolicy", "HeightScanGatedPolicy", "migrate_context_policy", "migrate_height_scan_policy"]

@@ -22,3 +22,18 @@ def test_resume_rejects_changed_reward_or_sac_objective(change):
         saved["reward_semantics"] = "contact_referenced_rough_swing_v1"
     with pytest.raises(ValueError, match="training contract"):
         validate_training_contract(None if change == "missing" else saved, current)
+
+
+def test_training_contract_separates_latent_actor_from_direct_residual():
+    sac = SACConfig()
+    reward = RewardWeights()
+    direct = training_contract(sac, reward, target_semantics="timeout-aware")
+    latent = training_contract(
+        sac, reward, target_semantics="timeout-aware",
+        actor_architecture="latent_residual_v1", latent_code_dim=4,
+        latent_residual_fraction=0.25,
+    )
+    assert latent["entropy_coordinates"] == "normalized_tanh_latent_code_v1"
+    assert latent["latent_residual_fraction"] == 0.25
+    with pytest.raises(ValueError, match="training contract"):
+        validate_training_contract(direct, latent)

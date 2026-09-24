@@ -9,7 +9,8 @@ from .isaaclab_adapter import (
     compose_proprio_frame,
 )
 from .metrics import RollingMetrics
-from .networks import HistoryEncoder, ResidualActor, TwinCritic
+from .networks import HistoryEncoder, LatentResidualActor, ResidualActor, TwinCritic
+from .latent_steering import SteeringInversionResult, invert_steering_code
 from .lora import (
     LoRALinear,
     inject_lora,
@@ -43,7 +44,24 @@ from .terrain_protocol import (
     TerrainGeometry,
     default_flat_online_protocol,
     development_geometry,
+    formal_train_geometry,
     sealed_geometry,
+)
+from .teacher_steering import (
+    TEACHER_DECODER_SCHEMA,
+    TeacherDecoderFit,
+    fit_low_rank_teacher_decoder,
+    load_teacher_decoder,
+    save_teacher_decoder,
+    supervise_latent_actor,
+)
+from .teacher_dataset import (
+    TEACHER_DATASET_SCHEMA,
+    TeacherTrajectoryDataset,
+    load_teacher_dataset,
+    save_teacher_dataset,
+    select_safe_rows,
+    validate_teacher_dataset,
 )
 from .track_completion import (
     COMPLETION_QUALIFICATION_VERSION,
@@ -71,8 +89,11 @@ __all__ = [
     "ReplayBuffer",
     "adapt_replay_state_frame_dim",
     "HistoryEncoder",
+    "LatentResidualActor",
     "ResidualActor",
     "TwinCritic",
+    "SteeringInversionResult",
+    "invert_steering_code",
     "LoRALinear",
     "inject_lora",
     "replace_linear_with_lora",
@@ -102,7 +123,20 @@ __all__ = [
     "FlatOnlineProtocol",
     "default_flat_online_protocol",
     "development_geometry",
+    "formal_train_geometry",
     "sealed_geometry",
+    "TEACHER_DECODER_SCHEMA",
+    "TeacherDecoderFit",
+    "fit_low_rank_teacher_decoder",
+    "load_teacher_decoder",
+    "save_teacher_decoder",
+    "supervise_latent_actor",
+    "TEACHER_DATASET_SCHEMA",
+    "TeacherTrajectoryDataset",
+    "load_teacher_dataset",
+    "save_teacher_dataset",
+    "select_safe_rows",
+    "validate_teacher_dataset",
     "TrackCompletion",
     "FULL_TRACK_COMPLETION_MODE",
     "PROGRESS_COST_VERSION",

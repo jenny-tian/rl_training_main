@@ -1221,7 +1221,7 @@ def main() -> int:
         from rl_training.online_adaptation.terrain_observation import HeightScanConfig
         from rl_training.online_adaptation.deployment_startup import make_lite3_deployment_env
         from rl_training.online_adaptation.metrics import AdaptationPerformance, RollingMetrics
-        from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
+        from rl_training.online_adaptation.networks import LatentResidualActor, ResidualActor, TwinCritic
         from rl_training.online_adaptation.novelty import NoveltyConfig, NoveltyGate, NoveltyState
         from rl_training.online_adaptation.progress_novelty import ForwardProgressMonitor
         from rl_training.online_adaptation.reward import RewardWeights, compute_online_reward
@@ -1243,6 +1243,7 @@ def main() -> int:
         from rl_training.online_adaptation.sac import SACConfig, StableStateManager
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
         from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
+        from rl_training.online_adaptation.teacher_steering import load_teacher_decoder
 
         failure_writer = write_failure_record
 
@@ -1326,7 +1327,27 @@ def main() -> int:
                     "residual frame dimension differs from the requested runtime contract: "
                     f"actual={frame_dim}, requested={args.residual_frame_dim}"
                 )
-            actor = ResidualActor(frame_dim, 12, 64, actor_limits).to(device)
+            if args.latent_code_dim:
+                decoder_matrix = None
+                if args.latent_decoder is not None:
+                    decoder_matrix = load_teacher_decoder(
+                        args.latent_decoder,
+                        action_limits=actor_limits * args.latent_residual_fraction,
+                        code_dim=args.latent_code_dim,
+                    )
+                actor = LatentResidualActor(
+                    frame_dim, 12, code_dim=args.latent_code_dim, history_dim=64,
+                    action_limits=actor_limits * args.latent_residual_fraction,
+                    decoder_matrix=decoder_matrix,
+                ).to(device)
+                actor_architecture = (
+                    "latent_residual_teacher_decoder_v1"
+                    if args.latent_decoder is not None
+                    else "latent_residual_v1"
+                )
+            else:
+                actor = ResidualActor(frame_dim, 12, 64, actor_limits).to(device)
+                actor_architecture = "direct_residual_v1"
             critic = TwinCritic(frame_dim, 12, 64).to(device)
             runtime_config = AgentConfig(
                 frame_dim=frame_dim,
@@ -1352,6 +1373,11 @@ def main() -> int:
                 safety_limits=safety_limits,
                 config=runtime_config,
                 sac_config=SACConfig(
+                    target_entropy=(
+                        -float(args.latent_code_dim)
+                        if args.latent_code_dim
+                        else -6.0
+                    ),
                     flat_anchor_weight=args.flat_anchor_weight,
                     max_critic_loss=args.max_critic_loss,
                     max_mean_td_error=args.max_mean_td_error,
@@ -1397,6 +1423,11 @@ def main() -> int:
             current_training_contract = training_contract(
                 online_agent.updater.config, reward_weights, target_semantics=args.target_semantics,
                 risk_gate=safety_limits.risk_gate_contract(),
+                actor_architecture=actor_architecture,
+                latent_code_dim=args.latent_code_dim or None,
+                latent_residual_fraction=(
+                    args.latent_residual_fraction if args.latent_code_dim else None
+                ),
             )
             swing_lift_tracker = SwingLiftTracker()
             restored_experiment = None

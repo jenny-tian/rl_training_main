@@ -339,6 +339,7 @@ _DEFAULT_STAGES = (
     CurriculumStage("rough_4cm", 0.0, 0.04),
 )
 _DEVELOPMENT_SEEDS = (101, 103, 107, 109, 113)
+FORMAL_TRAIN_SEEDS = (101, 103, 107)
 _SEALED_SEEDS = (
     1009,
     1013,
@@ -393,6 +394,25 @@ def development_geometry(
     _validate_seed(seed, "development seed")
     if seed not in resolved.development_seeds:
         raise ValueError(f"seed {seed} is not a development seed")
+    return TerrainGeometry(stage.step_height, stage.rough_amplitude, seed)
+
+
+def formal_train_geometry(
+    stage_name: str,
+    seed: int,
+    protocol: FlatOnlineProtocol | None = None,
+) -> TerrainGeometry:
+    """Resolve one formally reserved teacher-training terrain seed."""
+    resolved = _resolve_protocol(protocol)
+    try:
+        stage = next(stage for stage in resolved.stages if stage.name == stage_name)
+    except StopIteration as error:
+        raise ValueError(f"unknown curriculum stage: {stage_name!r}") from error
+    _validate_seed(seed, "formal train seed")
+    if seed not in FORMAL_TRAIN_SEEDS:
+        raise ValueError(f"seed {seed} is not in the formal train split")
+    if seed not in resolved.development_seeds or seed in resolved.sealed_seeds:
+        raise ValueError("formal train seed conflicts with the active terrain protocol")
     return TerrainGeometry(stage.step_height, stage.rough_amplitude, seed)
 
 

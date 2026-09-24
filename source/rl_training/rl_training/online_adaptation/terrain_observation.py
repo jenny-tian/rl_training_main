@@ -7,11 +7,12 @@ import torch
 
 
 HEIGHT_SCAN_FEATURE_DIM = 10
-HEIGHT_SCAN_SCHEMA_VERSION = 1
+HEIGHT_SCAN_SCHEMA_VERSION = 2
 
 
 @dataclass(frozen=True)
 class HeightScanConfig:
+    """Grid dimensions in sensor tensor order: lateral rows, forward columns."""
     rows: int
     cols: int
     height_scale_m: float = 0.10
@@ -93,11 +94,13 @@ def summarize_height_scan(
         float(config.clip_m) / float(config.height_scale_m),
     )
 
-    forward_rows = config.rows // 2
-    forward = finite[:, :forward_rows]
-    backward = finite[:, forward_rows:]
-    left = finite[:, :, : config.cols // 2]
-    right = finite[:, :, config.cols // 2 :]
+    # Isaac Lab's xy grid is shaped [y, x] after ray_hits_w is flattened and
+    # reshaped: y is lateral (rows), x is forward (columns).
+    forward_cols = config.cols // 2
+    forward = finite[:, :, forward_cols:]
+    backward = finite[:, :, :forward_cols]
+    left = finite[:, config.rows // 2 :, :]
+    right = finite[:, : config.rows // 2, :]
     features = torch.cat(
         (
             valid_fraction,
@@ -105,16 +108,16 @@ def summarize_height_scan(
             _masked_max(normalized, finite, (1, 2)).unsqueeze(-1),
             _masked_mean(normalized, finite, (1, 2)).unsqueeze(-1),
             _masked_std(normalized, finite, (1, 2)).unsqueeze(-1),
-            _masked_min(normalized[:, :forward_rows], forward, (1, 2)).unsqueeze(-1),
-            _masked_mean(normalized[:, :forward_rows], forward, (1, 2)).unsqueeze(-1),
-            _masked_max(normalized[:, :forward_rows], forward, (1, 2)).unsqueeze(-1),
+            _masked_min(normalized[:, :, forward_cols:], forward, (1, 2)).unsqueeze(-1),
+            _masked_mean(normalized[:, :, forward_cols:], forward, (1, 2)).unsqueeze(-1),
+            _masked_max(normalized[:, :, forward_cols:], forward, (1, 2)).unsqueeze(-1),
             (
-                _masked_mean(normalized[:, :, : config.cols // 2], left, (1, 2))
-                - _masked_mean(normalized[:, :, config.cols // 2 :], right, (1, 2))
+                _masked_mean(normalized[:, config.rows // 2 :, :], left, (1, 2))
+                - _masked_mean(normalized[:, : config.rows // 2, :], right, (1, 2))
             ).unsqueeze(-1),
             (
-                _masked_mean(normalized[:, :forward_rows], forward, (1, 2))
-                - _masked_mean(normalized[:, forward_rows:], backward, (1, 2))
+                _masked_mean(normalized[:, :, forward_cols:], forward, (1, 2))
+                - _masked_mean(normalized[:, :, :forward_cols], backward, (1, 2))
             ).unsqueeze(-1),
         ),
         dim=-1,

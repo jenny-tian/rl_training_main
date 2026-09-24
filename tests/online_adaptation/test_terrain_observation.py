@@ -43,15 +43,31 @@ def test_summary_has_stable_order_and_directional_statistics():
             2.0,
             expected_grid.mean(),
             expected_grid.std(unbiased=False),
-            0.0,
-            expected_grid[:2].mean(),
-            2.0,
-            expected_grid[:, :2].mean() - expected_grid[:, 2:].mean(),
-            expected_grid[:2].mean() - expected_grid[2:].mean(),
+            expected_grid[:, 2:].min(),
+            expected_grid[:, 2:].mean(),
+            expected_grid[:, 2:].max(),
+            expected_grid[2:, :].mean() - expected_grid[:2, :].mean(),
+            expected_grid[:, 2:].mean() - expected_grid[:, :2].mean(),
         ]
     )
     torch.testing.assert_close(features, expected.unsqueeze(0))
     torch.testing.assert_close(valid, torch.ones(1, 1, dtype=torch.bool))
+
+
+def test_non_square_scan_uses_lateral_rows_and_forward_columns():
+    heights = torch.zeros(1, 4, 6)
+    heights[:, :, 3:] = 0.1
+    heights[:, 2:, :] += 0.05
+
+    features, valid = summarize_height_scan(
+        heights,
+        HeightScanConfig(rows=4, cols=6, height_scale_m=0.1, clip_m=0.2),
+    )
+
+    assert valid.item()
+    assert features[0, 6].item() == pytest.approx(1.25)
+    assert features[0, 8].item() == pytest.approx(0.5)
+    assert features[0, 9].item() == pytest.approx(1.0)
 
 
 def test_nonfinite_hits_are_zeroed_but_validity_uses_finite_fraction():

@@ -6,7 +6,7 @@ import torch
 from dataclasses import asdict, replace
 
 from rl_training.online_adaptation.metrics import AdaptationPerformanceDecision
-from rl_training.online_adaptation.networks import ResidualActor, TwinCritic
+from rl_training.online_adaptation.networks import LatentResidualActor, ResidualActor, TwinCritic
 from rl_training.online_adaptation.sac import (
     CandidateActorRejected,
     SACConfig,
@@ -99,6 +99,19 @@ def test_updater_checkpoint_round_trip_preserves_action_contract(tmp_path):
     assert restored.state_dict()["schema_version"] == 1
     assert restored.state_dict()["critic_action_semantics"] == "requested_residual_before_safety_v1"
     assert_state_dict_equal(restored.state_dict(), updater.state_dict())
+
+
+def test_sac_updater_trains_latent_code_actor_against_12d_critic():
+    limits = torch.tensor([0.24, 0.20, 0.20] * 4)
+    actor = LatentResidualActor(49, 12, code_dim=4, history_dim=16, action_limits=limits)
+    critic = TwinCritic(49, 12, history_dim=16)
+    updater = SACUpdater(actor, critic, SACConfig(initial_alpha=0.02, alpha_max=0.05))
+
+    stats = updater.update(make_batch())
+
+    assert stats.accepted
+    assert stats.actor_updated
+    assert actor.decoder_matrix.grad is None
 
 
 @pytest.mark.parametrize("contract", [

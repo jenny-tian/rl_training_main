@@ -49,6 +49,24 @@ def test_regular_terrain_training_keeps_its_existing_deadline_and_qualification(
     assert _evaluation_mode(args) == "online_learning"
 
 
+@pytest.mark.parametrize("options, message", [
+    (["--terrain-split", "train", "--terrain-seed", "109"], "only formal teacher seeds"),
+    (["--terrain-split", "development", "--teacher-training", "--height-scan-adapter"], "requires --terrain-split train"),
+    (["--terrain-split", "train", "--teacher-training"], "requires --height-scan-adapter"),
+])
+def test_teacher_training_contract_rejects_invalid_configuration_before_simulator_launch(
+    monkeypatch, options, message,
+):
+    from types import SimpleNamespace
+    from scripts.reinforcement_learning.online_adaptation import train_lora_ppo as worker
+
+    args = build_parser().parse_args(["--base-checkpoint", "base.pt", *options])
+    monkeypatch.setattr(worker, "build_parser", lambda: SimpleNamespace(parse_args=lambda: args))
+    monkeypatch.setattr(worker, "AppLauncher", lambda _: pytest.fail("simulator must not launch"))
+    with pytest.raises(SystemExit, match=message):
+        worker.main()
+
+
 @pytest.mark.parametrize("checkpoint", [None, "learned.pt"])
 @pytest.mark.parametrize("flat", [False, True])
 def test_frozen_base_or_learned_evaluation_passes_main_validation_without_launching_simulator(

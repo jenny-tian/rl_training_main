@@ -114,6 +114,8 @@ def main() -> None:
                         help='queue on the shared GPU lock without interrupting an existing arm')
     parser.add_argument('--probe-interval', type=_positive_int, default=5)
     parser.add_argument('--probe-failure-policy', choices=('rollback', 'continue_candidate'), default='continue_candidate')
+    parser.add_argument('--training-failure-policy', choices=('rollback', 'continue_candidate'),
+                        default='continue_candidate')
     parser.add_argument('--resume-evaluation', action='store_true',
                         help='reuse completed training and matching evaluations; finish only missing evaluations')
     args = parser.parse_args()
@@ -142,6 +144,8 @@ def main() -> None:
              '--safety-projection-penalty', str(args.safety_projection_penalty),
              '--stability-window', '10', '--stability-min-success-rate', '0.8',
              '--stability-min-consecutive-successes', '3']
+    if args.training_failure_policy != 'continue_candidate':
+        train += ['--training-failure-policy', args.training_failure_policy]
     if args.final_action_std is not None:
         train += ['--final-action-std', str(args.final_action_std)]
     if args.context:

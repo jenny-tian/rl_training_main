@@ -11,7 +11,12 @@ from rl_training.lite3_joint_conventions import (
 )
 from rl_training.online_adaptation.lora import inject_lora, mark_only_lora_trainable
 from rl_training.online_adaptation.online_session import OnlinePPOSession, SessionCounters
-from rl_training.online_adaptation.ppo_context_policy import ContextGatedPolicy, migrate_context_policy
+from rl_training.online_adaptation.ppo_context_policy import (
+    ContextGatedPolicy,
+    HeightScanGatedPolicy,
+    migrate_context_policy,
+    migrate_height_scan_policy,
+)
 from rl_training.online_adaptation.ppo_online import OnlinePPOUpdater, PPOConfig
 from rl_training.online_adaptation.ppo_runtime_config import apply_ppo_runtime_config, read_ppo_runtime_config
 from rl_training.online_adaptation.publisher import DoubleBufferedActorPublisher
@@ -131,6 +136,41 @@ def test_initial_head_preserves_base_mean_likelihood_entropy_and_single_std(std_
     assert torch.count_nonzero(wrapped.context_B.weight) == 0
 
 
+@pytest.mark.parametrize("std_name", ["log_std_param", "std_param"])
+def test_initial_height_scan_head_preserves_base_distribution(std_name):
+    base = base_policy(std_name)
+    wrapped = HeightScanGatedPolicy(base)
+    observations = torch.randn(9, 45)
+    scan = torch.randn(9, 10) * 100
+    extended = torch.cat((observations, scan), dim=-1)
+    with torch.no_grad():
+        old_distribution = base.get_distribution(observations)
+        actions = old_distribution.sample()
+        old_log_prob, old_entropy = base.evaluate_actions(observations, actions)
+        new_distribution = wrapped.get_distribution(extended)
+        new_log_prob, new_entropy = wrapped.evaluate_actions(extended, actions)
+        torch.testing.assert_close(wrapped.mean_action(extended), old_distribution.mean, rtol=0, atol=0)
+        torch.testing.assert_close(new_distribution.scale, old_distribution.scale, rtol=0, atol=0)
+        torch.testing.assert_close(new_log_prob, old_log_prob, rtol=0, atol=0)
+        torch.testing.assert_close(new_entropy, old_entropy, rtol=0, atol=0)
+    trainables = [name for name, parameter in wrapped.named_parameters() if parameter.requires_grad]
+    assert trainables[-2:] == ["scan_A.weight", "scan_B.weight"]
+    assert torch.count_nonzero(wrapped.scan_A.weight) > 0
+    assert torch.count_nonzero(wrapped.scan_B.weight) == 0
+
+
+def test_height_scan_head_rejects_bad_rank_and_observations():
+    with pytest.raises(ValueError, match="rank"):
+        HeightScanGatedPolicy(base_policy(), rank=11)
+    policy = HeightScanGatedPolicy(base_policy())
+    with pytest.raises(ValueError, match="shape"):
+        policy.mean_action(torch.zeros(2, 54))
+    with pytest.raises(ValueError, match="finite"):
+        observations = torch.zeros(2, 55)
+        observations[0, 45] = float("nan")
+        policy.mean_action(observations)
+
+
 def test_three_context_branches_sum_and_apply_canonical_action_limits():
     policy = ContextGatedPolicy(base_policy())
     observations = torch.zeros(2, 45)
@@ -214,6 +254,36 @@ def test_migration_preserves_both_legacy_policies_and_adam_with_same_zero_head()
     migrated["audit_metadata"]["keep"].append(10)
     migrated["updater"]["policy"]["context_A.weight"].zero_()
     equal_tree(original, before)
+
+
+def test_height_scan_migration_preserves_legacy_policy_and_appends_lazy_adam_state():
+    original = legacy_session()
+    target = HeightScanGatedPolicy(base_policy())
+    migrated = migrate_height_scan_policy(original, target_policy=target)
+    base_names = [name for name, parameter in target.base_policy.named_parameters() if parameter.requires_grad]
+    observations = torch.randn(6, 45)
+    extended = torch.cat((observations, torch.randn(6, 10)), dim=-1)
+    for branch_name in ("updater", "stable_state"):
+        old = original[branch_name]
+        new = migrated[branch_name]
+        restored_base = base_policy()
+        restored_base.load_state_dict(old["policy"])
+        restored = HeightScanGatedPolicy(base_policy())
+        restored.load_state_dict(new["policy"])
+        with torch.no_grad():
+            old_distribution = restored_base.get_distribution(observations)
+            new_distribution = restored.get_distribution(extended)
+            torch.testing.assert_close(new_distribution.mean, old_distribution.mean, rtol=0, atol=0)
+            torch.testing.assert_close(new_distribution.scale, old_distribution.scale, rtol=0, atol=0)
+        for name, value in old["policy"].items():
+            torch.testing.assert_close(new["policy"]["base_policy." + name], value, rtol=0, atol=0)
+        assert torch.count_nonzero(new["policy"]["scan_B.weight"]) == 0
+        old_ids = old["actor_optimizer"]["param_groups"][0]["params"]
+        new_ids = new["actor_optimizer"]["param_groups"][0]["params"]
+        assert len(old_ids) == len(base_names)
+        assert new_ids == old_ids + [max(old_ids) + 1, max(old_ids) + 2]
+        equal_tree(new["actor_optimizer"]["state"], old["actor_optimizer"]["state"])
+    equal_tree(original["counters"], migrated["counters"])
 
 
 def test_restored_adam_steps_old_and_new_parameters_and_trained_head_migration_is_idempotent():
