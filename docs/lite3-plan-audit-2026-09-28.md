@@ -13,6 +13,16 @@
 
 ## 需要优先修订的问题
 
+### 0. 阻塞：G0 首个冻结 base 复跑未复现“101 失败”
+
+审核期间按预登记 G0-20260928-base-pair 运行当前 LoRA runner：seed 101、simulation seed 7、同一 base SHA、RockyRoad rough_4cm、2000步预算。
+结果为1785步完成，max_x=4.502410411834717 m，updates=0、fell=false、safety_violation=false。
+轨迹重算max_x与summary一致，保存671535字节；控制计算耗时p50/p95/p99约3.76/5.06/5.52 ms（含当前worker控制前处理和GPU同步，不等于完整实时循环延迟）。
+证据目录：`artifacts/g0_base_pair_20260928/seed-101/`；代码commit：`1113b4e`。
+
+这不证明旧结果错误，也不构成学习收益。当前结果与计划前提不一致，需审查runner动作处理、观测/初始化、地形与物理配置、版本和GPU差异，并在固定条件下复测。
+其余调试种子的预登记基线仍继续采集以定位差异；在原因明确前不把101视为可靠的base失败样例，也不依照旧失败池启动G1学习效果判定。
+
 ### 1. 高：critic 失败的因果判断过强，EV 口径不独立
 
 计划 2.2 的“critic 从未拟合回报”“更新方向接近随机”不是现有指标能证明的事实。
@@ -104,3 +114,6 @@ LoRA、LayerNorm、n-step、MC 预热、低维搜索和风险门控均不能单�
 
 继续 G0 的基线复核和轨迹工具验证，记录结果，不启动 teacher 长训练或四臂大规模比较。
 审核建议不冒充已批准/已实现的 v2.2；原 v2.1 留存，具体实验在登记表中锁定假设、预算和决定规则。
+
+已完成PPO逐步轨迹工具及全套组件检查：1509 passed, 7 skipped，py_compile与git diff --check通过。
+该记录接入当前LoRA worker；SAC worker尚未接入，不能视作D8全部完成。G0的封存守卫和快照检查也尚未完成。

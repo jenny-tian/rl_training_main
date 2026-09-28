@@ -14,4 +14,7 @@
 - 输出：`artifacts/g0_base_pair_20260928/`，每种子独立 runtime.log/config/summary/trajectory。
 - 验收：summary和逐步记录步数一致；post-action/pre-reset的max_x与summary一致；冻结运行updates=0；保留失败和差异。
 - 预算：最多10,000实际环境步；只做基线复核，不晋升策略。
-- 状态：已登记，未启动。
+- 状态：已启动（tmux `lite3_g0_base_pair_20260928`，GPU0）；具体进度见输出根目录 `manifest.json`。
+- 执行代码：`1113b4e`；1509 passed, 7 skipped。
+- 首个结果：101在1785步完成、max_x=4.502410411834717、updates=0、无跌倒/安全违规，与历史预期不一致。轨迹/summary步数及max_x核对通过，轨迹671535字节。
+- 决定：记录基线差异，不调参凑历史结果；继续预登记的其余基线，G1效果判定等待差异审计。
