@@ -74,6 +74,32 @@ def make_agent_transition(value, batch):
     }
 
 
+def test_pending_trajectory_is_detached_does_not_resample_and_tracks_fallback():
+    agent = make_agent()
+    actor, _ = agent.publisher.current()
+    with torch.no_grad():
+        actor.mean_layer.weight.zero_()
+        actor.mean_layer.bias.fill_(1.0)
+        actor.log_std_layer.weight.zero_()
+        actor.log_std_layer.bias.fill_(-10.0)
+    with pytest.raises(RuntimeError, match="pending"):
+        agent.pending_trajectory_fields()
+    decision = agent.begin_step(torch.ones(1, 2), torch.zeros(1, 1), safety_state(), deterministic=False)
+    rng = torch.random.get_rng_state().clone()
+    trace = agent.pending_trajectory_fields()
+    assert torch.equal(rng, torch.random.get_rng_state())
+    assert torch.equal(trace["requested_residual_action"], agent._pending.requested_residual_action)
+    assert not torch.equal(trace["requested_action"], decision.action)
+    trace["history"].zero_()
+    trace["requested_residual_action"].fill_(9.)
+    assert agent._pending.history.any()
+    assert agent._pending.requested_residual_action.abs().max() < 1.
+    agent.fallback_pending(safety_state())
+    fallback = agent.pending_trajectory_fields()
+    assert torch.count_nonzero(fallback["requested_residual_action"]) == 0
+    assert torch.equal(fallback["mean_action"], fallback["base_action"])
+
+
 def test_critic_sampling_schedules_flat_fraction_and_preserves_legacy_online_only():
     agent = make_agent(
         replay_capacity=20, batch_size=8, online_ready_size=4,

@@ -15,6 +15,11 @@ from pathlib import Path
 from typing import Any, Literal
 
 from isaaclab.app import AppLauncher
+from rl_training.online_adaptation.runner_contract import (
+    configure_forward_command, pin_forward_command, pin_forward_observation,
+    seeded_initial_reset, actuator_delay_metadata,
+)
+
 
 from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.online_adaptation.actor_update import update_and_publish_actor
@@ -904,29 +909,6 @@ def validate_terrain_checkpoint_metadata(
         raise ValueError("experiment checkpoint terrain metadata differs from the current runtime")
 
 
-def pin_forward_command(env: Any, forward_speed: float) -> None:
-    """Keep the deployment command nonzero across resets and slew updates."""
-    import torch
-
-    command_manager = getattr(env, "command_manager", None)
-    if command_manager is None:
-        raise AttributeError("deployment environment has no command_manager")
-    command = command_manager.get_command("base_velocity")
-    if not isinstance(command, torch.Tensor) or command.ndim != 2 or command.shape[1] < 3:
-        raise ValueError("base_velocity command must be a batched tensor with at least 3 values")
-    with torch.no_grad():
-        command[:, 0].fill_(float(forward_speed))
-        command[:, 1:3].zero_()
-        term = command_manager.get_term("base_velocity")
-        for name in ("vel_command_b", "target_vel_command_b"):
-            value = getattr(term, name, None)
-            if isinstance(value, torch.Tensor) and value.ndim == 2 and value.shape[1] >= 3:
-                value[:, 0].fill_(float(forward_speed))
-                value[:, 1:3].zero_()
-        for name in ("is_standing_env", "is_heading_env"):
-            value = getattr(term, name, None)
-            if isinstance(value, torch.Tensor):
-                value.fill_(False)
 
 
 def normalized_forward_progress(
@@ -1198,6 +1180,7 @@ def main() -> int:
     app_launcher = AppLauncher(args)
     simulation_app = app_launcher.app
     updater_thread: threading.Thread | None = None
+    trajectory = None
     stop_event = threading.Event()
     failure_writer = None
     try:
@@ -1244,6 +1227,7 @@ def main() -> int:
         from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
         from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
         from rl_training.online_adaptation.teacher_steering import load_teacher_decoder
+        from rl_training.online_adaptation.step_trajectory import StepTrajectory
 
         failure_writer = write_failure_record
 
@@ -1260,14 +1244,13 @@ def main() -> int:
         env_cfg.scene.num_envs = 1
         env_cfg.terminations.time_out = None
         env_cfg.terminations.terrain_out_of_bounds = None
-        env_cfg.commands.base_velocity.ranges.lin_vel_x = (args.forward_speed, args.forward_speed)
-        env_cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
-        env_cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
+        configure_forward_command(env_cfg.commands.base_velocity, args.forward_speed)
         sim_dt = float(getattr(getattr(env_cfg, "sim", None), "dt", 0.02))
         control_step_dt = sim_dt * float(getattr(env_cfg, "decimation", 1))
         agent_cfg = load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point")
         agent_cfg.seed = args.seed
         agent_cfg = prepare_rsl_rl_agent_cfg(agent_cfg)
+        (run_dir / "resolved_env.json").write_text(json.dumps(env_cfg.to_dict(), indent=2, default=str) + "\n")
         def transform_video(env):
             if not args.video:
                 return env
@@ -1711,7 +1694,8 @@ def main() -> int:
                 json.dumps(config, indent=2, default=str) + "\n", encoding="utf-8"
             )
 
-            observation, _ = wrapped_env.reset()
+            observation, _ = seeded_initial_reset(wrapped_env, args.seed)
+            observation = pin_forward_observation(wrapped_env, observation, args.forward_speed)
             adapter.reset_contact_diagnostics()
             generation = wrapped_env.consume_startup_generation()
             if generation is None:
@@ -1793,6 +1777,22 @@ def main() -> int:
             completion_stop = False
             post_step_checkpointed = False
             novelty_decision = novelty_gate.observe(0.0, 0.0, False, 0.0, paused=True)
+            trajectory = StepTrajectory(run_dir / "trajectory", vector_dtype=args.trajectory_dtype, metadata={
+                "algorithm": "residual_sac", "mode": args.mode,
+                "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
+                "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
+                "step_dt": control_step_dt,
+                "actuator_delays": actuator_delay_metadata(adapter.robot),
+                "reset_rng_contract": "seed_before_initial_physical_reset_v1",
+                "critic_action_semantics": "requested_residual_before_safety_v1",
+                "base_sha256": sha256_file(args.base_checkpoint),
+                "actor_architecture": actor_architecture,
+                "latent_decoder_sha256": None if args.latent_decoder is None else sha256_file(args.latent_decoder),
+                "endings_semantics": "legacy_worker_physical_endings_with_separate_collector_cutoff",
+                "policy_version_missing": -1,
+            })
+            trace_started = time.perf_counter()
+            total_reward = 0.0
 
             for step in range(1, args.max_steps + 1):
                 executed_steps = step
@@ -1809,7 +1809,7 @@ def main() -> int:
                     pending_rollback_completion
                 )
                 loop_started = time.perf_counter()
-                pin_forward_command(wrapped_env.unwrapped, args.forward_speed)
+                observation = pin_forward_observation(wrapped_env, observation, args.forward_speed)
                 frame, timeout, safety_state = prepare_control_inputs(
                     adapter=adapter,
                     previous_action=previous_action,
@@ -1822,7 +1822,8 @@ def main() -> int:
                     device=device,
                 ) as control_started:
                     with torch.inference_mode():
-                        base_action = clip_lite3_policy_action(base_policy(observation))
+                        raw_base_action = base_policy(observation)
+                        base_action = clip_lite3_policy_action(raw_base_action)
                     deterministic_control = control_is_deterministic(
                         stochastic_control=args.stochastic_control,
                         adapting_stochastic_control=args.adapting_stochastic_control,
@@ -1830,6 +1831,7 @@ def main() -> int:
                         novelty_state=novelty_decision.state,
                     )
                     action_residual_gain = online_agent.residual_gain
+                    filter_memory = online_agent.safety.temporal_snapshot(base_action)
                     decision = online_agent.begin_step(
                         frame,
                         base_action,
@@ -1873,6 +1875,17 @@ def main() -> int:
                 if safety_violation_occurred(decision.paused, control_timed_out):
                     safety_violation = True
 
+                trajectory_inputs = trajectory.snapshot(
+                    **online_agent.pending_trajectory_fields(),
+                    **filter_memory,
+                    observation=observation["policy"], raw_base_action=raw_base_action,
+                    executed_action=decision.action, executed_residual_action=decision.residual,
+                    previous_action=previous_action, previous_residual_action=previous_residual,
+                    root_state=adapter.robot.data.root_state_w,
+                    joint_pos=adapter.robot.data.joint_pos, joint_vel=adapter.robot.data.joint_vel,
+                    command=wrapped_env.unwrapped.command_manager.get_command("base_velocity"),
+                    **{f"safety_{key}": value for key, value in vars(safety_state).items()},
+                )
                 with torch.inference_mode():
                     # Capture the last pre-action state as well as the state seen
                     # by the environment's pre-reset callback on termination.
@@ -2166,6 +2179,24 @@ def main() -> int:
                 bootstrap_mask = torch.where(
                     actor_invalid, torch.zeros_like(bootstrap_mask), bootstrap_mask
                 )
+                trajectory.append(
+                    **trajectory_inputs, step=step,
+                    policy_version=-1 if decision.actor_version is None else decision.actor_version,
+                    reward=float(reward.mean()), base_x=base_x_value,
+                    base_y=float(post_step_snapshot.base_y.mean()),
+                    elapsed_s=step * control_step_dt, wall_elapsed_s=time.perf_counter() - trace_started,
+                    control_compute_ms=control_ms, projected=bool(decision.projected.any()),
+                    paused=paused_now, control_timed_out=control_timed_out,
+                    terminated=bool(terminated.any()), truncated=bool(truncated.any()),
+                    bootstrap_mask=bootstrap_mask, completion_reached=completion_boundary_reached,
+                    collector_cutoff=step == args.max_steps and not environment_done and not completion_boundary_reached,
+                    next_observation=post_step_snapshot.policy_observation, next_frame=next_frame,
+                    post_reset_observation=post_reset_snapshot.policy_observation,
+                    next_base_action=next_base_action, nonfoot_contact=nonfoot_contact,
+                    episode_id=active_episode, reset_count=done_count + int(environment_done),
+                    risk_score=decision.risk_score, risk_scale=decision.risk_scale,
+                )
+                total_reward += float(reward.mean())
                 online_agent.finish_step(
                     next_frame=next_frame,
                     next_base_action=next_base_action,
@@ -2474,6 +2505,7 @@ def main() -> int:
             )
             summary = {
                 "mode": args.mode,
+                "total_reward": total_reward,
                 "steps": executed_steps,
                 "reset_count": done_count,
                 "fell": fell,
@@ -2550,6 +2582,11 @@ def main() -> int:
                 ),
                 **metrics.heldout_summary(),
             }
+            trajectory_manifest = trajectory.close(complete=True)
+            summary["trajectory"] = {
+                "path": "trajectory/manifest.json", "steps": trajectory_manifest["steps"],
+                "bytes": trajectory_manifest["bytes"],
+            }
             episode_summary = {
                 **summary,
                 "passed": (
@@ -2621,6 +2658,8 @@ def main() -> int:
             failure_writer(Path(args.run_dir), error)
         return 2
     finally:
+        if trajectory is not None:
+            trajectory.close()
         simulation_app.close()
 
 

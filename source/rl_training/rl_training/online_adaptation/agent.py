@@ -70,6 +70,7 @@ class PendingStep:
     terrain_valid: torch.Tensor
     actor_version: int | None
     requested_residual_action: torch.Tensor
+    mean_residual_action: torch.Tensor
 
 
 def _normalize_replay_state_for_load(state: Mapping[str, Any]) -> dict[str, Any]:
@@ -342,9 +343,10 @@ class OnlineAdaptationAgent:
         history = self.history.snapshot()
         actor, version = self.publisher.current()
         with torch.no_grad():
-            residual, _, _ = actor.sample(history, frame, base_action, deterministic=deterministic)
+            residual, _, mean_residual = actor.sample(history, frame, base_action, deterministic=deterministic)
             residual = residual * residual_gain
             residual = torch.where(batch_terrain_valid, residual, torch.zeros_like(residual))
+            mean_residual = torch.where(batch_terrain_valid, mean_residual * residual_gain, torch.zeros_like(mean_residual))
         decision = replace(
             self.safety.project(
                 base_action,
@@ -363,8 +365,23 @@ class OnlineAdaptationAgent:
             learning_mask=(~decision.paused).detach().clone(),
             terrain_valid=batch_terrain_valid.expand_as(decision.paused).detach().clone(),
             actor_version=version if bool(batch_terrain_valid.item()) else None,
+            mean_residual_action=mean_residual.detach().clone(),
         )
         return decision
+
+    def pending_trajectory_fields(self) -> dict[str, torch.Tensor]:
+        """Detached pre-action snapshot; never resample the actor for diagnostics."""
+        pending = self._pending
+        if pending is None:
+            raise RuntimeError("trajectory snapshot requires a pending step")
+        return {name: value.detach().clone() for name, value in {
+            "history": pending.history,
+            "current_frame": pending.frame,
+            "base_action": pending.base_action,
+            "requested_residual_action": pending.requested_residual_action,
+            "requested_action": pending.base_action + pending.requested_residual_action,
+            "mean_action": pending.base_action + pending.mean_residual_action,
+        }.items()}
 
     def finish_step(
         self,
@@ -587,6 +604,7 @@ class OnlineAdaptationAgent:
             base_action=self._pending.base_action,
             residual_action=fallback.residual.detach().clone(),
             requested_residual_action=torch.zeros_like(fallback.residual),
+            mean_residual_action=torch.zeros_like(fallback.residual),
             learning_mask=(~fallback.paused).detach().clone(),
             terrain_valid=self._pending.terrain_valid,
             actor_version=None,

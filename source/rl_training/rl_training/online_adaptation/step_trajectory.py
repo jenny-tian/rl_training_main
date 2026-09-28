@@ -11,14 +11,17 @@ from .provenance import write_json_atomic
 class StepTrajectory:
     """Persist detached transitions; preserve reward/pose precision for audits.
 
-    Observations and actions use float16; scalar rewards, poses and timings
+    Observations and actions default to float16 (float32 for parity); scalar rewards, poses and timings
     retain their original precision. A manifest is updated after each chunk,
     and an interrupted run is distinguishable from a completed trajectory.
     """
 
-    def __init__(self, directory, *, metadata, chunk_steps=256):
+    def __init__(self, directory, *, metadata, chunk_steps=256, vector_dtype="float16"):
         if type(chunk_steps) is not int or chunk_steps < 1:
             raise ValueError("chunk_steps must be positive")
+        if vector_dtype not in ("float16", "float32"):
+            raise ValueError("vector_dtype must be float16 or float32")
+        self.vector_dtype = np.dtype(vector_dtype)
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=False)
         self.chunk_steps = chunk_steps
@@ -30,14 +33,14 @@ class StepTrajectory:
             "metadata": metadata, "chunks": [], "steps": 0, "bytes": 0,
             "pose_semantics": "post_action_pre_reset",
             "observation_semantics": "pre_action",
+            "vector_dtype": vector_dtype,
         }
         self._write_manifest()
 
     def _write_manifest(self):
         write_json_atomic(self.directory / "manifest.json", self.manifest)
 
-    @staticmethod
-    def snapshot(**fields):
+    def snapshot(self, **fields):
         """Copy inputs before env.step can mutate the simulator's tensor views."""
         result = {}
         for key, value in fields.items():
@@ -46,9 +49,11 @@ class StepTrajectory:
             array = np.asarray(value)
             if array.dtype.kind not in "biuf":
                 raise ValueError(f"{key} must be numeric")
-            compact = "observation" in key or "action" in key or key == "history"
+            compact = array.dtype.kind == "f" and (
+                "observation" in key or "action" in key or key in ("history", "current_frame", "next_frame")
+            )
             with np.errstate(over="ignore"):
-                array = array.astype(np.float16 if compact else array.dtype, copy=True)
+                array = array.astype(self.vector_dtype if compact else array.dtype, copy=True)
             if not np.isfinite(array).all():
                 raise ValueError(f"{key} is non-finite or overflows storage dtype")
             result[key] = array

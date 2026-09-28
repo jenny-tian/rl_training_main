@@ -19,6 +19,12 @@ import traceback
 from pathlib import Path
 
 from isaaclab.app import AppLauncher
+from rl_training.online_adaptation.runner_contract import (
+    configure_forward_command as _configure_forward_command,
+    pin_forward_observation as _pin_forward_observation,
+    seeded_initial_reset, actuator_delay_metadata,
+)
+
 from rl_training.online_adaptation.safety import risk_gate_kwargs
 from scripts.reinforcement_learning.online_adaptation.cli import add_risk_gate_args
 
@@ -198,37 +204,6 @@ def _terrain_reference_from_checkpoint(checkpoint, *, policy, base_obs_dim, prop
     return reference.eval().requires_grad_(False)
 
 
-def _configure_forward_command(command_cfg, forward_speed: float) -> None:
-    """Disable all sampled special modes for this fixed-forward experiment."""
-    command_cfg.resampling_time_range = (1.0e9, 1.0e9)
-    command_cfg.rel_standing_envs = 0.0
-    command_cfg.rel_heading_envs = 0.0
-    command_cfg.heading_command = False
-    command_cfg.ranges.lin_vel_x = (forward_speed, forward_speed)
-    command_cfg.ranges.lin_vel_y = (0.0, 0.0)
-    command_cfg.ranges.ang_vel_z = (0.0, 0.0)
-    # UniformThresholdVelocityCommand samples these independently of the
-    # standard standing ratio, even when all three ranges are fixed.
-    for name in ("rel_zero_vel_envs", "rel_only_lin_y_envs",
-                 "rel_only_lin_x_envs", "rel_only_ang_z_envs",
-                 "planar_velocity_deadband"):
-        if hasattr(command_cfg, name):
-            setattr(command_cfg, name, 0.0)
-    for name in ("command_acceleration_limits", "only_lin_x_magnitude_range"):
-        if hasattr(command_cfg, name):
-            setattr(command_cfg, name, None)
-
-
-def _pin_forward_observation(wrapped_env, observation, forward_speed: float):
-    """Refresh stale observations only if pinning changes their command."""
-    import torch
-    from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import pin_forward_command
-
-    command = wrapped_env.unwrapped.command_manager.get_command("base_velocity")
-    expected = command.new_tensor([forward_speed, 0.0, 0.0]).expand_as(command[:, :3])
-    changed = not torch.equal(command[:, :3], expected)
-    pin_forward_command(wrapped_env.unwrapped, forward_speed=forward_speed)
-    return wrapped_env.get_observations() if changed else observation
 
 
 def _assert_forward_command(signals, forward_speed: float) -> None:
@@ -423,6 +398,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--rollout-steps", type=_positive_int, default=256)
     parser.add_argument("--output", default="logs/online_adaptation/lora_ppo")
+    parser.add_argument("--trajectory-dtype", choices=("float16", "float32"), default="float16")
     parser.add_argument(
         "--checkpoint-in",
         default=None,
@@ -643,6 +619,7 @@ def main() -> int:
         if args.protocol_sha256 is not None and args.protocol_sha256 != protocol.sha256():
             raise ValueError("protocol SHA-256 does not match the active formal protocol")
         agent_cfg = prepare_rsl_rl_agent_cfg(load_cfg_from_registry(args.task, "rsl_rl_cfg_entry_point"))
+        (output / "resolved_env.json").write_text(json.dumps(env_cfg.to_dict(), indent=2, default=str) + "\n")
         def transform_video(environment):
             if not args.video:
                 return environment
@@ -688,7 +665,7 @@ def main() -> int:
                 source_model, action_transform=clip_lite3_policy_action
             ).to(args.device)
             reference_policy.eval()
-            probe_obs, _ = wrapped_env.reset()
+            probe_obs, _ = seeded_initial_reset(wrapped_env, args.seed)
             probe_obs = _pin_forward_observation(wrapped_env, probe_obs, args.forward_speed)
             if not isinstance(probe_obs, dict) and not hasattr(probe_obs, "get"):
                 raise RuntimeError("RSL-RL online PPO requires grouped policy observations")
@@ -963,11 +940,13 @@ def main() -> int:
             updates_stream = (output / "updates.jsonl").open("w", encoding="utf-8")
             from rl_training.online_adaptation.step_trajectory import StepTrajectory
 
-            trajectory = StepTrajectory(output / "trajectory", metadata={
+            trajectory = StepTrajectory(output / "trajectory", vector_dtype=args.trajectory_dtype, metadata={
                 "algorithm": "lora_ppo", "mode": _evaluation_mode(args),
                 "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
                 "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
                 "step_dt": control_step_dt, "sampling_contract": SAMPLING_CONTRACT,
+                "actuator_delays": actuator_delay_metadata(reward_adapter.robot),
+                "reset_rng_contract": "seed_before_initial_physical_reset_v1",
             })
             run_started = time.perf_counter()
             for step in range(args.max_steps):
@@ -989,6 +968,7 @@ def main() -> int:
                 critic_obs_tensor = _append_odometry_context(critic_base, current_context)
                 control_policy, version = publisher.current()
                 with torch.no_grad():
+                    raw_base_action = source_model(observation)
                     reference_mean = reference_policy.mean_action(base_obs_tensor)
                     if args.evaluation_only:
                         requested_action = control_policy.mean_action(obs_tensor)
@@ -1005,6 +985,7 @@ def main() -> int:
                         old_value = critic(critic_obs_tensor)
                     base_action = reference_mean
                     requested_residual = requested_action - base_action
+                    filter_memory = safety_filter.temporal_snapshot(base_action)
                     safety_decision = safety_filter.project(
                         base_action,
                         requested_residual,
@@ -1016,7 +997,13 @@ def main() -> int:
                     torch.cuda.synchronize(args.device)
                 control_ms = (time.perf_counter() - control_started) * 1000.0
                 trajectory_inputs = trajectory.snapshot(
+                    **filter_memory,
                     observation=obs_tensor, critic_observation=critic_obs_tensor,
+                    raw_base_action=raw_base_action,
+                    root_state=reward_adapter.robot.data.root_state_w,
+                    joint_pos=reward_adapter.robot.data.joint_pos,
+                    joint_vel=reward_adapter.robot.data.joint_vel,
+                    command=wrapped_env.unwrapped.command_manager.get_command("base_velocity"),
                     base_action=base_action, mean_action=control_mean,
                     requested_action=requested_action, executed_action=executed_action,
                 )

@@ -23,9 +23,24 @@
 ## EXEC-20260928-v2.2
 
 - 依据：[v2.2 详细执行方案](lite3_execution_plan_v2_2_2026-09-28.md)。
-- 状态：方案已登记，尚未启动本方案新一轮实验。
+- 状态：G0 已开始执行；详见下方 runner-parity 登记与 [进展报告](lite3-g0-runner-parity-2026-09-28.md)。G1/G2 正式适应实验尚未启动。
 - 当前硬门槛：先完成 runner parity、SAC 逐步轨迹、观察/终止/预算契约；G0 未通过前不得把适应结果写成学习收益。
 - 路线：A LoRA-PPO、B Residual SAC、C 结构化低维修正，独立晋级；不预设主算法。
 - 主 session 预算：40,000 个实际控制 transition；最终冻结评估 10 个共同扰动起点；平地保持 5 个共同起点。所有预热、候选筛选、探针和更新样本均计入。
 - G3 候选：G0 通过且路线具备开发晋级证据后，最多 8 个失败池地形 × 3 次独立 session × 3 臂；具体地形和代码协议哈希锁定后再启动。
 - 立即动作：P0/P1/P2 工程包；禁止直接重启高度扫描 teacher、重训 diffusion base 或启动封存实验。
+
+## G0-20260928-runner-parity
+
+- 假设：旧结果差异来自两个执行入口的配置、reset 随机状态或动作链；先记录最早分歧再修复。
+- base SHA 同 G0-base-pair；terrain=rough_4cm，调试 101/109，simulation seed=7，速度 0.3，冻结且无探索；相同残差上限/rate=0.03。
+- 首轮每入口每地形 128 步，共最多 512 步；float32 轨迹。输出 `artifacts/g0_runner_parity_20260928/pre_fix/`。
+- 修复后先同样短复测（最多 512 步），再五个调试地形各两入口 2000 步（最多 20,000 步）。诊断累计仍须低于 v2.2 的 60,000 步上限。
+- runner：`scripts/reinforcement_learning/online_adaptation/run_runner_parity.py`；manifest 记录代码 commit、未提交差异哈希、全部命令、退出码、实际步数及检查结果。
+- 验收：trace/summary 步数、max_x、reward_sum 一致；updates=0；同一观测离线 base/action max_abs≤1e-6；物理漂移单独记录。旧训练语义在短诊断期间不作为 G0 已统一的证据。
+- 状态：短诊断和修复后 101/109 的 128 步配对已完成，五地形完整冻结复核运行中；未启动学习比较。
+- 短诊断追加：`actuator_audit/`，101 两入口各 16 步（最多 32 步），只补记录实际执行器延迟以检查第一步物理分歧；不改变学习/动作设置。
+- 实际目录：沙箱尝试 `pre_fix/` 为 0 步；CUDA 首轮 `pre_fix_gpu/` 512 步；`safety_fix/` 512 步；`actuator_audit/` 32 步；`reset_fix/` 512 步。短诊断累计 1568 步。
+- 已定位：模型初始化消耗随机数不同，导致最后一次 reset 的 Knee actuator delay 为 LoRA=0、SAC=1；另有零残差安全投影舍入差异。固定初始 reset 种子、统一指令和可行动作投影后，101/109 的同观测动作及 128 步物理轨迹最大差异均为 0。
+- 五地形输出 `five_seed/`，最多 20,000 步。SAC 通过状态以 `episode_summary.json.passed` 为准；后处理将其写回总 manifest，并生成 `runner_parity_report.json`。
+- 当前代码验证：1516 passed, 7 skipped。完整 G0 仍等待共同奖励、任务终止、session 账本/恢复和封存守卫。

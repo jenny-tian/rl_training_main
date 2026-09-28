@@ -57,6 +57,34 @@ def test_rate_and_joint_target_projection():
     assert decision.projected.item()
 
 
+@pytest.mark.parametrize("paused", [False, True])
+def test_zero_adapter_uses_identical_feasible_action_with_or_without_force_zero(paused):
+    from dataclasses import replace
+
+    limits = SafetyLimits(residual_limits=torch.full((12,), 0.2))
+    inputs = replace(state(control_timed_out=paused),
+                     default_joint_pos=torch.tensor([[0.1, 0.5, -1.1] * 4]),
+                     joint_lower=torch.full((1, 12), -3.0),
+                     joint_upper=torch.full((1, 12), 3.0))
+    base = torch.tensor([[0.40760514, -0.49224943, -0.48111793] * 4])
+    ordinary = SafetyFilter(limits).project(base, torch.zeros_like(base), inputs)
+    forced = SafetyFilter(limits).project(base, torch.zeros_like(base), inputs, force_zero_residual=True)
+    assert torch.equal(ordinary.action, base)
+    assert torch.equal(ordinary.action, forced.action)
+    assert not ordinary.residual.any() and not forced.residual.any()
+
+
+def test_force_zero_keeps_real_sub_tolerance_joint_limit_correction():
+    from dataclasses import replace
+
+    base = torch.full((1, 12), 0.4)
+    inputs = replace(state(), joint_upper=torch.full((1, 12), 0.12 - 1e-7))
+    decision = SafetyFilter(SafetyLimits(residual_limits=torch.full((12,), 0.2))).project(
+        base, torch.zeros_like(base), inputs, force_zero_residual=True)
+    assert torch.all(decision.action < base)
+    assert torch.all(inputs.default_joint_pos + inputs.action_scale * decision.action <= inputs.joint_upper - 0.02)
+
+
 def test_risk_gate_preserves_full_residual_at_low_risk():
     filt = SafetyFilter(
         SafetyLimits(

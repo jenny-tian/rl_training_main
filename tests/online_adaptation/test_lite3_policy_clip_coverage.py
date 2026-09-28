@@ -29,7 +29,13 @@ def test_residual_trainer_clips_current_and_next_base_actions():
 
 def test_play_worker_clips_warmup_current_and_next_base_actions():
     source = _source("scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py")
-    assert source.count("clip_lite3_policy_action(base_policy(") == 3
+    assert source.count("clip_lite3_policy_action(base_policy(") == 2
+    # The current action is retained before clipping for float32 parity traces.
+    assert "raw_base_action = base_policy(observation)" in source
+    assert "base_action = clip_lite3_policy_action(raw_base_action)" in source
+    assert source.index("base_action = clip_lite3_policy_action(raw_base_action)") < source.index(
+        "wrapped_env.step(decision.action)"
+    )
 
 
 def test_flat_deployment_qualification_uses_shared_startup_factory():

@@ -56,3 +56,17 @@ def test_schema_drift_and_float16_overflow_fail_explicitly(tmp_path):
     with pytest.raises(ValueError, match="non-finite"):
         writer.append(observation=torch.zeros(1, 45), base_x=float("nan"))
     assert writer.close()["steps"] == 1
+
+
+def test_float32_parity_preserves_small_action_differences_and_boolean_masks(tmp_path):
+    writer = StepTrajectory(tmp_path / "trace", metadata={}, vector_dtype="float32")
+    action = torch.tensor([[1.000003, 100000.]])
+    snapshot = writer.snapshot(requested_action=action, action_valid=torch.tensor([[True]]))
+    action.zero_()
+    writer.append(**snapshot)
+    manifest = writer.close(complete=True)
+    with np.load(writer.directory / manifest["chunks"][0]["file"]) as data:
+        np.testing.assert_array_equal(data["requested_action"][0], np.array([[1.000003, 100000.]], dtype=np.float32))
+        assert data["action_valid"].dtype == np.bool_
+    with pytest.raises(ValueError, match="vector_dtype"):
+        StepTrajectory(tmp_path / "invalid", metadata={}, vector_dtype="float64")

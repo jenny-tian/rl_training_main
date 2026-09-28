@@ -123,6 +123,16 @@ class SafetyFilter:
         self._stable_steps = None
         self._contact_steps = None
 
+    def temporal_snapshot(self, base_action: torch.Tensor) -> dict[str, torch.Tensor]:
+        """Copy pre-decision filter memory for trace audits."""
+        self._ensure_state(base_action)
+        return {
+            "filter_previous_residual_action": self._previous_residual.detach().clone(),
+            "filter_paused": self._paused.detach().clone(),
+            "filter_stable_steps": self._stable_steps.detach().clone(),
+            "filter_contact_steps": self._contact_steps.detach().clone(),
+        }
+
     def _ensure_state(self, base_action: torch.Tensor) -> None:
         num_envs = base_action.shape[0]
         if self._previous_residual is None or self._previous_residual.shape != base_action.shape:
@@ -206,15 +216,15 @@ class SafetyFilter:
         safe_scale = torch.where(state.action_scale.abs() > 1e-8, state.action_scale, torch.ones_like(state.action_scale))
         projected_action = (projected_target - state.default_joint_pos) / safe_scale
         projected_action = torch.where(state.action_scale.abs() > 1e-8, projected_action, normalized_action)
+        # Preserve the requested normalized action exactly when the physical
+        # target was already feasible. An unnecessary inverse transform adds
+        # ~1e-7 rounding noise that can change contact dynamics, and used to
+        # differ between zero-gain SAC and zero-increment LoRA.
+        joint_projected = projected_target != physical_target
+        projected_action = torch.where(joint_projected, projected_action, normalized_action)
         paused_projected_action = projected_action
-        accepted_residual = projected_action - base_action
+        accepted_residual = torch.where(joint_projected, projected_action - base_action, residual)
         accepted_residual = torch.where(paused, torch.zeros_like(accepted_residual), accepted_residual)
-        if force_zero_residual:
-            accepted_residual = torch.where(
-                accepted_residual.abs() <= 1.0e-6,
-                torch.zeros_like(accepted_residual),
-                accepted_residual,
-            )
         projected_action = base_action + accepted_residual
         projected_action = torch.where(paused, paused_projected_action, projected_action)
 

@@ -25,8 +25,8 @@
 | 项目 | 当前状态 | 对安排的影响 |
 |---|---|---|
 | PPO 逐步记录 | 已接入 `train_lora_ppo.py`，有组件测试 | 复用 `StepTrajectory`，不另造格式 |
-| SAC 逐步记录 | 尚未接入地形主 worker | G0 优先；不能只修改独立 `train_residual_sac.py` |
-| 基线结果 | 9/28 LoRA runner：101/103/113 成功，107/109 失败；与历史 SAC runner 的 101/109 相反 | 总数同为 3/5 不能代替逐项配对；101 不再默认属于失败池 |
+| SAC 逐步记录 | 9/28 已接入地形主 worker，支持 float32；reward 分项、latent z 和完整恢复仍待补 | 见 [G0 进展](lite3-g0-runner-parity-2026-09-28.md)；独立源数据预训练入口尚未接入 |
+| 基线结果 | 原 101/109 差异已定位到 reset 执行器延迟及零残差投影；修复后两地形 128 步配对完全一致，完整五地形复核运行中 | 旧结果不直接复用为新协议失败池；等待完整复核及奖励/终止统一 |
 | SAC LayerNorm | `HistoryEncoder` 已包含输入 LayerNorm；MLP Q 主干采用普通 ELU 层 | 后续消融对象是 Q 主干，不能声称“全模型从无 LN 到有 LN” |
 | SAC n-step | `NStepAccumulator` 已存在，当前默认 `n_step=1` | 核对实际 worker 接入、跨回合边界和 soft target 后再用 3-step |
 | 低维接口 | 已有 `LatentResidualActor`、decoder/inversion 工具 | 复用零点、维度和 checkpoint 契约；不默认现有 teacher decoder 有效 |
