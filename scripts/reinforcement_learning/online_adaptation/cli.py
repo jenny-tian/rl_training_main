@@ -313,6 +313,7 @@ def build_flat_online_curriculum_parser() -> argparse.ArgumentParser:
 
 def build_play_parser() -> argparse.ArgumentParser:
     from rl_training.online_adaptation.task_objective import add_task_objective_args
+    from rl_training.online_adaptation.managed_trial import add_session_args
     protocol = default_flat_online_protocol()
     parser = _add_app_launcher_args(
         _PlayArgumentParser(
@@ -321,6 +322,7 @@ def build_play_parser() -> argparse.ArgumentParser:
     )
     add_risk_gate_args(parser)
     add_task_objective_args(parser)
+    add_session_args(parser)
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--residual-checkpoint")
     parser.add_argument("--mode", choices=("base", "residual_frozen", "online"), default="online")

@@ -350,6 +350,20 @@ def test_common_task_boundary_flushes_nstep_tail_and_preserves_terminal_observat
     assert len(agent.replay) == 2
 
 
+def test_frozen_inference_advances_history_without_replay_or_optimizer_writes():
+    agent = make_agent(replay_capacity=8)
+    before = replay_state(agent.replay)
+    version = agent.updater.version
+    for step in range(3):
+        agent.begin_step(torch.full((1, 2), float(step + 1)), torch.zeros(1, 1), safety_state(), deterministic=True)
+        agent.finish_inference_step(ended=torch.tensor([[step == 2]]))
+        assert agent._pending is None
+    assert_replay_state_equal(agent.replay, before)
+    assert len(agent.adaptation_replay) == 0
+    assert agent.updater.version == version
+    assert not agent.history.snapshot().any()
+
+
 def finish_transition(agent, *, adaptation_enabled):
     frame = torch.zeros(1, 2)
     action = torch.zeros(1, 1)

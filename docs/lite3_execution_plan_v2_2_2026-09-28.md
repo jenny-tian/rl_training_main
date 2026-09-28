@@ -112,6 +112,8 @@ reward 先保持同一任务定义；不同时把奖励改成剩余距离。奖�
 
 9/28执行进展：G0.3的共同任务协议已实现为显式 `--task-objective finite-horizon-v1`，任务JSON、完整终点配对、真实SAC replay验证已完成。该组件协议不是最终 `protocol_v2_2.json`；下面的session账本、恢复与封存工作仍待完成。
 
+后续进展：[G0.4账本与恢复验证](lite3-g0-session-ledger-2026-09-28.md)已完成逐步计费、跨进程checkpoint链、学习RNG/critic额度续接、冻结评估零写入及sealed入口守卫。初态扰动、统一探针/平地调度、连续短跌倒停止规则和最终协议锁定仍待完成。
+
 新增或整合预算账本、session manifest、封存守卫；源码放在 `online_adaptation` 组件内，runner 保持薄接口。对动作语义、终止边界、预算不能超额、恢复不重复消费、sealed 不可用于调参写针对性测试；不为报告文字写测试。相关组件测试通过后做两入口 smoke，并记录运行时依赖。
 
 最终 `protocol_v2_2.json` 包含上述具体数值、哈希和路径；任何待定字段都会阻止正式实验启动。旧配置 SHA 不复用。快照恢复不是 G0 主线前提。

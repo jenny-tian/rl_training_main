@@ -1934,3 +1934,16 @@ def test_timeout_fallback_does_not_latch_pause_for_next_control_step():
     update_pause_event(paused_event, paused=True, control_timed_out=True)
 
     assert not paused_event.is_set()
+
+
+def test_new_physical_trial_restores_critic_credit_but_discards_episode_actor_credit():
+    budget = TransitionUpdateBudget(critic_updates_per_transition=1., actor_updates_per_transition=.5)
+    budget.restore_for_new_trial({"critic": 12.5, "actor": 3.})
+    assert budget.snapshot() == {"critic": 12.5, "actor": 0.}
+    assert budget.take_critic()
+    assert budget.snapshot()["critic"] == 11.5
+    assert not budget.take_actor()
+    for invalid in (None, {"critic": 300., "actor": 0.}, {"critic": float("nan"), "actor": 0.}):
+        with pytest.raises(ValueError, match="update budget"):
+            budget.restore_for_new_trial(invalid)
+    assert budget.snapshot()["critic"] == 11.5

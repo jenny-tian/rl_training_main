@@ -383,6 +383,17 @@ class OnlineAdaptationAgent:
             "mean_action": pending.base_action + pending.mean_residual_action,
         }.items()}
 
+    def finish_inference_step(self, *, ended: torch.Tensor) -> None:
+        """Advance control history without touching replay or any optimizer."""
+        if self._pending is None:
+            raise RuntimeError("begin_step must precede inference completion")
+        reset_ids = torch.nonzero(ended.bool().reshape(-1), as_tuple=False).squeeze(-1)
+        if reset_ids.numel():
+            self.history.reset(reset_ids)
+        self._pending = None
+        self._last_committed_global = 0
+        self._last_committed_adaptation = 0
+
     def finish_step(
         self,
         next_frame: torch.Tensor,

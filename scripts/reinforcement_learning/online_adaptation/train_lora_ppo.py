@@ -30,6 +30,8 @@ from rl_training.online_adaptation.task_objective import (
     add_task_objective_args, resolve_task_objective, validate_objective_resume,
     qualification_failure,
 )
+from rl_training.online_adaptation.managed_trial import add_session_args, attach_session
+from rl_training.online_adaptation.checkpointing import capture_rng_state
 from scripts.reinforcement_learning.online_adaptation.cli import add_risk_gate_args
 
 
@@ -503,12 +505,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="end at the first failure and retain its PPO update for supervised simulation training",
     )
     add_task_objective_args(parser)
+    add_session_args(parser)
     AppLauncher.add_app_launcher_args(parser)
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
+    managed = attach_session(args, "lora")
     if not args.base_checkpoint:
         raise SystemExit("--base-checkpoint is required")
     _prepare_evaluation_args(args)
@@ -534,7 +538,7 @@ def main() -> int:
     base_checkpoint_sha256 = (
         _sha256_file(args.base_checkpoint) if args.teacher_training else None
     )
-    if args.terrain_split == "sealed" and not args.evaluation_only:
+    if args.terrain_split == "sealed" and not args.evaluation_only and managed is None:
         raise SystemExit("sealed terrain is evaluation-only; use --evaluation-only")
     if (args.terrain_anchor_coef or args.max_terrain_anchor_mse is not None) and not args.terrain_reference_checkpoint:
         raise SystemExit("terrain anchor constraints require --terrain-reference-checkpoint")
@@ -677,7 +681,10 @@ def main() -> int:
                 source_model, action_transform=clip_lite3_policy_action
             ).to(args.device)
             reference_policy.eval()
-            probe_obs, _ = seeded_initial_reset(wrapped_env, args.seed)
+            probe_obs, _ = seeded_initial_reset(
+                wrapped_env, args.seed if managed is None else managed.reset_seed,
+                preserve_learning_rng=managed is not None,
+            )
             probe_obs = _pin_forward_observation(wrapped_env, probe_obs, args.forward_speed)
             if not isinstance(probe_obs, dict) and not hasattr(probe_obs, "get"):
                 raise RuntimeError("RSL-RL online PPO requires grouped policy observations")
@@ -823,6 +830,10 @@ def main() -> int:
                     height_scan_adapter=args.height_scan_adapter,
                 )
                 session.load_state_dict(checkpoint_session)
+                if managed is not None and not managed.frozen:
+                    if loaded_checkpoint.get("rng_state") is None:
+                        raise ValueError("managed learning resume requires its saved RNG state")
+                    managed.saved_rng = loaded_checkpoint["rng_state"]
             effective_runtime_config = (
                 read_ppo_runtime_config(session)
                 if args.evaluation_only else apply_ppo_runtime_config(
@@ -960,13 +971,16 @@ def main() -> int:
             trajectory = StepTrajectory(output / "trajectory", vector_dtype=args.trajectory_dtype, metadata={
                 "algorithm": "lora_ppo", "mode": _evaluation_mode(args),
                 "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
-                "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
+                "terrain_seed": args.terrain_seed, "simulation_seed": args.seed if managed is None else managed.reset_seed,
+                "learner_seed": args.seed,
                 "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
                 "step_dt": control_step_dt, "sampling_contract": SAMPLING_CONTRACT,
                 "actuator_delays": actuator_delay_metadata(reward_adapter.robot),
                 "reset_rng_contract": "seed_before_initial_physical_reset_v1",
             })
             run_started = time.perf_counter()
+            if managed is not None:
+                managed.restore_rng()
             for step in range(args.max_steps):
                 control_started = time.perf_counter()
                 previous_residual = current_residual.detach().clone()
@@ -1025,7 +1039,11 @@ def main() -> int:
                     base_action=base_action, mean_action=control_mean,
                     requested_action=requested_action, executed_action=executed_action,
                 )
+                if managed is not None:
+                    managed.reserve(step + 1)
                 result = wrapped_env.step(executed_action)
+                if managed is not None:
+                    managed.commit(step + 1)
                 next_observation, _, done, extras = result
                 terminated, truncated, _ = split_rsl_rl_endings(done, extras)
                 next_obs_tensor = next_observation["policy"]
@@ -1438,6 +1456,7 @@ def main() -> int:
                     "lora_parameter_count": lora_parameter_count(adapted_model),
                     "trainable_policy_parameter_count": sum(p.numel() for p in policy.parameters() if p.requires_grad),
                     "session": session.state_dict(),
+                    "rng_state": capture_rng_state() if managed is not None else None,
                     "rows": rows,
                     "updates": update_records,
                     "rollbacks": rollback_records,
@@ -1593,10 +1612,14 @@ def main() -> int:
                 "path": "trajectory/manifest.json", "steps": trajectory_manifest["steps"],
                 "bytes": trajectory_manifest["bytes"],
             }
+            if managed is not None:
+                summary["session_budget"] = managed.snapshot()
             (output / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=False) + "\n",
                 encoding="utf-8",
             )
+            if managed is not None:
+                managed.finish(summary, None if managed.frozen else output / "latest.pt")
         finally:
             wrapped_env.close()
     except BaseException:
@@ -1607,6 +1630,8 @@ def main() -> int:
     finally:
         if trajectory is not None:
             trajectory.close()
+        if managed is not None:
+            managed.close()
         simulation_app.close()
     return 0
 

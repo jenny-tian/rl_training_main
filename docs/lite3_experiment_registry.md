@@ -56,3 +56,16 @@
 - 状态：全部诊断完成。cutoff、64步deadline及2000步deadline/成功/跌倒的reward与learning endings逐步一致，reward最大差异0；本组实际10,484步。详见 [G0.3报告](lite3-g0-task-objective-2026-09-28.md)。完整G0仍需预算/恢复/封存工作。
 - 补充实际checkpoint诊断：`replay_smoke/`，SAC新建在线session，101，simulation seed7，64步deadline，n=3，replay capacity/min_replay=256，禁止在样本不足时更新；最多64步。核对保存的replay有64条，末尾三个n-step前缀保留terminal observation、bootstrap=0且不跨reset。该运行只验证保存与目标口径，不评估学习收益。
 - 最终验证：1530 passed, 7 skipped；replay实际64条、actor/critic更新0次、最后三个前缀bootstrap均0，保存末帧校验通过。本轮诊断均结束。
+
+## G0-20260928-session-ledger
+
+- 假设：统一日志账本与checkpoint链能在独立worker进程之间保留预算/学习器状态；独立物理reset不重置学习RNG，最终评估不写replay或更新策略。
+- base SHA同前；新公共任务协议deadline=128；terrain=rough_4cm seed101，learner seed7；每回合reset seed由固定的learner/phase/trial编号派生。
+- 两个独立session，LoRA与SAC各适应预算256步（两个128步worker），最终冻结评估16步；每次最多一个worker/卡，最多两卡。单session三次独立supervisor调用验证续接；重启已耗尽的评估阶段应消费0新步。
+- SAC smoke：replay capacity=256，min_replay=128，n=3，critic UTD=1，actor更新预算=0，novelty calibration=100000；用于验证Q/replay/optimizer续接，不作算法收益判断。LoRA使用既有默认优化器。
+- 输出：`artifacts/g0_session_ledger_20260928/{lora,sac}/`，含不可变manifest、逐步journal、每trial独立trajectory/checkpoint/summary。
+- 验收：每session最终charged=confirmed=272、uncertain=0；第二worker输入为第一worker的已提交checkpoint；replay/优化器延续；evaluation更新与replay写入均0；重复resume不重跑已完成ID；单测覆盖崩溃pending保守计费、torn write、上限、锁定sealed协议及评估后禁止回流。
+- 状态：已登记，准备运行。新封存seed和最终论文协议不在本smoke中生成。
+- 第一轮结果：两路线各256适应+16冻结评估，重复resume新增0步；LoRA Adam步数4→8，SAC replay128→256。SAC默认alpha=1导致全部Q更新被现有mean_td_error_limit拒绝，不能据此声称其Adam恢复已验证。
+- 追加 `sac_lowalpha/` 独立session，唯一超参变化initial_alpha=0.02，仍不放宽TD保护阈值；额外上限272步，用于产生非空Adam状态并检查恢复。恢复审查同时补充保存/恢复未消费的critic更新额度；actor额度属于上一物理适应回合，在新回合清零。保留原失败配置，不把这次工程诊断当作G1超参选择结论。
+- 最终状态：三个session各272步，全部结束；本轮816步、uncertain=0。低温度SAC Adam步数2→131，replay128→256，critic剩余额度126→125；冻结评估更新/写replay均0，重复resume新增0步。验证 `validation.json`；完整测试1550 passed, 7 skipped。详见 [G0.4报告](lite3-g0-session-ledger-2026-09-28.md)。

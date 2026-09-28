@@ -40,6 +40,7 @@ from rl_training.online_adaptation.types import UpdateStats
 from rl_training.online_adaptation.swing_lift import SwingLiftTracker, rough_swing_reward_active
 from rl_training.online_adaptation.training_contract import training_contract, validate_training_contract
 from rl_training.online_adaptation.task_objective import resolve_task_objective, qualification_failure
+from rl_training.online_adaptation.managed_trial import attach_session
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser, risk_gate_kwargs
 
@@ -225,6 +226,18 @@ class TransitionUpdateBudget:
     def snapshot(self) -> dict[str, float]:
         with self._lock:
             return {"critic": self._critic, "actor": self._actor}
+
+    def restore_for_new_trial(self, snapshot) -> None:
+        if not isinstance(snapshot, dict) or set(snapshot) != {"critic", "actor"}:
+            raise ValueError("invalid saved update budget")
+        for key, limit in (("critic", self.max_pending_critic_updates), ("actor", self.max_pending_actor_updates)):
+            value = snapshot[key]
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not 0 <= value <= limit:
+                raise ValueError("invalid saved update budget credit")
+        with self._lock:
+            self._critic = float(snapshot["critic"])
+            # Actor credits belong to the previous physical adaptation episode.
+            self._actor = 0.0
 
 
 @dataclass(frozen=True)
@@ -1113,6 +1126,7 @@ class AdaptationRuntimeOrchestrator:
 
 def main() -> int:
     args = build_play_parser().parse_args()
+    managed = attach_session(args, "sac")
     task_objective = resolve_task_objective(args)
     objective_metadata = None if task_objective is None else task_objective.contract()
     objective_sha256 = None if task_objective is None else task_objective.sha256()
@@ -1433,6 +1447,8 @@ def main() -> int:
                     map_location=device,
                     restore_rng=learning_enabled,
                 )
+                if managed is not None and learning_enabled:
+                    managed.remember_rng()
                 validate_terrain_checkpoint_metadata(
                     restored_experiment.get("terrain_metadata"),
                     adapter.terrain_metadata(),
@@ -1511,6 +1527,8 @@ def main() -> int:
                 critic_updates_per_transition=args.critic_updates_per_transition,
                 actor_updates_per_transition=args.actor_updates_per_transition,
             )
+            if managed is not None and restored_experiment is not None and learning_enabled:
+                update_budget.restore_for_new_trial(restored_experiment.get("update_budget"))
             adaptation_episode = 0
             active_episode = 0
             current_step = 0
@@ -1707,7 +1725,10 @@ def main() -> int:
                 json.dumps(config, indent=2, default=str) + "\n", encoding="utf-8"
             )
 
-            observation, _ = seeded_initial_reset(wrapped_env, args.seed)
+            observation, _ = seeded_initial_reset(
+                wrapped_env, args.seed if managed is None else managed.reset_seed,
+                preserve_learning_rng=managed is not None,
+            )
             observation = pin_forward_observation(wrapped_env, observation, args.forward_speed)
             adapter.reset_contact_diagnostics()
             generation = wrapped_env.consume_startup_generation()
@@ -1793,7 +1814,8 @@ def main() -> int:
             trajectory = StepTrajectory(run_dir / "trajectory", vector_dtype=args.trajectory_dtype, metadata={
                 "algorithm": "residual_sac", "mode": args.mode,
                 "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
-                "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
+                "terrain_seed": args.terrain_seed, "simulation_seed": args.seed if managed is None else managed.reset_seed,
+                "learner_seed": args.seed,
                 "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
                 "step_dt": control_step_dt,
                 "actuator_delays": actuator_delay_metadata(adapter.robot),
@@ -1808,6 +1830,8 @@ def main() -> int:
             trace_started = time.perf_counter()
             total_reward = 0.0
             task_boundary = None
+            if managed is not None:
+                managed.restore_rng()
 
             for step in range(1, args.max_steps + 1):
                 executed_steps = step
@@ -1905,7 +1929,11 @@ def main() -> int:
                     # Capture the last pre-action state as well as the state seen
                     # by the environment's pre-reset callback on termination.
                     adapter.observe_nonfoot_contact()
+                    if managed is not None:
+                        managed.reserve(step)
                     step_result = wrapped_env.step(decision.action)
+                    if managed is not None:
+                        managed.commit(step)
                     next_observation = step_result[0]
                     terminated, truncated, bootstrap_mask = split_worker_endings(
                         step_result, target_semantics=args.target_semantics
@@ -2232,19 +2260,22 @@ def main() -> int:
                     risk_score=decision.risk_score, risk_scale=decision.risk_scale,
                 )
                 total_reward += float(reward.mean())
-                online_agent.finish_step(
-                    next_frame=next_frame,
-                    next_base_action=next_base_action,
-                    reward=reward,
-                    terminated=learning_terminated,
-                    truncated=learning_truncated,
-                    bootstrap_mask=bootstrap_mask,
-                    discount=torch.full_like(reward, online_agent.updater.config.gamma),
-                    safety_mask=(~actor_invalid).to(dtype=torch.float32),
-                    curriculum_stage_id=curriculum_stage_id,
-                    episode_id=torch.full_like(curriculum_stage_id, active_episode),
-                    adaptation_enabled=adaptation_enabled,
-                )
+                if managed is not None and managed.frozen:
+                    online_agent.finish_inference_step(ended=learning_terminated | learning_truncated)
+                else:
+                    online_agent.finish_step(
+                        next_frame=next_frame,
+                        next_base_action=next_base_action,
+                        reward=reward,
+                        terminated=learning_terminated,
+                        truncated=learning_truncated,
+                        bootstrap_mask=bootstrap_mask,
+                        discount=torch.full_like(reward, online_agent.updater.config.gamma),
+                        safety_mask=(~actor_invalid).to(dtype=torch.float32),
+                        curriculum_stage_id=curriculum_stage_id,
+                        episode_id=torch.full_like(curriculum_stage_id, active_episode),
+                        adaptation_enabled=adaptation_enabled,
+                    )
                 committed_global, committed_adaptation = (
                     online_agent.last_committed_transition_counts
                 )
@@ -2528,6 +2559,7 @@ def main() -> int:
                             "agent": online_agent.state_dict(),
                             "novelty_gate": novelty_gate.state_dict(),
                             "stable_manager": stable_manager.state_dict(),
+                            "update_budget": update_budget.snapshot() if managed is not None else None,
                         },
                     )
                     checkpoint_saved = True
@@ -2556,6 +2588,7 @@ def main() -> int:
                 "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "task_stop_reason": None if task_boundary is None else task_boundary.reason,
                 "total_reward": total_reward,
+                "replay_transitions_written": counters.critic_transitions_committed,
                 "steps": executed_steps,
                 "reset_count": done_count,
                 "fell": fell,
@@ -2657,6 +2690,9 @@ def main() -> int:
                 "contacts": metrics.heldout_summary().get("heldout_nonfoot_contacts", 0),
                 "completion_stop": completion_stop,
             }
+            if managed is not None:
+                summary["session_budget"] = managed.snapshot()
+                episode_summary["session_budget"] = summary["session_budget"]
             write_episode_summary(run_dir / "episode_summary.json", episode_summary)
             (run_dir / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=True) + "\n", encoding="utf-8"
@@ -2672,6 +2708,8 @@ def main() -> int:
                     ),
                 )
             writer.flush()
+            if managed is not None:
+                managed.finish(episode_summary, args.experiment_checkpoint_out if learning_enabled else None)
             return 0 if not fell else 1
         finally:
             stop_event.set()
@@ -2696,6 +2734,7 @@ def main() -> int:
                         "agent": online_agent.state_dict(),
                         "novelty_gate": novelty_gate.state_dict(),
                         "stable_manager": stable_manager.state_dict(),
+                        "update_budget": update_budget.snapshot() if managed is not None else None,
                     },
                 )
             actor_updates_stream.close()
@@ -2710,6 +2749,8 @@ def main() -> int:
     finally:
         if trajectory is not None:
             trajectory.close()
+        if managed is not None:
+            managed.close()
         simulation_app.close()
 
 

@@ -22,6 +22,23 @@ def test_seeded_reset_is_independent_of_learner_rng_consumption():
     assert not torch.equal(first, third)
 
 
+def test_managed_reset_preserves_the_learning_random_stream():
+    class Environment:
+        def seed(self, seed):
+            torch.manual_seed(seed)
+
+        def reset(self):
+            return torch.randint(0, 2, (32,)), {}
+
+    torch.manual_seed(91)
+    state = torch.get_rng_state().clone()
+    first, _ = seeded_initial_reset(Environment(), 7, preserve_learning_rng=True)
+    assert torch.equal(torch.get_rng_state(), state)
+    second, _ = seeded_initial_reset(Environment(), 7, preserve_learning_rng=True)
+    assert torch.equal(first, second)
+    assert torch.equal(torch.get_rng_state(), state)
+
+
 def test_pin_refreshes_stale_command_observation_only_when_needed():
     command = torch.zeros(1, 3)
     term = SimpleNamespace(vel_command_b=command, target_vel_command_b=torch.zeros_like(command),

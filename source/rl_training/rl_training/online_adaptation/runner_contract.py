@@ -50,15 +50,24 @@ def pin_forward_observation(wrapped_env, observation, forward_speed: float):
     return wrapped_env.get_observations() if changed else observation
 
 
-def seeded_initial_reset(wrapped_env, seed: int):
+def seeded_initial_reset(wrapped_env, seed: int, *, preserve_learning_rng=False):
     """Isolate physical reset sampling from prior learner construction draws.
 
     RSL's wrapper reset does not accept seed=. Its public seed method forwards
     to Isaac's Python/NumPy/Torch seeding before actuator delays are sampled.
     Call only at an independent physical trial's initial reset, not each step.
     """
-    wrapped_env.seed(seed)
-    return wrapped_env.reset()
+    if not preserve_learning_rng:
+        wrapped_env.seed(seed)
+        return wrapped_env.reset()
+    from .checkpointing import capture_rng_state, restore_rng_state
+
+    saved = capture_rng_state()
+    try:
+        wrapped_env.seed(seed)
+        return wrapped_env.reset()
+    finally:
+        restore_rng_state(saved)
 
 
 def actuator_delay_metadata(robot):
