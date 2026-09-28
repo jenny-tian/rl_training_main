@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import math
+import time
 import traceback
 from pathlib import Path
 
@@ -557,6 +558,7 @@ def main() -> int:
     if args.video:
         args.enable_cameras = True
     simulation_app = AppLauncher(args).app
+    trajectory = None
     try:
         import gymnasium as gym
         import torch
@@ -959,7 +961,17 @@ def main() -> int:
             reset_count = 0
             stop_reason = "step_budget"
             updates_stream = (output / "updates.jsonl").open("w", encoding="utf-8")
+            from rl_training.online_adaptation.step_trajectory import StepTrajectory
+
+            trajectory = StepTrajectory(output / "trajectory", metadata={
+                "algorithm": "lora_ppo", "mode": _evaluation_mode(args),
+                "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
+                "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
+                "step_dt": control_step_dt, "sampling_contract": SAMPLING_CONTRACT,
+            })
+            run_started = time.perf_counter()
             for step in range(args.max_steps):
+                control_started = time.perf_counter()
                 previous_residual = current_residual.detach().clone()
                 terminal_capture.clear()
                 observation = _pin_forward_observation(wrapped_env, observation, args.forward_speed)
@@ -1000,6 +1012,14 @@ def main() -> int:
                     )
                     executed_action = safety_decision.action
                     current_residual = safety_decision.residual.detach().clone()
+                if str(args.device).startswith("cuda"):
+                    torch.cuda.synchronize(args.device)
+                control_ms = (time.perf_counter() - control_started) * 1000.0
+                trajectory_inputs = trajectory.snapshot(
+                    observation=obs_tensor, critic_observation=critic_obs_tensor,
+                    base_action=base_action, mean_action=control_mean,
+                    requested_action=requested_action, executed_action=executed_action,
+                )
                 result = wrapped_env.step(executed_action)
                 next_observation, _, done, extras = result
                 terminated, truncated, _ = split_rsl_rl_endings(done, extras)
@@ -1210,6 +1230,20 @@ def main() -> int:
                     "learning_terminated": bool(learning_terminated.any()),
                     "learning_truncated": bool(learning_truncated.any()),
                 })
+                trajectory.append(
+                    **trajectory_inputs, step=step + 1, policy_version=int(version),
+                    reward=float(reward_tensor.mean()), base_x=float(current_x.mean()),
+                    base_y=float(step_state["base_y"].mean()),
+                    elapsed_s=(step + 1) * control_step_dt,
+                    wall_elapsed_s=time.perf_counter() - run_started,
+                    control_compute_ms=control_ms,
+                    projected=bool(safety_decision.projected.any()),
+                    paused=bool(safety_decision.paused.any()),
+                    terminated=bool(terminated.any()), truncated=bool(truncated.any()),
+                    learning_terminated=bool(learning_terminated.any()),
+                    learning_truncated=bool(learning_truncated.any()),
+                    next_observation=_append_odometry_context(value_observation, next_context),
+                )
                 observation = next_observation
                 if environment_done:
                     if odometry is not None:
@@ -1518,6 +1552,11 @@ def main() -> int:
                     fell=fell, safety_violation=safety_violation, reset_count=reset_count,
                 )
                 summary["terrain_geometry"] = terrain_geometry
+            trajectory_manifest = trajectory.close(complete=True)
+            summary["trajectory"] = {
+                "path": "trajectory/manifest.json", "steps": trajectory_manifest["steps"],
+                "bytes": trajectory_manifest["bytes"],
+            }
             (output / "summary.json").write_text(
                 json.dumps(summary, indent=2, allow_nan=False) + "\n",
                 encoding="utf-8",
@@ -1530,6 +1569,8 @@ def main() -> int:
         traceback.print_exc()
         raise
     finally:
+        if trajectory is not None:
+            trajectory.close()
         simulation_app.close()
     return 0
 
