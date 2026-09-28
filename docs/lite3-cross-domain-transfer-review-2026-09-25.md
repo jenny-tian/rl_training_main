@@ -1,5 +1,7 @@
 # Lite3 在线适应：跨领域可迁移方法调研
 
+> 2026-09-28 更新：请优先结合[重新联网核验的文献与算法评估](lite3-literature-and-algorithm-review-2026-09-28.md)及[计划审核](lite3-plan-audit-2026-09-28.md)阅读。本文保留历史调研；旧代码发布状态、价值学习推断和新颖性判断不应未经复核直接沿用。
+
 日期：2026-09-25。本文为计划 v2.1（`lite3_online_adaptation_plan_v2_2026-09-24.md`）中 D3、D8 和 G1 方法轨道提供依据。涉及的领域有四足、双足/人形、机械臂和 VLA，入选标准是"功能相似，可迁移"。本文与 `lite3-generative-policy-adaptation-review-2026-09-15.md` 互补：那份覆盖 USR、FlowDAgger、DSRL 等生成策略方法；本文补上新近工作，并按我们的实际瓶颈重新归类。
 
 ## 0. 核验说明
