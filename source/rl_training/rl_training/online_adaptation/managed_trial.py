@@ -20,8 +20,18 @@ def worker_configuration(args):
     package = Path(__file__).resolve().parent
     root = package.parents[3]
     paths = sorted(package.glob("*.py")) + sorted((root / "scripts/reinforcement_learning/online_adaptation").glob("*.py"))
-    return {"arguments": {key: value for key, value in vars(args).items() if key not in VARIABLE_ARGUMENTS},
-            "source_sha256": digest({str(p.relative_to(root)): sha256_file(p) for p in paths})}
+    result = {"arguments": {key: value for key, value in vars(args).items() if key not in VARIABLE_ARGUMENTS},
+              "source_sha256": digest({str(p.relative_to(root)): sha256_file(p) for p in paths})}
+    if getattr(args, "initial_state", "fixed") == "perturbed-v1":
+        import json
+        from .spawn_geometry import validate_spawn_certificate
+
+        if args.task != "RockyRoad-Deeprobotics-Lite3-v0":
+            raise ValueError("managed perturbed reset needs a certificate for this task")
+        certificate_path = root / "docs/lite3_spawn_geometry_certificate_v1.json"
+        certificate = json.loads(certificate_path.read_text())
+        result["spawn_certificate_sha256"] = validate_spawn_certificate(root, certificate)
+    return result
 
 
 def add_session_args(parser):

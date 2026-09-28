@@ -95,3 +95,14 @@ def test_terrain_phase_cannot_be_relabelled_as_flat_or_unqualified(tmp_path, fla
     args.flat_retention_probe, args.require_track_completion = flat, completion
     with pytest.raises(ValueError, match="terrain mode"):
         attach_session(args, "sac")
+
+
+def test_managed_perturbed_configuration_binds_geometry_certificate(tmp_path):
+    args = setup_trial(tmp_path)
+    args.initial_state = "perturbed-v1"
+    args.task = "RockyRoad-Deeprobotics-Lite3-v0"
+    configuration = worker_configuration(args)
+    assert len(configuration["spawn_certificate_sha256"]) == 64
+    args.task = "Grass-Deeprobotics-Lite3-v0"
+    with pytest.raises(ValueError, match="certificate for this task"):
+        worker_configuration(args)

@@ -67,7 +67,9 @@
     "other_dimensions": "shared deterministic root/joint reset",
     "rng": "phase_local_v2: learner_seed + phase + phase_local_attempt_index",
     "failed_start": "keep attempt and charged/uncertain cost; no replacement by outcome",
-    "validation_scope": "development seed101, two paired base starts plus scheduled short trials; exhaustive spawn geometry audit pending"
+    "validation_scope": "22 actual USD collision shapes: continuous XY +/-0.02m and all world-Z yaw enclosure on fixed planar spawn; nominal plus 8 corner resets verified; fixed joint/root height only",
+    "geometry_certificate": "docs/lite3_spawn_geometry_certificate_v1.json",
+    "geometry_certificate_sha256": "59a0322bd0fc1d9dab6e9426615cbab7f663079c477541e7a0c045d24d701123"
   },
   "limits": {
     "adaptation": 40000,
@@ -135,7 +137,6 @@
     "base_terrain_and_plane_parity_max_abs": 0
   },
   "not_yet_locked": [
-    "full spawn geometry range certification before failure-pool screening",
     "G1 target-domain 4000-step warmup and learning signal repairs",
     "score-based promotion/rollback and relative flat-retention acceptance rule",
     "final algorithm/configuration hashes and sealed terrain membership at G5"

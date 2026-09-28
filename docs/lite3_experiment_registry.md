@@ -80,3 +80,16 @@
 - 本组总上限2176个实际控制transition。所有启动失败/无效初态与消耗保留，不按任务成败丢弃。初态范围的全几何域验收仍须单列，不以两起点smoke替代。
 
 - 完成：实际2176步，四session全部结束；uncertain=0。base两入口地形/平面各320步，物理/观测/动作/reward/endings max_abs=0。平面稳态XY MAE两者均0.02276685099641327 m/s。学习session各448步，探针计入B、冻结零更新/零replay写入、重复retention resume新增0步。详见 [G0.5报告](lite3-g0-initial-state-schedule-2026-09-28.md)。
+
+
+## G0-20260929-spawn-geometry
+
+- 预登记出生几何审核：实际 RockyRoad Lite3 USD 碰撞体，nominal reset + x/y ±0.02 m、yaw ±2° 的8角点。读取 PhysX body pose，不用旧USD世界姿态；控制transition预算0，不调用env.step。
+- 核对各碰撞体对地间隙，用水平包围圆证明固定关节/高度下所有yaw及整个XY扰动范围均在平坦出生平台内。未知形状/缺失碰撞体直接报审核失败，所有案例保留，不按跑步成败筛选。
+- 范围：development RockyRoad 默认配置、GPU0单worker；不生成封存种子。输出 `artifacts/g0_spawn_geometry_20260929/physical/`；USD只读组成检查另记0步。
+
+- 首次物理审核只写入中心案例后进程结束，报告保持running、不认定通过，控制步0。追加 `physical_retry/`，同一9案例/0步方案，先补充异常持久化定位退出原因。
+
+- retry定位：角点yaw的numpy.float64让Isaac reset产生Double姿态，与Float缓存冲突。修正为Python float，并使异常退出明确非零；追加 `physical_validated/` 同样9案例/0控制步，前两次诊断各只完成中心案例，不删除。
+
+- 完成：`physical_validated/audit.json` 的9案例全部通过；实际yaw/XY偏移与设定误差<1e-6，关节姿态一致。22碰撞体的连续范围证明给出最小平台余量1.1036949118 m、最小对地间隙0.0265100528 m。总控制步0，失败诊断保留。完整测试1575 passed, 7 skipped；managed perturbed-v1现绑定模型/reset几何证书。详见 [G0.6报告](lite3-g0-spawn-geometry-2026-09-29.md)。
