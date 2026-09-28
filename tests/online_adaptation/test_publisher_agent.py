@@ -320,6 +320,36 @@ def safety_state():
     )
 
 
+@pytest.mark.parametrize("task_end", [True, False])
+def test_common_task_boundary_flushes_nstep_tail_and_preserves_terminal_observation(task_end):
+    from rl_training.online_adaptation.task_objective import FiniteHorizonObjective
+
+    agent = make_agent(n_step=3, replay_capacity=8)
+    objective = FiniteHorizonObjective()
+    for step in (1, 2):
+        frame, base = torch.zeros(1, 2), torch.zeros(1, 1)
+        agent.begin_step(frame, base, safety_state(), deterministic=True)
+        boundary = objective.boundary(step=step, collector_steps=2, success=task_end and step == 2)
+        terminated, truncated, bootstrap = boundary.tensors(torch.zeros(1, 1))
+        agent.finish_step(
+            next_frame=torch.full((1, 2), float(step)), next_base_action=base,
+            reward=torch.full((1, 1), 305. if boundary.success else 1.),
+            terminated=terminated, truncated=truncated, bootstrap_mask=bootstrap,
+            discount=torch.full((1, 1), .99), safety_mask=torch.ones(1, 1),
+            curriculum_stage_id=torch.zeros(1, 1, dtype=torch.long),
+            episode_id=torch.zeros(1, 1, dtype=torch.long),
+        )
+    assert len(agent.replay) == 2  # both incomplete n-step prefixes were flushed
+    stored = agent.replay.state_dict()
+    assert torch.all(stored["next_frame"][:2] == 2.)  # never the reset frame
+    assert torch.all(stored["bootstrap_mask"][:2] == float(not task_end))
+    assert torch.all(stored["terminated"][:2].bool() == task_end)
+    ending_reward = 305. if task_end else 1.
+    torch.testing.assert_close(stored["reward"][:2, 0], torch.tensor([1. + .99 * ending_reward, ending_reward]))
+    agent.reset_for_deployment_handoff()
+    assert len(agent.replay) == 2
+
+
 def finish_transition(agent, *, adaptation_enabled):
     frame = torch.zeros(1, 2)
     action = torch.zeros(1, 1)

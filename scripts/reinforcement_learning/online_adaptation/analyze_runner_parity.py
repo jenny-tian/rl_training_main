@@ -50,6 +50,20 @@ def physical_diff(a, b):
     return result
 
 
+def task_diff(a, b):
+    result = {"same_steps": len(a["step"]) == len(b["step"])}
+    for key in ("reward", "ordinary_reward", "terminal_reward_override", "learning_terminated",
+                "learning_truncated", "collector_cutoff", "bootstrap_mask"):
+        left, right = a[key].reshape(len(a["step"]), -1), b[key].reshape(len(b["step"]), -1)
+        result[key] = bool(left.shape == right.shape and np.allclose(left, right, rtol=0., atol=1e-6))
+    for name, trace in (("lora", a), ("sac", b)):
+        result[f"{name}_bootstrap_contract"] = bool(np.array_equal(
+            trace["bootstrap_mask"].reshape(-1), ~trace["learning_terminated"].reshape(-1)))
+        result[f"{name}_reward_reconstruction"] = bool(np.allclose(
+            trace["reward"].reshape(-1), (trace["ordinary_reward"] + trace["terminal_reward_override"]).reshape(-1), rtol=0., atol=2e-5))
+    return {"checks": result, "passed": all(result.values())}
+
+
 @torch.no_grad()
 def offline_actions(trace, checkpoint, device):
     observations = torch.as_tensor(trace["observation"], device=device).squeeze(1)
@@ -109,9 +123,12 @@ def main():
             "environment_configuration_difference": configuration_diff(
                 json.loads((a / "resolved_env.json").read_text()), json.loads((b / "resolved_env.json").read_text())),
             "offline_action_paths": offline_actions(sac_trace, args.base_checkpoint, args.device),
+            "task_objective_parity": None if manifest.get("task_objective") is None else task_diff(lora_trace, sac_trace),
         })
     write_json_atomic(root / "runner_parity_report.json", report)
     print(json.dumps(report, indent=2))
+    if any(row["task_objective_parity"] is not None and not row["task_objective_parity"]["passed"] for row in report["runs"]):
+        raise SystemExit("common task reward/endings parity failed; see runner_parity_report.json")
 
 
 if __name__ == "__main__":

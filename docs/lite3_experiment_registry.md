@@ -38,9 +38,21 @@
 - 修复后先同样短复测（最多 512 步），再五个调试地形各两入口 2000 步（最多 20,000 步）。诊断累计仍须低于 v2.2 的 60,000 步上限。
 - runner：`scripts/reinforcement_learning/online_adaptation/run_runner_parity.py`；manifest 记录代码 commit、未提交差异哈希、全部命令、退出码、实际步数及检查结果。
 - 验收：trace/summary 步数、max_x、reward_sum 一致；updates=0；同一观测离线 base/action max_abs≤1e-6；物理漂移单独记录。旧训练语义在短诊断期间不作为 G0 已统一的证据。
-- 状态：短诊断和修复后 101/109 的 128 步配对已完成，五地形完整冻结复核运行中；未启动学习比较。
+- 状态：短诊断和五地形完整冻结复核均完成；103/109/113成功，101未完成，107跌倒，两个入口完整轨迹与结果一致。五地形实际16,046步，本组累计17,614步。
 - 短诊断追加：`actuator_audit/`，101 两入口各 16 步（最多 32 步），只补记录实际执行器延迟以检查第一步物理分歧；不改变学习/动作设置。
 - 实际目录：沙箱尝试 `pre_fix/` 为 0 步；CUDA 首轮 `pre_fix_gpu/` 512 步；`safety_fix/` 512 步；`actuator_audit/` 32 步；`reset_fix/` 512 步。短诊断累计 1568 步。
 - 已定位：模型初始化消耗随机数不同，导致最后一次 reset 的 Knee actuator delay 为 LoRA=0、SAC=1；另有零残差安全投影舍入差异。固定初始 reset 种子、统一指令和可行动作投影后，101/109 的同观测动作及 128 步物理轨迹最大差异均为 0。
 - 五地形输出 `five_seed/`，最多 20,000 步。SAC 通过状态以 `episode_summary.json.passed` 为准；后处理将其写回总 manifest，并生成 `runner_parity_report.json`。
 - 当前代码验证：1516 passed, 7 skipped。完整 G0 仍等待共同奖励、任务终止、session 账本/恢复和封存守卫。
+
+## G0-20260928-common-objective
+
+- 假设：共用 `finite-horizon-v1` 后，同观测轨迹的逐步奖励、成功/失败/deadline 与 collector cutoff 标志、bootstrap 口径在 LoRA/SAC 一致。
+- base SHA、rough_4cm、速度0.3、simulation seed=7 与上一登记相同；原协议五地形复核已完成，两入口全程物理/动作差异为0，103/109/113成功，101超时未完成，107跌倒。
+- 新任务协议：固定普通奖励、机身/足端最大横偏、成功305、失败-8；任务成功/失败/deadline 不 bootstrap；采样 cutoff bootstrap。目标奖励是显式终点值。任务协议 SHA 单独记录，不冒用地形协议 SHA。
+- 首轮：`artifacts/g0_task_objective_20260928/cutoff/`，101/103 × 两入口 × 128步，deadline2000，最多512步；`short_deadline/`，101 × 两入口 × 64步，deadline64，最多128步。
+- 终点复核：`deadline/` seed101、`success/` seed103、`failure/` seed107，每种子两个入口最多2000步，总上限12,000步。配对入口在相同GPU运行，不同地形可分GPU；全部无学习。
+- 验收：trace重建summary；逐步reward与endings一致；物理终止保留pre-reset末帧；成功、失败、deadline末帧bootstrap=0，128步cutoff bootstrap=1；更新次数为0。单元测试同时验证3-step短尾在截止处flush进入真实replay。
+- 状态：全部诊断完成。cutoff、64步deadline及2000步deadline/成功/跌倒的reward与learning endings逐步一致，reward最大差异0；本组实际10,484步。详见 [G0.3报告](lite3-g0-task-objective-2026-09-28.md)。完整G0仍需预算/恢复/封存工作。
+- 补充实际checkpoint诊断：`replay_smoke/`，SAC新建在线session，101，simulation seed7，64步deadline，n=3，replay capacity/min_replay=256，禁止在样本不足时更新；最多64步。核对保存的replay有64条，末尾三个n-step前缀保留terminal observation、bootstrap=0且不跨reset。该运行只验证保存与目标口径，不评估学习收益。
+- 最终验证：1530 passed, 7 skipped；replay实际64条、actor/critic更新0次、最后三个前缀bootstrap均0，保存末帧校验通过。本轮诊断均结束。

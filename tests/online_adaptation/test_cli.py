@@ -411,3 +411,13 @@ def test_play_parser_rejects_online_mode_without_checkpoint_output():
         build_play_parser().parse_args(
             ["--base-checkpoint", "base.pt", "--residual-checkpoint", "residual.pt"]
         )
+
+
+def test_new_objective_can_calibrate_a_clean_session_without_legacy_reward_baseline():
+    arguments = ["--base-checkpoint", "base.pt", "--mode", "online",
+                 "--experiment-checkpoint-out", "out.pt", "--require-track-completion"]
+    with pytest.raises(SystemExit, match="novelty-baseline"):
+        build_play_parser().parse_args(arguments)
+    parsed = build_play_parser().parse_args([*arguments, "--task-objective", "finite-horizon-v1"])
+    assert parsed.novelty_baseline_in is None
+    assert parsed.residual_checkpoint is None

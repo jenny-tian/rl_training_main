@@ -37,3 +37,17 @@ def test_training_contract_separates_latent_actor_from_direct_residual():
     assert latent["latent_residual_fraction"] == 0.25
     with pytest.raises(ValueError, match="training contract"):
         validate_training_contract(direct, latent)
+
+
+def test_common_objective_prevents_old_replay_critic_or_deadline_resume():
+    from rl_training.online_adaptation.task_objective import FiniteHorizonObjective
+
+    old = training_contract(SACConfig(), RewardWeights(), target_semantics="timeout-aware")
+    current = training_contract(SACConfig(), RewardWeights(), target_semantics="timeout-aware",
+                                task_objective=FiniteHorizonObjective().contract())
+    changed = training_contract(SACConfig(), RewardWeights(), target_semantics="timeout-aware",
+                                task_objective=FiniteHorizonObjective(1000).contract())
+    validate_training_contract(current, current)
+    for incompatible in (old, changed):
+        with pytest.raises(ValueError, match="training contract"):
+            validate_training_contract(incompatible, current)

@@ -11,6 +11,7 @@ import torch
 
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+from rl_training.online_adaptation.task_objective import FiniteHorizonObjective
 
 
 def main():
@@ -20,9 +21,14 @@ def main():
     parser.add_argument("--steps", type=int, default=128)
     parser.add_argument("--seeds", nargs="+", type=int, default=[101, 109])
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--task-objective", choices=("legacy", "finite-horizon-v1"), default="legacy")
+    parser.add_argument("--task-deadline-steps", type=int, default=2000)
     args = parser.parse_args()
     if not 1 <= args.steps <= 2000 or not set(args.seeds) <= {101, 103, 107, 109, 113}:
         parser.error("diagnostics require 1..2000 steps and existing debug terrains")
+    objective = None if args.task_objective == "legacy" else FiniteHorizonObjective(args.task_deadline_steps)
+    if objective is not None and args.steps > objective.deadline_steps:
+        parser.error("diagnostic cannot exceed the task deadline")
     root = Path(args.output)
     root.mkdir(parents=True, exist_ok=False)
     base = Path(args.base_checkpoint).resolve()
@@ -30,6 +36,8 @@ def main():
         "status": "running", "runs": [], "max_environment_steps": 2 * len(args.seeds) * args.steps,
         "base_sha256": sha256_file(base), "protocol_sha256": default_flat_online_protocol().sha256(),
         "code_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "task_objective": None if objective is None else objective.contract(),
+        "task_objective_sha256": None if objective is None else objective.sha256(),
     }
     (root / "source.diff").write_text(subprocess.check_output(["git", "diff"], text=True))
     manifest["source_diff_sha256"] = sha256_file(root / "source.diff")
@@ -54,11 +62,14 @@ def main():
                            "--max-steps", str(args.steps), "--evaluation-only", "--require-track-completion",
                            "--trajectory-dtype", "float32", "--residual-rate-limit", "0.03",
                            "--headless", "--device", args.device,
-                           "--kit_args=--/renderer/activeGpu=0 --/renderer/multiGpu/enabled=false --/renderer/multiGpu/autoEnable=false --/renderer/multiGpu/maxGpuCount=1"]
+                           f"--kit_args=--/renderer/activeGpu={args.device.split(':')[-1] if args.device.startswith('cuda:') else 0} --/renderer/multiGpu/enabled=false --/renderer/multiGpu/autoEnable=false --/renderer/multiGpu/maxGpuCount=1"]
                 if algorithm == "lora":
-                    command += ["--output", str(out), "--trial-deadline-steps", "2000", "--stop-after-termination"]
+                    command += ["--output", str(out), "--trial-deadline-steps", str(args.task_deadline_steps), "--stop-after-termination"]
                 else:
                     command += ["--run-dir", str(out), "--mode", "base", "--terrain-feature-source", "proprio"]
+                if objective is not None:
+                    command += ["--task-objective", args.task_objective, "--task-deadline-steps", str(objective.deadline_steps),
+                                "--task-objective-sha256", objective.sha256()]
                 record = {"algorithm": algorithm, "seed": seed, "status": "running", "command": command}
                 manifest["runs"].append(record)
                 write_json_atomic(root / "manifest.json", manifest)

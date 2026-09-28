@@ -13,6 +13,7 @@ def training_contract(
     actor_architecture: str = "direct_residual_v1",
     latent_code_dim: int | None = None,
     latent_residual_fraction: float | None = None,
+    task_objective: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     contract = {
         "version": 1,
@@ -39,6 +40,9 @@ def training_contract(
     # a different state-to-action transformation on learning resume.
     if risk_gate is not None:
         contract["risk_gate"] = risk_gate
+    if task_objective is not None:
+        contract["task_objective"] = task_objective
+        contract["reward_semantics"] = task_objective["version"]
     return contract
 
 

@@ -26,6 +26,10 @@ from rl_training.online_adaptation.runner_contract import (
 )
 
 from rl_training.online_adaptation.safety import risk_gate_kwargs
+from rl_training.online_adaptation.task_objective import (
+    add_task_objective_args, resolve_task_objective, validate_objective_resume,
+    qualification_failure,
+)
 from scripts.reinforcement_learning.online_adaptation.cli import add_risk_gate_args
 
 
@@ -498,6 +502,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="end at the first failure and retain its PPO update for supervised simulation training",
     )
+    add_task_objective_args(parser)
     AppLauncher.add_app_launcher_args(parser)
     return parser
 
@@ -507,6 +512,13 @@ def main() -> int:
     if not args.base_checkpoint:
         raise SystemExit("--base-checkpoint is required")
     _prepare_evaluation_args(args)
+    task_objective = resolve_task_objective(args)
+    objective_metadata = None if task_objective is None else task_objective.contract()
+    objective_sha256 = None if task_objective is None else task_objective.sha256()
+    reward_contract = REWARD_CONTRACT if task_objective is None else objective_metadata["version"]
+    if task_objective is not None:
+        args.trial_deadline_steps = task_objective.deadline_steps
+        args.retain_terminal_learning = True
     formal_train_seeds = (101, 103, 107)
     if args.terrain_split == "train" and args.terrain_seed not in formal_train_seeds:
         raise SystemExit("train terrain split accepts only formal teacher seeds 101, 103, 107")
@@ -787,6 +799,8 @@ def main() -> int:
                 )
                 if not isinstance(loaded_checkpoint, dict) or loaded_checkpoint.get("schema_version") != 1:
                     raise ValueError("unsupported online PPO checkpoint")
+                if not args.evaluation_only:
+                    validate_objective_resume(loaded_checkpoint.get("task_objective"), task_objective)
                 if args.teacher_training and loaded_checkpoint.get("teacher_contract") != "height_scan_privileged_teacher_v2":
                     raise ValueError("teacher training can resume only a height-scan teacher checkpoint")
                 if args.teacher_training and loaded_checkpoint.get("protocol_sha256") != protocol.sha256():
@@ -825,6 +839,8 @@ def main() -> int:
                                                + reward_weights.forward_progress_weight),
                 completion_bonus=reward_weights.completion_bonus,
             )
+            if task_objective is not None:
+                completion_terminal_reward = task_objective.success_reward
             critic_time_horizon = _critic_time_horizon(
                 max_steps=args.max_steps, deadline_steps=args.trial_deadline_steps,
             )
@@ -840,7 +856,8 @@ def main() -> int:
                      "terrain_geometry": terrain_geometry,
                      "learning_contract": learning_contract,
                      "sampling_contract": SAMPLING_CONTRACT,
-                     "reward_contract": REWARD_CONTRACT,
+                     "reward_contract": reward_contract,
+                    "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                      "actor_observation_schema": actor_observation_schema,
                      "critic_observation_schema": critic_observation_schema,
                      "odometry": odometry_metadata,
@@ -942,6 +959,7 @@ def main() -> int:
 
             trajectory = StepTrajectory(output / "trajectory", vector_dtype=args.trajectory_dtype, metadata={
                 "algorithm": "lora_ppo", "mode": _evaluation_mode(args),
+                "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
                 "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
                 "step_dt": control_step_dt, "sampling_contract": SAMPLING_CONTRACT,
@@ -1047,7 +1065,7 @@ def main() -> int:
                 )
                 fell |= bool(terminated.any().item())
                 safety_violation |= (
-                    rollback_reason == "severe_nonfoot_contact"
+                    (task_objective is None and rollback_reason == "severe_nonfoot_contact")
                     or bool(safety_decision.paused.any().item())
                 )
                 reset_count += int(environment_done)
@@ -1105,35 +1123,55 @@ def main() -> int:
                 learning_truncated = (truncated | torch.full_like(
                     truncated, step + 1 == args.max_steps
                 )) & ~learning_terminated
-                reward_tensor = compute_online_reward(
-                    signals,
-                    current_residual,
-                    previous_residual,
-                    reward_weights,
-                    forward_progress=forward_progress,
-                    progress_stalled_mask=torch.full_like(
-                        forward_progress, float(progress_decision.stalled)
-                    ),
-                    completion_mask=torch.full_like(
-                        forward_progress, float(completion_passed)
-                    ),
-                    lateral_deviation=lateral_deviation,
-                    action_projection_mismatch=(
-                        requested_action - executed_action
-                    ).square().mean(dim=-1, keepdim=True),
-                    action_projection_penalty=args.safety_projection_penalty,
-                ).to(dtype=torch.float32)
-                previous_x = current_x
-                if completion_passed:
-                    # Include the known reward tail of the absorbing success
-                    # state. The physical transition remains truly terminal;
-                    # there is no critic or post-reset observation bootstrap.
-                    reward_tensor = torch.full_like(reward_tensor, completion_terminal_reward)
-                elif (bool(terminated.any().item()) or learning_boundary == "severe_nonfoot_contact"
-                        or task_failure_reason is not None):
-                    reward_tensor = torch.full_like(
-                        reward_tensor, float(args.terminal_failure_penalty)
+                reward_terms = {}
+                task_boundary = None
+                if task_objective is not None:
+                    task_boundary = task_objective.boundary(
+                        step=step + 1, collector_steps=args.max_steps,
+                        physical_terminated=bool(terminated.any()), physical_truncated=bool(truncated.any()),
+                        safety_failure=safety_violation,
+                        qualification_failure=qualification_failure(track_completion), success=completion_passed,
+                    )
+                    learning_terminated, learning_truncated, _ = task_boundary.tensors(terminated)
+                    task_failure_reason = task_boundary.reason if task_boundary.terminated and not task_boundary.success else None
+                    learning_boundary = task_boundary.reason if task_boundary.stop else None
+                    completion_passed = task_boundary.success
+                    reward_tensor, reward_terms = task_objective.reward(
+                        signals, current_residual, previous_residual, forward_progress=forward_progress,
+                        stalled=progress_decision.stalled, base_y=step_state["base_y"],
+                        foot_y=step_state["foot_y"], initial_y=initial_y, boundary=task_boundary,
+                    )
+                    previous_x = current_x
+                else:
+                    reward_tensor = compute_online_reward(
+                        signals,
+                        current_residual,
+                        previous_residual,
+                        reward_weights,
+                        forward_progress=forward_progress,
+                        progress_stalled_mask=torch.full_like(
+                            forward_progress, float(progress_decision.stalled)
+                        ),
+                        completion_mask=torch.full_like(
+                            forward_progress, float(completion_passed)
+                        ),
+                        lateral_deviation=lateral_deviation,
+                        action_projection_mismatch=(
+                            requested_action - executed_action
+                        ).square().mean(dim=-1, keepdim=True),
+                        action_projection_penalty=args.safety_projection_penalty,
                     ).to(dtype=torch.float32)
+                    previous_x = current_x
+                    if completion_passed:
+                        # Include the known reward tail of the absorbing success
+                        # state. The physical transition remains truly terminal;
+                        # there is no critic or post-reset observation bootstrap.
+                        reward_tensor = torch.full_like(reward_tensor, completion_terminal_reward)
+                    elif (bool(terminated.any().item()) or learning_boundary == "severe_nonfoot_contact"
+                            or task_failure_reason is not None):
+                        reward_tensor = torch.full_like(
+                            reward_tensor, float(args.terminal_failure_penalty)
+                        ).to(dtype=torch.float32)
                 if not args.evaluation_only:
                     with torch.no_grad():
                         next_critic_observation = _append_odometry_context(build_critic_observation(
@@ -1219,6 +1257,10 @@ def main() -> int:
                 })
                 trajectory.append(
                     **trajectory_inputs, step=step + 1, policy_version=int(version),
+                    **reward_terms,
+                    bootstrap_mask=(~learning_terminated).float(),
+                    collector_cutoff=(task_boundary.reason == "collector_cutoff" if task_boundary is not None else
+                                      step + 1 == args.max_steps and not bool(learning_terminated.any()) and not environment_done),
                     reward=float(reward_tensor.mean()), base_x=float(current_x.mean()),
                     base_y=float(step_state["base_y"].mean()),
                     elapsed_s=(step + 1) * control_step_dt,
@@ -1323,6 +1365,10 @@ def main() -> int:
                             f"accepted={stats.accepted} kl={stats.approx_kl:.6g}",
                             flush=True,
                         )
+                if task_boundary is not None and task_boundary.stop:
+                    completion_stop = task_boundary.success
+                    stop_reason = task_boundary.reason
+                    break
                 if completion_passed:
                     completion_stop = True
                     stop_reason = "completion"
@@ -1366,7 +1412,8 @@ def main() -> int:
                     "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                     "learning_contract": learning_contract,
                     "sampling_contract": SAMPLING_CONTRACT,
-                    "reward_contract": REWARD_CONTRACT,
+                    "reward_contract": reward_contract,
+                    "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                     "actor_observation_schema": actor_observation_schema,
                     "critic_observation_schema": critic_observation_schema,
                     "odometry": odometry_metadata,
@@ -1424,10 +1471,12 @@ def main() -> int:
             )
             summary = {
                 "mode": _evaluation_mode(args),
+                "total_reward": sum(row["reward"] for row in rows),
                 "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
                 "learning_contract": learning_contract,
                 "sampling_contract": SAMPLING_CONTRACT,
-                "reward_contract": REWARD_CONTRACT,
+                "reward_contract": reward_contract,
+                "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "actor_observation_schema": actor_observation_schema,
                 "critic_observation_schema": critic_observation_schema,
                 "odometry": odometry_metadata,

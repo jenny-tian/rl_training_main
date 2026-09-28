@@ -1,0 +1,51 @@
+{
+  "task_objective": {
+    "version": "lite3_finite_horizon_v1",
+    "deadline_steps": 2000,
+    "success_reward": 305.0,
+    "failure_reward": -8.0,
+    "reward_weights": {
+      "velocity_error_scale": 4.0,
+      "velocity_weight": 2.0,
+      "forward_progress_weight": 0.5,
+      "post_step_progress_weight": 2.0,
+      "stall_penalty_weight": 2.0,
+      "completion_bonus": 5.0,
+      "yaw_error_scale": 2.0,
+      "yaw_weight": 0.5,
+      "tilt_weight": 2.0,
+      "vertical_velocity_weight": 0.5,
+      "foot_slip_weight": 0.05,
+      "foot_impact_weight": 0.02,
+      "joint_power_weight": 0.001,
+      "residual_weight": 0.1,
+      "residual_rate_weight": 0.05,
+      "nonfoot_contact_weight": 2.0,
+      "post_step_stability_weight": 3.0,
+      "pre_step_clearance_weight": 1.0,
+      "pre_step_clearance_target": 0.06,
+      "pre_step_foot_forward_weight": 2.0,
+      "pre_step_foot_forward_target": 0.04,
+      "lateral_deviation_weight": 1.0,
+      "lateral_deviation_limit": 1.65,
+      "minimum_reward": -10.0,
+      "maximum_reward": 5.0,
+      "rough_swing_lift_weight": 0.0,
+      "rough_swing_lift_target": 0.045
+    },
+    "ordinary_reward": "velocity_progress_stall_body_and_foot_lateral_v1",
+    "terminal_reward": "explicit_goal_value_not_unobserved_physics_tail",
+    "bootstrap": "zero_for_task_terminal_one_for_collector_or_physical_truncation",
+    "priority": [
+      "physical_failure",
+      "safety_failure",
+      "qualification_failure",
+      "success",
+      "deadline",
+      "physical_truncation",
+      "collector_cutoff"
+    ]
+  },
+  "sha256": "93f117f4ed7b6ad19d35bdfd5bf0b793070898e66b531b75776c8dedbe09e2e9",
+  "scope": "task reward and ending contract only; not the completed v2.2 session/sealed protocol"
+}

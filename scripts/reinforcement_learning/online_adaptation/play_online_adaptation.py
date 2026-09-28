@@ -39,6 +39,7 @@ from rl_training.online_adaptation.track_completion import TrackCompletion
 from rl_training.online_adaptation.types import UpdateStats
 from rl_training.online_adaptation.swing_lift import SwingLiftTracker, rough_swing_reward_active
 from rl_training.online_adaptation.training_contract import training_contract, validate_training_contract
+from rl_training.online_adaptation.task_objective import resolve_task_objective, qualification_failure
 
 from scripts.reinforcement_learning.online_adaptation.cli import build_play_parser, risk_gate_kwargs
 
@@ -1112,6 +1113,9 @@ class AdaptationRuntimeOrchestrator:
 
 def main() -> int:
     args = build_play_parser().parse_args()
+    task_objective = resolve_task_objective(args)
+    objective_metadata = None if task_objective is None else task_objective.contract()
+    objective_sha256 = None if task_objective is None else task_objective.sha256()
     default_protocol = default_flat_online_protocol()
     if args.protocol_max_stage_episodes >= args.protocol_max_episodes:
         try:
@@ -1153,12 +1157,17 @@ def main() -> int:
             rough_amplitude=args.terrain_rough_amplitude,
         )
     learning_enabled = args.mode == "online" and not args.evaluation_only
+    if task_objective is not None and learning_enabled and (
+        args.flat_replay is not None or args.residual_checkpoint is not None or args.novelty_baseline_in is not None
+    ):
+        raise ValueError("finite-horizon-v1 learning requires a clean initializer or a matching experiment checkpoint; legacy replay/critic cannot be imported")
     if (
         args.mode != "base"
         and args.residual_checkpoint is None
         and args.experiment_checkpoint_in is None
         and not (args.mode == "online" and args.flat_replay is not None)
         and not (args.mode == "residual_frozen" and args.residual_gain == 0.0)
+        and not (task_objective is not None and args.mode == "online")
     ):
         raise ValueError(
             f"--residual-checkpoint or --experiment-checkpoint-in is required for mode {args.mode}"
@@ -1341,7 +1350,7 @@ def main() -> int:
                 n_step=args.n_step,
                 flat_fraction_initial=args.flat_fraction_initial,
                 flat_fraction_ready=args.flat_fraction_ready,
-                flat_critic_warmup_updates=args.flat_critic_warmup_updates,
+                flat_critic_warmup_updates=0 if task_objective is not None else args.flat_critic_warmup_updates,
                 critic_replay_mode=args.critic_replay_mode,
             )
             safety_limits = SafetyLimits(
@@ -1403,6 +1412,8 @@ def main() -> int:
                 rough_swing_lift_weight=args.rough_swing_lift_weight,
                 rough_swing_lift_target=args.rough_swing_lift_target,
             )
+            if task_objective is not None:
+                reward_weights = RewardWeights()
             current_training_contract = training_contract(
                 online_agent.updater.config, reward_weights, target_semantics=args.target_semantics,
                 risk_gate=safety_limits.risk_gate_contract(),
@@ -1411,6 +1422,7 @@ def main() -> int:
                 latent_residual_fraction=(
                     args.latent_residual_fraction if args.latent_code_dim else None
                 ),
+                task_objective=objective_metadata,
             )
             swing_lift_tracker = SwingLiftTracker()
             restored_experiment = None
@@ -1674,6 +1686,7 @@ def main() -> int:
 
             config = {
                 "arguments": vars(args),
+                "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "risk_gate": {"semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args)},
                 "critic_action_semantics": "requested_residual_before_safety_v1",
                 "replay_schema_version": 2,
@@ -1779,6 +1792,7 @@ def main() -> int:
             novelty_decision = novelty_gate.observe(0.0, 0.0, False, 0.0, paused=True)
             trajectory = StepTrajectory(run_dir / "trajectory", vector_dtype=args.trajectory_dtype, metadata={
                 "algorithm": "residual_sac", "mode": args.mode,
+                "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "terrain_seed": args.terrain_seed, "simulation_seed": args.seed,
                 "protocol_sha256": protocol.sha256(), "initial_x": initial_x,
                 "step_dt": control_step_dt,
@@ -1788,11 +1802,12 @@ def main() -> int:
                 "base_sha256": sha256_file(args.base_checkpoint),
                 "actor_architecture": actor_architecture,
                 "latent_decoder_sha256": None if args.latent_decoder is None else sha256_file(args.latent_decoder),
-                "endings_semantics": "legacy_worker_physical_endings_with_separate_collector_cutoff",
+                "endings_semantics": "finite_horizon_v1" if task_objective is not None else "legacy_worker_physical_endings_with_separate_collector_cutoff",
                 "policy_version_missing": -1,
             })
             trace_started = time.perf_counter()
             total_reward = 0.0
+            task_boundary = None
 
             for step in range(1, args.max_steps + 1):
                 executed_steps = step
@@ -1991,32 +2006,46 @@ def main() -> int:
                     learning_enabled=learning_enabled,
                     adapting=novelty_decision.state is NoveltyState.ADAPTING,
                 )
-                reward = compute_online_reward(
-                    signals,
-                    decision.residual,
-                    previous_residual,
-                    reward_weights,
-                    swing_lift=swing_lift,
-                    rough_swing_mask=torch.full_like(signals.base_lin_vel_z, float(rough_swing_active)),
-                    forward_progress=forward_progress,
-                    post_step_mask=torch.full_like(
-                        forward_progress, float(post_step_reached)
-                    ),
-                    pre_step_clearance_mask=torch.full_like(
-                        forward_progress, float(pre_step_clearance_active)
-                    ),
-                    progress_stalled_mask=torch.full_like(
-                        forward_progress, float(progress_decision.stalled)
-                    ),
-                    completion_mask=torch.full_like(
-                        forward_progress,
-                        float(
-                            track_completion is not None
-                            and completion_boundary_reached
+                reward_terms = {}
+                if task_objective is not None:
+                    task_boundary = task_objective.boundary(
+                        step=step, collector_steps=args.max_steps,
+                        physical_terminated=bool(terminated.any()), physical_truncated=bool(truncated.any()),
+                        safety_failure=safety_violation,
+                        qualification_failure=qualification_failure(track_completion), success=completion_boundary_reached,
+                    )
+                    reward, reward_terms = task_objective.reward(
+                        signals, decision.residual, previous_residual, forward_progress=forward_progress,
+                        stalled=progress_decision.stalled, base_y=post_step_snapshot.base_y,
+                        foot_y=post_step_snapshot.foot_y, initial_y=initial_y, boundary=task_boundary,
+                    )
+                else:
+                    reward = compute_online_reward(
+                        signals,
+                        decision.residual,
+                        previous_residual,
+                        reward_weights,
+                        swing_lift=swing_lift,
+                        rough_swing_mask=torch.full_like(signals.base_lin_vel_z, float(rough_swing_active)),
+                        forward_progress=forward_progress,
+                        post_step_mask=torch.full_like(
+                            forward_progress, float(post_step_reached)
                         ),
-                    ),
-                    lateral_deviation=(post_step_snapshot.base_y - initial_y).abs(),
-                )
+                        pre_step_clearance_mask=torch.full_like(
+                            forward_progress, float(pre_step_clearance_active)
+                        ),
+                        progress_stalled_mask=torch.full_like(
+                            forward_progress, float(progress_decision.stalled)
+                        ),
+                        completion_mask=torch.full_like(
+                            forward_progress,
+                            float(
+                                track_completion is not None
+                                and completion_boundary_reached
+                            ),
+                        ),
+                        lateral_deviation=(post_step_snapshot.base_y - initial_y).abs(),
+                    )
                 previous_x = current_x
                 rollback_reason = ""
                 safety_reason = ""
@@ -2179,8 +2208,12 @@ def main() -> int:
                 bootstrap_mask = torch.where(
                     actor_invalid, torch.zeros_like(bootstrap_mask), bootstrap_mask
                 )
+                learning_terminated, learning_truncated = terminated, truncated
+                if task_boundary is not None:
+                    learning_terminated, learning_truncated, bootstrap_mask = task_boundary.tensors(terminated)
                 trajectory.append(
                     **trajectory_inputs, step=step,
+                    **reward_terms,
                     policy_version=-1 if decision.actor_version is None else decision.actor_version,
                     reward=float(reward.mean()), base_x=base_x_value,
                     base_y=float(post_step_snapshot.base_y.mean()),
@@ -2188,8 +2221,10 @@ def main() -> int:
                     control_compute_ms=control_ms, projected=bool(decision.projected.any()),
                     paused=paused_now, control_timed_out=control_timed_out,
                     terminated=bool(terminated.any()), truncated=bool(truncated.any()),
+                    learning_terminated=bool(learning_terminated.any()), learning_truncated=bool(learning_truncated.any()),
                     bootstrap_mask=bootstrap_mask, completion_reached=completion_boundary_reached,
-                    collector_cutoff=step == args.max_steps and not environment_done and not completion_boundary_reached,
+                    collector_cutoff=(task_boundary.reason == "collector_cutoff" if task_boundary is not None else
+                                      step == args.max_steps and not environment_done and not completion_boundary_reached),
                     next_observation=post_step_snapshot.policy_observation, next_frame=next_frame,
                     post_reset_observation=post_reset_snapshot.policy_observation,
                     next_base_action=next_base_action, nonfoot_contact=nonfoot_contact,
@@ -2201,8 +2236,8 @@ def main() -> int:
                     next_frame=next_frame,
                     next_base_action=next_base_action,
                     reward=reward,
-                    terminated=terminated,
-                    truncated=truncated,
+                    terminated=learning_terminated,
+                    truncated=learning_truncated,
                     bootstrap_mask=bootstrap_mask,
                     discount=torch.full_like(reward, online_agent.updater.config.gamma),
                     safety_mask=(~actor_invalid).to(dtype=torch.float32),
@@ -2416,6 +2451,19 @@ def main() -> int:
                 previous_action = decision.action
                 previous_residual = decision.residual
                 observation = next_observation
+                if task_boundary is not None and task_boundary.stop:
+                    done_count += int(done.sum().item())
+                    fell = bool(terminated.any())
+                    boundary_decision = close_active_episode_for_worker_boundary(
+                        active_episode=active_episode, shared_lock=shared_lock,
+                        actor_gate_event=actor_gate_event, read_active_episode=read_active_episode,
+                        write_active_episode=write_active_episode, enqueue_command=commands.put,
+                        novelty_gate=novelty_gate, adaptation_performance=adaptation_performance,
+                    )
+                    if boundary_decision is not None:
+                        novelty_decision = boundary_decision
+                    completion_stop = task_boundary.success
+                    break
                 if done.any().item():
                     done_count += int(done.sum().item())
                     fell = True
@@ -2505,6 +2553,8 @@ def main() -> int:
             )
             summary = {
                 "mode": args.mode,
+                "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
+                "task_stop_reason": None if task_boundary is None else task_boundary.reason,
                 "total_reward": total_reward,
                 "steps": executed_steps,
                 "reset_count": done_count,
