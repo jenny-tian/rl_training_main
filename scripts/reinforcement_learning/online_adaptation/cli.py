@@ -127,7 +127,7 @@ class _PlayArgumentParser(argparse.ArgumentParser):
             self.error("the first formal online worker requires --novelty-baseline-in")
         allowed_seeds = (
             (7, 11, 19, 23, 31)
-            if parsed.flat_retention_probe
+            if parsed.flat_retention_probe and not parsed.session_ledger
             else protocol.sealed_seeds
             if parsed.terrain_split == "sealed"
             else protocol.development_seeds

@@ -76,3 +76,13 @@ def test_common_objective_refuses_incompatible_collector_configuration():
     args.max_steps = 2001
     with pytest.raises(ValueError, match="max_steps"):
         resolve_task_objective(args)
+
+
+def test_flat_measurement_accepts_locked_objective_only_without_learning():
+    args = SimpleNamespace(task_objective="finite-horizon-v1", task_deadline_steps=2000,
+                           task_objective_sha256=None, require_track_completion=False,
+                           flat_retention_probe=True, evaluation_only=True, max_steps=1000)
+    assert resolve_task_objective(args).sha256() == FiniteHorizonObjective().sha256()
+    args.evaluation_only = False
+    with pytest.raises(ValueError, match="frozen evaluation"):
+        resolve_task_objective(args)

@@ -17,7 +17,7 @@ from typing import Any, Literal
 from isaaclab.app import AppLauncher
 from rl_training.online_adaptation.runner_contract import (
     configure_forward_command, pin_forward_command, pin_forward_observation,
-    seeded_initial_reset, actuator_delay_metadata,
+    seeded_initial_reset, actuator_delay_metadata, configure_initial_state, initial_root_state,
 )
 
 
@@ -1262,9 +1262,14 @@ def main() -> int:
         actor_updates_stream = (run_dir / "actor_updates.jsonl").open("w", encoding="utf-8")
 
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
-        apply_geometry_to_env_cfg(env_cfg, geometry)
+        from rl_training.online_adaptation.flat_retention import configure_flat_retention_plane, summarize_flat_retention
+        if args.flat_retention_probe:
+            configure_flat_retention_plane(env_cfg)
+        else:
+            apply_geometry_to_env_cfg(env_cfg, geometry)
         env_cfg.seed = args.seed
         env_cfg.scene.num_envs = 1
+        initial_state_contract = configure_initial_state(env_cfg, args.initial_state)
         env_cfg.terminations.time_out = None
         env_cfg.terminations.terrain_out_of_bounds = None
         configure_forward_command(env_cfg.commands.base_velocity, args.forward_speed)
@@ -1807,6 +1812,7 @@ def main() -> int:
             done_count = 0
             fell = False
             heldout_steps = 0
+            flat_rows = []
             executed_steps = 0
             completion_stop = False
             post_step_checkpointed = False
@@ -1820,6 +1826,8 @@ def main() -> int:
                 "step_dt": control_step_dt,
                 "actuator_delays": actuator_delay_metadata(adapter.robot),
                 "reset_rng_contract": "seed_before_initial_physical_reset_v1",
+                "initial_state_contract": initial_state_contract,
+                "initial_root_state": initial_root_state(adapter.robot),
                 "critic_action_semantics": "requested_residual_before_safety_v1",
                 "base_sha256": sha256_file(args.base_checkpoint),
                 "actor_architecture": actor_architecture,
@@ -1989,6 +1997,11 @@ def main() -> int:
                     post_step_recovery_active = False
                 next_frame = post_step_snapshot.frame
                 signals = post_step_snapshot.signals
+                if args.flat_retention_probe:
+                    flat_rows.append({"step": step, "base_x": base_x_value,
+                                      "base_lin_vel_xy": signals.base_lin_vel_xy.reshape(-1).cpu().tolist(),
+                                      "command_lin_vel_xy": signals.command_lin_vel_xy.reshape(-1).cpu().tolist(),
+                                      "done": bool(done.any().item())})
                 progress_valid = ~done.bool()
                 if paused_now or control_timed_out:
                     progress_valid = torch.zeros_like(progress_valid)
@@ -2690,6 +2703,17 @@ def main() -> int:
                 "contacts": metrics.heldout_summary().get("heldout_nonfoot_contacts", 0),
                 "completion_stop": completion_stop,
             }
+            if args.flat_retention_probe:
+                flat_summary = summarize_flat_retention(
+                    flat_rows, initial_x=initial_x, step_dt=control_step_dt, max_steps=args.max_steps,
+                    fell=fell, safety_violation=safety_violation, reset_count=done_count,
+                )
+                for target in (summary, episode_summary):
+                    for key in list(target):
+                        if key.startswith("completion_") or key in {"passed", "protocol_sha256", "strict_qualification_enabled"}:
+                            target.pop(key, None)
+                    target.update(evaluation_kind="flat_retention", flat_retention=flat_summary,
+                                  terrain_geometry={"terrain_type": "plane", "terrain_generator": None})
             if managed is not None:
                 summary["session_budget"] = managed.snapshot()
                 episode_summary["session_budget"] = summary["session_budget"]

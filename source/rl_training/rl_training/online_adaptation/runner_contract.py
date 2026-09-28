@@ -1,5 +1,7 @@
 """Shared fixed-command and initial reset contract for paired Lite3 runners."""
 
+import math
+
 import torch
 
 
@@ -79,3 +81,22 @@ def actuator_delay_metadata(robot):
         }
         for name, actuator in robot.actuators.items()
     }
+
+
+def configure_initial_state(env_cfg, mode):
+    """Set the declared reset distribution without consuming learner RNG."""
+    from .terrain_guards import deterministic_root_reset_params
+
+    if mode not in {"fixed", "perturbed-v1"}:
+        raise ValueError("unknown initial-state contract")
+    params = deterministic_root_reset_params()
+    if mode == "perturbed-v1":
+        params["pose_range"].update(x=(-0.02, 0.02), y=(-0.02, 0.02),
+                                    yaw=(-math.radians(2), math.radians(2)))
+    env_cfg.events.randomize_reset_base.params.update(params)
+    return {"schema": "lite3_initial_state_v1", "mode": mode, **params}
+
+
+def initial_root_state(robot):
+    """Record the actual reset pose/velocity before the first control step."""
+    return robot.data.root_state_w.detach().cpu().tolist()

@@ -11,7 +11,7 @@ from .task_objective import resolve_task_objective
 VARIABLE_ARGUMENTS = {
     "session_ledger", "session_run_id", "output", "run_dir", "checkpoint_in",
     "experiment_checkpoint_in", "experiment_checkpoint_out", "max_steps", "device", "kit_args",
-    "headless", "evaluation_only", "mode", "video", "video_length", "enable_cameras",
+    "headless", "evaluation_only", "mode", "flat_retention_probe", "require_track_completion", "video", "video_length", "enable_cameras",
 }
 
 
@@ -25,6 +25,7 @@ def worker_configuration(args):
 
 
 def add_session_args(parser):
+    parser.add_argument("--initial-state", choices=("fixed", "perturbed-v1"), default="fixed")
     parser.add_argument("--session-ledger", default=None)
     parser.add_argument("--session-run-id", default=None)
 
@@ -46,6 +47,9 @@ class ManagedTrial:
                 raise ValueError("worker/source configuration differs from locked session")
             if args.max_steps != trial["max_steps"]:
                 raise ValueError("worker budget differs from reserved trial")
+            flat = trial["phase"] in {"flat_selection", "retention"}
+            if args.flat_retention_probe != flat or args.require_track_completion == flat:
+                raise ValueError("worker terrain mode differs from registered phase")
             objective = resolve_task_objective(args)
             if objective is None or objective.sha256() != manifest["task_objective_sha256"]:
                 raise ValueError("managed worker requires the locked common task objective")
@@ -110,7 +114,7 @@ class ManagedTrial:
         self.budget.finish(self.trial["id"], steps=summary["steps"], checkpoint=artifact,
                            outcome={key: summary.get(key) for key in (
                                "passed", "fell", "stop_reason", "task_stop_reason", "reset_count",
-                               "updates", "actor_updates", "critic_updates", "update_attempts",
+                               "updates", "actor_updates", "critic_updates", "update_attempts", "flat_retention",
                            )})
 
     def close(self):

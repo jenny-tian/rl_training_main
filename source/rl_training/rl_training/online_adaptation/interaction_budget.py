@@ -34,8 +34,31 @@ def positive_integer(value, name):
 def validate_manifest(manifest):
     required = {"schema", "session_id", "algorithm", "base", "task_objective_sha256",
                 "terrain_split", "terrain_seed", "learner_seed", "worker_configuration", "limits", "seal"}
-    if set(manifest) != required or manifest["schema"] != "lite3_session_v1":
+    if manifest.get("schema") == "lite3_session_v2":
+        required.add("schedule")
+    if set(manifest) != required or manifest["schema"] not in {"lite3_session_v1", "lite3_session_v2"}:
         raise ValueError("session manifest schema mismatch")
+    if "schedule" in manifest:
+        schedule = manifest["schedule"]
+        if set(schedule) != {"evaluation_trials", "trial_steps", "retention_trials", "retention_steps", "probes", "short_fall_steps", "consecutive_short_falls"}:
+            raise ValueError("session schedule schema mismatch")
+        for key, value in schedule.items():
+            if key != "probes":
+                positive_integer(value, key)
+        previous_end = 0
+        total = 0
+        if not isinstance(schedule["probes"], list):
+            raise ValueError("probe schedule must be a list")
+        for probe in schedule["probes"]:
+            if set(probe) != {"at", "phase", "max_steps"} or probe["phase"] not in {"selection", "flat_selection"}:
+                raise ValueError("invalid probe schedule")
+            positive_integer(probe["max_steps"], "probe steps")
+            if type(probe["at"]) is not int or probe["at"] < previous_end:
+                raise ValueError("probe schedule overlaps")
+            previous_end = probe["at"] + probe["max_steps"]
+            total += probe["max_steps"]
+        if total > manifest["limits"]["selection"] or previous_end > manifest["limits"]["adaptation"]:
+            raise ValueError("scheduled probes exceed shared budgets")
     if manifest["algorithm"] not in {"lora", "sac"}:
         raise ValueError("unsupported session algorithm")
     if manifest["terrain_split"] not in {"development", "sealed"}:
@@ -175,6 +198,15 @@ class InteractionBudget:
                 raise ValueError("trial is already active or its ID has been consumed")
             if phase not in PHASES or (phase in ADAPTATION_PHASES) != (state["phase"] == "adaptation"):
                 raise ValueError("frozen evaluation cannot return to adaptation or selection")
+            schedule = self.manifest.get("schedule")
+            if schedule is not None:
+                horizon = schedule["retention_steps"] if phase in {"retention", "flat_selection"} else schedule["trial_steps"]
+                if trial["max_steps"] > horizon:
+                    raise ValueError("trial exceeds the locked physical horizon")
+                if phase in {"evaluation", "retention"} and sum(t["phase"] == phase for t in state["trials"].values()) >= schedule[phase + "_trials"]:
+                    raise ValueError("fixed evaluation starts exhausted; do not replace short trials")
+                if phase in ADAPTATION_PHASES and self.short_fall_stop(state):
+                    raise ValueError("consecutive short falls stopped adaptation")
             positive_integer(trial["max_steps"], "max_steps")
             if trial["max_steps"] > self.remaining(phase, state):
                 raise ValueError("trial exceeds remaining transition budget")
@@ -229,12 +261,32 @@ class InteractionBudget:
         else:
             raise ValueError("unknown journal event")
 
+    def short_fall_stop(self, state=None):
+        """Learning-trial outcomes persist across restarts; probes cannot reset the streak."""
+        schedule = self.manifest.get("schedule")
+        if schedule is None:
+            return False
+        state = self.state if state is None else state
+        trials = [t for t in state["trials"].values() if t["phase"] in {"warmup", "adaptation"}]
+        streak = 0
+        for trial in trials:
+            if (trial["status"] == "complete" and trial["outcome"].get("fell") is True
+                    and trial["confirmed_steps"] < schedule["short_fall_steps"]):
+                streak += 1
+                if streak >= schedule["consecutive_short_falls"]:
+                    return True
+            else:
+                streak = 0
+        return False
+
     def prepare_trial(self, *, phase, max_steps, output, input_checkpoint):
         index = len(self.state["trials"])
         trial_id = f"trial-{index:05d}"
-        reset_seed = int(digest({"learner_seed": self.manifest["learner_seed"], "phase": phase, "trial": index})[:8], 16) % (2**31)
+        phase_index = sum(t["phase"] == phase for t in self.state["trials"].values())
+        reset_seed = int(digest({"reset_contract": "phase_local_v2", "learner_seed": self.manifest["learner_seed"],
+                                 "phase": phase, "trial": phase_index})[:8], 16) % (2**31)
         trial = {"id": trial_id, "phase": phase, "max_steps": max_steps, "output": str(Path(output).resolve()),
-                 "input_checkpoint": input_checkpoint, "reset_seed": reset_seed}
+                 "input_checkpoint": input_checkpoint, "reset_seed": reset_seed, "phase_index": phase_index}
         self._append({"type": "prepare", "trial": trial})
         return copy.deepcopy(self.state["trials"][trial_id])
 

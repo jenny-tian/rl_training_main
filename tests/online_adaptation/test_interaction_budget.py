@@ -173,3 +173,66 @@ def test_sealed_requires_locked_protocol_and_rejects_configuration_changes(tmp_p
         budget.lock_evaluation()
         with pytest.raises(ValueError, match="frozen evaluation"):
             start(budget, tmp_path)
+
+
+def scheduled_manifest(tmp_path):
+    m = manifest(tmp_path)
+    m.update(schema="lite3_session_v2", schedule={"evaluation_trials": 2, "trial_steps": 2000,
+             "short_fall_steps": 100, "consecutive_short_falls": 5,
+             "retention_trials": 5, "retention_steps": 1000, "probes": []})
+    m["limits"].update(adaptation=1000, selection=100)
+    return m
+
+
+def test_evaluation_seeds_do_not_depend_on_learning_or_probe_counts(tmp_path):
+    seeds = []
+    for index, phases in enumerate([[], ["adaptation", "selection", "adaptation"]]):
+        directory = tmp_path / str(index)
+        directory.mkdir()
+        m = scheduled_manifest(directory)
+        with InteractionBudget(directory / "ledger", manifest=m) as budget:
+            for phase in phases:
+                trial = start(budget, directory, steps=1, phase=phase)
+                budget.finish(trial, steps=0, outcome={})
+            budget.lock_evaluation()
+            trial = start(budget, directory, phase="evaluation")
+            seeds.append(budget.state["trials"][trial]["reset_seed"])
+            assert budget.state["trials"][trial]["phase_index"] == 0
+    assert seeds[0] == seeds[1]
+
+
+def test_fixed_evaluation_count_includes_aborted_starts_and_survives_resume(tmp_path):
+    directory = tmp_path / "ledger"
+    with InteractionBudget(directory, manifest=scheduled_manifest(tmp_path)) as budget:
+        budget.lock_evaluation()
+        trial = start(budget, tmp_path, phase="evaluation")
+        budget.reserve(trial, 1)
+        budget.commit(trial, 1)
+        budget.finish(trial, steps=1, outcome={"fell": True})
+        start(budget, tmp_path, phase="evaluation")
+        budget.abort_active("failed attempt consumes its fixed start")
+    with InteractionBudget(directory) as budget:
+        assert budget.remaining("evaluation") == 3
+        with pytest.raises(ValueError, match="starts exhausted"):
+            start(budget, tmp_path, phase="evaluation")
+
+
+@pytest.mark.parametrize("breaking_outcome,expected_stop", [({"fell": True}, True), ({"fell": False}, False)])
+def test_short_fall_streak_survives_resume_and_probes(tmp_path, breaking_outcome, expected_stop):
+    directory = tmp_path / "ledger"
+    with InteractionBudget(directory, manifest=scheduled_manifest(tmp_path)) as budget:
+        for index in range(5):
+            trial = start(budget, tmp_path, steps=1)
+            budget.reserve(trial, 1)
+            budget.commit(trial, 1)
+            budget.finish(trial, steps=1, outcome=breaking_outcome if index == 2 else {"fell": True})
+            if index == 1:
+                probe = start(budget, tmp_path, phase="selection")
+                budget.finish(probe, steps=0, outcome={"fell": False})
+    with InteractionBudget(directory) as budget:
+        assert budget.short_fall_stop() is expected_stop
+        if expected_stop:
+            with pytest.raises(ValueError, match="short falls"):
+                start(budget, tmp_path)
+            budget.lock_evaluation()
+            start(budget, tmp_path, phase="evaluation")

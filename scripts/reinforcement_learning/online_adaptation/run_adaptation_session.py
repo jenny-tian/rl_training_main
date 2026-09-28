@@ -15,6 +15,7 @@ from rl_training.online_adaptation.interaction_budget import InteractionBudget, 
 from rl_training.online_adaptation.managed_trial import worker_configuration
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 from rl_training.online_adaptation.task_objective import FiniteHorizonObjective
+from rl_training.online_adaptation.session_schedule import build_schedule, next_trial
 
 
 def parser_for(algorithm):
@@ -25,16 +26,19 @@ def parser_for(algorithm):
     return build_play_parser()
 
 
-def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None):
-    frozen = args.phase == "evaluation"
+def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, phase=None):
+    phase = args.phase if phase is None else phase
+    frozen = phase in {"selection", "flat_selection", "evaluation", "retention"}
+    flat = phase in {"flat_selection", "retention"}
     common = ["--base-checkpoint", str(Path(args.base_checkpoint).resolve()),
               "--task", "RockyRoad-Deeprobotics-Lite3-v0", "--terrain-stage", "rough_4cm",
               "--terrain-seed", str(args.terrain_seed), "--terrain-split", "development",
               "--seed", str(args.seed), "--forward-speed", "0.3", "--max-steps", str(steps),
               "--task-objective", "finite-horizon-v1", "--task-deadline-steps", str(args.deadline_steps),
-              "--require-track-completion", "--trajectory-dtype", "float32", "--residual-rate-limit", "0.03",
+              "--initial-state", "perturbed-v1", "--trajectory-dtype", "float32", "--residual-rate-limit", "0.03",
               "--headless", "--device", args.device,
               f"--kit_args=--/renderer/activeGpu={args.device.split(':')[-1]} --/renderer/multiGpu/enabled=false --/renderer/multiGpu/autoEnable=false --/renderer/multiGpu/maxGpuCount=1"]
+    common += ["--flat-retention-probe" if flat else "--require-track-completion"]
     if args.algorithm == "lora":
         common += ["--output", str(output)]
         if checkpoint is not None:
@@ -79,9 +83,18 @@ def recover_interrupted_trial(budget):
                     budget.abort_active("complete trace has no learner checkpoint")
                     return
                 checkpoint = {"path": str(path), "sha256": sha256_file(path)}
-            budget.finish(active, steps=summary["steps"], outcome={"reconciled_from_summary": True}, checkpoint=checkpoint)
+            budget.finish(active, steps=summary["steps"], outcome={"reconciled_from_summary": True, "fell": summary.get("fell"), "task_stop_reason": summary.get("task_stop_reason")}, checkpoint=checkpoint)
             return
     budget.abort_active("interrupted physical trial; retain cost and resume the last completed learner")
+
+
+
+def write_session_summary(root, budget):
+    stopped = budget.short_fall_stop()
+    write_json_atomic(root / "session_summary.json", {
+        **budget.state, "adaptation_early_stopped": stopped,
+        "adaptation_failure_reason": "five_consecutive_short_falls" if stopped else None,
+    })
 
 
 def main():
@@ -91,28 +104,37 @@ def main():
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--terrain-seed", type=int, default=101)
     parser.add_argument("--seed", type=int, default=7)
-    parser.add_argument("--phase", choices=("adaptation", "evaluation"), default="adaptation")
+    parser.add_argument("--phase", choices=("adaptation", "evaluation", "retention"), default="adaptation")
     parser.add_argument("--budget-steps", type=int, default=40000)
     parser.add_argument("--selection-budget", type=int, default=8000)
     parser.add_argument("--evaluation-steps", type=int, default=20000)
+    parser.add_argument("--evaluation-trials", type=int, default=10)
+    parser.add_argument("--retention-trials", type=int, default=5)
+    parser.add_argument("--retention-trial-steps", type=int, default=1000)
+    parser.add_argument("--probe-milestones", type=int, nargs="*", default=[10000, 20000, 40000])
     parser.add_argument("--trial-steps", type=int, default=2000)
     parser.add_argument("--deadline-steps", type=int, default=2000)
     parser.add_argument("--max-trials", type=int, default=None)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--worker-options", default=None)
     args = parser.parse_args()
-    if not 1 <= args.trial_steps <= args.deadline_steps or (args.max_trials is not None and args.max_trials < 1):
+    if (args.evaluation_trials < 1 or args.retention_trials < 1
+            or not 1 <= args.retention_trial_steps <= args.deadline_steps
+            or not 1 <= args.trial_steps <= args.deadline_steps) or (args.max_trials is not None and args.max_trials < 1):
         parser.error("invalid physical trial length/count")
     root = Path(args.session_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    prototype = parser_for(args.algorithm).parse_args(worker_arguments(args, output=root / "prototype", steps=args.trial_steps))
+    prototype = parser_for(args.algorithm).parse_args(worker_arguments(args, output=root / "prototype", steps=args.trial_steps, phase="adaptation"))
     base = {"path": str(Path(args.base_checkpoint).resolve()), "sha256": sha256_file(args.base_checkpoint)}
-    expected = {"schema": "lite3_session_v1", "session_id": "", "algorithm": args.algorithm,
+    expected = {"schema": "lite3_session_v2", "session_id": "", "algorithm": args.algorithm,
                 "base": base, "task_objective_sha256": FiniteHorizonObjective(args.deadline_steps).sha256(),
                 "terrain_split": "development", "terrain_seed": args.terrain_seed, "learner_seed": args.seed,
                 "worker_configuration": worker_configuration(prototype),
                 "limits": {"adaptation": args.budget_steps, "selection": args.selection_budget,
-                           "evaluation": args.evaluation_steps, "retention": 5000}, "seal": None}
+                           "evaluation": args.evaluation_steps, "retention": args.retention_trials * args.retention_trial_steps}, "seal": None,
+                "schedule": build_schedule(trial_steps=args.trial_steps, evaluation_trials=args.evaluation_trials,
+                    retention_trials=args.retention_trials, retention_steps=args.retention_trial_steps,
+                    probe_milestones=args.probe_milestones, budget_steps=args.budget_steps)}
     if not (root / "ledger").exists():
         expected["session_id"] = str(uuid.uuid4())
         with InteractionBudget(root / "ledger", manifest=expected):
@@ -124,20 +146,20 @@ def main():
             if canonical(expected) != canonical(budget.manifest):
                 raise ValueError("session configuration/source changed; preserve this session and start a new version")
             recover_interrupted_trial(budget)
-            if args.phase == "evaluation" and budget.state["phase"] == "adaptation":
+            if args.phase in {"evaluation", "retention"} and budget.state["phase"] == "adaptation":
                 budget.lock_evaluation()
             if args.phase == "adaptation" and budget.state["phase"] != "adaptation":
                 raise ValueError("frozen evaluation cannot feed back into adaptation")
-            remaining = budget.remaining(args.phase)
-            if remaining == 0:
-                write_json_atomic(root / "session_summary.json", budget.state)
+            spec = next_trial(budget, args.phase)
+            if spec is None:
+                write_session_summary(root, budget)
                 return
-            steps = min(args.trial_steps, remaining)
+            phase, steps = spec["phase"], spec["max_steps"]
             output = root / f"trial-{len(budget.state['trials']):05d}"
             candidate = budget.state["evaluation_checkpoint"] or budget.state["latest_checkpoint"] or base
-            trial = budget.prepare_trial(phase=args.phase, max_steps=steps, output=output, input_checkpoint=candidate)
+            trial = budget.prepare_trial(phase=phase, max_steps=steps, output=output, input_checkpoint=candidate)
         output.mkdir(exist_ok=False)
-        arguments = worker_arguments(args, output=output, steps=steps, checkpoint=None if candidate == base else candidate, trial_id=trial["id"])
+        arguments = worker_arguments(args, output=output, steps=steps, checkpoint=None if candidate == base else candidate, trial_id=trial["id"], phase=phase)
         script = "train_lora_ppo.py" if args.algorithm == "lora" else "play_online_adaptation.py"
         command = [sys.executable, "-u", f"scripts/reinforcement_learning/online_adaptation/{script}", *arguments]
         write_json_atomic(output / "invocation.json", {"command": command, "trial": trial})
@@ -147,9 +169,9 @@ def main():
             record = budget.state["trials"][trial["id"]]
             if record["status"] != "complete" or result.returncode not in (0, 1):
                 recover_interrupted_trial(budget)
-                write_json_atomic(root / "session_summary.json", budget.state)
+                write_session_summary(root, budget)
                 raise RuntimeError(f"worker failed; costs retained: {output / 'runtime.log'}")
-            write_json_atomic(root / "session_summary.json", budget.state)
+            write_session_summary(root, budget)
         count += 1
 
 

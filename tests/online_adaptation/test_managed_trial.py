@@ -87,3 +87,11 @@ def test_bare_sealed_common_objective_is_rejected_before_loading_environment():
     ])
     with pytest.raises(ValueError, match="locked session"):
         attach_session(args, "sac")
+
+
+@pytest.mark.parametrize("flat,completion", [(True, False), (False, False), (True, True)])
+def test_terrain_phase_cannot_be_relabelled_as_flat_or_unqualified(tmp_path, flat, completion):
+    args = setup_trial(tmp_path)
+    args.flat_retention_probe, args.require_track_completion = flat, completion
+    with pytest.raises(ValueError, match="terrain mode"):
+        attach_session(args, "sac")

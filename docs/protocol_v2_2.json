@@ -1,0 +1,144 @@
+{
+  "schema": "lite3_protocol_v2_2_development_review_v1",
+  "status": "development_validated_components_not_final_seal",
+  "plan": "docs/lite3_execution_plan_v2_2_2026-09-28.md",
+  "task_objective": {
+    "version": "lite3_finite_horizon_v1",
+    "deadline_steps": 2000,
+    "success_reward": 305.0,
+    "failure_reward": -8.0,
+    "reward_weights": {
+      "velocity_error_scale": 4.0,
+      "velocity_weight": 2.0,
+      "forward_progress_weight": 0.5,
+      "post_step_progress_weight": 2.0,
+      "stall_penalty_weight": 2.0,
+      "completion_bonus": 5.0,
+      "yaw_error_scale": 2.0,
+      "yaw_weight": 0.5,
+      "tilt_weight": 2.0,
+      "vertical_velocity_weight": 0.5,
+      "foot_slip_weight": 0.05,
+      "foot_impact_weight": 0.02,
+      "joint_power_weight": 0.001,
+      "residual_weight": 0.1,
+      "residual_rate_weight": 0.05,
+      "nonfoot_contact_weight": 2.0,
+      "post_step_stability_weight": 3.0,
+      "pre_step_clearance_weight": 1.0,
+      "pre_step_clearance_target": 0.06,
+      "pre_step_foot_forward_weight": 2.0,
+      "pre_step_foot_forward_target": 0.04,
+      "lateral_deviation_weight": 1.0,
+      "lateral_deviation_limit": 1.65,
+      "minimum_reward": -10.0,
+      "maximum_reward": 5.0,
+      "rough_swing_lift_weight": 0.0,
+      "rough_swing_lift_target": 0.045
+    },
+    "ordinary_reward": "velocity_progress_stall_body_and_foot_lateral_v1",
+    "terminal_reward": "explicit_goal_value_not_unobserved_physics_tail",
+    "bootstrap": "zero_for_task_terminal_one_for_collector_or_physical_truncation",
+    "priority": [
+      "physical_failure",
+      "safety_failure",
+      "qualification_failure",
+      "success",
+      "deadline",
+      "physical_truncation",
+      "collector_cutoff"
+    ]
+  },
+  "task_objective_sha256": "93f117f4ed7b6ad19d35bdfd5bf0b793070898e66b531b75776c8dedbe09e2e9",
+  "initial_state": {
+    "mode": "perturbed-v1",
+    "x_m": [
+      -0.02,
+      0.02
+    ],
+    "y_m": [
+      -0.02,
+      0.02
+    ],
+    "yaw_deg": [
+      -2,
+      2
+    ],
+    "other_dimensions": "shared deterministic root/joint reset",
+    "rng": "phase_local_v2: learner_seed + phase + phase_local_attempt_index",
+    "failed_start": "keep attempt and charged/uncertain cost; no replacement by outcome",
+    "validation_scope": "development seed101, two paired base starts plus scheduled short trials; exhaustive spawn geometry audit pending"
+  },
+  "limits": {
+    "adaptation": 40000,
+    "selection_included_in_adaptation": 8000,
+    "evaluation": 20000,
+    "retention": 5000
+  },
+  "schedule": {
+    "evaluation_trials": 10,
+    "trial_steps": 2000,
+    "retention_trials": 5,
+    "retention_steps": 1000,
+    "short_fall_steps": 100,
+    "consecutive_short_falls": 5,
+    "probes": [
+      {
+        "at": 7000,
+        "phase": "selection",
+        "max_steps": 2000
+      },
+      {
+        "at": 9000,
+        "phase": "flat_selection",
+        "max_steps": 1000
+      },
+      {
+        "at": 17000,
+        "phase": "selection",
+        "max_steps": 2000
+      },
+      {
+        "at": 19000,
+        "phase": "flat_selection",
+        "max_steps": 1000
+      },
+      {
+        "at": 38000,
+        "phase": "selection",
+        "max_steps": 2000
+      }
+    ]
+  },
+  "candidate_rule": "last committed adaptation checkpoint; probes observational; final lock forbids return to adaptation",
+  "flat_retention": {
+    "terrain": "infinite plane",
+    "steady_exclusion_seconds": 5,
+    "metric": "body XY velocity MAE",
+    "eligibility": "full sample budget, steady data, no fall/safety violation/reset",
+    "relative_to_base_pass_threshold": "pending algorithm/retention acceptance rule lock"
+  },
+  "execution": {
+    "num_envs": 1,
+    "max_simultaneous_gpus": 2,
+    "source_bound_session_manifest": true,
+    "step_charge": "reserve before physics, confirm after return, never refund uncertain transition",
+    "observation_contract": "docs/lite3_g0_observation_contract_20260928.json",
+    "residual_rate_limit": 0.03,
+    "forward_speed_m_s": 0.3
+  },
+  "evidence": {
+    "artifact_directory": "artifacts/g0_initial_state_schedule_20260928",
+    "validation_sha256": "3ec73e3dde34b1d3429029a2d86aeb00f8b1b41d8b18eadf192585e8727941e7",
+    "smoke_source_sha256": "c25e7e92432525cf9d8ec2ec652f8ee6c7c08f39e8b2b9cb318e26f59a4d33de",
+    "actual_transitions": 2176,
+    "base_terrain_and_plane_parity_max_abs": 0
+  },
+  "not_yet_locked": [
+    "full spawn geometry range certification before failure-pool screening",
+    "G1 target-domain 4000-step warmup and learning signal repairs",
+    "score-based promotion/rollback and relative flat-retention acceptance rule",
+    "final algorithm/configuration hashes and sealed terrain membership at G5"
+  ],
+  "sealed_seeds_generated": false
+}

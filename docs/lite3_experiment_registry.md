@@ -69,3 +69,14 @@
 - 第一轮结果：两路线各256适应+16冻结评估，重复resume新增0步；LoRA Adam步数4→8，SAC replay128→256。SAC默认alpha=1导致全部Q更新被现有mean_td_error_limit拒绝，不能据此声称其Adam恢复已验证。
 - 追加 `sac_lowalpha/` 独立session，唯一超参变化initial_alpha=0.02，仍不放宽TD保护阈值；额外上限272步，用于产生非空Adam状态并检查恢复。恢复审查同时补充保存/恢复未消费的critic更新额度；actor额度属于上一物理适应回合，在新回合清零。保留原失败配置，不把这次工程诊断当作G1超参选择结论。
 - 最终状态：三个session各272步，全部结束；本轮816步、uncertain=0。低温度SAC Adam步数2→131，replay128→256，critic剩余额度126→125；冻结评估更新/写replay均0，重复resume新增0步。验证 `validation.json`；完整测试1550 passed, 7 skipped。详见 [G0.4报告](lite3-g0-session-ledger-2026-09-28.md)。
+
+
+## G0-20260928-initial-state-schedule
+
+- 已预登记：测试 perturbed-v1（x/y ±0.02 m，yaw ±2°）在两个入口的初态/冻结轨迹一致性；验证阶段独立种子、付费探针、固定评估次数、真实平面稳态指标和冻结零写入。
+- base SHA 同前；仅 development rough_4cm seed101，learner seed7，deadline2000。最多两GPU、每卡一个worker；不训练正式长任务，不生成sealed种子。
+- `artifacts/g0_initial_state_schedule_20260928/{lora,sac}/`：各B=256，probe标记128/256，terrain trial64，flat trial32，selection cap160；最终评估2×64，retention2×32。单路线最多448步，两路线896步；重复resume不得新增试验。
+- `base_{lora,sac}/`：直接冻结base，各1×320步地形评估+1×320步真实平面，独立初态序列；总上限1280步。平面超过5秒，必须提供稳态速度指标。
+- 本组总上限2176个实际控制transition。所有启动失败/无效初态与消耗保留，不按任务成败丢弃。初态范围的全几何域验收仍须单列，不以两起点smoke替代。
+
+- 完成：实际2176步，四session全部结束；uncertain=0。base两入口地形/平面各320步，物理/观测/动作/reward/endings max_abs=0。平面稳态XY MAE两者均0.02276685099641327 m/s。学习session各448步，探针计入B、冻结零更新/零replay写入、重复retention resume新增0步。详见 [G0.5报告](lite3-g0-initial-state-schedule-2026-09-28.md)。

@@ -109,7 +109,10 @@ def resolve_task_objective(args):
             raise ValueError("legacy task has no common objective hash")
         return None
     objective = FiniteHorizonObjective(deadline_steps=args.task_deadline_steps)
-    if not args.require_track_completion or args.flat_retention_probe:
+    if args.flat_retention_probe:
+        if not args.evaluation_only or args.require_track_completion:
+            raise ValueError("flat measurement requires frozen evaluation without terrain completion")
+    elif not args.require_track_completion:
         raise ValueError("finite-horizon-v1 requires strict terrain completion")
     if not 1 <= args.max_steps <= objective.deadline_steps:
         raise ValueError("max_steps must be inside the task deadline; use separate physical trials")

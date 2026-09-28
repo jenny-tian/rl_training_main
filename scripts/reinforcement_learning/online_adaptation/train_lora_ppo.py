@@ -22,7 +22,7 @@ from isaaclab.app import AppLauncher
 from rl_training.online_adaptation.runner_contract import (
     configure_forward_command as _configure_forward_command,
     pin_forward_observation as _pin_forward_observation,
-    seeded_initial_reset, actuator_delay_metadata,
+    seeded_initial_reset, actuator_delay_metadata, configure_initial_state, initial_root_state,
 )
 
 from rl_training.online_adaptation.safety import risk_gate_kwargs
@@ -612,6 +612,7 @@ def main() -> int:
         env_cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
         env_cfg.seed = args.seed
         env_cfg.scene.num_envs = 1
+        initial_state_contract = configure_initial_state(env_cfg, args.initial_state)
         _configure_forward_command(env_cfg.commands.base_velocity, args.forward_speed)
         env_cfg.terminations.time_out = None
         if args.flat_retention_probe:
@@ -977,6 +978,8 @@ def main() -> int:
                 "step_dt": control_step_dt, "sampling_contract": SAMPLING_CONTRACT,
                 "actuator_delays": actuator_delay_metadata(reward_adapter.robot),
                 "reset_rng_contract": "seed_before_initial_physical_reset_v1",
+                "initial_state_contract": initial_state_contract,
+                "initial_root_state": initial_root_state(reward_adapter.robot),
             })
             run_started = time.perf_counter()
             if managed is not None:
