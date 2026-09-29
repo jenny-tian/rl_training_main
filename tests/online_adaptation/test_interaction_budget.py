@@ -236,3 +236,16 @@ def test_short_fall_streak_survives_resume_and_probes(tmp_path, breaking_outcome
                 start(budget, tmp_path)
             budget.lock_evaluation()
             start(budget, tmp_path, phase="evaluation")
+
+
+def test_zero_selection_budget_disables_paid_probes(tmp_path):
+    m = manifest(tmp_path)
+    m["limits"]["selection"] = 0
+    with InteractionBudget(tmp_path / "ledger", manifest=m) as budget:
+        assert budget.remaining("selection") == 0
+        with pytest.raises(ValueError):
+            start(budget, tmp_path, phase="selection")
+        run = start(budget, tmp_path)
+        budget.reserve(run, 1)
+        budget.commit(run, 1)
+        budget.finish(run, steps=1, outcome={})

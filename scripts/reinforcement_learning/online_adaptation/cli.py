@@ -332,6 +332,7 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=2_000)
     parser.add_argument("--run-dir", default="logs/online_adaptation/demo")
     parser.add_argument("--trajectory-dtype", choices=("float16", "float32"), default="float16")
+    parser.add_argument("--target-critic-warmup-updates", type=int, default=1000)
     parser.add_argument("--min-replay-size", type=int, default=256)
     parser.add_argument("--replay-capacity", type=int, default=10_000)
     parser.add_argument("--updates-per-second", type=float, default=5.0)

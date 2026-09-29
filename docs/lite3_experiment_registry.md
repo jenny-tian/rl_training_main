@@ -93,3 +93,21 @@
 - retry定位：角点yaw的numpy.float64让Isaac reset产生Double姿态，与Float缓存冲突。修正为Python float，并使异常退出明确非零；追加 `physical_validated/` 同样9案例/0控制步，前两次诊断各只完成中心案例，不删除。
 
 - 完成：`physical_validated/audit.json` 的9案例全部通过；实际yaw/XY偏移与设定误差<1e-6，关节姿态一致。22碰撞体的连续范围证明给出最小平台余量1.1036949118 m、最小对地间隙0.0265100528 m。总控制步0，失败诊断保留。完整测试1575 passed, 7 skipped；managed perturbed-v1现绑定模型/reset几何证书。详见 [G0.6报告](lite3-g0-spawn-geometry-2026-09-29.md)。
+
+## G1-20260929-target-warmup-contract
+
+- 预登记工程验证：两路线独立从共同 base 开始，development rough_4cm seed101，learner seed7，perturbed-v1，速度0.3，deadline2000，最多GPU0/1各一worker。
+- 每路线 adaptation B=4512，含4000步冻结mean base目标域采样及最多512步后续学习；不做selection探针。先完成一个物理trial并检查checkpoint，再续跑剩余额度。evaluation最多1×64步，retention最多1×320步；总上限9792个实际控制transition。所有失败/不确定步均保留，不按结果补起点。
+- LoRA沿用rollout256、epochs2、原lr/rank；warmup只拟合critic，lambda=1 block return在截断处bootstrap，明确不是完整回合MC诊断；完成或离开warmup时清空buffer后才允许actor使用新样本。
+- SAC沿用n=1及现行网络、critic/actor每transition额度0.5/0.005，warmup不累计更新额度；收集完成后恰好1000次critic-only更新，再允许actor/alpha更新。actor联动的critic更新一并扣critic额度，仍保留novelty与安全门控。replay_capacity=5000、min_replay_size=256。initial_alpha=0.01沿用G0已验证的低温度工程配置（alpha=1曾触发TD守卫），此处不作超参数优越性结论。
+- 输出：`artifacts/g1_target_warmup_20260929/{lora,sac}/`。检查warmup累计计数、actor/alpha/optimizer不变、base动作等价、PPO旧样本丢弃、SAC预热拒绝时禁止actor、resume不重复预热、冻结阶段零写入。短评估只测执行契约，不做路线晋级或平地保持效果判定。
+- 保留完整步轨迹、SAC逐minibatch soft-target诊断和PPO块内value误差。完整回合4/2训练验证划分、两地形价值诊断及冻结效果验收仍是G1后续工作；不把训练内误差改善作为通过证据。
+
+- 启动前检查发现两处入口问题：无探针时selection=0被旧manifest校验拒绝；SAC新预热参数误加在独立train parser。两次均在物理worker前退出、0控制步，日志保留为`{lora,sac}_first.log`。修正为允许零selection预算且仍校验探针总额，并把参数接到实际play parser；新增真实supervisor→worker参数回归后原预算重试。
+
+- 运行中SAC多次20 ms控制超时，保留全部回合与reset序列；LoRA首trial完成后暂缓其续跑，让SAC单独执行，不放宽安全阈值。SAC在trial-00010累计4000物理采样步后完成1000次critic-only更新；该trial随后完成至206步，但完整预热记录把未计算actor_loss/alpha_loss的NaN占位直接放入严格JSON，summary落盘失败。ledger保留该trial为aborted，总计4087步、uncertain=0；checkpoint/float32完整trace/1000条更新诊断均保留，不重写原始状态。
+- 检查该checkpoint：target_warmup=4000/1000；actor和alpha Adam状态仍为空，alpha=0.01；critic Adam=1043（1000次预热＋随后87物理步中的43次常规critic更新）。本组不再追加SAC长采样。
+- 追加登记仅验证日志修复与恢复：独立`sac_logging_fix/`，新source-bound session，从原base新初始化；warmup=256、B=512、min_replay=128、critic-only=1000、其余沿用原SAC配置；eval1×64、retention1×320，上限896步。缩短warmup只用于工程回归，不是G1新候选或效果结论。新总上限10688步；LoRA原B及评估额度不变。旧SAC最后checkpoint仅作诊断证据，不跨源码静默续接或晋升。
+
+- 完成核验：本轮9748控制步（LoRA4896、SAC原诊断4087、SAC修复回归765），uncertain=0；两个主验证各4000个warmup动作均与base差异0。LoRA预热128次critic minibatch/0 actor，随后512步才发生2次actor更新；SAC1000次预热完成，原末trial仍为aborted。修复回归checkpoint续接不重复1000次预热；冻结阶段零更新/零replay写入，重复阶段调用新增0步。
+- 保留限制：SAC控制超时在单worker阶段也出现；修复回归冻结评估2步、平地251步提前结束，平地比较不合格，不能宣称保持能力或G1路线通过。原预热NaN只是未计算loss的日志占位；实际critic诊断有限，修复后严格JSON不含NaN。完整回归1592 passed, 7 skipped。详见[G1.1报告](lite3-g1-target-warmup-2026-09-29.md)及[验证JSON](lite3_g1_warmup_validation_20260929.json)。

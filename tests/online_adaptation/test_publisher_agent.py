@@ -1149,3 +1149,42 @@ def test_timeout_fallback_does_not_pause_the_next_control_step():
     assert timed_out.paused.all()
     assert not recovered.paused.any()
     assert recovered.actor_version is not None
+
+
+def test_base_warmup_records_zero_requested_residual_without_sampling(monkeypatch):
+    agent = make_agent()
+    actor, _ = agent.publisher.current()
+    monkeypatch.setattr(actor, "sample", lambda *a, **kw: pytest.fail("warmup sampled actor"))
+    base = torch.full((1, 1), .1)
+    decision = agent.begin_step(torch.ones(1, 2), base, safety_state(), deterministic=True, base_only=True)
+    assert torch.equal(decision.action, base)
+    trace = agent.pending_trajectory_fields()
+    assert torch.equal(trace["requested_action"], base)
+    assert torch.equal(trace["mean_action"], base)
+
+
+def test_target_critic_warmup_runs_once_without_actor_or_alpha_mutation():
+    import copy
+    from rl_training.online_adaptation.target_warmup import TargetWarmup, pretrain_target_critic
+    agent = make_agent(batch_size=4, min_replay_size=4)
+    warmup = TargetWarmup("sac", 4, 3, collected_steps=4)
+    with pytest.raises(RuntimeError, match="distinct transitions"):
+        pretrain_target_critic(warmup, agent, on_update=lambda s: None)
+    agent.replay.add_batch(**make_agent_transition(1., batch=4))
+    before = copy.deepcopy(agent.updater.state_dict())
+    records = []
+    pretrain_target_critic(warmup, agent, on_update=records.append)
+    assert warmup.ready and len(records) == 3 and all(s.critic_updated and not s.actor_updated for s in records)
+    after = agent.updater.state_dict()
+    for key in ("actor", "actor_optimizer", "alpha_optimizer", "log_alpha"):
+        if isinstance(before[key], dict) and key == "actor":
+            for name, value in before[key].items():
+                assert torch.equal(value, after[key][name])
+        elif torch.is_tensor(before[key]):
+            assert torch.equal(before[key], after[key])
+        else:
+            assert before[key] == after[key]
+    resumed = TargetWarmup("sac", 4, 3)
+    resumed.restore(warmup.state_dict())
+    pretrain_target_critic(resumed, agent, on_update=records.append)
+    assert len(records) == 3

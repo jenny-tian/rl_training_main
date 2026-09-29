@@ -137,9 +137,23 @@
     "base_terrain_and_plane_parity_max_abs": 0
   },
   "not_yet_locked": [
-    "G1 target-domain 4000-step warmup and learning signal repairs",
+    "G1 complete-episode held-out value diagnostics, control-timeout diagnosis and learning-signal qualification",
     "score-based promotion/rollback and relative flat-retention acceptance rule",
     "final algorithm/configuration hashes and sealed terrain membership at G5"
   ],
-  "sealed_seeds_generated": false
+  "sealed_seeds_generated": false,
+  "target_warmup": {
+    "supervisor_default_steps": 4000,
+    "worker_default_steps": 0,
+    "scope": "managed finite-horizon-v1 target-domain sessions",
+    "collection_policy": "frozen mean base, no actor/alpha updates",
+    "lora_critic_targets": "lambda=1 block return; bootstrap incomplete blocks; not held-out complete-episode MC",
+    "lora_actor_sample_rule": "discard warmup rows and collect fresh on-policy rollout",
+    "sac_critic_only_updates": 1000,
+    "sac_minimum_rows": "at least max(batch_size, min_replay_size) distinct stored transitions",
+    "sac_warmup_credit": "no actor or ordinary critic update credits from warmup collection",
+    "resume": "checkpointed collection and critic-pretraining counts; no silent source/configuration migration",
+    "report": "docs/lite3-g1-target-warmup-2026-09-29.md",
+    "limits": "engineering contract validation; final algorithm qualification and sealed protocol remain pending"
+  }
 }

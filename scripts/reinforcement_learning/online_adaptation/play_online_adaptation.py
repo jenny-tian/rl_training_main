@@ -211,11 +211,13 @@ class TransitionUpdateBudget:
             self._critic -= 1.0
             return True
 
-    def take_actor(self) -> bool:
+    def take_actor(self, *, consume_critic: bool = False) -> bool:
         with self._lock:
-            if self._actor < 1.0:
+            if self._actor < 1.0 or (consume_critic and self._critic < 1.0):
                 return False
             self._actor -= 1.0
+            if consume_critic:
+                self._critic -= 1.0
             return True
 
     def clear_actor(self) -> None:
@@ -804,6 +806,18 @@ def record_update_result(
     return actor_event
 
 
+def record_target_critic_update(*, stats, records, last_update, counters,
+                                step, adaptation_episode, path):
+    """Use the common null semantics for uncomputed actor/temperature losses."""
+    record_update_result(stats=stats, policy_drift=None, last_update=last_update,
+                         counters=counters, step=step, adaptation_episode=adaptation_episode)
+    record = dict(last_update)
+    serialized = json.dumps(record, sort_keys=True, allow_nan=False)
+    with Path(path).open("a") as stream:
+        stream.write(serialized + "\n")
+    records.append(record)
+
+
 def resolve_track_boundary_x(env_cfg: Any) -> float:
     if hasattr(env_cfg, "track_boundary_x"):
         return float(env_cfg.track_boundary_x)
@@ -1171,6 +1185,13 @@ def main() -> int:
             rough_amplitude=args.terrain_rough_amplitude,
         )
     learning_enabled = args.mode == "online" and not args.evaluation_only
+    if args.target_warmup_steps:
+        if args.update_schedule != "control-step" or args.n_step != 1:
+            raise ValueError("target warmup requires control-step updates and n=1")
+        if not 1 <= args.target_critic_warmup_updates <= 1000:
+            raise ValueError("target critic warmup updates must be in 1..1000")
+        if not max(128, args.min_replay_size) <= args.target_warmup_steps <= args.replay_capacity:
+            raise ValueError("target warmup must fit replay and provide at least one full 128-row minibatch")
     if task_objective is not None and learning_enabled and (
         args.flat_replay is not None or args.residual_checkpoint is not None or args.novelty_baseline_in is not None
     ):
@@ -1472,6 +1493,10 @@ def main() -> int:
                 online_agent.publisher.publish(online_agent.updater.actor, online_agent.updater.version)
 
             metrics = RollingMetrics(window=250)
+            from rl_training.online_adaptation.target_warmup import restore_target_warmup, pretrain_target_critic
+            target_warmup = restore_target_warmup(args, "sac", restored_experiment)
+            warmup_before = target_warmup.state_dict()
+            warmup_update_records = []
             novelty_gate = NoveltyGate(
                 NoveltyConfig(
                     calibration_steps=args.novelty_calibration_steps,
@@ -1598,9 +1623,26 @@ def main() -> int:
                             episode_snapshot = active_episode
                             step_snapshot = current_step
                         budget_snapshot = update_budget.snapshot()
+                        if not target_warmup.ready:
+                            if not target_warmup.collecting:
+                                def record_warmup_update(stats):
+                                    with shared_lock:
+                                        record_target_critic_update(
+                                            stats=stats, records=warmup_update_records, last_update=last_update,
+                                            counters=counters, step=step_snapshot, adaptation_episode=episode_snapshot,
+                                            path=run_dir / "target_warmup_updates.jsonl",
+                                        )
+                                    if len(warmup_update_records) % 100 == 0:
+                                        print(f"[target warmup] critic updates={len(warmup_update_records)}", flush=True)
+                                with control_update_lock, update_lock:
+                                    pretrain_target_critic(target_warmup, online_agent, on_update=record_warmup_update)
+                                stable_manager.checkpoint(online_agent.updater)
+                            update_cycle_complete.set()
+                            continue
                         actor_due = (
                             (control_step_updates or now >= next_actor)
                             and budget_snapshot["actor"] >= 1.0
+                            and (not args.target_warmup_steps or budget_snapshot["critic"] >= 1.0)
                             and checkpointed_episode > 0
                             and checkpointed_episode == episode_snapshot
                             and online_agent.should_update_actor(
@@ -1613,7 +1655,7 @@ def main() -> int:
                         stats = None
                         policy_drift = None
                         if actor_due:
-                            if not update_budget.take_actor():
+                            if not update_budget.take_actor(consume_critic=bool(args.target_warmup_steps)):
                                 continue
                             critic_batch = online_agent.sample_critic_batch()
                             actor_batch = online_agent.sample_actor_batch()
@@ -1871,7 +1913,8 @@ def main() -> int:
                     with torch.inference_mode():
                         raw_base_action = base_policy(observation)
                         base_action = clip_lite3_policy_action(raw_base_action)
-                    deterministic_control = control_is_deterministic(
+                    warmup_step = learning_enabled and target_warmup.collecting
+                    deterministic_control = warmup_step or control_is_deterministic(
                         stochastic_control=args.stochastic_control,
                         adapting_stochastic_control=args.adapting_stochastic_control,
                         learning_enabled=learning_enabled,
@@ -1885,6 +1928,7 @@ def main() -> int:
                         safety_state,
                         deterministic=deterministic_control,
                         terrain_valid=terrain_valid,
+                        base_only=warmup_step,
                     )
                     decision, rollback_fallback_used = enforce_prepared_rollback_fallback(
                         online_agent=online_agent,
@@ -2297,10 +2341,13 @@ def main() -> int:
                         critic_transitions=committed_global,
                         actor_transitions=committed_adaptation,
                     )
-                update_budget.add(
-                    critic_transitions=committed_global,
-                    actor_transitions=committed_adaptation,
-                )
+                if warmup_step:
+                    target_warmup.record_transition()
+                else:
+                    update_budget.add(
+                        critic_transitions=committed_global,
+                        actor_transitions=committed_adaptation,
+                    )
 
                 if performance_monitoring_enabled:
                     with shared_lock:
@@ -2385,8 +2432,9 @@ def main() -> int:
                 if learning_enabled and control_step_updates:
                     update_cycle_complete.clear()
                     update_wakeup.set()
-                    if not update_cycle_complete.wait(timeout=30.0):
-                        raise RuntimeError("control-step SAC update did not complete")
+                    while not update_cycle_complete.wait(timeout=30.0):
+                        if not updater_thread.is_alive() or target_warmup.ready or target_warmup.collecting:
+                            raise RuntimeError("control-step SAC update did not complete")
                     if update_errors:
                         raise RuntimeError("control-step SAC updater failed") from update_errors[0]
 
@@ -2410,6 +2458,7 @@ def main() -> int:
                     episode_snapshot = active_episode
                     last_rollback_snapshot = last_rollback_reason
                 record = {
+                    "target_warmup_collection": warmup_step,
                     "step": step,
                     "mode": args.mode,
                     "in_heldout": in_heldout,
@@ -2573,6 +2622,7 @@ def main() -> int:
                             "novelty_gate": novelty_gate.state_dict(),
                             "stable_manager": stable_manager.state_dict(),
                             "update_budget": update_budget.snapshot() if managed is not None else None,
+                            "target_warmup": target_warmup.state_dict(),
                         },
                     )
                     checkpoint_saved = True
@@ -2597,6 +2647,10 @@ def main() -> int:
                 }
             )
             summary = {
+                "target_warmup_before": warmup_before,
+                "target_warmup": target_warmup.state_dict(),
+                "warmup_critic_updates": len(warmup_update_records),
+                "warmup_critic_diagnostics": warmup_update_records,
                 "mode": args.mode,
                 "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "task_stop_reason": None if task_boundary is None else task_boundary.reason,

@@ -35,6 +35,7 @@ def worker_configuration(args):
 
 
 def add_session_args(parser):
+    parser.add_argument("--target-warmup-steps", type=int, default=0)
     parser.add_argument("--initial-state", choices=("fixed", "perturbed-v1"), default="fixed")
     parser.add_argument("--session-ledger", default=None)
     parser.add_argument("--session-run-id", default=None)
@@ -133,6 +134,10 @@ class ManagedTrial:
 
 
 def attach_session(args, algorithm):
+    if args.target_warmup_steps < 0:
+        raise ValueError("target warmup steps must be nonnegative")
+    if args.target_warmup_steps and (not args.session_ledger or args.task_objective != "finite-horizon-v1"):
+        raise ValueError("target warmup requires a managed finite-horizon session")
     if bool(args.session_ledger) != bool(args.session_run_id):
         raise ValueError("session ledger and trial ID must be provided together")
     if not args.session_ledger:

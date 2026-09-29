@@ -36,6 +36,7 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
               "--seed", str(args.seed), "--forward-speed", "0.3", "--max-steps", str(steps),
               "--task-objective", "finite-horizon-v1", "--task-deadline-steps", str(args.deadline_steps),
               "--initial-state", "perturbed-v1", "--trajectory-dtype", "float32", "--residual-rate-limit", "0.03",
+              "--target-warmup-steps", str(args.target_warmup_steps),
               "--headless", "--device", args.device,
               f"--kit_args=--/renderer/activeGpu={args.device.split(':')[-1]} --/renderer/multiGpu/enabled=false --/renderer/multiGpu/autoEnable=false --/renderer/multiGpu/maxGpuCount=1"]
     common += ["--flat-retention-probe" if flat else "--require-track-completion"]
@@ -52,7 +53,7 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
     if args.worker_options is not None:
         options = json.loads(Path(args.worker_options).read_text())
         allowed = ({"replay-capacity", "min-replay-size", "n-step", "initial-alpha", "actor-updates-per-transition",
-                    "critic-updates-per-transition", "novelty-calibration-steps"} if args.algorithm == "sac" else
+                    "critic-updates-per-transition", "novelty-calibration-steps", "target-critic-warmup-updates"} if args.algorithm == "sac" else
                    {"rollout-steps", "ppo-epochs", "minibatch-size", "actor-lr", "critic-lr", "rank"})
         if not isinstance(options, dict) or not set(options) <= allowed:
             raise ValueError("worker options contain unsupported session overrides")
@@ -106,6 +107,7 @@ def main():
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--phase", choices=("adaptation", "evaluation", "retention"), default="adaptation")
     parser.add_argument("--budget-steps", type=int, default=40000)
+    parser.add_argument("--target-warmup-steps", type=int, default=4000)
     parser.add_argument("--selection-budget", type=int, default=8000)
     parser.add_argument("--evaluation-steps", type=int, default=20000)
     parser.add_argument("--evaluation-trials", type=int, default=10)
@@ -118,6 +120,8 @@ def main():
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--worker-options", default=None)
     args = parser.parse_args()
+    if not 0 <= args.target_warmup_steps <= args.budget_steps:
+        parser.error("target warmup must fit within the adaptation budget")
     if (args.evaluation_trials < 1 or args.retention_trials < 1
             or not 1 <= args.retention_trial_steps <= args.deadline_steps
             or not 1 <= args.trial_steps <= args.deadline_steps) or (args.max_trials is not None and args.max_trials < 1):

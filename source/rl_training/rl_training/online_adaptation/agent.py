@@ -321,6 +321,7 @@ class OnlineAdaptationAgent:
         safety_state: SafetyState,
         deterministic: bool,
         terrain_valid: torch.Tensor | None = None,
+        base_only: bool = False,
     ) -> SafetyDecision:
         if self._pending is not None:
             raise RuntimeError("finish_step must be called before the next begin_step")
@@ -343,7 +344,11 @@ class OnlineAdaptationAgent:
         history = self.history.snapshot()
         actor, version = self.publisher.current()
         with torch.no_grad():
-            residual, _, mean_residual = actor.sample(history, frame, base_action, deterministic=deterministic)
+            if base_only:
+                residual = torch.zeros_like(base_action)
+                mean_residual = residual
+            else:
+                residual, _, mean_residual = actor.sample(history, frame, base_action, deterministic=deterministic)
             residual = residual * residual_gain
             residual = torch.where(batch_terrain_valid, residual, torch.zeros_like(residual))
             mean_residual = torch.where(batch_terrain_valid, mean_residual * residual_gain, torch.zeros_like(mean_residual))

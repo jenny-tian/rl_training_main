@@ -99,6 +99,12 @@ class PPOUpdateStats:
     total_rollout_samples: int = 0
     candidate_anchor_mse: float | None = None
     candidate_terrain_anchor_mse: float | None = None
+    actor_updated: bool = True
+    critic_minibatches: int = 0
+    target_variance: float | None = None
+    value_rmse_before: float | None = None
+    value_rmse_after: float | None = None
+    value_bias_after: float | None = None
 
 
 def _as_column(value: Tensor, name: str) -> Tensor:
@@ -298,6 +304,74 @@ class OnlinePPOUpdater:
             self.policy_version = previous_version
             raise
 
+    def update_critic(self, rollout: PPORollout) -> PPOUpdateStats:
+        """Fit frozen-base rollout returns without evaluating an actor likelihood.
+
+        Lambda-one targets bootstrap incomplete blocks. Only a complete task
+        trajectory with a terminal last row provides a full reward-only MC target.
+        These rows must be discarded before subsequent on-policy actor updates.
+        """
+        self._check_rollout(rollout)
+        _, returns = rollout.compute_returns(self.config.gamma, 1.0)
+        valid = (torch.ones_like(returns, dtype=torch.bool) if rollout.valid_mask is None
+                 else rollout.valid_mask.bool())
+        indices = valid[:, 0].nonzero().flatten()
+        if not indices.numel():
+            raise ValueError("rollout contains no valid rows")
+        observations = rollout.observations if rollout.critic_observations is None else rollout.critic_observations
+        targets = returns.detach()
+        before = rollout.old_values.detach()[valid].double()
+        selected = targets[valid].double()
+        variance = float(selected.var(unbiased=False))
+        snapshot = self._snapshot()
+        minibatches = 0
+        loss_total = 0.0
+        count = 0
+        try:
+            for _ in range(self.config.epochs):
+                order = indices[torch.randperm(indices.numel(), device=indices.device)]
+                for start in range(0, len(order), self.config.minibatch_size):
+                    idx = order[start:start + self.config.minibatch_size]
+                    value = _critic_value(self.critic, observations[idx])
+                    loss = 0.5 * (value - targets[idx]).square().mean() * self.config.value_coef
+                    if not bool(torch.isfinite(loss)):
+                        raise ValueError("non-finite warmup critic loss")
+                    self.critic_optimizer.zero_grad(set_to_none=True)
+                    loss.backward()
+                    parameters = [p for p in self.critic.parameters() if p.requires_grad]
+                    if any(p.grad is not None and not bool(torch.isfinite(p.grad).all()) for p in parameters):
+                        raise ValueError("non-finite warmup critic gradient")
+                    if self.config.max_grad_norm:
+                        nn.utils.clip_grad_norm_(parameters, self.config.max_grad_norm)
+                    self.critic_optimizer.step()
+                    minibatches += 1
+                    count += len(idx)
+                    loss_total += float(loss.detach()) * len(idx)
+            if any(not bool(torch.isfinite(p).all()) for p in self.critic.parameters()):
+                raise ValueError("non-finite warmup critic parameters")
+            if self.config.max_parameter_abs is not None and any(
+                bool(p.detach().abs().max() > self.config.max_parameter_abs) for p in self.critic.parameters()
+            ):
+                raise ValueError("warmup critic parameter limit")
+            with torch.no_grad():
+                after = _critic_value(self.critic, observations)[valid].double()
+        except BaseException:
+            self._restore(snapshot)
+            raise
+        return PPOUpdateStats(
+            accepted=True, rejection_reason=None, approx_kl=0.0, actor_loss=0.0,
+            value_loss=loss_total / count, entropy=0.0, clip_fraction=0.0, num_samples=count,
+            policy_version_before=self.policy_version, policy_version_after=self.policy_version,
+            value_mean=float(before.mean()), return_mean=float(selected.mean()),
+            explained_variance=(1.0 - float((selected - before).var(unbiased=False)) / variance
+                                if variance > 1e-12 else None),
+            num_valid_samples=len(indices), total_rollout_samples=rollout.length,
+            actor_updated=False, critic_minibatches=minibatches, target_variance=variance,
+            value_rmse_before=float((before - selected).square().mean().sqrt()),
+            value_rmse_after=float((after - selected).square().mean().sqrt()),
+            value_bias_after=float((after - selected).mean()),
+        )
+
     def update(
         self,
         rollout: PPORollout,
@@ -359,6 +433,7 @@ class OnlinePPOUpdater:
             rollout.observations if rollout.critic_observations is None else rollout.critic_observations
         )
         total_actor = total_value = total_entropy = total_clip = 0.0
+        critic_minibatches = 0
         total_count = 0
         # A deterministic permutation per epoch is sufficient; random state is
         # captured by the session checkpoint in the caller.
@@ -397,6 +472,7 @@ class OnlinePPOUpdater:
                 if self.config.max_grad_norm:
                     nn.utils.clip_grad_norm_([p for p in self.critic.parameters() if p.requires_grad], self.config.max_grad_norm)
                 self.critic_optimizer.step()
+                critic_minibatches += 1
 
                 count = int(idx.numel())
                 total_actor += float(actor_loss.detach()) * count
@@ -457,6 +533,7 @@ class OnlinePPOUpdater:
                 False, reason, approx_kl, total_actor / total_count, total_value / total_count,
                 total_entropy / total_count, total_clip / total_count, total_count,
                 self.policy_version, self.policy_version,
+                actor_updated=False, critic_minibatches=critic_minibatches,
                 candidate_anchor_mse=anchor_mse,
                 candidate_terrain_anchor_mse=terrain_anchor_mse,
                 **diagnostics,
@@ -467,6 +544,7 @@ class OnlinePPOUpdater:
             True, None, approx_kl, total_actor / total_count, total_value / total_count,
             total_entropy / total_count, total_clip / total_count, total_count,
             previous, self.policy_version,
+            critic_minibatches=critic_minibatches,
             candidate_anchor_mse=anchor_mse,
             candidate_terrain_anchor_mse=terrain_anchor_mse,
             **diagnostics,

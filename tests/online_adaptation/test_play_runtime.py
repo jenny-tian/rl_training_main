@@ -1947,3 +1947,24 @@ def test_new_physical_trial_restores_critic_credit_but_discards_episode_actor_cr
         with pytest.raises(ValueError, match="update budget"):
             budget.restore_for_new_trial(invalid)
     assert budget.snapshot()["critic"] == 11.5
+
+
+def test_target_warmup_records_and_summary_share_strict_json_null_semantics(tmp_path):
+    from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import record_target_critic_update
+    records, last = [], {}
+    counters = RuntimeCounters()
+    path = tmp_path / 'updates.jsonl'
+    for _ in range(2):
+        record_target_critic_update(
+            stats=make_update_stats(actor_loss=float('nan'), alpha_loss=float('nan'), actor_updated=False),
+            records=records, last_update=last, counters=counters,
+            step=4000, adaptation_episode=0, path=path,
+        )
+    summary = tmp_path / 'episode_summary.json'
+    write_episode_summary(summary, {'warmup_critic_diagnostics': records})
+    assert 'NaN' not in path.read_text() and 'NaN' not in summary.read_text()
+    assert len(records) == counters.critic_updates == 2 and counters.actor_updates == 0
+    assert [json.loads(s) for s in path.read_text().splitlines()] == records
+    assert all(r['actor_loss'] is None and r['alpha_loss'] is None for r in records)
+    last['actor_loss'] = 99.
+    assert records[0]['actor_loss'] is None

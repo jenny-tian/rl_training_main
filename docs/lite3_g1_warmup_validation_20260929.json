@@ -1,0 +1,363 @@
+{
+  "schema": "lite3_g1_warmup_validation_v1",
+  "algorithms": {
+    "lora": {
+      "spent": {
+        "adaptation": 4512,
+        "evaluation": 64,
+        "flat_selection": 0,
+        "retention": 320,
+        "selection": 0,
+        "warmup": 0
+      },
+      "uncertain_steps": 0,
+      "source_sha256": "b3f6b7b318f8c53958e64d5cdf59ddbcceee6784872f272011947c2dddefb0d1",
+      "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "warmup_rows": 4000,
+      "max_warmup_base_action_difference": {
+        "requested_action": 0.0,
+        "mean_action": 0.0,
+        "executed_action": 0.0
+      },
+      "final_warmup": {
+        "algorithm": "lora",
+        "required_steps": 4000,
+        "required_critic_updates": 0,
+        "collected_steps": 4000,
+        "critic_updates": 128
+      },
+      "diagnostics": {
+        "critic_only_blocks": 16,
+        "critic_only_minibatches": 128,
+        "blocks_with_lower_training_rmse": 14,
+        "target_variance_min": 88.3550695937678,
+        "target_variance_max": 1660.7470043006379,
+        "limits": "Within-block bootstrapped returns; no held-out MC value claim"
+      },
+      "trials": [
+        {
+          "id": "trial-00000",
+          "phase": "adaptation",
+          "steps": 2000,
+          "actor_updates": 0,
+          "critic_updates": 64,
+          "stop_reason": "task_timeout",
+          "warmup_before": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 0,
+            "critic_updates": 0
+          },
+          "warmup_after": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 2000,
+            "critic_updates": 64
+          }
+        },
+        {
+          "id": "trial-00001",
+          "phase": "adaptation",
+          "steps": 2000,
+          "actor_updates": 0,
+          "critic_updates": 64,
+          "stop_reason": "task_timeout",
+          "warmup_before": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 2000,
+            "critic_updates": 64
+          },
+          "warmup_after": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          }
+        },
+        {
+          "id": "trial-00002",
+          "phase": "adaptation",
+          "steps": 512,
+          "actor_updates": 2,
+          "critic_updates": 16,
+          "stop_reason": "collector_cutoff",
+          "warmup_before": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          },
+          "warmup_after": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          }
+        },
+        {
+          "id": "trial-00003",
+          "phase": "evaluation",
+          "steps": 64,
+          "actor_updates": 0,
+          "critic_updates": 0,
+          "stop_reason": "collector_cutoff",
+          "warmup_before": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          },
+          "warmup_after": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          }
+        },
+        {
+          "id": "trial-00004",
+          "phase": "retention",
+          "steps": 320,
+          "actor_updates": 0,
+          "critic_updates": 0,
+          "stop_reason": "collector_cutoff",
+          "warmup_before": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          },
+          "warmup_after": {
+            "algorithm": "lora",
+            "required_steps": 4000,
+            "required_critic_updates": 0,
+            "collected_steps": 4000,
+            "critic_updates": 128
+          }
+        }
+      ]
+    },
+    "sac_logging_fix": {
+      "spent": {
+        "adaptation": 512,
+        "evaluation": 2,
+        "flat_selection": 0,
+        "retention": 251,
+        "selection": 0,
+        "warmup": 0
+      },
+      "uncertain_steps": 0,
+      "source_sha256": "aee474506cc352470d50ac49bc0f475192ab5c7432579ac0ac5564d2cb40edf5",
+      "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "warmup_rows": 256,
+      "max_warmup_base_action_difference": {
+        "requested_action": 0.0,
+        "mean_action": 0.0,
+        "executed_action": 0.0
+      },
+      "final_warmup": {
+        "algorithm": "sac",
+        "required_steps": 256,
+        "required_critic_updates": 1000,
+        "collected_steps": 256,
+        "critic_updates": 1000
+      },
+      "diagnostics": {
+        "critic_loss": {
+          "first": 4.985787391662598,
+          "last": 0.007251576986163855,
+          "minimum": 0.003260861150920391,
+          "maximum": 4.985787391662598
+        },
+        "mean_target_q": {
+          "first": 1.6205438375473022,
+          "last": 8.595087051391602,
+          "minimum": 1.5829267501831055,
+          "maximum": 8.665099143981934
+        },
+        "mean_td_error": {
+          "first": 1.6317638158798218,
+          "last": 0.05316026136279106,
+          "minimum": 0.02784128673374653,
+          "maximum": 1.6317638158798218
+        },
+        "mean_entropy_bonus": {
+          "first": 0.07754408568143845,
+          "last": 0.0785912275314331,
+          "minimum": 0.07408714294433594,
+          "maximum": 0.08057768642902374
+        },
+        "alpha": {
+          "first": 0.009999999776482582,
+          "last": 0.009999999776482582,
+          "minimum": 0.009999999776482582,
+          "maximum": 0.009999999776482582
+        }
+      },
+      "trials": [
+        {
+          "id": "trial-00000",
+          "phase": "adaptation",
+          "steps": 262,
+          "actor_updates": 0,
+          "critic_updates": 1002,
+          "stop_reason": "safety_failure",
+          "warmup_before": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 0,
+            "critic_updates": 0
+          },
+          "warmup_after": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          }
+        },
+        {
+          "id": "trial-00001",
+          "phase": "adaptation",
+          "steps": 250,
+          "actor_updates": 0,
+          "critic_updates": 125,
+          "stop_reason": "collector_cutoff",
+          "warmup_before": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          },
+          "warmup_after": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          }
+        },
+        {
+          "id": "trial-00002",
+          "phase": "evaluation",
+          "steps": 2,
+          "actor_updates": 0,
+          "critic_updates": 0,
+          "stop_reason": "safety_failure",
+          "warmup_before": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          },
+          "warmup_after": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          }
+        },
+        {
+          "id": "trial-00003",
+          "phase": "retention",
+          "steps": 251,
+          "actor_updates": 0,
+          "critic_updates": 0,
+          "stop_reason": "safety_failure",
+          "warmup_before": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          },
+          "warmup_after": {
+            "algorithm": "sac",
+            "required_steps": 256,
+            "required_critic_updates": 1000,
+            "collected_steps": 256,
+            "critic_updates": 1000
+          }
+        }
+      ]
+    }
+  },
+  "actual_control_transitions": 9748,
+  "aborted_sac_evidence": {
+    "status": "validated_saved_evidence_formal_trial_stays_aborted",
+    "formal_last_trial_status": "aborted",
+    "actual_control_transitions": 4087,
+    "warmup_rows": 4000,
+    "max_warmup_base_action_difference": 0,
+    "actor_unchanged_from_first_checkpoint": true,
+    "actor_and_alpha_optimizer_entries": 0,
+    "critic_optimizer_steps": [
+      1043
+    ],
+    "target_warmup": {
+      "algorithm": "sac",
+      "required_steps": 4000,
+      "required_critic_updates": 1000,
+      "collected_steps": 4000,
+      "critic_updates": 1000
+    },
+    "control_timeout_trials": 11,
+    "checkpoint_sha256": "86a0b55b4782854c055b44cba12f4e1aeceebb9957f331ed4d73af48596e4890",
+    "uncertain_steps": 0,
+    "diagnostics": {
+      "critic_loss": {
+        "first": 4.817100524902344,
+        "last": 0.038985297083854675,
+        "minimum": 0.011392598040401936,
+        "maximum": 4.817100524902344
+      },
+      "mean_q": {
+        "first": -0.0005641723982989788,
+        "last": 8.212469100952148,
+        "minimum": -0.0005641723982989788,
+        "maximum": 8.373851776123047
+      },
+      "mean_target_q": {
+        "first": 1.5908781290054321,
+        "last": 8.252562522888184,
+        "minimum": 1.5514739751815796,
+        "maximum": 8.416297912597656
+      },
+      "mean_td_error": {
+        "first": 1.591442346572876,
+        "last": 0.11391359567642212,
+        "minimum": 0.051472559571266174,
+        "maximum": 1.591442346572876
+      },
+      "mean_entropy_bonus": {
+        "first": 0.07720057666301727,
+        "last": 0.07844705879688263,
+        "minimum": 0.07373002171516418,
+        "maximum": 0.08032132685184479
+      },
+      "alpha": {
+        "first": 0.009999999776482582,
+        "last": 0.009999999776482582,
+        "minimum": 0.009999999776482582,
+        "maximum": 0.009999999776482582
+      }
+    },
+    "failure": "Uncomputed actor_loss/alpha_loss NaN placeholders prevented strict summary serialization; original evidence unchanged",
+    "limits": "In-training stochastic soft Bellman residuals; no held-out or task-success claim"
+  },
+  "status": "checks_passed_with_retained_aborted_diagnostic"
+}

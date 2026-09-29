@@ -31,6 +31,7 @@ from rl_training.online_adaptation.task_objective import (
     qualification_failure,
 )
 from rl_training.online_adaptation.managed_trial import add_session_args, attach_session
+from rl_training.online_adaptation.target_warmup import restore_target_warmup
 from rl_training.online_adaptation.checkpointing import capture_rng_state
 from scripts.reinforcement_learning.online_adaptation.cli import add_risk_gate_args
 
@@ -835,6 +836,8 @@ def main() -> int:
                     if loaded_checkpoint.get("rng_state") is None:
                         raise ValueError("managed learning resume requires its saved RNG state")
                     managed.saved_rng = loaded_checkpoint["rng_state"]
+            target_warmup = restore_target_warmup(args, "lora", loaded_checkpoint)
+            warmup_before = target_warmup.state_dict()
             effective_runtime_config = (
                 read_ppo_runtime_config(session)
                 if args.evaluation_only else apply_ppo_runtime_config(
@@ -985,6 +988,9 @@ def main() -> int:
             if managed is not None:
                 managed.restore_rng()
             for step in range(args.max_steps):
+                warmup_step = not args.evaluation_only and target_warmup.collecting
+                if not args.evaluation_only and not warmup_step and not target_warmup.ready:
+                    raise RuntimeError("target warmup has no accepted critic fit")
                 control_started = time.perf_counter()
                 previous_residual = current_residual.detach().clone()
                 terminal_capture.clear()
@@ -1010,6 +1016,11 @@ def main() -> int:
                         control_mean = requested_action
                         old_log_prob = torch.zeros(1, 1, device=args.device)
                         old_value = torch.zeros(1, 1, device=args.device)
+                    elif warmup_step:
+                        requested_action = reference_mean
+                        control_mean = reference_mean
+                        old_log_prob = torch.zeros(1, 1, device=args.device)
+                        old_value = critic(critic_obs_tensor)
                     else:
                         distribution = control_policy.get_distribution(obs_tensor)
                         control_mean = distribution.mean
@@ -1219,6 +1230,7 @@ def main() -> int:
                     anchor_means.append(reference_mean.detach())
                     pending_valid_steps += int(transition.valid_mask.sum().item())
                 rows.append({
+                    "target_warmup_collection": warmup_step,
                     "step": step + 1,
                     "reward": float(reward_tensor.mean()),
                     "old_value": None if args.evaluation_only else float(old_value.mean()),
@@ -1304,7 +1316,21 @@ def main() -> int:
                     progress_monitor = ForwardProgressMonitor(min_delta_m=0.05, stall_steps=100)
                     current_residual.zero_()
                     previous_residual.zero_()
-                if (
+                if warmup_step:
+                    target_warmup.record_transition()
+                    if session.ready or learning_boundary is not None or step + 1 == args.max_steps or not target_warmup.collecting:
+                        if pending_valid_steps > 0:
+                            stats = session.update(force=True, update_actor=False)
+                            target_warmup.critic_updates += stats.critic_minibatches
+                            update_records.append(stats.__dict__)
+                            updates_stream.write(json.dumps(stats.__dict__, sort_keys=True) + "\n")
+                            updates_stream.flush()
+                        else:
+                            session.clear(discarded=True)
+                        anchor_observations.clear()
+                        anchor_means.clear()
+                        pending_valid_steps = 0
+                elif (
                     not args.evaluation_only
                     and (learning_boundary is not None or (
                         args.retain_terminal_learning and step + 1 == args.max_steps
@@ -1459,6 +1485,7 @@ def main() -> int:
                     "lora_parameter_count": lora_parameter_count(adapted_model),
                     "trainable_policy_parameter_count": sum(p.numel() for p in policy.parameters() if p.requires_grad),
                     "session": session.state_dict(),
+                    "target_warmup": target_warmup.state_dict(),
                     "rng_state": capture_rng_state() if managed is not None else None,
                     "rows": rows,
                     "updates": update_records,
@@ -1492,6 +1519,11 @@ def main() -> int:
                 }
             )
             summary = {
+                "target_warmup_before": warmup_before,
+                "target_warmup": target_warmup.state_dict(),
+                "warmup_critic_minibatches": sum(r.get("critic_minibatches", 0) for r in update_records if not r.get("actor_updated", True) and r["accepted"]),
+                "actor_updates": sum(bool(r.get("actor_updated", True)) and r["accepted"] for r in update_records),
+                "critic_updates": sum(r.get("critic_minibatches", 0) for r in update_records),
                 "mode": _evaluation_mode(args),
                 "total_reward": sum(row["reward"] for row in rows),
                 "evaluation_kind": "flat_retention" if args.flat_retention_probe else "terrain",
@@ -1559,7 +1591,7 @@ def main() -> int:
                     sum(bool(row["ppo_valid"]) for row in rows) / steps if steps else 0.0
                 ),
                 "actor_updates_before_novelty": 0,
-                "actor_updates_after_novelty": 0 if args.evaluation_only else len(update_records),
+                "actor_updates_after_novelty": sum(bool(r.get("actor_updated", True)) and r["accepted"] for r in update_records),
                 "novelty_entries": 0,
                 "rollbacks": 0 if args.evaluation_only else len(rollback_records),
                 "terminal_learning_updates": (

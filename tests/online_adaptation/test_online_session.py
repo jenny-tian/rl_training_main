@@ -320,3 +320,20 @@ def test_boundary_reward_is_used_and_unverified_candidate_keeps_rollback_target(
     restored.rollback("failed_probe")
     for key, value in stable["policy"].items():
         torch.testing.assert_close(restored.updater.policy.state_dict()[key], value)
+
+
+def test_critic_warmup_clears_rows_and_survives_finalize_resume():
+    policy, critic = Policy(), Critic()
+    updater = OnlinePPOUpdater(policy, critic, PPOConfig(target_kl=None))
+    session = OnlinePPOSession(updater, rollout_capacity=4)
+    session.append(block(policy, critic, n=3))
+    stats = session.update(force=True, update_actor=False)
+    assert not stats.actor_updated and session.pending_transitions == 0
+    assert session.counters.accepted_updates == 0
+    fitted = copy.deepcopy(critic.state_dict())
+    session.finalize_for_checkpoint()
+    session.load_state_dict(copy.deepcopy(session.state_dict()))
+    for key, value in critic.state_dict().items():
+        assert torch.equal(value, fitted[key])
+    session.append(block(policy, critic, n=4))
+    assert session.update().actor_updated

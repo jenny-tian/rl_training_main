@@ -169,12 +169,21 @@ class OnlinePPOSession:
         self,
         *,
         force: bool = False,
+        update_actor: bool = True,
         flat_anchor_observations: Any | None = None,
         flat_anchor_means: Tensor | None = None,
     ) -> PPOUpdateStats | None:
         if not self.ready and not force:
             return None
         rollout = self._combined()
+        if not update_actor:
+            if self._has_unverified_candidate:
+                raise ValueError("critic warmup requires an unchanged base actor")
+            stats = self.updater.update_critic(rollout)
+            self.clear(discarded=False)
+            # Preserve fitted values through finalization and physical resume.
+            self._stable_state = copy.deepcopy(self.updater.state_dict())
+            return stats
         # A candidate is promoted only after it has completed a clean block.
         # This makes a subsequent terminal event roll back the candidate that
         # was active during the failing block, instead of treating it as stable.

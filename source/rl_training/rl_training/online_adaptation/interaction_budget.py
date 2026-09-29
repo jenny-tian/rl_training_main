@@ -71,6 +71,8 @@ def validate_manifest(manifest):
     if set(manifest["limits"]) != {"adaptation", "selection", "evaluation", "retention"}:
         raise ValueError("session requires all budget limits")
     for key, value in manifest["limits"].items():
+        if key == "selection" and type(value) is int and value == 0:
+            continue
         positive_integer(value, key)
     if manifest["limits"]["selection"] > manifest["limits"]["adaptation"]:
         raise ValueError("selection is part of the adaptation budget")

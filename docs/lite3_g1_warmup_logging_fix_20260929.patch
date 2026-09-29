@@ -1,0 +1,29 @@
+--- a/scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py
++++ b/scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py
+@@ -806,0 +807,12 @@
++
++
++def record_target_critic_update(*, stats, records, last_update, counters,
++                                step, adaptation_episode, path):
++    """Use the common null semantics for uncomputed actor/temperature losses."""
++    record_update_result(stats=stats, policy_drift=None, last_update=last_update,
++                         counters=counters, step=step, adaptation_episode=adaptation_episode)
++    record = dict(last_update)
++    serialized = json.dumps(record, sort_keys=True, allow_nan=False)
++    with Path(path).open("a") as stream:
++        stream.write(serialized + "\n")
++    records.append(record)
+@@ -1617,4 +1628,0 @@
+-                                    record = asdict(stats)
+-                                    warmup_update_records.append(record)
+-                                    with (run_dir / "target_warmup_updates.jsonl").open("a") as stream:
+-                                        stream.write(json.dumps(record, sort_keys=True) + "\n")
+@@ -1622,3 +1630,5 @@
+-                                        record_update_result(stats=stats, policy_drift=None, last_update=last_update,
+-                                                             counters=counters, step=step_snapshot,
+-                                                             adaptation_episode=episode_snapshot)
++                                        record_target_critic_update(
++                                            stats=stats, records=warmup_update_records, last_update=last_update,
++                                            counters=counters, step=step_snapshot, adaptation_episode=episode_snapshot,
++                                            path=run_dir / "target_warmup_updates.jsonl",
++                                        )

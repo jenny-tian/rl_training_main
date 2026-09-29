@@ -414,3 +414,39 @@ def test_terrain_anchor_ignores_invalid_rollout_rows():
     stats = updater.update(rollout)
     assert stats.accepted
     assert stats.candidate_terrain_anchor_mse < 1e-5
+
+
+def test_critic_warmup_never_uses_actor_likelihood_or_optimizer(monkeypatch):
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(policy, critic, PPOConfig(epochs=2, minibatch_size=4))
+    rollout = make_rollout(policy, critic)
+    before = copy.deepcopy(updater.state_dict())
+    monkeypatch.setattr(policy, "evaluate_actions", lambda *args: pytest.fail("warmup used actor likelihood"))
+    stats = updater.update_critic(rollout)
+    assert stats.accepted and not stats.actor_updated and stats.critic_minibatches == 6
+    assert updater.policy_version == 0
+    for key, value in policy.state_dict().items():
+        assert torch.equal(value, before["policy"][key])
+    assert updater.actor_optimizer.state_dict() == before["actor_optimizer"]
+    assert any(not torch.equal(v, before["critic"][k]) for k, v in critic.state_dict().items())
+    assert stats.value_rmse_after < stats.value_rmse_before
+    json.dumps(stats.__dict__, allow_nan=False)
+
+
+def test_critic_warmup_uses_terminal_return_and_rolls_back_on_bad_gradient(monkeypatch):
+    policy, critic = GaussianPolicy(), Value()
+    updater = OnlinePPOUpdater(policy, critic, PPOConfig(gamma=.5, epochs=1))
+    rollout = make_rollout(policy, critic, length=1)
+    rollout = replace(rollout, terminated=torch.ones(1, 1), rewards=torch.full((1, 1), 3.))
+    stats = updater.update_critic(rollout)
+    assert stats.return_mean == pytest.approx(3.) and stats.explained_variance is None
+    before = copy.deepcopy(updater.state_dict())
+    hook = next(critic.parameters()).register_hook(lambda grad: grad * float("nan"))
+    with pytest.raises(ValueError, match="gradient"):
+        updater.update_critic(rollout)
+    hook.remove()
+    for key, value in critic.state_dict().items():
+        assert torch.equal(value, before["critic"][key])
+    for pid, state in updater.critic_optimizer.state_dict()["state"].items():
+        for key, value in state.items():
+            assert torch.equal(value, before["critic_optimizer"]["state"][pid][key])
