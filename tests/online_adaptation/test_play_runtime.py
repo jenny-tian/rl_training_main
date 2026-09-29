@@ -1958,7 +1958,7 @@ def test_target_warmup_records_and_summary_share_strict_json_null_semantics(tmp_
         record_target_critic_update(
             stats=make_update_stats(actor_loss=float('nan'), alpha_loss=float('nan'), actor_updated=False),
             records=records, last_update=last, counters=counters,
-            step=4000, adaptation_episode=0, path=path,
+            step=4000, adaptation_episode=0, path=path, residual_gain=.5,
         )
     summary = tmp_path / 'episode_summary.json'
     write_episode_summary(summary, {'warmup_critic_diagnostics': records})
@@ -1966,6 +1966,7 @@ def test_target_warmup_records_and_summary_share_strict_json_null_semantics(tmp_
     assert len(records) == counters.critic_updates == 2 and counters.actor_updates == 0
     assert [json.loads(s) for s in path.read_text().splitlines()] == records
     assert all(r['actor_loss'] is None and r['alpha_loss'] is None for r in records)
+    assert all(r['residual_gain'] == .5 for r in records)
     last['actor_loss'] = 99.
     assert records[0]['actor_loss'] is None
 

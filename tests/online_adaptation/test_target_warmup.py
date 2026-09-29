@@ -54,7 +54,7 @@ def test_supervisor_warmup_options_parse_in_actual_worker(tmp_path, algorithm):
     import json
     from scripts.reinforcement_learning.online_adaptation.run_adaptation_session import parser_for, worker_arguments
     options = tmp_path / "options.json"
-    options.write_text(json.dumps({"target-critic-warmup-updates": 1000} if algorithm == "sac" else {}))
+    options.write_text(json.dumps({"target-critic-warmup-updates": 1000, "critic-huber-delta": 1.} if algorithm == "sac" else {}))
     args = SimpleNamespace(algorithm=algorithm, phase="adaptation", base_checkpoint="base.pt",
                            terrain_seed=101, seed=7, deadline_steps=2000, target_warmup_steps=4000,
                            device="cuda:0", worker_options=str(options))
@@ -62,3 +62,4 @@ def test_supervisor_warmup_options_parse_in_actual_worker(tmp_path, algorithm):
     assert parsed.target_warmup_steps == 4000
     if algorithm == "sac":
         assert parsed.target_critic_warmup_updates == 1000
+        assert parsed.critic_huber_delta == 1.

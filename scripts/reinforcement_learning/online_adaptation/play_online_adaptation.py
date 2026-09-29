@@ -820,11 +820,13 @@ def record_update_result(
 
 
 def record_target_critic_update(*, stats, records, last_update, counters,
-                                step, adaptation_episode, path):
+                                step, adaptation_episode, path, residual_gain=None):
     """Use the common null semantics for uncomputed actor/temperature losses."""
     record_update_result(stats=stats, policy_drift=None, last_update=last_update,
                          counters=counters, step=step, adaptation_episode=adaptation_episode)
     record = dict(last_update)
+    if residual_gain is not None:
+        record["residual_gain"] = float(residual_gain)
     serialized = json.dumps(record, sort_keys=True, allow_nan=False)
     with Path(path).open("a") as stream:
         stream.write(serialized + "\n")
@@ -1649,6 +1651,7 @@ def main() -> int:
                                             stats=stats, records=warmup_update_records, last_update=last_update,
                                             counters=counters, step=step_snapshot, adaptation_episode=episode_snapshot,
                                             path=run_dir / "target_warmup_updates.jsonl",
+                                            residual_gain=online_agent.residual_gain,
                                         )
                                     if len(warmup_update_records) % 100 == 0:
                                         print(f"[target warmup] critic updates={len(warmup_update_records)}", flush=True)

@@ -53,7 +53,8 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
     if args.worker_options is not None:
         options = json.loads(Path(args.worker_options).read_text())
         allowed = ({"replay-capacity", "min-replay-size", "n-step", "initial-alpha", "actor-updates-per-transition",
-                    "critic-updates-per-transition", "novelty-calibration-steps", "target-critic-warmup-updates"} if args.algorithm == "sac" else
+                    "critic-updates-per-transition", "novelty-calibration-steps", "target-critic-warmup-updates",
+                    "critic-huber-delta"} if args.algorithm == "sac" else
                    {"rollout-steps", "ppo-epochs", "minibatch-size", "actor-lr", "critic-lr", "rank"})
         if not isinstance(options, dict) or not set(options) <= allowed:
             raise ValueError("worker options contain unsupported session overrides")

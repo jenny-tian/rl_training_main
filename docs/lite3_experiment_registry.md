@@ -177,3 +177,18 @@
 
 - 完成：101为lateral_violation/1833及task_timeout/2000，107为physical_failure/1404及physical_failure/1264，共6501/8000步，uncertain=0，无补抽。全部6501行进入replay，4个终止行均保留、bootstrap=0；15字段按存储dtype逐位对齐，零优化器状态/零更新，base动作等价。控制超时0，最大7.614 ms。
 - 两session已通过账本锁定evaluation，重复带阶段检查的锁定新增0步；未执行评估/保持回合，未用适应预算168/1333步不追加。本组未完成预热、不作策略或Q合格结论。新增日志和对账工具，全量回归1630 passed, 7 skipped。报告：[G1.6](lite3-g1-sac-boundaries-2026-09-29.md)，[验证JSON](lite3_g1_sac_boundary_validation_20260929.json)。自然终止覆盖已验证；非零请求覆盖仍待后续登记。
+
+## G1-20260929-sac-success-guard
+
+- 预登记零物理步数值复现：真实SAC网络（49维frame、25历史、12动作）、初始化seed7，128行合成batch，127个ordinary reward1.5和1个合法success reward305/mask0；其余mask1/gamma.99。固定alpha=.01、gain=.5、max loss800/mean TD10/grad norm3000，actor冻结，每种设置仅尝试一次critic更新，模型丢弃。
+- 比较原MSE与已有Huber(delta=1)单一损失改动；使用完全相同初始权重和seed23随机动作。检查是否因单个合法成功奖励触发loss守卫，同时验证actor/alpha不变。该检查不是策略收益证据，不修改奖励、终止bootstrap、TD/梯度守卫或增加训练预算。
+- 若MSE确实拒绝而Huber通过，则将Huber作为后续新source-bound SAC小预算候选登记，保持其他学习配置不变；不自动扩展为LN/UTD联合搜索。
+
+- 复现完成：MSE loss1458.2755触发critic_loss_limit；相同目标和初始化的Huber1 loss6.8721通过，mean TD均3.9484，actor/alpha不变。两次合成更新attempt、一次接受（模型丢弃），0物理步；首次辅助脚本因无用helper导入失败在更新前退出，0步/0更新。原结果存`artifacts/g1_sac_success_guard_20260929/report.json`。Huber降低大TD样本的梯度权重，不把该数值通过当作价值或策略性能改进。
+
+## G1-20260929-sac-huber-coverage
+
+- [预登记协议](lite3_g1_sac_huber_protocol_20260929.json)：SAC单一Huber1候选，development101/107、learner43、perturbed-v1，各独立B5000（4000冻结base采样＋最多1000后续学习），恰好1000 critic-only预热；保留n=1、现有网络、alpha=.01、更新额度.5/.005及原安全/TD/梯度阈值。
+- 每地形固定1×2000任务冻结评估、1×1000平地保持；另起fresh base session执行相同phase/reset seeds的1×2000＋1×1000对照。每地形上限11000，总≤22000控制步；最多两GPU、每卡一worker。原始诊断数据不作为免费适应样本，不做LN/UTD/n-step联合改动。
+- managed入口允许已有critic-huber-delta参数并纳入source/config哈希；预热逐更新日志补记当时residual_gain。无探针，候选固定最后提交checkpoint，冻结phase不能回流适应，重复phase调用不得新增试验。失败/aborted及成本全部保留，不按表现替换评估起点；预热失败不晋升其aborted checkpoint，本组不追加救援候选。
+- 观察真实非零请求、探索、接受更新、冻结动作增益、零更新/零replay写入和完整任务/平地指标。本组只有单适应seed及单评估起点，工程/覆盖诊断不等于G1路线晋级或显著性结论。

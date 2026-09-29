@@ -1,0 +1,31 @@
+{
+  "schema": "lite3_sac_huber_coverage_v1",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "learner_seed": 43,
+  "terrains": [
+    101,
+    107
+  ],
+  "candidate_change": "existing critic Huber delta=1 instead of MSE; no other learning change",
+  "adaptation_steps": 5000,
+  "warmup_steps": 4000,
+  "critic_warmup_updates": 1000,
+  "evaluation_trials": 1,
+  "evaluation_steps": 2000,
+  "retention_trials": 1,
+  "retention_steps": 1000,
+  "base_controls": "fresh frozen base on matching phase-local reset seeds, same two terrains",
+  "max_actual_control_transitions": 22000,
+  "worker_options": {
+    "replay-capacity": 5000,
+    "min-replay-size": 256,
+    "initial-alpha": 0.01,
+    "n-step": 1,
+    "target-critic-warmup-updates": 1000,
+    "critic-huber-delta": 1.0
+  },
+  "failure_policy": "Keep all failed/aborted trials and costs; no replacement starts in evaluation/retention; if warmup rejects, no promotion of aborted checkpoint and no new rescue candidate in this group.",
+  "selection": "last committed adaptation checkpoint; no best-evaluation selection",
+  "decision": "Engineering learning/action-coverage and frozen execution diagnostic only. One seed and one evaluation start per terrain cannot qualify G1. Report task completion, progress, falls, flat eligibility, updates and replay writes, nonzero requests and stochastic control.",
+  "output": "artifacts/g1_sac_huber_coverage_20260929"
+}
