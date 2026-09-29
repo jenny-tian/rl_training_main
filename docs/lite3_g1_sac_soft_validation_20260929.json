@@ -1,0 +1,312 @@
+{
+  "schema": "lite3_sac_fixed_soft_validation_v1",
+  "reports": {
+    "target_critic": {
+      "path": "artifacts/g1_sac_soft_diagnostic_20260929/report.json",
+      "sha256": "addd5c002c9db19856f4562d434addab5bd7d9682360dd1b0132fb9fd5ee5805",
+      "result": {
+        "coverage": {
+          "terminated": 0,
+          "truncated": 0,
+          "zero_request_rows": 3871
+        },
+        "limits": "shared training replay and bootstrapped targets, not heldout soft-Q calibration",
+        "new_control_transitions": 0,
+        "new_optimizer_updates": 0,
+        "original_source_sha256": "b3f6b7b318f8c53958e64d5cdf59ddbcceee6784872f272011947c2dddefb0d1",
+        "protocol_sha256": "f7ce56c9fd8f3e19b9788f24a0200d4af34dfb2adea7980dbf7c699764a051ad",
+        "residual_gain": 0.5,
+        "samples": 3871,
+        "schema": "lite3_sac_fixed_soft_diagnostic_v1",
+        "snapshots": {
+          "after": {
+            "alpha": 0.009999999776482582,
+            "checkpoint_sha256": "86a0b55b4782854c055b44cba12f4e1aeceebb9957f331ed4d73af48596e4890",
+            "critic_optimizer_steps": [
+              1043
+            ],
+            "metrics": {
+              "all": {
+                "bellman_bias_q_minus_target": -0.009137396971343624,
+                "bellman_rmse": 0.12041683942223126,
+                "mean_abs_bellman_error": 0.08103038672789897,
+                "mean_abs_sampled_minus_zero_next_q": 0.002952599199488759,
+                "mean_effective_entropy_bonus": 0.07653316855430603,
+                "mean_entropy_bonus": 0.07730622589588165,
+                "mean_min_q": 8.597847452277025,
+                "mean_sampled_minus_zero_next_q": -0.0025547288823872805,
+                "mean_sampled_request_rms": 0.06822625547647476,
+                "mean_soft_target": 8.606984849248366,
+                "mean_target_sample_std": 0.013230983167886734,
+                "mean_twin_q_gap": 0.013634090311825275,
+                "samples": 3871,
+                "target_variance_across_rows": 0.7754344759814044
+              },
+              "terminal": {
+                "samples": 0
+              },
+              "truncated": {
+                "samples": 0
+              }
+            },
+            "rows_sha256": "2b6c5f553fd4cd8d1b9edfe56db99516345923e5f798e6d4103c13091bd5973f",
+            "saved_transient_gain": 0.0,
+            "seconds": 5.04378489498049,
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          "before": {
+            "alpha": 0.009999999776482582,
+            "checkpoint_sha256": "d3513cce823ea2025c43b7b627af6ea5124473fe7078d0708c81c113cd9e8988",
+            "critic_optimizer_steps": [],
+            "metrics": {
+              "all": {
+                "bellman_bias_q_minus_target": -1.5839077971560014,
+                "bellman_rmse": 1.6034187366966195,
+                "mean_abs_bellman_error": 1.5839077971560014,
+                "mean_abs_sampled_minus_zero_next_q": 0.0005667614168487489,
+                "mean_effective_entropy_bonus": 0.07653316855430603,
+                "mean_entropy_bonus": 0.07730622589588165,
+                "mean_min_q": -0.00585665803925223,
+                "mean_sampled_minus_zero_next_q": -4.7914031853224515e-08,
+                "mean_sampled_request_rms": 0.06822625547647476,
+                "mean_soft_target": 1.578051139116749,
+                "mean_target_sample_std": 0.011287313885986805,
+                "mean_twin_q_gap": 0.12664498388767242,
+                "samples": 3871,
+                "target_variance_across_rows": 0.05812345572737444
+              },
+              "terminal": {
+                "samples": 0
+              },
+              "truncated": {
+                "samples": 0
+              }
+            },
+            "rows_sha256": "5ef1c70c5cb13f81c4cae771c3b5b3df7ba1922939f8ccd940ba2c24d38e731f",
+            "saved_transient_gain": 0.5,
+            "seconds": 5.136308023938909,
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 3881,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          }
+        },
+        "status": "complete"
+      }
+    },
+    "online_critic": {
+      "path": "artifacts/g1_sac_soft_self_operator_20260929/report.json",
+      "sha256": "d8bebc0a7124733de4b18a05557fc42238d034a74bc76bffcc739388e4a415e2",
+      "result": {
+        "coverage": {
+          "terminated": 0,
+          "truncated": 0,
+          "zero_request_rows": 3871
+        },
+        "limits": "shared training replay and bootstrapped targets, not heldout soft-Q calibration",
+        "new_control_transitions": 0,
+        "new_optimizer_updates": 0,
+        "operator_target": "online_critic",
+        "original_source_sha256": "b3f6b7b318f8c53958e64d5cdf59ddbcceee6784872f272011947c2dddefb0d1",
+        "protocol_sha256": "c231ef5798e1699aa04bee4d7eb38f10cdded012113d2b4b523268aca84d7fa6",
+        "residual_gain": 0.5,
+        "samples": 3871,
+        "schema": "lite3_sac_fixed_soft_diagnostic_v1",
+        "snapshots": {
+          "after": {
+            "alpha": 0.009999999776482582,
+            "checkpoint_sha256": "86a0b55b4782854c055b44cba12f4e1aeceebb9957f331ed4d73af48596e4890",
+            "critic_optimizer_steps": [
+              1043
+            ],
+            "metrics": {
+              "all": {
+                "bellman_bias_q_minus_target": -1.4965495366022834,
+                "bellman_rmse": 1.5145004595522094,
+                "mean_abs_bellman_error": 1.4966674123245196,
+                "mean_abs_sampled_minus_zero_next_q": 0.002921896055340767,
+                "mean_effective_entropy_bonus": 0.07653316855430603,
+                "mean_entropy_bonus": 0.07730622589588165,
+                "mean_min_q": 8.597847452277025,
+                "mean_sampled_minus_zero_next_q": -0.002373818773776293,
+                "mean_sampled_request_rms": 0.06822625547647476,
+                "mean_soft_target": 10.094396988879307,
+                "mean_target_sample_std": 0.013611872680485249,
+                "mean_twin_q_gap": 0.013634090311825275,
+                "samples": 3871,
+                "target_variance_across_rows": 1.13527938950527
+              },
+              "terminal": {
+                "samples": 0
+              },
+              "truncated": {
+                "samples": 0
+              }
+            },
+            "rows_sha256": "368cfbbe1f43b293d9e2050bf0161db9666d4465e9516089c08c8c61fec81df9",
+            "saved_transient_gain": 0.0,
+            "seconds": 4.786137938965112,
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          "before": {
+            "alpha": 0.009999999776482582,
+            "checkpoint_sha256": "d3513cce823ea2025c43b7b627af6ea5124473fe7078d0708c81c113cd9e8988",
+            "critic_optimizer_steps": [],
+            "metrics": {
+              "all": {
+                "bellman_bias_q_minus_target": -1.5839077971560014,
+                "bellman_rmse": 1.6034187366966195,
+                "mean_abs_bellman_error": 1.5839077971560014,
+                "mean_abs_sampled_minus_zero_next_q": 0.0005667614168487489,
+                "mean_effective_entropy_bonus": 0.07653316855430603,
+                "mean_entropy_bonus": 0.07730622589588165,
+                "mean_min_q": -0.00585665803925223,
+                "mean_sampled_minus_zero_next_q": -4.7914031853224515e-08,
+                "mean_sampled_request_rms": 0.06822625547647476,
+                "mean_soft_target": 1.578051139116749,
+                "mean_target_sample_std": 0.011287313885986805,
+                "mean_twin_q_gap": 0.12664498388767242,
+                "samples": 3871,
+                "target_variance_across_rows": 0.05812345572737444
+              },
+              "terminal": {
+                "samples": 0
+              },
+              "truncated": {
+                "samples": 0
+              }
+            },
+            "rows_sha256": "5ef1c70c5cb13f81c4cae771c3b5b3df7ba1922939f8ccd940ba2c24d38e731f",
+            "saved_transient_gain": 0.5,
+            "seconds": 4.857541461009532,
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 3881,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          }
+        },
+        "status": "complete"
+      }
+    }
+  },
+  "boundary_inventory": [
+    {
+      "trial": 0,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 1,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 2,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 3,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 4,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 5,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 6,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 7,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 8,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 9,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0,
+      "stop_reason": "safety_failure",
+      "fell": false
+    },
+    {
+      "trial": 10,
+      "learning_terminated": 1,
+      "learning_truncated": 0,
+      "collector_cutoff": 0
+    }
+  ],
+  "tests": {
+    "passed": 1629,
+    "skipped": 7
+  },
+  "new_control_transitions": 0,
+  "new_optimizer_updates": 0,
+  "route_qualified": false,
+  "source_files": {
+    "source/rl_training/rl_training/online_adaptation/soft_value_diagnostics.py": "5aaea5018a062935fae57e14950499ad7d3cc2d59b4635926f37c80c63d3fd11",
+    "source/rl_training/rl_training/online_adaptation/sac.py": "f176f23cbd595f1f2bc28f584dd9573a635ed166b4036bc74a8974e393bb6300",
+    "source/rl_training/rl_training/online_adaptation/networks.py": "9df3622dbdcee5a30f3a5d0015690cd5531dd2f0c3c44b46b1a2fe1edd740fea",
+    "scripts/reinforcement_learning/online_adaptation/diagnose_sac_soft.py": "a638cc6b10906f74b913e05df075a8fa831de4b5fb621d598fba72c858e18a26",
+    "artifacts/g1_sac_soft_diagnostic_20260929/diagnose_sac_soft.initial.py": "9793d12f7db302ccaba757293bad9d26cb2e764e23f62ae5c3dd810478595985"
+  }
+}

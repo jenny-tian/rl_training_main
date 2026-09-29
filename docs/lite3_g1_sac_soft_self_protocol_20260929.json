@@ -1,0 +1,39 @@
+{
+  "schema": "lite3_sac_fixed_soft_diagnostic_v1",
+  "scope": "follow-up fixed-current-Q Bellman operator residual, separating target-network fitting from fixed-point consistency; not calibration",
+  "session_manifest": {
+    "path": "artifacts/g1_target_warmup_20260929/sac/ledger/manifest.json",
+    "sha256": "5e507d074eb352f7b4b50dfeabd73ffae02d6e1f45cde586f7c0185fbf72dadd"
+  },
+  "snapshots": {
+    "before": {
+      "path": "artifacts/g1_target_warmup_20260929/sac/trial-00009/session.pt",
+      "sha256": "d3513cce823ea2025c43b7b627af6ea5124473fe7078d0708c81c113cd9e8988",
+      "trial_id": "trial-00009",
+      "ledger_status": "complete"
+    },
+    "after": {
+      "path": "artifacts/g1_target_warmup_20260929/sac/trial-00010/session.pt",
+      "sha256": "86a0b55b4782854c055b44cba12f4e1aeceebb9957f331ed4d73af48596e4890",
+      "trial_id": "trial-00010",
+      "ledger_status": "aborted"
+    }
+  },
+  "replay_source": "before",
+  "sample_selection": "all occupied replay rows in before snapshot, identical prefix required in after snapshot",
+  "draws": 16,
+  "batch_size": 128,
+  "seed": 23,
+  "residual_gain": 0.5,
+  "gamma": 0.99,
+  "entropy_coordinates": "normalized_tanh_action_v1",
+  "new_control_transitions": 0,
+  "new_optimizer_updates": 0,
+  "decision": "Numerical consistency and coverage audit only; no route qualification, model selection, or tuning. Report missing terminal strata explicitly.",
+  "output": "artifacts/g1_sac_soft_self_operator_20260929",
+  "operator_target": "online_critic",
+  "parent_report": {
+    "path": "artifacts/g1_sac_soft_diagnostic_20260929/report.json",
+    "sha256": "addd5c002c9db19856f4562d434addab5bd7d9682360dd1b0132fb9fd5ee5805"
+  }
+}

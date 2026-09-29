@@ -194,5 +194,16 @@
     "diagnostic_supported": false,
     "online_route_qualified": false,
     "decision": "Do not deploy history candidate or retune against confirmation; independent SAC soft-Q diagnostics remain pending"
+  },
+  "sac_fixed_soft_diagnostic": {
+    "report": "docs/lite3-g1-sac-soft-diagnostic-2026-09-29.md",
+    "validation": "docs/lite3_g1_sac_soft_validation_20260929.json",
+    "new_control_transitions": 0,
+    "new_optimizer_updates": 0,
+    "common_replay_rows": 3871,
+    "after_target_critic_bellman_rmse": 0.12041683942223126,
+    "after_online_critic_bellman_rmse": 1.5145004595522094,
+    "qualification": "not established; target lag and zero terminal/action coverage in old replay",
+    "next_step": "preregister fresh post-latency-fix SAC collection and boundary coverage audit; do not relax safety masks based on old timeout data"
   }
 }

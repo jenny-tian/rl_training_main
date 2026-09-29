@@ -155,3 +155,15 @@
 
 - 采集前协议/源码/模型锁定已提交推送`b2f0048`。确认完成：101两个task_timeout各2000步；107两个physical_failure为1037/1119步；共6156/8000新增控制步，uncertain=0，无替换。重复evaluation均新增0试验/0步。连同G1.3累计价值诊断25371步；未启动在线学习、平地回合或额外拟合。
 - 固定模型比较：101原48维/历史50维RMSE为80.386/79.709，107为38.789/39.248，107时间基线27.535。101单地形满足方向条件，107不满足，整体预登记判定为“不支持”，不部署、不调参补救。新确认仅4回合，不作统计显著性或路线晋级结论。报告：[G1.4](lite3-g1-value-history-2026-09-29.md)，[验证JSON](lite3_g1_value_history_validation_20260929.json)。后续优先独立SAC soft-Q诊断。
+
+## G1-20260929-sac-fixed-soft-diagnostic
+
+- 预登记零新增物理步/零更新离线审核：[协议](lite3_g1_sac_soft_protocol_20260929.json)。读取旧SAC预热session的trial00009（预热3881物理步、0 critic更新）及trial00010（1000预热＋43常规critic更新）检查点。后者账本仍为aborted，不恢复或晋升，不将其改称恰好1000步更新后的状态。
+- 使用before replay全部3871有效行，要求after完全保留相同前缀；actor/alpha逐位相同且优化器为空。冻结策略和温度，统一使用注册适应gain=.5（after保存的瞬时等待gain=0，不能混用为不同目标策略）。每行16个随机动作，CPU batch128、seed23，使用同一随机数比较前后target critic。
+- 目标为`r + mask*discount*(min(targetQ)-alpha*log_prob)`，n=1/gamma=.99；熵在normalized tanh action坐标，实际请求为gain×action_limits×tanh动作。报告soft Bellman残差、双Q分歧、目标方差、动作采样波动、有效熵贡献及随机请求相对base零残差的Q变化；不与reward-only MC作同尺度真值比较。
+- 元数据检查已发现这两个replay没有terminated/truncated行、before请求残差全0。诊断将明确报告覆盖缺口；不能把训练内自举一致性解释为真实soft-Q校准或新策略收益。预算仅两固定快照×16次全样本target采样，无新拟合、仿真、参数搜索或sealed数据。
+
+- 首轮完成：target critic目标RMSE由1.603419降到0.120417，当前minQ均值由−0.005857升到8.597847。但这只衡量对慢更新目标网络的拟合。追加[固定当前Q算子检查](lite3_g1_sac_soft_self_protocol_20260929.json)：同一快照、同一3871行、相同16次随机动作及所有参数，仅用冻结的当前critic替换bootstrap target critic。再计两快照×16次全样本前向；仍0新增控制步/0更新，禁止据此挑选模型或调整训练轮数。原报告不改写。
+
+- 两轮诊断完成：after当前Q算子RMSE仍1.514500、偏置−1.496550；不能将target网络拟合误差0.120417当作Q收敛。两快照/算子共247744次随机动作前向，0新增物理步/0更新。旧11个原始末尾均有task terminal，replay均未保留；前10个可读summary是safety_failure，属于时延修复前数据，不以此直接放宽安全mask。原trial00010保持aborted。
+- 新诊断工具及最终回归1629 passed, 7 skipped；测试夹具共享边界张量问题已修正，未改在线目标/网络/安全语义。报告：[G1.5](lite3-g1-sac-soft-diagnostic-2026-09-29.md)，[验证JSON](lite3_g1_sac_soft_validation_20260929.json)。下一步先做时延修复后的SAC完整任务采样与覆盖核验，尚不晋级。
