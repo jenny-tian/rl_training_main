@@ -131,3 +131,15 @@
 
 - 本组完成：baseline706＋优化冻结5416＋学习/恢复2640＋冻结gain修复1640＝10402控制步，uncertain=0。修复后9696步零控制超时，最大10.280 ms，阈值仍20 ms。两个1000步base平地窗口有效；学习/恢复确有3次actor更新且不重复1000次预热。冻结gain修复后两个320步窗口gain=.5，执行残差非零、actor张量不变、零更新/零replay写入，重复phase新增0步。
 - 原学习组的零gain冻结结果已明确降格为base执行证据，未重写原始记录。全量测试1602 passed, 7 skipped，源码版本重建/账本/动作等价验证通过。报告：[G1.2](lite3-g1-control-latency-2026-09-29.md)，[验证JSON](lite3_g1_latency_validation_20260929.json)。下一步进入完整回合留出价值诊断，尚不宣布G1路线晋级。
+
+## G1-20260929-complete-value
+
+- 预登记完整回合价值诊断：[固定协议](lite3_g1_value_protocol_20260929.json)。development rough_4cm 101/107，分别固定6个perturbed-v1起点，learner seed7，前4回合拟合、后2回合验证；冻结确定性base、无动作噪声、无actor/critic学习采集。terrain101/107由先前G0失败/混合诊断选定，不以本轮结果挑选。
+- 每回合任务deadline2000，collector上限同为2000；两地形总上限24000实际控制transition。按trial编号预定划分，不补抽失败；完整task终止（包括失败/deadline）纳入MC，collector/physical截断拒绝作为完整MC并保留成本。最多GPU0/1各一个worker，不生成sealed种子。
+- 使用LoRA冻结入口已有48维critic观测（45维policy＋body XY velocity＋绝对elapsed/2000），轨迹float32；网络仍48-128-128-1 ELU。与在线入口共用工厂，未改网络容量或actor信息权限。
+- 每地形只拟合一次：100 epochs、batch128、Adam lr5e-5、value loss=.25*MSE、grad cap1、shuffle seed11；原始输入/目标不归一化。起始critic来自该地形trial00000的未训练checkpoint。只保存固定最终epoch；训练曲线不包含验证集。
+- 常数基线为训练样本均值；时间基线为[1,t,t²,t³]训练集最小二乘。最终才评估2个留出回合；报告pooled和按回合等权指标、target variance、RMSE/NRMSE、bias、EV/R²，以及pre-action进度三分段和非足接触阶段误差。低方差EV/NRMSE标null。
+- 输出`artifacts/g1_complete_value_20260929/terrain-{101,107}/`，诊断`analysis/`。此为reward-only完整MC，不是SAC soft-Q真值，离线critic不导入在线actor或候选session。发现数据/数值契约问题先修复；不根据这2个留出回合增加训练轮数或调整超参。
+
+- 完成：101为10285步、107为8930步，共19215/24000实际控制步；12完整回合，无替换，uncertain=0；重复evaluation新增0步。每地形只拟合一次100 epochs（5400/5300 minibatch更新，CPU约10.2/9.1秒）。101/107留出EV为−0.392/0.342，RMSE为63.581/37.341；107时间基线RMSE24.583更低。两验证集均无正非足接触标签，对应分层标为无样本。
+- 增强数据入口的冻结critic优化器、有限观测、二值接触标签检查，显式bool掩码防止整数标签误作行索引；重新审核原12回合通过，没有重拟合或增加物理成本。全量测试1611 passed, 7 skipped。报告：[G1.3](lite3-g1-complete-value-2026-09-29.md)，[验证JSON](lite3_g1_value_validation_20260929.json)。G1学习信号尚未合格；速度历史仅为后续待注册假设，本组未运行第二候选或新确认实验。

@@ -746,9 +746,8 @@ def main() -> int:
                          source_anchor_observations.new_zeros((source_anchor_observations.shape[0], 10))), dim=-1
                     )
             critic_input_dim = obs_dim + (13 if args.height_scan_adapter else 6 if args.proprioceptive_context else 3)
-            critic = nn.Sequential(
-                nn.Linear(critic_input_dim, 128), nn.ELU(), nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1)
-            ).to(args.device)
+            from rl_training.online_adaptation.value_diagnostics import make_value_network
+            critic = make_value_network(critic_input_dim).to(args.device)
             terrain_reference = None
             terrain_anchor_metadata = None
             if args.terrain_reference_checkpoint:

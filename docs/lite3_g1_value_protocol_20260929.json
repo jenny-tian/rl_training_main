@@ -1,0 +1,51 @@
+{
+  "schema": "lite3_complete_value_diagnostic_v1",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "learner_seed": 7,
+  "gamma": 0.99,
+  "max_control_transitions": 24000,
+  "sampling_policy": "frozen deterministic base; phase-local perturbed-v1 reset seeds; no action noise",
+  "time_degree": 3,
+  "fit": {
+    "epochs": 100,
+    "batch_size": 128,
+    "learning_rate": 5e-05,
+    "seed": 11,
+    "value_loss_scale": 0.25,
+    "max_grad_norm": 1.0
+  },
+  "architecture": "48-128-128-1 ELU; existing online PPO critic; no input/target normalization",
+  "heldout_use": "evaluate only fixed final epoch; no tuning/checkpoint selection from heldout",
+  "targets": "full finite-horizon reward-only MC; physical/collector truncations rejected, all failures retained",
+  "metrics": "pooled and per-episode RMSE/NRMSE/bias/EV/R2; pre-action progress thirds and nonfoot-contact strata",
+  "terrains": [
+    {
+      "seed": 101,
+      "session_dir": "artifacts/g1_complete_value_20260929/terrain-101",
+      "train_trials": [
+        "trial-00000",
+        "trial-00001",
+        "trial-00002",
+        "trial-00003"
+      ],
+      "validation_trials": [
+        "trial-00004",
+        "trial-00005"
+      ]
+    },
+    {
+      "seed": 107,
+      "session_dir": "artifacts/g1_complete_value_20260929/terrain-107",
+      "train_trials": [
+        "trial-00000",
+        "trial-00001",
+        "trial-00002",
+        "trial-00003"
+      ],
+      "validation_trials": [
+        "trial-00004",
+        "trial-00005"
+      ]
+    }
+  ]
+}

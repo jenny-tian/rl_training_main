@@ -140,7 +140,7 @@
     "base_terrain_and_plane_parity_max_abs": 0
   },
   "not_yet_locked": [
-    "G1 complete-episode held-out value diagnostics and learning-signal qualification",
+    "G1 learning-signal qualification: complete-episode diagnostic finished; held-out generalization insufficient",
     "score-based promotion/rollback and relative flat-retention acceptance rule",
     "final algorithm/configuration hashes and sealed terrain membership at G5"
   ],
@@ -167,5 +167,19 @@
     "post_fix_control_transitions": 9696,
     "max_post_fix_control_ms": 10.280139977112412,
     "limits": "development engineering evidence; no G1 route promotion or hard real-time guarantee"
+  },
+  "complete_episode_value_diagnostic": {
+    "report": "docs/lite3-g1-complete-value-2026-09-29.md",
+    "validation": "docs/lite3_g1_value_validation_20260929.json",
+    "actual_control_transitions": 19215,
+    "episodes": 12,
+    "training_episodes_per_terrain": 4,
+    "validation_episodes_per_terrain": 2,
+    "heldout_ev": {
+      "101": -0.39217777217722616,
+      "107": 0.34160139828294744
+    },
+    "qualification": "not established; no offline critic promoted to online session",
+    "next_candidate": "unregistered hypothesis only: causal integrated body-frame velocity context; fresh confirmation required"
   }
 }
