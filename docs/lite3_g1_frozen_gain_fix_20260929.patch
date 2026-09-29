@@ -1,0 +1,46 @@
+--- a/scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py
++++ b/scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py
+@@ -55,0 +56,13 @@
++
++
++def resolve_control_gain(*, mode, managed_frozen, residual_gain, adapting_residual_gain):
++    """Deploy a managed learned candidate at its registered adaptation scale.
++
++    The online waiting-state gain can be zero; reusing it for candidate
++    evaluation would silently erase the learned policy's contribution.
++    """
++    if mode == "base":
++        return 0.0
++    if managed_frozen and mode == "residual_frozen":
++        return adapting_residual_gain
++    return residual_gain
+@@ -1187,0 +1201,4 @@
++    resting_residual_gain = resolve_control_gain(
++        mode=args.mode, managed_frozen=managed is not None and managed.frozen,
++        residual_gain=args.residual_gain, adapting_residual_gain=args.adapting_residual_gain,
++    )
+@@ -1538 +1555 @@
+-                online_agent.set_residual_gain(args.residual_gain)
++                online_agent.set_residual_gain(resting_residual_gain)
+@@ -1753,0 +1771 @@
++                "resting_residual_gain": resting_residual_gain,
+@@ -1810 +1828 @@
+-            online_agent.set_residual_gain(args.residual_gain)
++            online_agent.set_residual_gain(resting_residual_gain)
+@@ -2155 +2173 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2181 +2199 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2375 +2393 @@
+-                            online_agent.set_residual_gain(args.residual_gain)
++                            online_agent.set_residual_gain(resting_residual_gain)
+@@ -2401 +2419 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2415 +2433 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2658,0 +2677 @@
++                "resting_residual_gain": resting_residual_gain,

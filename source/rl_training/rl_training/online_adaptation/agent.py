@@ -339,6 +339,7 @@ class OnlineAdaptationAgent:
             raise ValueError("terrain_valid must be a detached [batch, 1] tensor")
         terrain_valid = terrain_valid.detach().to(device=frame.device, dtype=torch.bool)
         batch_terrain_valid = terrain_valid.all(dim=0, keepdim=True)
+        batch_is_valid = bool(batch_terrain_valid.item())
         residual_gain = self.residual_gain
         self.history.append(frame)
         history = self.history.snapshot()
@@ -357,9 +358,9 @@ class OnlineAdaptationAgent:
                 base_action,
                 residual,
                 safety_state,
-                force_zero_residual=residual_gain == 0.0 or not bool(batch_terrain_valid.item()),
+                force_zero_residual=residual_gain == 0.0 or not batch_is_valid,
             ),
-            actor_version=version if bool(batch_terrain_valid.item()) else None,
+            actor_version=version if batch_is_valid else None,
         )
         self._pending = PendingStep(
             history=history,
@@ -369,7 +370,7 @@ class OnlineAdaptationAgent:
             requested_residual_action=residual.detach().clone(),
             learning_mask=(~decision.paused).detach().clone(),
             terrain_valid=batch_terrain_valid.expand_as(decision.paused).detach().clone(),
-            actor_version=version if bool(batch_terrain_valid.item()) else None,
+            actor_version=version if batch_is_valid else None,
             mean_residual_action=mean_residual.detach().clone(),
         )
         return decision

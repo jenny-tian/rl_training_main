@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import torch
+from functools import lru_cache
 
 
 LITE3_POLICY_JOINT_NAMES = (
@@ -42,11 +43,19 @@ def _validate_action_shape(action: torch.Tensor) -> None:
         )
 
 
+@lru_cache(maxsize=32)
+def _clip_bounds(device, dtype, lower_values, upper_values):
+    # Inference may populate the cache first; keep ordinary tensors so a later
+    # differentiable LoRA call can safely save these constants for backward.
+    with torch.inference_mode(False):
+        return (torch.tensor(lower_values, device=device, dtype=dtype),
+                torch.tensor(upper_values, device=device, dtype=dtype))
+
+
 def clip_lite3_policy_action(action: torch.Tensor) -> torch.Tensor:
     """Clip a Lite3 PPO action in canonical leg-major joint order."""
     _validate_action_shape(action)
-    lower = torch.tensor(LITE3_SAFE_ACTION_LOWER, device=action.device, dtype=action.dtype)
-    upper = torch.tensor(LITE3_SAFE_ACTION_UPPER, device=action.device, dtype=action.dtype)
+    lower, upper = _clip_bounds(action.device, action.dtype, LITE3_SAFE_ACTION_LOWER, LITE3_SAFE_ACTION_UPPER)
     return torch.maximum(torch.minimum(action, upper), lower)
 
 

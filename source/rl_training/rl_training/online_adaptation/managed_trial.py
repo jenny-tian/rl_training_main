@@ -20,6 +20,7 @@ def worker_configuration(args):
     package = Path(__file__).resolve().parent
     root = package.parents[3]
     paths = sorted(package.glob("*.py")) + sorted((root / "scripts/reinforcement_learning/online_adaptation").glob("*.py"))
+    paths += [package.parent / name for name in ("lite3_joint_conventions.py", "lite3_stability_contract.py")]
     result = {"arguments": {key: value for key, value in vars(args).items() if key not in VARIABLE_ARGUMENTS},
               "source_sha256": digest({str(p.relative_to(root)): sha256_file(p) for p in paths})}
     if getattr(args, "initial_state", "fixed") == "perturbed-v1":

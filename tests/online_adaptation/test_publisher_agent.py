@@ -1188,3 +1188,16 @@ def test_target_critic_warmup_runs_once_without_actor_or_alpha_mutation():
     resumed.restore(warmup.state_dict())
     pretrain_target_critic(resumed, agent, on_update=records.append)
     assert len(records) == 3
+
+
+def test_managed_frozen_candidate_executes_published_mean_without_mutating_actor():
+    from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import resolve_control_gain
+    agent=make_agent(residual_gain=0.)
+    with torch.no_grad():
+        agent.updater.actor.mean_layer.bias.fill_(.2)
+    agent.publisher.publish(agent.updater.actor,1)
+    agent.set_residual_gain(resolve_control_gain(mode='residual_frozen',managed_frozen=True,residual_gain=0.,adapting_residual_gain=.5))
+    before={k:v.clone() for k,v in agent.updater.actor.state_dict().items()}
+    decision=agent.begin_step(torch.ones(1,2),torch.zeros(1,1),safety_state(),deterministic=True)
+    assert decision.action.abs().max()>0
+    for key,value in agent.updater.actor.state_dict().items():assert torch.equal(value,before[key])

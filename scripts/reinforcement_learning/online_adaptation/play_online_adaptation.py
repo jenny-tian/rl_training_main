@@ -55,6 +55,19 @@ def risk_gate_record(decision) -> dict[str, float | None]:
     }
 
 
+def resolve_control_gain(*, mode, managed_frozen, residual_gain, adapting_residual_gain):
+    """Deploy a managed learned candidate at its registered adaptation scale.
+
+    The online waiting-state gain can be zero; reusing it for candidate
+    evaluation would silently erase the learned policy's contribution.
+    """
+    if mode == "base":
+        return 0.0
+    if managed_frozen and mode == "residual_frozen":
+        return adapting_residual_gain
+    return residual_gain
+
+
 def control_is_deterministic(
     *,
     stochastic_control: bool,
@@ -1185,6 +1198,10 @@ def main() -> int:
             rough_amplitude=args.terrain_rough_amplitude,
         )
     learning_enabled = args.mode == "online" and not args.evaluation_only
+    resting_residual_gain = resolve_control_gain(
+        mode=args.mode, managed_frozen=managed is not None and managed.frozen,
+        residual_gain=args.residual_gain, adapting_residual_gain=args.adapting_residual_gain,
+    )
     if args.target_warmup_steps:
         if args.update_schedule != "control-step" or args.n_step != 1:
             raise ValueError("target warmup requires control-step updates and n=1")
@@ -1225,6 +1242,7 @@ def main() -> int:
     simulation_app = app_launcher.app
     updater_thread: threading.Thread | None = None
     trajectory = None
+    latency_probe = None
     stop_event = threading.Event()
     failure_writer = None
     try:
@@ -1534,7 +1552,7 @@ def main() -> int:
                 # Critic warmup must use the same applied residual scale as
                 # the first deployment phase; the runtime config starts at
                 # zero only to prevent pre-handoff control leakage.
-                online_agent.set_residual_gain(args.residual_gain)
+                online_agent.set_residual_gain(resting_residual_gain)
                 online_agent.prewarm_critics_from_flat()
             if restored_experiment is None:
                 stable_manager.checkpoint(online_agent.updater)
@@ -1750,6 +1768,7 @@ def main() -> int:
                 updater_thread.start()
 
             config = {
+                "resting_residual_gain": resting_residual_gain,
                 "arguments": vars(args),
                 "task_objective": objective_metadata, "task_objective_sha256": objective_sha256,
                 "risk_gate": {"semantics": "max_state_risk_residual_envelope_v1", **risk_gate_kwargs(args)},
@@ -1806,7 +1825,7 @@ def main() -> int:
                 deterministic=not args.stochastic_control,
                 device=device,
             )
-            online_agent.set_residual_gain(args.residual_gain)
+            online_agent.set_residual_gain(resting_residual_gain)
             post_step_recovery = PostStepRecoveryRamp(
                 transition_steps=args.post_step_recovery_steps,
                 target_gain=args.post_step_residual_gain,
@@ -1883,6 +1902,8 @@ def main() -> int:
             if managed is not None:
                 managed.restore_rng()
 
+            from rl_training.online_adaptation.control_latency import ControlLatencyProbe
+            latency_probe = ControlLatencyProbe()
             for step in range(1, args.max_steps + 1):
                 executed_steps = step
                 terminal_snapshot = None
@@ -1910,9 +1931,11 @@ def main() -> int:
                     control_update_lock=control_update_lock,
                     device=device,
                 ) as control_started:
+                    latency_probe.start(control_started)
                     with torch.inference_mode():
                         raw_base_action = base_policy(observation)
                         base_action = clip_lite3_policy_action(raw_base_action)
+                    latency_probe.mark("base_policy")
                     warmup_step = learning_enabled and target_warmup.collecting
                     deterministic_control = warmup_step or control_is_deterministic(
                         stochastic_control=args.stochastic_control,
@@ -1930,6 +1953,7 @@ def main() -> int:
                         terrain_valid=terrain_valid,
                         base_only=warmup_step,
                     )
+                    latency_probe.mark("adapter_and_safety")
                     decision, rollback_fallback_used = enforce_prepared_rollback_fallback(
                         online_agent=online_agent,
                         decision=decision,
@@ -1939,6 +1963,8 @@ def main() -> int:
                     current_decision = decision
                     if device.type == "cuda":
                         torch.cuda.synchronize(device)
+                    latency_probe.mark("fallback_and_device_sync")
+                    control_latency = latency_probe.finish()
                     control_ms = (time.perf_counter() - control_started) * 1_000.0
                     control_timed_out = False
                     if control_ms > args.control_timeout_ms:
@@ -2144,7 +2170,7 @@ def main() -> int:
                 elif active_episode > 0 and not control_timed_out and paused_now:
                     safety_reason = decision.reasons[0] if decision.reasons else "safety_pause"
                 if safety_reason:
-                    online_agent.set_residual_gain(args.residual_gain)
+                    online_agent.set_residual_gain(resting_residual_gain)
                     rollback_completion = threading.Event()
                     pending_rollback_completion = rollback_completion
                     rollback_command = AdaptationCommand(
@@ -2170,7 +2196,7 @@ def main() -> int:
                         last_rollback_reason = safety_reason
                     rollback_reason = safety_reason
                 elif fall_reset_reason:
-                    online_agent.set_residual_gain(args.residual_gain)
+                    online_agent.set_residual_gain(resting_residual_gain)
                     if active_episode > 0:
                         fall_reset_completion = threading.Event()
                         pending_rollback_completion = fall_reset_completion
@@ -2364,7 +2390,7 @@ def main() -> int:
                         if performance_decision.improved:
                             commands.put(AdaptationCommand("checkpoint", active_episode))
                         elif performance_decision.should_rollback:
-                            online_agent.set_residual_gain(args.residual_gain)
+                            online_agent.set_residual_gain(resting_residual_gain)
                             rollback_reason = performance_decision.rollback_reason or "performance_degradation"
                             rollback_completion = threading.Event()
                             pending_rollback_completion = rollback_completion
@@ -2390,7 +2416,7 @@ def main() -> int:
                                 last_rollback_reason = rollback_reason
                             adaptation_performance.start_episode()
                 elif novelty_decision.left_adapting and active_episode > 0:
-                    online_agent.set_residual_gain(args.residual_gain)
+                    online_agent.set_residual_gain(resting_residual_gain)
                     transition_episode_publication(
                         shared_lock=shared_lock,
                         actor_gate_event=actor_gate_event,
@@ -2404,7 +2430,7 @@ def main() -> int:
                     adaptation_performance.start_episode()
 
                 if final_step_cutoff:
-                    online_agent.set_residual_gain(args.residual_gain)
+                    online_agent.set_residual_gain(resting_residual_gain)
                     boundary_decision = close_active_episode_for_worker_boundary(
                         active_episode=active_episode,
                         shared_lock=shared_lock,
@@ -2458,6 +2484,7 @@ def main() -> int:
                     episode_snapshot = active_episode
                     last_rollback_snapshot = last_rollback_reason
                 record = {
+                    "control_latency": control_latency,
                     "target_warmup_collection": warmup_step,
                     "step": step,
                     "mode": args.mode,
@@ -2647,6 +2674,7 @@ def main() -> int:
                 }
             )
             summary = {
+                "resting_residual_gain": resting_residual_gain,
                 "target_warmup_before": warmup_before,
                 "target_warmup": target_warmup.state_dict(),
                 "warmup_critic_updates": len(warmup_update_records),
@@ -2813,6 +2841,7 @@ def main() -> int:
                         "novelty_gate": novelty_gate.state_dict(),
                         "stable_manager": stable_manager.state_dict(),
                         "update_budget": update_budget.snapshot() if managed is not None else None,
+                        "target_warmup": target_warmup.state_dict(),
                     },
                 )
             actor_updates_stream.close()
@@ -2825,6 +2854,8 @@ def main() -> int:
             failure_writer(Path(args.run_dir), error)
         return 2
     finally:
+        if latency_probe is not None:
+            latency_probe.close()
         if trajectory is not None:
             trajectory.close()
         if managed is not None:

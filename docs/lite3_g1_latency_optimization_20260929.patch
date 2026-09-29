@@ -1,0 +1,98 @@
+--- a/source/rl_training/rl_training/online_adaptation/safety.py
++++ b/source/rl_training/rl_training/online_adaptation/safety.py
+@@ -244,2 +244 @@
+-        reasons: list[str] = []
+-        for name, mask in (
++        reason_masks = (
+@@ -251,3 +250,4 @@
+-        ):
+-            if mask.any().item():
+-                reasons.append(name)
++        )
++        # One device-to-host transfer replaces five synchronizing scalar reads.
++        flags = torch.stack([mask.any() for _, mask in reason_masks]).cpu().tolist()
++        reasons = tuple(name for (name, _), active in zip(reason_masks, flags) if active)
+@@ -260 +260 @@
+-            reasons=tuple(reasons),
++            reasons=reasons,
+--- a/source/rl_training/rl_training/online_adaptation/agent.py
++++ b/source/rl_training/rl_training/online_adaptation/agent.py
+@@ -341,0 +342 @@
++        batch_is_valid = bool(batch_terrain_valid.item())
+@@ -360 +361 @@
+-                force_zero_residual=residual_gain == 0.0 or not bool(batch_terrain_valid.item()),
++                force_zero_residual=residual_gain == 0.0 or not batch_is_valid,
+@@ -362 +363 @@
+-            actor_version=version if bool(batch_terrain_valid.item()) else None,
++            actor_version=version if batch_is_valid else None,
+@@ -372 +373 @@
+-            actor_version=version if bool(batch_terrain_valid.item()) else None,
++            actor_version=version if batch_is_valid else None,
+--- a/source/rl_training/rl_training/online_adaptation/managed_trial.py
++++ b/source/rl_training/rl_training/online_adaptation/managed_trial.py
+@@ -22,0 +23 @@
++    paths += [package.parent / name for name in ("lite3_joint_conventions.py", "lite3_stability_contract.py")]
+--- a/scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py
++++ b/scripts/reinforcement_learning/online_adaptation/play_online_adaptation.py
+@@ -55,0 +56,13 @@
++
++
++def resolve_control_gain(*, mode, managed_frozen, residual_gain, adapting_residual_gain):
++    """Deploy a managed learned candidate at its registered adaptation scale.
++
++    The online waiting-state gain can be zero; reusing it for candidate
++    evaluation would silently erase the learned policy's contribution.
++    """
++    if mode == "base":
++        return 0.0
++    if managed_frozen and mode == "residual_frozen":
++        return adapting_residual_gain
++    return residual_gain
+@@ -1187,0 +1201,4 @@
++    resting_residual_gain = resolve_control_gain(
++        mode=args.mode, managed_frozen=managed is not None and managed.frozen,
++        residual_gain=args.residual_gain, adapting_residual_gain=args.adapting_residual_gain,
++    )
+@@ -1538 +1555 @@
+-                online_agent.set_residual_gain(args.residual_gain)
++                online_agent.set_residual_gain(resting_residual_gain)
+@@ -1753,0 +1771 @@
++                "resting_residual_gain": resting_residual_gain,
+@@ -1810 +1828 @@
+-            online_agent.set_residual_gain(args.residual_gain)
++            online_agent.set_residual_gain(resting_residual_gain)
+@@ -2155 +2173 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2181 +2199 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2375 +2393 @@
+-                            online_agent.set_residual_gain(args.residual_gain)
++                            online_agent.set_residual_gain(resting_residual_gain)
+@@ -2401 +2419 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2415 +2433 @@
+-                    online_agent.set_residual_gain(args.residual_gain)
++                    online_agent.set_residual_gain(resting_residual_gain)
+@@ -2658,0 +2677 @@
++                "resting_residual_gain": resting_residual_gain,
+--- a/source/rl_training/rl_training/lite3_joint_conventions.py
++++ b/source/rl_training/rl_training/lite3_joint_conventions.py
+@@ -5,0 +6 @@
++from functools import lru_cache
+@@ -44,0 +46,9 @@
++@lru_cache(maxsize=32)
++def _clip_bounds(device, dtype, lower_values, upper_values):
++    # Inference may populate the cache first; keep ordinary tensors so a later
++    # differentiable LoRA call can safely save these constants for backward.
++    with torch.inference_mode(False):
++        return (torch.tensor(lower_values, device=device, dtype=dtype),
++                torch.tensor(upper_values, device=device, dtype=dtype))
++
++
+@@ -48,2 +58 @@
+-    lower = torch.tensor(LITE3_SAFE_ACTION_LOWER, device=action.device, dtype=action.dtype)
+-    upper = torch.tensor(LITE3_SAFE_ACTION_UPPER, device=action.device, dtype=action.dtype)
++    lower, upper = _clip_bounds(action.device, action.dtype, LITE3_SAFE_ACTION_LOWER, LITE3_SAFE_ACTION_UPPER)

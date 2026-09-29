@@ -70,3 +70,23 @@ def test_action_clip_pattern_map_has_one_entry_per_joint_kind():
 def test_helpers_reject_an_invalid_action_last_dimension(helper):
     with pytest.raises(ValueError, match="12"):
         helper(torch.zeros(2, 11))
+
+
+def test_cached_bounds_created_during_inference_allow_later_policy_gradients():
+    from rl_training.lite3_joint_conventions import _clip_bounds, clip_lite3_policy_action
+    _clip_bounds.cache_clear()
+    with torch.inference_mode():
+        clip_lite3_policy_action(torch.zeros(1, 12))
+    action = torch.zeros(1, 12, requires_grad=True)
+    clip_lite3_policy_action(action).sum().backward()
+    assert torch.equal(action.grad, torch.ones_like(action))
+    assert _clip_bounds.cache_info().hits >= 1
+
+
+@pytest.mark.parametrize('dtype', [torch.float32, torch.float64])
+def test_cached_clipping_exactly_matches_uncached_limits_for_noncontiguous_actions(dtype):
+    from rl_training.lite3_joint_conventions import LITE3_SAFE_ACTION_LOWER, LITE3_SAFE_ACTION_UPPER, clip_lite3_policy_action
+    action = torch.linspace(-10, 10, 48, dtype=dtype).reshape(12, 4).T
+    expected = torch.maximum(torch.minimum(action, torch.tensor(LITE3_SAFE_ACTION_UPPER,dtype=dtype)),
+                             torch.tensor(LITE3_SAFE_ACTION_LOWER,dtype=dtype))
+    assert torch.equal(clip_lite3_policy_action(action), expected)

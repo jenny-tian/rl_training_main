@@ -111,3 +111,23 @@
 
 - 完成核验：本轮9748控制步（LoRA4896、SAC原诊断4087、SAC修复回归765），uncertain=0；两个主验证各4000个warmup动作均与base差异0。LoRA预热128次critic minibatch/0 actor，随后512步才发生2次actor更新；SAC1000次预热完成，原末trial仍为aborted。修复回归checkpoint续接不重复1000次预热；冻结阶段零更新/零replay写入，重复阶段调用新增0步。
 - 保留限制：SAC控制超时在单worker阶段也出现；修复回归冻结评估2步、平地251步提前结束，平地比较不合格，不能宣称保持能力或G1路线通过。原预热NaN只是未计算loss的日志占位；实际critic诊断有限，修复后严格JSON不含NaN。完整回归1592 passed, 7 skipped。详见[G1.1报告](lite3-g1-target-warmup-2026-09-29.md)及[验证JSON](lite3_g1_warmup_validation_20260929.json)。
+
+## G1-20260929-control-latency
+
+- 预登记控制时延诊断：先记录GC回调重叠时间、当前线程CPU时间、base/adapter+安全/device同步三个宿主阶段；原20 ms控制计算阈值不变。不停止其他项目进程，不根据成功与否替换起点。
+- baseline：独立managed SAC，直接冻结base，development rough_4cm101、learner7、perturbed-v1，最多2个预定地形起点×2000步；不更新、不写replay，不续接旧source-bound session。输出`artifacts/g1_control_latency_20260929/baseline/`；首轮最多4000实际控制步。此次只定位运行时尖峰，不用于路线晋升。
+- 若发现可修复的确定性开销，再登记相同控制阈值下的修复复核预算。所有失败、未使用额度及计算诊断保留。
+
+- baseline结果：两个预定trial分别1步、705步控制超时，共706步。回退前24.14/26.61 ms，线程CPU约24.14/26.60 ms；GC重叠均0。回退后旧`control_compute_ms`为39.09/41.28 ms，不能把回退计算误计为触发阈值的原始耗时。
+- 0物理步离线重放进一步定位：慢调用的8次Tensor.item累计约16 ms，两次固定动作边界torch.tensor约4 ms。1000次CUDA重放中190次>20 ms；同数据CPU单线程无>20 ms。优化缓存固定边界、5个安全原因一次回传、terrain-valid标量每步只读一次；保留全部安全条件。加入共享动作/稳定性文件的manifest源码哈希，异常checkpoint补齐已有target_warmup状态。
+- 追加预登记修复仿真：`optimized/`同一base/地形/learner，2个共同预定地形起点各最多2000步，2个平地起点各最多1000步，总上限6000步；直接冻结base、无学习/无replay写入、20 ms阈值不变。结束后重复phase调用应新增0步。与baseline数据一起保留，不把控制窗口完成视为策略适应收益。
+
+- 同进程交错512步对照：CPU/CUDA各512步，新旧action/residual/安全原因/历史/replay待写字段逐位一致。CUDA交错对照的两个实现均未超过20 ms（当时系统负载不同），因此独立重放190→1的超时变化只作运行时诊断，不宣称统计因果；独立重放唯一优化后超时是未预热的首调用。真实worker保留原启动预热和20 ms阈值。
+- 追加预登记学习/恢复计时smoke：`learning/`，B=2000，trial_steps=1000，warmup=256，critic-only=1000，replay=5000/min=128、alpha=.01、原0.5/0.005更新额度；deadline2000，仍是101/learner7，依次adaptation→evaluation(1×320)→retention(1×320)并重复冻结phase验证不新增步数。总上限2640；小warmup仅工程验证，不是G1候选。与前述两组预算合计上限12640控制步。
+
+- 学习计时smoke已暴露并保留一个额外缺陷：2000步适应确有3次actor更新，但随后冻结地形/平地的action_residual_gain均为0，实际执行base。这两段数据只验证时延与零更新，不是学习后策略评估。
+- 修正managed frozen candidate执行增益：使用配置已绑定的adapting_residual_gain（当前0.5）；online等待态仍用原residual_gain=0，base模式仍为0。常规bare worker保持显式residual_gain语义，不跨旧source-bound session修改配置。
+- 追加`frozen_gain/`独立回归：相同开发地形/learner，B=1000、trial_steps=1000、warmup=256/critic-only1000，沿用learning_options；冻结地形1×320、平地1×320，重复phase验证不追加试验。总上限1640，累计本组预登记上限14280。要求实际actor更新后冻结阶段action_residual_gain=0.5、mean/request/executed residual非零、零更新/零replay写入，并保留安全阈值。该短回归仍不作G1任务表现晋级结论。
+
+- 本组完成：baseline706＋优化冻结5416＋学习/恢复2640＋冻结gain修复1640＝10402控制步，uncertain=0。修复后9696步零控制超时，最大10.280 ms，阈值仍20 ms。两个1000步base平地窗口有效；学习/恢复确有3次actor更新且不重复1000次预热。冻结gain修复后两个320步窗口gain=.5，执行残差非零、actor张量不变、零更新/零replay写入，重复phase新增0步。
+- 原学习组的零gain冻结结果已明确降格为base执行证据，未重写原始记录。全量测试1602 passed, 7 skipped，源码版本重建/账本/动作等价验证通过。报告：[G1.2](lite3-g1-control-latency-2026-09-29.md)，[验证JSON](lite3_g1_latency_validation_20260929.json)。下一步进入完整回合留出价值诊断，尚不宣布G1路线晋级。

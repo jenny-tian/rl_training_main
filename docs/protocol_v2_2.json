@@ -127,7 +127,10 @@
     "step_charge": "reserve before physics, confirm after return, never refund uncertain transition",
     "observation_contract": "docs/lite3_g0_observation_contract_20260928.json",
     "residual_rate_limit": 0.03,
-    "forward_speed_m_s": 0.3
+    "forward_speed_m_s": 0.3,
+    "control_compute_deadline_ms": 20,
+    "control_timing_scope": "control compute after draining prior CUDA work; not entire simulation/logging loop",
+    "managed_frozen_sac_gain": "adapting_residual_gain (0.5 in current worker); base uses zero; online waiting gain unchanged"
   },
   "evidence": {
     "artifact_directory": "artifacts/g0_initial_state_schedule_20260928",
@@ -137,7 +140,7 @@
     "base_terrain_and_plane_parity_max_abs": 0
   },
   "not_yet_locked": [
-    "G1 complete-episode held-out value diagnostics, control-timeout diagnosis and learning-signal qualification",
+    "G1 complete-episode held-out value diagnostics and learning-signal qualification",
     "score-based promotion/rollback and relative flat-retention acceptance rule",
     "final algorithm/configuration hashes and sealed terrain membership at G5"
   ],
@@ -155,5 +158,14 @@
     "resume": "checkpointed collection and critic-pretraining counts; no silent source/configuration migration",
     "report": "docs/lite3-g1-target-warmup-2026-09-29.md",
     "limits": "engineering contract validation; final algorithm qualification and sealed protocol remain pending"
+  },
+  "control_execution_validation": {
+    "report": "docs/lite3-g1-control-latency-2026-09-29.md",
+    "validation": "docs/lite3_g1_latency_validation_20260929.json",
+    "actual_control_transitions": 10402,
+    "post_fix_timeout_count": 0,
+    "post_fix_control_transitions": 9696,
+    "max_post_fix_control_ms": 10.280139977112412,
+    "limits": "development engineering evidence; no G1 route promotion or hard real-time guarantee"
   }
 }

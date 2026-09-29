@@ -1968,3 +1968,12 @@ def test_target_warmup_records_and_summary_share_strict_json_null_semantics(tmp_
     assert all(r['actor_loss'] is None and r['alpha_loss'] is None for r in records)
     last['actor_loss'] = 99.
     assert records[0]['actor_loss'] is None
+
+
+@pytest.mark.parametrize('mode,frozen,expected', [
+    ('base',True,0.),('residual_frozen',True,.5),('online',False,0.),
+    ('residual_frozen',False,0.),
+])
+def test_managed_frozen_candidate_uses_adaptation_gain_instead_of_zero_waiting_gain(mode,frozen,expected):
+    from scripts.reinforcement_learning.online_adaptation.play_online_adaptation import resolve_control_gain
+    assert resolve_control_gain(mode=mode,managed_frozen=frozen,residual_gain=0.,adapting_residual_gain=.5)==expected

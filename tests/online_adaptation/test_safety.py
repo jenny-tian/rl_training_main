@@ -337,3 +337,19 @@ def test_reset_temporal_state_clears_safety_history():
     assert filt._paused is None
     assert filt._stable_steps is None
     assert filt._contact_steps is None
+
+
+def test_batched_reason_transfer_preserves_order_and_union_across_environments():
+    from dataclasses import fields
+    safe = state()
+    values = {f.name: torch.cat([getattr(safe, f.name)] * 5, dim=0) for f in fields(safe)}
+    values['projected_gravity_xy'][0, 0] = .9
+    values['base_height'][1, 0] = .1
+    values['joint_vel'][2, 0] = 31.
+    values['nonfoot_contact'][3, 0] = True
+    values['control_timed_out'][4, 0] = True
+    filt = SafetyFilter(SafetyLimits(torch.full((12,), .2), nonfoot_contact_grace_steps=0))
+    result = filt.project(torch.zeros(5, 12),torch.ones(5, 12),SafetyState(**values))
+    assert result.reasons == ('tilt','height','joint_velocity','nonfoot_contact','control_timeout')
+    assert result.paused.all()
+    assert torch.count_nonzero(result.residual) == 0

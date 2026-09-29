@@ -241,23 +241,23 @@ class SafetyFilter:
         )
         self._previous_residual = accepted_residual.detach().clone()
 
-        reasons: list[str] = []
-        for name, mask in (
+        reason_masks = (
             ("tilt", gravity_unsafe),
             ("height", height_unsafe),
             ("joint_velocity", velocity_unsafe),
             ("nonfoot_contact", contact_unsafe),
             ("control_timeout", timeout_unsafe),
-        ):
-            if mask.any().item():
-                reasons.append(name)
+        )
+        # One device-to-host transfer replaces five synchronizing scalar reads.
+        flags = torch.stack([mask.any() for _, mask in reason_masks]).cpu().tolist()
+        reasons = tuple(name for (name, _), active in zip(reason_masks, flags) if active)
 
         return SafetyDecision(
             action=projected_action,
             residual=accepted_residual,
             paused=paused.clone(),
             projected=changed,
-            reasons=tuple(reasons),
+            reasons=reasons,
             risk_score=risk_score.detach().clone(),
             risk_scale=risk_scale.detach().clone(),
         )
