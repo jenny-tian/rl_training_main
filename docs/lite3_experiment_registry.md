@@ -199,3 +199,9 @@
 - 本组实际19129/22000控制步、uncertain=0，四session均完成。每地形5000适应步、1000critic-only预热＋500常规critic更新；非零随机请求入库101为361、107为578行。actor更新0/2次；101冻结等于base，二者completion1483步；107候选/base均physical_failure（1106/1057步，前进5.08205/5.12575 m）。四平地窗口均1000步且可比较；单起点结果不作晋级或显著性结论。
 - 一次控制超时保留：101适应trial00001第951步，回退前34.319 ms、线程CPU5.025 ms、GC0；回退后总值44.072 ms。未放宽20 ms阈值，未替换该失败。冻结actor张量不变、零更新/写入和constant replay size验证通过；初版对账错误要求冻结完整checkpoint，修正读取契约后通过，失败记录保留，新增物理步0。
 - 最终回归1636 passed, 7 skipped。报告：[G1.7](lite3-g1-sac-huber-2026-09-29.md)，[验证JSON](lite3_g1_sac_huber_validation_20260929.json)。预热gain修复尚无新物理验证，本轮不追加救援候选；下一步登记新版本复核，再评估有效actor更新调度。
+
+## G1-20260930-sac-warmup-gain-physical
+
+- 预登记修复后工程复核：[协议](lite3_g1_sac_warmup_gain_protocol_20260930.json)。新source-bound SAC session，development101/107、learner43、perturbed-v1；每地形B512、warmup256、trial256、task deadline2000，先执行一个trial检查checkpoint，再恢复剩余预算。随后各1×64冻结检查并重复phase调用，不执行retention。总上限1152真实控制步，不补抽失败起点。
+- 使用Huber1、alpha=.01、replay5000/min256、1000 critic-only更新；novelty calibration1024使本组适应控制保持等待gain0。目标预热gain仍注册适应值.5。缩短warmup/延长calibration只为隔离工程条件，不用作正式4000步预热或actor收益候选。
+- 预热日志同时记录目标gain和当时control gain；验证1000次更新均目标.5/控制0、actor/alpha不变，跨checkpoint不重复预热，冻结零更新/零replay写入，重复phase新增0步。最多GPU0/1各一worker，原20ms安全阈值不变，所有失败和实际成本保留。

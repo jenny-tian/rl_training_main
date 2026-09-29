@@ -1,0 +1,35 @@
+{
+  "schema": "lite3_sac_warmup_gain_physical_v1",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "learner_seed": 43,
+  "terrains": [
+    101,
+    107
+  ],
+  "adaptation_steps": 512,
+  "warmup_steps": 256,
+  "trial_steps": 256,
+  "task_deadline_steps": 2000,
+  "evaluation_steps": 64,
+  "evaluation_trials": 1,
+  "max_actual_control_transitions": 1152,
+  "worker_options": {
+    "replay-capacity": 5000,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "critic-huber-delta": 1.0,
+    "target-critic-warmup-updates": 1000,
+    "novelty-calibration-steps": 1024
+  },
+  "execution": "Run one adaptation trial, inspect checkpoint, then resume same source/config to exhaust remaining 512-step budget; run one frozen 64-step check and repeat frozen phase. No retention phase.",
+  "checks": [
+    "1000 accepted warmup updates at target gain .5 and simultaneous control gain 0",
+    "actor/alpha optimizer state empty, control and actor parameters unchanged",
+    "resume keeps warmup count1000 without repeating it",
+    "frozen phase zero updates/replay writes, gain .5, repeated call adds zero steps",
+    "record every failure, timeout and uncertain step; no replacement evaluation starts"
+  ],
+  "limits": "Engineering shortened warmup/calibration only, not formal 4000-step warmup, nonzero-action learning or G1 route qualification",
+  "output": "artifacts/g1_sac_warmup_gain_20260930"
+}
