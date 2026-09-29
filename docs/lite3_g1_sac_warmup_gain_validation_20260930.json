@@ -1,0 +1,324 @@
+{
+  "actual_control_transitions": 1152,
+  "fixed_gain_physical_verified": true,
+  "protocol_sha256": "8820eea1e9e9eb57bc5bda9febcfc35eb262102a3c7f16dac4b97c03173e3cc1",
+  "route_qualified": false,
+  "status": "complete",
+  "terrains": {
+    "101": {
+      "actual_control_transitions": 576,
+      "repeat": {
+        "added_steps": 0,
+        "added_trials": 0,
+        "states_equal": true
+      },
+      "source_sha256": "ba09771ca3d161b91a2192cb8f97791872c74756d563f2347b1098c2d54c91ff",
+      "trials": [
+        {
+          "action_gains": [
+            0.0
+          ],
+          "actor_updates": 0,
+          "control_timeouts": 0,
+          "critic_optimizer_steps": [
+            1000
+          ],
+          "critic_updates": 1000,
+          "max_control_compute_ms": 7.991245947778225,
+          "phase": "adaptation",
+          "replay_rows_written": 256,
+          "steps": 256,
+          "stop_reason": "collector_cutoff",
+          "trial_id": "trial-00000",
+          "warmup_after": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_before": {
+            "algorithm": "sac",
+            "collected_steps": 0,
+            "critic_updates": 0,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_control_gain": 0.0,
+          "warmup_target_gain": 0.5
+        },
+        {
+          "action_gains": [
+            0.0
+          ],
+          "actor_updates": 0,
+          "control_timeouts": 0,
+          "critic_optimizer_steps": [
+            1128
+          ],
+          "critic_updates": 128,
+          "max_control_compute_ms": 6.998312193900347,
+          "phase": "adaptation",
+          "replay_rows_written": 256,
+          "steps": 256,
+          "stop_reason": "collector_cutoff",
+          "trial_id": "trial-00001",
+          "warmup_after": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_before": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          }
+        },
+        {
+          "action_gains": [
+            0.5
+          ],
+          "actor_updates": 0,
+          "control_timeouts": 0,
+          "critic_updates": 0,
+          "max_control_compute_ms": 4.664411069825292,
+          "phase": "evaluation",
+          "replay_rows_written": 0,
+          "steps": 64,
+          "stop_reason": "collector_cutoff",
+          "trial_id": "trial-00002",
+          "warmup_after": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_before": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          }
+        }
+      ]
+    },
+    "107": {
+      "actual_control_transitions": 576,
+      "repeat": {
+        "added_steps": 0,
+        "added_trials": 0,
+        "states_equal": true
+      },
+      "source_sha256": "ba09771ca3d161b91a2192cb8f97791872c74756d563f2347b1098c2d54c91ff",
+      "trials": [
+        {
+          "action_gains": [
+            0.0
+          ],
+          "actor_updates": 0,
+          "control_timeouts": 0,
+          "critic_optimizer_steps": [
+            1000
+          ],
+          "critic_updates": 1000,
+          "max_control_compute_ms": 3.3431481570005417,
+          "phase": "adaptation",
+          "replay_rows_written": 256,
+          "steps": 256,
+          "stop_reason": "collector_cutoff",
+          "trial_id": "trial-00000",
+          "warmup_after": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_before": {
+            "algorithm": "sac",
+            "collected_steps": 0,
+            "critic_updates": 0,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_control_gain": 0.0,
+          "warmup_target_gain": 0.5
+        },
+        {
+          "action_gains": [
+            0.0
+          ],
+          "actor_updates": 0,
+          "control_timeouts": 0,
+          "critic_optimizer_steps": [
+            1128
+          ],
+          "critic_updates": 128,
+          "max_control_compute_ms": 6.524943979457021,
+          "phase": "adaptation",
+          "replay_rows_written": 256,
+          "steps": 256,
+          "stop_reason": "collector_cutoff",
+          "trial_id": "trial-00001",
+          "warmup_after": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_before": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          }
+        },
+        {
+          "action_gains": [
+            0.5
+          ],
+          "actor_updates": 0,
+          "control_timeouts": 0,
+          "critic_updates": 0,
+          "max_control_compute_ms": 4.074582131579518,
+          "phase": "evaluation",
+          "replay_rows_written": 0,
+          "steps": 64,
+          "stop_reason": "collector_cutoff",
+          "trial_id": "trial-00002",
+          "warmup_after": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          },
+          "warmup_before": {
+            "algorithm": "sac",
+            "collected_steps": 256,
+            "critic_updates": 1000,
+            "required_critic_updates": 1000,
+            "required_steps": 256
+          }
+        }
+      ]
+    }
+  },
+  "full_report_path": "artifacts/g1_sac_warmup_gain_20260930/audit/report.json",
+  "full_report_sha256": "479e9e95361069c7ce6eb3fae3234aa5f1126e8a75dc323509c7c65e34b63891",
+  "collection_commit": "5430457ec81739c0c001adc53eecaa6f0c1ad93d",
+  "tests": {
+    "passed": 1636,
+    "skipped": 7
+  },
+  "actor_coverage": {
+    "interpretation": "per-trial credit ceiling; other gates can only reduce actual updates",
+    "new_control_steps": 0,
+    "new_optimizer_updates": 0,
+    "source_report_sha256": "eaef524b0152f4ac5319817bbb03dfecb2ffcbe6ec4e399e93ffb42604cb35e3",
+    "terrains": {
+      "101": {
+        "actor_replay_rows": 205,
+        "actor_updates_per_transition": 0.005,
+        "actual_actor_updates": 0,
+        "nominal_critic_updates_per_actor_update": 100.0,
+        "per_trial_upper_bound": 0,
+        "pooled_credit_floor_without_trial_resets": 1,
+        "trials": [
+          {
+            "actor_replay_rows": 0,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.0,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 0,
+            "trial_id": "trial-00000"
+          },
+          {
+            "actor_replay_rows": 0,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.0,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 0,
+            "trial_id": "trial-00001"
+          },
+          {
+            "actor_replay_rows": 65,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.325,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 65,
+            "trial_id": "trial-00002"
+          },
+          {
+            "actor_replay_rows": 140,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.7,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 935,
+            "trial_id": "trial-00003"
+          }
+        ]
+      },
+      "107": {
+        "actor_replay_rows": 579,
+        "actor_updates_per_transition": 0.005,
+        "actual_actor_updates": 2,
+        "nominal_critic_updates_per_actor_update": 100.0,
+        "per_trial_upper_bound": 2,
+        "pooled_credit_floor_without_trial_resets": 2,
+        "trials": [
+          {
+            "actor_replay_rows": 0,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.0,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 0,
+            "trial_id": "trial-00000"
+          },
+          {
+            "actor_replay_rows": 0,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.0,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 0,
+            "trial_id": "trial-00001"
+          },
+          {
+            "actor_replay_rows": 0,
+            "actor_update_upper_bound": 0,
+            "actor_updates": 0,
+            "credit_upper_bound": 0.0,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 0,
+            "trial_id": "trial-00002"
+          },
+          {
+            "actor_replay_rows": 579,
+            "actor_update_upper_bound": 2,
+            "actor_updates": 2,
+            "credit_upper_bound": 2.895,
+            "final_actor_credit": 0.0,
+            "post_warmup_steps": 1000,
+            "trial_id": "trial-00003"
+          }
+        ]
+      }
+    }
+  },
+  "actor_coverage_sha256": "fdeeb1e523034ffc404297621d04edac8a06f51c906b87285f15da29e6051317",
+  "scope": "shortened warmup engineering only; not 4000-step effectiveness or G1 route qualification"
+}

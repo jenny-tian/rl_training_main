@@ -158,7 +158,8 @@
     "resume": "checkpointed collection and critic-pretraining counts; no silent source/configuration migration",
     "report": "docs/lite3-g1-target-warmup-2026-09-29.md",
     "limits": "engineering contract validation; final algorithm qualification and sealed protocol remain pending",
-    "sac_target_gain": "Explicit registered adapting_residual_gain; independent of transient control gain. Source-bound sessions require fresh run after fix."
+    "sac_target_gain": "Explicit registered adapting_residual_gain; independent of transient control gain. Source-bound sessions require fresh run after fix.",
+    "sac_target_gain_physical_validation": "docs/lite3-g1-warmup-gain-2026-09-30.md; shortened 256-step engineering check, not formal warmup efficacy"
   },
   "control_execution_validation": {
     "report": "docs/lite3-g1-control-latency-2026-09-29.md",
@@ -239,6 +240,21 @@
     "control_timeout_count": 1,
     "gain_fix_physical_validation": false,
     "route_qualified": false,
-    "next_step": "Fresh source-bound verification of fixed warmup gain, then audit effective actor-update scheduling before longer runs"
+    "next_step": "G1.8 separately verified fixed warmup gain in physics; next preregister an isolated effective actor-update schedule comparison"
+  },
+  "sac_warmup_gain_physical_validation": {
+    "report": "docs/lite3-g1-warmup-gain-2026-09-30.md",
+    "validation": "docs/lite3_g1_sac_warmup_gain_validation_20260930.json",
+    "actual_control_transitions": 1152,
+    "warmup_updates": 2000,
+    "ordinary_critic_updates": 256,
+    "actor_updates": 0,
+    "warmup_target_gain": 0.5,
+    "warmup_control_gain": 0.0,
+    "control_timeout_count": 0,
+    "resume_repeated_warmup_updates": 0,
+    "repeated_evaluation_added_steps": 0,
+    "limits": "256-step engineering warmup and 64-step frozen windows, not full 4000-step efficacy or route qualification",
+    "actor_coverage_audit": "prior 101/107 actual updates0/2 equal per-trial credit upper bounds0/2; no schedule change this round"
   }
 }

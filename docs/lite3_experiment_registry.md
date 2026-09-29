@@ -205,3 +205,8 @@
 - 预登记修复后工程复核：[协议](lite3_g1_sac_warmup_gain_protocol_20260930.json)。新source-bound SAC session，development101/107、learner43、perturbed-v1；每地形B512、warmup256、trial256、task deadline2000，先执行一个trial检查checkpoint，再恢复剩余预算。随后各1×64冻结检查并重复phase调用，不执行retention。总上限1152真实控制步，不补抽失败起点。
 - 使用Huber1、alpha=.01、replay5000/min256、1000 critic-only更新；novelty calibration1024使本组适应控制保持等待gain0。目标预热gain仍注册适应值.5。缩短warmup/延长calibration只为隔离工程条件，不用作正式4000步预热或actor收益候选。
 - 预热日志同时记录目标gain和当时control gain；验证1000次更新均目标.5/控制0、actor/alpha不变，跨checkpoint不重复预热，冻结零更新/零replay写入，重复phase新增0步。最多GPU0/1各一worker，原20ms安全阈值不变，所有失败和实际成本保留。
+
+- 同轮只读核对G1.7已有有效actor样本和实际更新数：使用原manifest更新额度及逐步写入记录，计算每物理回合能获得的更新次数上界，并核验结束时剩余额度。不拟合新模型、不改调度、不使用冻结评估结果选参数；新增物理步/优化器更新均0。
+
+- 完成：实际1152步、uncertain=0，两地形首256步各完成1000次预热更新，全部target gain=.5/control gain=0；检查点恢复各新增256物理步及128次普通critic更新，warmup计数不增加。共2256次critic更新、0 actor/alpha更新。各64步冻结检查零更新/写入、actor张量不变，重复phase新增0步。控制超时0，最大7.991 ms，原20ms阈值不变。
+- 原actor额度核对：101有效样本分为65/140，分回合额度floor均0；107有效样本579，上界2；实际0/2与上界一致。没有改变调度或提高学习率。报告：[G1.8](lite3-g1-warmup-gain-2026-09-30.md)，[验证JSON](lite3_g1_sac_warmup_gain_validation_20260930.json)。全量1636 passed, 7 skipped，短工程窗口不等于正式4000步预热或G1路线通过。
