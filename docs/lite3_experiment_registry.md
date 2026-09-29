@@ -167,3 +167,10 @@
 
 - 两轮诊断完成：after当前Q算子RMSE仍1.514500、偏置−1.496550；不能将target网络拟合误差0.120417当作Q收敛。两快照/算子共247744次随机动作前向，0新增物理步/0更新。旧11个原始末尾均有task terminal，replay均未保留；前10个可读summary是safety_failure，属于时延修复前数据，不以此直接放宽安全mask。原trial00010保持aborted。
 - 新诊断工具及最终回归1629 passed, 7 skipped；测试夹具共享边界张量问题已修正，未改在线目标/网络/安全语义。报告：[G1.5](lite3-g1-sac-soft-diagnostic-2026-09-29.md)，[验证JSON](lite3_g1_sac_soft_validation_20260929.json)。下一步先做时延修复后的SAC完整任务采样与覆盖核验，尚不晋级。
+
+## G1-20260929-sac-boundary-collection
+
+- 预登记时延修复后的SAC完整任务采样：[协议](lite3_g1_sac_boundary_protocol_20260929.json)。development rough_4cm101/107、learner seed31、perturbed-v1，每地形最多2个预定起点×2000步，deadline2000，合计≤8000真实控制步；最多GPU0/1各一worker，不补起点，不生成sealed种子。
+- 使用冻结确定性base的warmup路径以验证实际replay准入。每地形managed B=4001、warmup=4001，而固定两回合最多4000步，确保本组不会启动critic预热或actor/alpha学习。replay5000/min256、n=1、alpha=.01，其余默认。多出的1步只用于防止采集末尾触发学习，不执行；未用适应预算不追加试验。
+- 逐步日志新增critic/actor实际replay写入数和安全准入mask，便于与轨迹及checkpoint逐行核对。两次attempt后通过账本API锁定evaluation，0控制步，不执行evaluation/retention；重复锁定不新增成本。采集窗口结束不代表预热或完整适应session合格。
+- 核验自然任务终止/截断与安全mask、base动作等价、零优化器状态、跨checkpoint累积replay、终止bootstrap。保留无法学习的安全失败样本在原始trace中，不直接放宽准入。输出`artifacts/g1_sac_boundary_20260929/`。

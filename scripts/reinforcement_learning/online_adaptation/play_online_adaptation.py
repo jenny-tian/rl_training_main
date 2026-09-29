@@ -2548,6 +2548,9 @@ def main() -> int:
                     ),
                     "loop_ms": loop_ms,
                     "replay_size": len(online_agent.replay),
+                    "replay_critic_rows_committed": committed_global,
+                    "replay_actor_rows_committed": committed_adaptation,
+                    "replay_safety_eligible": bool((~actor_invalid).all()),
                     "last_update": update_snapshot,
                 }
                 metrics_stream.write(json.dumps(record, allow_nan=True) + "\n")

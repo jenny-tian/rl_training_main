@@ -1,0 +1,31 @@
+{
+  "schema": "lite3_sac_boundary_collection_v1",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "learner_seed": 31,
+  "terrains": [
+    101,
+    107
+  ],
+  "max_trials_per_terrain": 2,
+  "trial_steps": 2000,
+  "deadline_steps": 2000,
+  "max_actual_control_transitions": 8000,
+  "managed_budget_steps": 4001,
+  "target_warmup_steps": 4001,
+  "collection_policy": "frozen deterministic base through warmup, no actor/critic/alpha updates; at most 4000 steps per terrain so warmup cannot finish",
+  "worker_options": {
+    "replay-capacity": 5000,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "target-critic-warmup-updates": 1000
+  },
+  "reset_seeds": [
+    1375524730,
+    86170031
+  ],
+  "finish": "After two attempted trials, lock evaluation through ledger API without running evaluation or retention; repeated lock must not add cost. Do not resume adaptation.",
+  "failure_policy": "Retain failures and uncertain costs; no replacement starts. Abort on incomplete worker outcome and report unavailable boundary coverage.",
+  "audit": "Compare per-step committed counts, reward/endings/request/base actions, float16 replay fields, optimizer states and cumulative replay across checkpoints. Expected natural task terminals may enter replay; never override safety eligibility.",
+  "output": "artifacts/g1_sac_boundary_20260929"
+}
