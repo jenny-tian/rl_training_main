@@ -1,0 +1,137 @@
+{
+  "schema": "lite3_value_history_confirmation_v1",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "parent_commit": "9e1ccefaffcee02fe72784afd975c0c48070cf90",
+  "original_protocol": {
+    "path": "docs/lite3_g1_value_protocol_20260929.json",
+    "sha256": "16bda0897ad1fdf5da911f8f16da59016c8d12496284ad85e1182c4c3c44fae4"
+  },
+  "original_analysis": {
+    "path": "artifacts/g1_complete_value_20260929/analysis/report.json",
+    "sha256": "d10478286e86863d0b58abe7841a08212c97c8ea56485cc8d273c9dc74c82e2c"
+  },
+  "hypothesis": "Exclusive past body XY velocity integral may distinguish different travel histories at the same elapsed time. This is not world-frame odometry.",
+  "candidate": {
+    "schema": "policy48_past_body_velocity_integral2_v1",
+    "original_input_dim": 48,
+    "input_dim": 50,
+    "velocity_columns": [
+      45,
+      46
+    ],
+    "step_dt": 0.02,
+    "distance_scale": 12.0,
+    "formula": "context[t] = 0.02 / 12.0 * sum(body_velocity_xy[j] for j < t); reset to zero each episode",
+    "initialization": "original initial critic; append two zero columns to first layer; all other tensors unchanged",
+    "hidden_layers": [
+      128,
+      128
+    ],
+    "activation": "ELU",
+    "normalization": "none; fixed 12m nominal travel scale only"
+  },
+  "fit": {
+    "epochs": 100,
+    "batch_size": 128,
+    "learning_rate": 5e-05,
+    "seed": 11,
+    "value_loss_scale": 0.25,
+    "max_grad_norm": 1.0
+  },
+  "gamma": 0.99,
+  "time_degree": 3,
+  "training": "Only original train trial00000..00003 per terrain. No original validation trajectories read for fitting or selection. One fixed fit per terrain, no restart based on loss.",
+  "confirmation_learner_seed": 19,
+  "max_additional_control_transitions": 8000,
+  "collection": {
+    "policy": "frozen deterministic base",
+    "algorithm": "lora",
+    "terrain_stage": "rough_4cm",
+    "terrain_split": "development",
+    "initial_state": "perturbed-v1",
+    "deadline_steps": 2000,
+    "trial_steps": 2000,
+    "evaluation_trials_per_terrain": 2,
+    "evaluation_steps_per_terrain": 4000,
+    "target_warmup_steps": 0,
+    "max_simultaneous_gpus": 2,
+    "workers_per_gpu": 1,
+    "no_replacement": true
+  },
+  "fit_lock": "Write model bundle hashes before launching any confirmation collector; confirmation verifies bundle hashes and exact protocol identity.",
+  "comparators": [
+    "original_saved_48d_critic",
+    "constant_from_original_train",
+    "cubic_time_from_original_train"
+  ],
+  "metrics": [
+    "pooled_rmse",
+    "episode_equal_mean_rmse",
+    "normalized_rmse",
+    "bias",
+    "explained_variance",
+    "r_squared",
+    "per_episode",
+    "progress_thirds",
+    "nonfoot_contact_strata"
+  ],
+  "decision": "Diagnostic support only if both terrains have positive pooled EV and candidate strictly lowers both pooled RMSE and episode-equal mean RMSE against each of original saved 48d critic, constant, and time-only baseline. Otherwise hypothesis unsupported by this confirmation; no tuning or replacement on these outcomes. Never qualifies G1 online route by itself.",
+  "failure_policy": "Retain every attempted start and actual/uncertain cost. Aborted/incomplete episodes make confirmation inconclusive; never label truncations as complete MC or replace slots.",
+  "output": "artifacts/g1_value_history_20260929",
+  "terrains": [
+    {
+      "seed": 101,
+      "training_session_dir": "artifacts/g1_complete_value_20260929/terrain-101",
+      "train_trials": [
+        "trial-00000",
+        "trial-00001",
+        "trial-00002",
+        "trial-00003"
+      ],
+      "seen_validation_trials": [
+        "trial-00004",
+        "trial-00005"
+      ],
+      "baseline_checkpoint": {
+        "path": "artifacts/g1_complete_value_20260929/analysis/critic-101.pt",
+        "sha256": "b2d3df6079757ecd8879a56b8d5c3c68fff8f63bc777c3163f139ab6c0052666"
+      },
+      "confirmation_session_dir": "artifacts/g1_value_history_20260929/terrain-101",
+      "confirmation_trials": [
+        "trial-00000",
+        "trial-00001"
+      ],
+      "confirmation_reset_seeds": [
+        1064007299,
+        1604434861
+      ]
+    },
+    {
+      "seed": 107,
+      "training_session_dir": "artifacts/g1_complete_value_20260929/terrain-107",
+      "train_trials": [
+        "trial-00000",
+        "trial-00001",
+        "trial-00002",
+        "trial-00003"
+      ],
+      "seen_validation_trials": [
+        "trial-00004",
+        "trial-00005"
+      ],
+      "baseline_checkpoint": {
+        "path": "artifacts/g1_complete_value_20260929/analysis/critic-107.pt",
+        "sha256": "d37d74ab649c773447e8a706e42a02cc6dbf1d8ce560ae482bc2f4f0593daff1"
+      },
+      "confirmation_session_dir": "artifacts/g1_value_history_20260929/terrain-107",
+      "confirmation_trials": [
+        "trial-00000",
+        "trial-00001"
+      ],
+      "confirmation_reset_seeds": [
+        1064007299,
+        1604434861
+      ]
+    }
+  ]
+}

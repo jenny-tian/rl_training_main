@@ -10,6 +10,41 @@ def make_value_network(input_dim):
                          nn.Linear(128, 128), nn.ELU(), nn.Linear(128, 1))
 
 
+def append_past_velocity_integral(observations, *, step_dt=.02, distance_scale=12.):
+    """Append an exclusive body-velocity prefix for ONE complete episode.
+
+    Input columns 45:47 are measured body XY velocity; column 47 remains
+    elapsed time. New columns 48:50 start at zero on every call. Rotating body
+    axes are not corrected, so this is a travel proxy, not world odometry.
+    No reward, terminal, simulator position or future measurement is used.
+    """
+    x = np.asarray(observations, dtype=np.float32)
+    if x.ndim != 2 or x.shape[1] != 48 or not len(x) or not np.isfinite(x).all():
+        raise ValueError("history requires finite nonempty episode observations [T, 48]")
+    if not np.isfinite([step_dt, distance_scale]).all() or step_dt <= 0 or distance_scale <= 0:
+        raise ValueError("history integration scales must be finite and positive")
+    history = np.zeros((len(x), 2), dtype=np.float64)
+    history[1:] = np.cumsum(x[:-1, 45:47], axis=0, dtype=np.float64) * (step_dt / distance_scale)
+    result = np.concatenate((x, history.astype(np.float32)), axis=1)
+    if not np.isfinite(result).all():
+        raise ValueError("history integration produced non-finite observations")
+    return result
+
+
+def make_history_value_network(initial_state):
+    """Zero-extend a 48D initial critic; never modify the supplied state."""
+    original = make_value_network(48)
+    original.load_state_dict(initial_state, strict=True)
+    state = {k: v.detach().clone() for k, v in original.state_dict().items()}
+    if not all(torch.isfinite(v).all() for v in state.values()):
+        raise ValueError("initial critic must be finite")
+    weight = state['0.weight']
+    state['0.weight'] = torch.cat((weight, weight.new_zeros((128, 2))), dim=1)
+    model = make_value_network(50)
+    model.load_state_dict(state, strict=True)
+    return model
+
+
 def complete_episode_returns(rewards, terminated, truncated, collector_cutoff, *, gamma):
     rewards = np.asarray(rewards, dtype=np.float64).reshape(-1)
     if not len(rewards) or not np.isfinite(rewards).all() or not 0 < gamma <= 1:

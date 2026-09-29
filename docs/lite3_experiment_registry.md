@@ -143,3 +143,12 @@
 
 - 完成：101为10285步、107为8930步，共19215/24000实际控制步；12完整回合，无替换，uncertain=0；重复evaluation新增0步。每地形只拟合一次100 epochs（5400/5300 minibatch更新，CPU约10.2/9.1秒）。101/107留出EV为−0.392/0.342，RMSE为63.581/37.341；107时间基线RMSE24.583更低。两验证集均无正非足接触标签，对应分层标为无样本。
 - 增强数据入口的冻结critic优化器、有限观测、二值接触标签检查，显式bool掩码防止整数标签误作行索引；重新审核原12回合通过，没有重拟合或增加物理成本。全量测试1611 passed, 7 skipped。报告：[G1.3](lite3-g1-complete-value-2026-09-29.md)，[验证JSON](lite3_g1_value_validation_20260929.json)。G1学习信号尚未合格；速度历史仅为后续待注册假设，本组未运行第二候选或新确认实验。
+
+## G1-20260929-value-history-confirmation
+
+- 预登记单一历史特征候选：[固定协议](lite3_g1_value_history_protocol_20260929.json)。仅新增两个排除当前时刻的 body XY velocity 积分特征：`sum(v[j], j<t)*.02/12`，每回合清零；12 m来自0.3 m/s×2000×.02秒，不从数据拟合。它是旋转机体系下的行程代理，不是世界XY里程；禁止添加simulator位置/朝向真值，actor输入和在线学习实现不变。
+- 使用原101/107各四个训练回合，保持100 epochs、batch128、Adam lr5e-5、loss=.25*MSE、grad cap1、shuffle seed11；48→50维，隐藏层128/128 ELU不变，初始第一层追加零列，其他初始权重相同。只拟合一次；先保存并哈希固定模型，再启动新确认采集。旧验证轨迹不用于拟合/调参。
+- 新确认使用development rough_4cm101/107、learner seed19，各2个预定perturbed-v1起点（协议锁定reset seeds），冻结确定性base，无噪声/学习，完整deadline2000；新增总预算≤8000控制步，GPU0/1各最多一个worker。输出`artifacts/g1_value_history_20260929/`；所有失败、截断和成本保留，不补起点，不生成sealed种子，不跨源码续接旧session。
+- 原保存48维critic、原训练均值常数、原训练三次时间基线均锁定为比较对象。候选只有在两地形pooled EV均>0，且相对全部三个比较对象的pooled RMSE及回合等权RMSE都降低，才记为“该次诊断支持”；否则不支持，不依据确认结果再调参数。任何不完整/aborted回合使确认不充分，禁止将其重标为MC。该判定仍不等于在线G1路线晋级。
+
+- 确认采集前已完成两次固定拟合：101/107各5400/5300 minibatch更新，CPU约10.51/8.97秒（与回归测试同时运行）；初始输出max_abs均0，训练EV为0.821683/0.818298。未据训练曲线改预算。确认目录尚不存在时保存[模型锁定记录](lite3_g1_value_history_fit_lock_20260929.json)，fit manifest SHA256=`9a45cf46ebd3f89bd3048e4df8bcf4f47eaf82e6f0f4ece7281be5642fb08a56`；确认必须校验该哈希。全量回归1623 passed, 7 skipped。
