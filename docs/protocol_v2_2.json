@@ -204,6 +204,17 @@
     "after_target_critic_bellman_rmse": 0.12041683942223126,
     "after_online_critic_bellman_rmse": 1.5145004595522094,
     "qualification": "not established; target lag and zero terminal/action coverage in old replay",
-    "next_step": "preregister fresh post-latency-fix SAC collection and boundary coverage audit; do not relax safety masks based on old timeout data"
+    "next_step": "Post-latency-fix boundary collection complete: all four natural task terminals retained. Safety masks unchanged; next register learning/action-coverage diagnostic."
+  },
+  "sac_boundary_collection": {
+    "report": "docs/lite3-g1-sac-boundaries-2026-09-29.md",
+    "validation": "docs/lite3_g1_sac_boundary_validation_20260929.json",
+    "actual_control_transitions": 6501,
+    "optimizer_updates": 0,
+    "terminal_rows_retained": 4,
+    "control_timeouts": 0,
+    "max_control_compute_ms": 7.614182075485587,
+    "qualification": "Boundary admission verified on four development episodes; no SAC value or online policy qualification",
+    "next_step": "Use registered fresh learning diagnostic to examine nonzero residual support; do not relax safety admission based on pre-fix timeout data"
   }
 }

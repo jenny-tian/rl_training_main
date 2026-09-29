@@ -1,0 +1,130 @@
+{
+  "actual_control_transitions": 6501,
+  "optimizer_updates": 0,
+  "protocol_sha256": "31d4262bde114b80902af3765ef948ab025055d4ca2c77841931bbdecdd0f30e",
+  "repeated_lock_added_steps": 0,
+  "route_qualified": false,
+  "status": "complete",
+  "terrains": {
+    "101": {
+      "actual_control_transitions": 3833,
+      "aligned_fields": [
+        "history",
+        "next_history",
+        "next_frame",
+        "terminated",
+        "truncated",
+        "bootstrap_mask",
+        "discount",
+        "safety_mask",
+        "current_frame",
+        "base_action",
+        "residual_action",
+        "requested_residual_action",
+        "reward",
+        "next_base_action",
+        "episode_id"
+      ],
+      "episodes": [
+        {
+          "control_timeouts": 0,
+          "cumulative_replay_rows": 1833,
+          "max_control_compute_ms": 5.975306034088135,
+          "replay_rows_added": 1833,
+          "reset_seed": 1375524730,
+          "steps": 1833,
+          "stop_reason": "lateral_violation",
+          "terminal_bootstrap_mask": 0.0,
+          "terminal_retained": true,
+          "terminal_safety_eligible": true,
+          "trial_id": "trial-00000"
+        },
+        {
+          "control_timeouts": 0,
+          "cumulative_replay_rows": 3833,
+          "max_control_compute_ms": 4.77322400547564,
+          "replay_rows_added": 2000,
+          "reset_seed": 86170031,
+          "steps": 2000,
+          "stop_reason": "task_timeout",
+          "terminal_bootstrap_mask": 0.0,
+          "terminal_retained": true,
+          "terminal_safety_eligible": true,
+          "trial_id": "trial-00001"
+        }
+      ],
+      "replay_rows": 3833,
+      "source_sha256": "d9f2f137f0e431af0265b66f267aa16f1f383ebbdd75b515b06f18dcf4fd7624",
+      "terminal_rows": 2,
+      "truncated_rows": 0,
+      "zero_request_rows": 3833,
+      "final_phase": "evaluation",
+      "uncertain_steps": 0,
+      "unused_adaptation_steps": 168
+    },
+    "107": {
+      "actual_control_transitions": 2668,
+      "aligned_fields": [
+        "history",
+        "next_history",
+        "next_frame",
+        "terminated",
+        "truncated",
+        "bootstrap_mask",
+        "discount",
+        "safety_mask",
+        "current_frame",
+        "base_action",
+        "residual_action",
+        "requested_residual_action",
+        "reward",
+        "next_base_action",
+        "episode_id"
+      ],
+      "episodes": [
+        {
+          "control_timeouts": 0,
+          "cumulative_replay_rows": 1404,
+          "max_control_compute_ms": 4.148820880800486,
+          "replay_rows_added": 1404,
+          "reset_seed": 1375524730,
+          "steps": 1404,
+          "stop_reason": "physical_failure",
+          "terminal_bootstrap_mask": 0.0,
+          "terminal_retained": true,
+          "terminal_safety_eligible": true,
+          "trial_id": "trial-00000"
+        },
+        {
+          "control_timeouts": 0,
+          "cumulative_replay_rows": 2668,
+          "max_control_compute_ms": 7.614182075485587,
+          "replay_rows_added": 1264,
+          "reset_seed": 86170031,
+          "steps": 1264,
+          "stop_reason": "physical_failure",
+          "terminal_bootstrap_mask": 0.0,
+          "terminal_retained": true,
+          "terminal_safety_eligible": true,
+          "trial_id": "trial-00001"
+        }
+      ],
+      "replay_rows": 2668,
+      "source_sha256": "d9f2f137f0e431af0265b66f267aa16f1f383ebbdd75b515b06f18dcf4fd7624",
+      "terminal_rows": 2,
+      "truncated_rows": 0,
+      "zero_request_rows": 2668,
+      "final_phase": "evaluation",
+      "uncertain_steps": 0,
+      "unused_adaptation_steps": 1333
+    }
+  },
+  "full_report_path": "artifacts/g1_sac_boundary_20260929/audit/report.json",
+  "full_report_sha256": "e901ab58092c26d37b89c5ecbae5062da4160965e5648fa09da0209def018945",
+  "tests": {
+    "passed": 1630,
+    "skipped": 7
+  },
+  "collection_commit": "016e0126d3fc40008fdde2a20514644ff6220efc",
+  "audit_source_sha256": "760eff95f146fd154b53beeea18581229a2e0715fdedbc1b77a245b13fe3e244"
+}

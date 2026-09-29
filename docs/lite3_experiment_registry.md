@@ -174,3 +174,6 @@
 - 使用冻结确定性base的warmup路径以验证实际replay准入。每地形managed B=4001、warmup=4001，而固定两回合最多4000步，确保本组不会启动critic预热或actor/alpha学习。replay5000/min256、n=1、alpha=.01，其余默认。多出的1步只用于防止采集末尾触发学习，不执行；未用适应预算不追加试验。
 - 逐步日志新增critic/actor实际replay写入数和安全准入mask，便于与轨迹及checkpoint逐行核对。两次attempt后通过账本API锁定evaluation，0控制步，不执行evaluation/retention；重复锁定不新增成本。采集窗口结束不代表预热或完整适应session合格。
 - 核验自然任务终止/截断与安全mask、base动作等价、零优化器状态、跨checkpoint累积replay、终止bootstrap。保留无法学习的安全失败样本在原始trace中，不直接放宽准入。输出`artifacts/g1_sac_boundary_20260929/`。
+
+- 完成：101为lateral_violation/1833及task_timeout/2000，107为physical_failure/1404及physical_failure/1264，共6501/8000步，uncertain=0，无补抽。全部6501行进入replay，4个终止行均保留、bootstrap=0；15字段按存储dtype逐位对齐，零优化器状态/零更新，base动作等价。控制超时0，最大7.614 ms。
+- 两session已通过账本锁定evaluation，重复带阶段检查的锁定新增0步；未执行评估/保持回合，未用适应预算168/1333步不追加。本组未完成预热、不作策略或Q合格结论。新增日志和对账工具，全量回归1630 passed, 7 skipped。报告：[G1.6](lite3-g1-sac-boundaries-2026-09-29.md)，[验证JSON](lite3_g1_sac_boundary_validation_20260929.json)。自然终止覆盖已验证；非零请求覆盖仍待后续登记。
