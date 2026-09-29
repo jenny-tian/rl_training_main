@@ -1651,12 +1651,13 @@ def main() -> int:
                                             stats=stats, records=warmup_update_records, last_update=last_update,
                                             counters=counters, step=step_snapshot, adaptation_episode=episode_snapshot,
                                             path=run_dir / "target_warmup_updates.jsonl",
-                                            residual_gain=online_agent.residual_gain,
+                                            residual_gain=args.adapting_residual_gain,
                                         )
                                     if len(warmup_update_records) % 100 == 0:
                                         print(f"[target warmup] critic updates={len(warmup_update_records)}", flush=True)
                                 with control_update_lock, update_lock:
-                                    pretrain_target_critic(target_warmup, online_agent, on_update=record_warmup_update)
+                                    pretrain_target_critic(target_warmup, online_agent, on_update=record_warmup_update,
+                                                          residual_gain=args.adapting_residual_gain)
                                 stable_manager.checkpoint(online_agent.updater)
                             update_cycle_complete.set()
                             continue

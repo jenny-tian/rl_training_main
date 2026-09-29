@@ -157,7 +157,8 @@
     "sac_warmup_credit": "no actor or ordinary critic update credits from warmup collection",
     "resume": "checkpointed collection and critic-pretraining counts; no silent source/configuration migration",
     "report": "docs/lite3-g1-target-warmup-2026-09-29.md",
-    "limits": "engineering contract validation; final algorithm qualification and sealed protocol remain pending"
+    "limits": "engineering contract validation; final algorithm qualification and sealed protocol remain pending",
+    "sac_target_gain": "Explicit registered adapting_residual_gain; independent of transient control gain. Source-bound sessions require fresh run after fix."
   },
   "control_execution_validation": {
     "report": "docs/lite3-g1-control-latency-2026-09-29.md",
@@ -216,5 +217,28 @@
     "max_control_compute_ms": 7.614182075485587,
     "qualification": "Boundary admission verified on four development episodes; no SAC value or online policy qualification",
     "next_step": "Use registered fresh learning diagnostic to examine nonzero residual support; do not relax safety admission based on pre-fix timeout data"
+  },
+  "sac_huber_coverage": {
+    "report": "docs/lite3-g1-sac-huber-2026-09-29.md",
+    "validation": "docs/lite3_g1_sac_huber_validation_20260929.json",
+    "actual_control_transitions": 19129,
+    "warmup_updates_per_terrain": 1000,
+    "critic_updates_per_terrain": 1500,
+    "actor_updates": {
+      "101": 0,
+      "107": 2
+    },
+    "pre_fix_warmup_gain": {
+      "101": 0.5,
+      "107": 0.0
+    },
+    "post_warmup_nonzero_replay_rows": {
+      "101": 361,
+      "107": 578
+    },
+    "control_timeout_count": 1,
+    "gain_fix_physical_validation": false,
+    "route_qualified": false,
+    "next_step": "Fresh source-bound verification of fixed warmup gain, then audit effective actor-update scheduling before longer runs"
   }
 }

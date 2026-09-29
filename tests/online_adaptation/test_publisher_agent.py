@@ -1169,11 +1169,11 @@ def test_target_critic_warmup_runs_once_without_actor_or_alpha_mutation():
     agent = make_agent(batch_size=4, min_replay_size=4)
     warmup = TargetWarmup("sac", 4, 3, collected_steps=4)
     with pytest.raises(RuntimeError, match="distinct transitions"):
-        pretrain_target_critic(warmup, agent, on_update=lambda s: None)
+        pretrain_target_critic(warmup, agent, on_update=lambda s: None, residual_gain=.5)
     agent.replay.add_batch(**make_agent_transition(1., batch=4))
     before = copy.deepcopy(agent.updater.state_dict())
     records = []
-    pretrain_target_critic(warmup, agent, on_update=records.append)
+    pretrain_target_critic(warmup, agent, on_update=records.append, residual_gain=.5)
     assert warmup.ready and len(records) == 3 and all(s.critic_updated and not s.actor_updated for s in records)
     after = agent.updater.state_dict()
     for key in ("actor", "actor_optimizer", "alpha_optimizer", "log_alpha"):
@@ -1186,7 +1186,7 @@ def test_target_critic_warmup_runs_once_without_actor_or_alpha_mutation():
             assert before[key] == after[key]
     resumed = TargetWarmup("sac", 4, 3)
     resumed.restore(warmup.state_dict())
-    pretrain_target_critic(resumed, agent, on_update=records.append)
+    pretrain_target_critic(resumed, agent, on_update=records.append, residual_gain=.5)
     assert len(records) == 3
 
 
@@ -1201,3 +1201,39 @@ def test_managed_frozen_candidate_executes_published_mean_without_mutating_actor
     decision=agent.begin_step(torch.ones(1,2),torch.zeros(1,1),safety_state(),deterministic=True)
     assert decision.action.abs().max()>0
     for key,value in agent.updater.actor.state_dict().items():assert torch.equal(value,before[key])
+
+
+@pytest.mark.parametrize('control_gain', [0., .25, .5])
+def test_target_warmup_uses_registered_gain_without_changing_control_state(monkeypatch, control_gain):
+    from rl_training.online_adaptation.target_warmup import TargetWarmup, pretrain_target_critic
+    agent = make_agent(batch_size=4, min_replay_size=4, residual_gain=control_gain)
+    agent.replay.add_batch(**make_agent_transition(1., batch=4))
+    forwarded, target_requests = [], []
+    update = agent.updater.update
+
+    def record_update(*args, **kwargs):
+        forwarded.append(kwargs['residual_gain'])
+        return update(*args, **kwargs)
+
+    monkeypatch.setattr(agent.updater, 'update', record_update)
+    handle = agent.updater.target_critic.register_forward_pre_hook(
+        lambda module, inputs: target_requests.append(inputs[-1].detach().clone()))
+    warmup = TargetWarmup('sac', 4, 3, collected_steps=4)
+    try:
+        pretrain_target_critic(warmup, agent, on_update=lambda s: None, residual_gain=.5)
+    finally:
+        handle.remove()
+    assert forwarded == [.5, .5, .5]
+    assert all(torch.count_nonzero(request) > 0 for request in target_requests)
+    assert agent.residual_gain == control_gain
+    assert warmup.ready and not agent.updater.actor_optimizer.state and not agent.updater.alpha_optimizer.state
+
+
+def test_critic_gain_override_is_validated_before_sampling_and_cannot_change_actor_policy():
+    agent = make_agent(residual_gain=0.)
+    for value in (-.1, float('nan'), 2., True):
+        with pytest.raises(ValueError):
+            agent.update(update_actor=False, critic_residual_gain=value)
+    with pytest.raises(ValueError, match='critic-only'):
+        agent.update(update_actor=True, critic_residual_gain=.5)
+    assert agent.residual_gain == 0.

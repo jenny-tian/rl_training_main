@@ -1,0 +1,1033 @@
+{
+  "actual_control_transitions": 19129,
+  "protocol_sha256": "e9e213aca7aab4247c2061dac10d633986855996cf477154fd9c4a8f421587d5",
+  "route_qualified": false,
+  "status": "complete",
+  "terrains": {
+    "101": {
+      "base": {
+        "actor_updates": 0,
+        "adaptation_early_stopped": false,
+        "adaptation_failure_reason": null,
+        "critic_updates": 0,
+        "post_warmup_control_steps": 0,
+        "post_warmup_nonzero_replay_rows": 0,
+        "post_warmup_nonzero_request_steps": 0,
+        "source_sha256": "bf4c815e650dddca70822d116037cc0669fb4a7757ef447a4c7d552ea9304f93",
+        "spent": {
+          "adaptation": 0,
+          "evaluation": 1483,
+          "flat_selection": 0,
+          "retention": 1000,
+          "selection": 0,
+          "warmup": 0
+        },
+        "stochastic_control_steps": 0,
+        "trials": [
+          {
+            "action_gains": [
+              0.0
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1483,
+            "completion": true,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                -3.508519411087036,
+                0.010159673169255257,
+                0.375,
+                0.9998610019683838,
+                0.0,
+                4.0978193283081055e-08,
+                0.016671717166900635,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 7.090443046763539,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "evaluation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 8.012752294540405,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0,
+            "reset_seed": 1840178976,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1483,
+            "stop_reason": "completion",
+            "trial_id": "trial-00000",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 0,
+              "critic_updates": 0,
+              "required_critic_updates": 0,
+              "required_steps": 0
+            }
+          },
+          {
+            "action_gains": [
+              0.0
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1000,
+            "completion": null,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "flat_retention": {
+              "comparison_eligible": true,
+              "expected_sample_count": 1000,
+              "final_x": 6.288089752197266,
+              "full_sample_budget": true,
+              "initial_x": 0.0034508127719163895,
+              "net_forward_m": 6.284638939425349,
+              "post_reset_samples_excluded": 0,
+              "sample_count": 1000,
+              "schema": "plane_fixed_command_steady_velocity_v1",
+              "steady_data_available": true,
+              "steady_duration_seconds": 15.0,
+              "steady_net_forward_m": 4.766208291053772,
+              "steady_sample_count": 750,
+              "steady_start_x": 1.5218814611434937,
+              "steady_velocity_x_mae": 0.01838227661450704,
+              "steady_velocity_xy_l2_mean": 0.03382145729757419,
+              "steady_velocity_xy_mae": 0.022636929128629465,
+              "steady_velocity_y_mae": 0.02689158164275189,
+              "step_dt_seconds": 0.02,
+              "velocity_frame": "body",
+              "velocity_units": "m/s",
+              "warmup_seconds": 5.0
+            },
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                0.0034508127719163895,
+                -0.010675881989300251,
+                0.375,
+                0.999965488910675,
+                0.0,
+                2.7939677238464355e-08,
+                -0.008305728435516357,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 5.447248928248882,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "retention",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 6.284638939425349,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0,
+            "reset_seed": 555877519,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1000,
+            "stop_reason": "collector_cutoff",
+            "trial_id": "trial-00001",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 0,
+              "critic_updates": 0,
+              "required_critic_updates": 0,
+              "required_steps": 0
+            }
+          }
+        ],
+        "uncertain_steps": 0,
+        "warmup_control_steps": 0,
+        "warmup_gain_counts": {},
+        "warmup_records": 0
+      },
+      "candidate": {
+        "actor_updates": 0,
+        "adaptation_early_stopped": false,
+        "adaptation_failure_reason": null,
+        "critic_updates": 1500,
+        "post_warmup_control_steps": 1000,
+        "post_warmup_nonzero_replay_rows": 361,
+        "post_warmup_nonzero_request_steps": 361,
+        "source_sha256": "bf4c815e650dddca70822d116037cc0669fb4a7757ef447a4c7d552ea9304f93",
+        "spent": {
+          "adaptation": 5000,
+          "evaluation": 1483,
+          "flat_selection": 0,
+          "retention": 1000,
+          "selection": 0,
+          "warmup": 0
+        },
+        "stochastic_control_steps": 361,
+        "trials": [
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1388,
+            "completion": true,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "max_control_compute_ms": 5.42961317114532,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 8.00122880935669,
+            "replay_rows_written": 1388,
+            "replay_terminal_rows": 1,
+            "request_rms": 0.0,
+            "reset_seed": 523204760,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1388,
+            "stop_reason": "completion",
+            "trial_id": "trial-00000",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 1388,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 951,
+            "completion": false,
+            "control_timeouts": 1,
+            "critic_updates": 0,
+            "fell": false,
+            "max_control_compute_ms": 44.07236888073385,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 5.52648401260376,
+            "replay_rows_written": 950,
+            "replay_terminal_rows": 1,
+            "request_rms": 0.0,
+            "reset_seed": 856002913,
+            "safety_violation": true,
+            "status": "complete",
+            "steps": 951,
+            "stop_reason": "safety_failure",
+            "trial_id": "trial-00001",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 2339,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1726,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 1032,
+            "fell": false,
+            "max_control_compute_ms": 6.724649807438254,
+            "nonzero_executed_steps": 65,
+            "nonzero_request_steps": 65,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 65,
+            "progress_m": 6.992345571517944,
+            "replay_rows_written": 1726,
+            "replay_terminal_rows": 2,
+            "request_rms": 0.013018917215774419,
+            "reset_seed": 678817661,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1726,
+            "stop_reason": "lateral_violation",
+            "trial_id": "trial-00002",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 935,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 468,
+            "fell": false,
+            "max_control_compute_ms": 7.2309039533138275,
+            "nonzero_executed_steps": 296,
+            "nonzero_request_steps": 296,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 140,
+            "progress_m": 4.028709650039673,
+            "replay_rows_written": 935,
+            "replay_terminal_rows": 2,
+            "request_rms": 0.03793381984315432,
+            "reset_seed": 1655713459,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 935,
+            "stop_reason": "collector_cutoff",
+            "trial_id": "trial-00003",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1483,
+            "completion": true,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                -3.508519411087036,
+                0.010159673169255257,
+                0.375,
+                0.9998610019683838,
+                0.0,
+                4.0978193283081055e-08,
+                0.016671717166900635,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 5.773711949586868,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "evaluation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 8.012752294540405,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0,
+            "reset_seed": 1840178976,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1483,
+            "stop_reason": "completion",
+            "trial_id": "trial-00004",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1000,
+            "completion": null,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "flat_retention": {
+              "comparison_eligible": true,
+              "expected_sample_count": 1000,
+              "final_x": 6.288089752197266,
+              "full_sample_budget": true,
+              "initial_x": 0.0034508127719163895,
+              "net_forward_m": 6.284638939425349,
+              "post_reset_samples_excluded": 0,
+              "sample_count": 1000,
+              "schema": "plane_fixed_command_steady_velocity_v1",
+              "steady_data_available": true,
+              "steady_duration_seconds": 15.0,
+              "steady_net_forward_m": 4.766208291053772,
+              "steady_sample_count": 750,
+              "steady_start_x": 1.5218814611434937,
+              "steady_velocity_x_mae": 0.01838227661450704,
+              "steady_velocity_xy_l2_mean": 0.03382145729757419,
+              "steady_velocity_xy_mae": 0.022636929128629465,
+              "steady_velocity_y_mae": 0.02689158164275189,
+              "step_dt_seconds": 0.02,
+              "velocity_frame": "body",
+              "velocity_units": "m/s",
+              "warmup_seconds": 5.0
+            },
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                0.0034508127719163895,
+                -0.010675881989300251,
+                0.375,
+                0.999965488910675,
+                0.0,
+                2.7939677238464355e-08,
+                -0.008305728435516357,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 5.169079871848226,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "retention",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 6.284638939425349,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0,
+            "reset_seed": 555877519,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1000,
+            "stop_reason": "collector_cutoff",
+            "trial_id": "trial-00005",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          }
+        ],
+        "uncertain_steps": 0,
+        "warmup_control_steps": 4000,
+        "warmup_gain_counts": {
+          "0.5": 1000
+        },
+        "warmup_records": 1000
+      },
+      "execution_status": "complete",
+      "paired_phases": {
+        "evaluation": {
+          "initial_state_matched": true,
+          "reset_seed": 1840178976
+        },
+        "retention": {
+          "initial_state_matched": true,
+          "reset_seed": 555877519
+        }
+      }
+    },
+    "107": {
+      "base": {
+        "actor_updates": 0,
+        "adaptation_early_stopped": false,
+        "adaptation_failure_reason": null,
+        "critic_updates": 0,
+        "post_warmup_control_steps": 0,
+        "post_warmup_nonzero_replay_rows": 0,
+        "post_warmup_nonzero_request_steps": 0,
+        "source_sha256": "bf4c815e650dddca70822d116037cc0669fb4a7757ef447a4c7d552ea9304f93",
+        "spent": {
+          "adaptation": 0,
+          "evaluation": 1057,
+          "flat_selection": 0,
+          "retention": 1000,
+          "selection": 0,
+          "warmup": 0
+        },
+        "stochastic_control_steps": 0,
+        "trials": [
+          {
+            "action_gains": [
+              0.0
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1057,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": true,
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                -3.508519411087036,
+                0.010159673169255257,
+                0.375,
+                0.9998610019683838,
+                0.0,
+                4.0978193283081055e-08,
+                0.016671717166900635,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 9.115634020417929,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "evaluation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 5.125750780105591,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0,
+            "reset_seed": 1840178976,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1057,
+            "stop_reason": "physical_failure",
+            "trial_id": "trial-00000",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 0,
+              "critic_updates": 0,
+              "required_critic_updates": 0,
+              "required_steps": 0
+            }
+          },
+          {
+            "action_gains": [
+              0.0
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1000,
+            "completion": null,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "flat_retention": {
+              "comparison_eligible": true,
+              "expected_sample_count": 1000,
+              "final_x": 6.288089752197266,
+              "full_sample_budget": true,
+              "initial_x": 0.0034508127719163895,
+              "net_forward_m": 6.284638939425349,
+              "post_reset_samples_excluded": 0,
+              "sample_count": 1000,
+              "schema": "plane_fixed_command_steady_velocity_v1",
+              "steady_data_available": true,
+              "steady_duration_seconds": 15.0,
+              "steady_net_forward_m": 4.766208291053772,
+              "steady_sample_count": 750,
+              "steady_start_x": 1.5218814611434937,
+              "steady_velocity_x_mae": 0.01838227661450704,
+              "steady_velocity_xy_l2_mean": 0.03382145729757419,
+              "steady_velocity_xy_mae": 0.022636929128629465,
+              "steady_velocity_y_mae": 0.02689158164275189,
+              "step_dt_seconds": 0.02,
+              "velocity_frame": "body",
+              "velocity_units": "m/s",
+              "warmup_seconds": 5.0
+            },
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                0.0034508127719163895,
+                -0.010675881989300251,
+                0.375,
+                0.999965488910675,
+                0.0,
+                2.7939677238464355e-08,
+                -0.008305728435516357,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 6.627269089221954,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "retention",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 6.284638939425349,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0,
+            "reset_seed": 555877519,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1000,
+            "stop_reason": "collector_cutoff",
+            "trial_id": "trial-00001",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 0,
+              "critic_updates": 0,
+              "required_critic_updates": 0,
+              "required_steps": 0
+            }
+          }
+        ],
+        "uncertain_steps": 0,
+        "warmup_control_steps": 0,
+        "warmup_gain_counts": {},
+        "warmup_records": 0
+      },
+      "candidate": {
+        "actor_updates": 2,
+        "adaptation_early_stopped": false,
+        "adaptation_failure_reason": null,
+        "critic_updates": 1500,
+        "post_warmup_control_steps": 1000,
+        "post_warmup_nonzero_replay_rows": 578,
+        "post_warmup_nonzero_request_steps": 578,
+        "source_sha256": "bf4c815e650dddca70822d116037cc0669fb4a7757ef447a4c7d552ea9304f93",
+        "spent": {
+          "adaptation": 5000,
+          "evaluation": 1106,
+          "flat_selection": 0,
+          "retention": 1000,
+          "selection": 0,
+          "warmup": 0
+        },
+        "stochastic_control_steps": 578,
+        "trials": [
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1068,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": true,
+            "max_control_compute_ms": 5.521923070773482,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 5.1697916984558105,
+            "replay_rows_written": 1068,
+            "replay_terminal_rows": 1,
+            "request_rms": 0.0,
+            "reset_seed": 523204760,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1068,
+            "stop_reason": "physical_failure",
+            "trial_id": "trial-00000",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 1068,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1125,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": true,
+            "max_control_compute_ms": 7.299363845959306,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 5.156030178070068,
+            "replay_rows_written": 1125,
+            "replay_terminal_rows": 2,
+            "request_rms": 0.0,
+            "reset_seed": 856002913,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1125,
+            "stop_reason": "physical_failure",
+            "trial_id": "trial-00001",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 2193,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1726,
+            "completion": true,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "max_control_compute_ms": 4.0764049626886845,
+            "nonzero_executed_steps": 0,
+            "nonzero_request_steps": 0,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 8.000344038009644,
+            "replay_rows_written": 1726,
+            "replay_terminal_rows": 3,
+            "request_rms": 0.0,
+            "reset_seed": 678817661,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1726,
+            "stop_reason": "completion",
+            "trial_id": "trial-00002",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 3919,
+              "critic_updates": 0,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.0,
+              0.5
+            ],
+            "actor_updates": 2,
+            "charged_steps": 1081,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 1500,
+            "fell": false,
+            "max_control_compute_ms": 7.678467081859708,
+            "nonzero_executed_steps": 578,
+            "nonzero_request_steps": 578,
+            "phase": "adaptation",
+            "post_warmup_actor_replay_rows": 579,
+            "progress_m": 4.905679702758789,
+            "replay_rows_written": 1081,
+            "replay_terminal_rows": 3,
+            "request_rms": 0.04821152770448983,
+            "reset_seed": 1655713459,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1081,
+            "stop_reason": "collector_cutoff",
+            "trial_id": "trial-00003",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1106,
+            "completion": false,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": true,
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                -3.508519411087036,
+                0.010159673169255257,
+                0.375,
+                0.9998610019683838,
+                0.0,
+                4.0978193283081055e-08,
+                0.016671717166900635,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 13.36022699251771,
+            "nonzero_executed_steps": 1100,
+            "nonzero_request_steps": 1106,
+            "phase": "evaluation",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 5.0820472240448,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.000570167897011218,
+            "reset_seed": 1840178976,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1106,
+            "stop_reason": "physical_failure",
+            "trial_id": "trial-00004",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          },
+          {
+            "action_gains": [
+              0.5
+            ],
+            "actor_updates": 0,
+            "charged_steps": 1000,
+            "completion": null,
+            "control_timeouts": 0,
+            "critic_updates": 0,
+            "fell": false,
+            "flat_retention": {
+              "comparison_eligible": true,
+              "expected_sample_count": 1000,
+              "final_x": 6.289485931396484,
+              "full_sample_budget": true,
+              "initial_x": 0.0034508127719163895,
+              "net_forward_m": 6.286035118624568,
+              "post_reset_samples_excluded": 0,
+              "sample_count": 1000,
+              "schema": "plane_fixed_command_steady_velocity_v1",
+              "steady_data_available": true,
+              "steady_duration_seconds": 15.0,
+              "steady_net_forward_m": 4.7625439167022705,
+              "steady_sample_count": 750,
+              "steady_start_x": 1.5269420146942139,
+              "steady_velocity_x_mae": 0.018403884092966716,
+              "steady_velocity_xy_l2_mean": 0.03376768987970433,
+              "steady_velocity_xy_mae": 0.022596609574509784,
+              "steady_velocity_y_mae": 0.026789335056052854,
+              "step_dt_seconds": 0.02,
+              "velocity_frame": "body",
+              "velocity_units": "m/s",
+              "warmup_seconds": 5.0
+            },
+            "frozen_actor_state_equal": true,
+            "frozen_learner_checkpoint_written": false,
+            "initial_root_state": [
+              [
+                0.0034508127719163895,
+                -0.010675881989300251,
+                0.375,
+                0.999965488910675,
+                0.0,
+                2.7939677238464355e-08,
+                -0.008305728435516357,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            ],
+            "max_control_compute_ms": 4.887022078037262,
+            "nonzero_executed_steps": 999,
+            "nonzero_request_steps": 1000,
+            "phase": "retention",
+            "post_warmup_actor_replay_rows": 0,
+            "progress_m": 6.286035118624568,
+            "replay_rows_written": 0,
+            "replay_terminal_rows": null,
+            "request_rms": 0.0005960850078186698,
+            "reset_seed": 555877519,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 1000,
+            "stop_reason": "collector_cutoff",
+            "trial_id": "trial-00005",
+            "update_rejections": {},
+            "warmup": {
+              "algorithm": "sac",
+              "collected_steps": 4000,
+              "critic_updates": 1000,
+              "required_critic_updates": 1000,
+              "required_steps": 4000
+            }
+          }
+        ],
+        "uncertain_steps": 0,
+        "warmup_control_steps": 4000,
+        "warmup_gain_counts": {
+          "0.0": 1000
+        },
+        "warmup_records": 1000
+      },
+      "execution_status": "complete",
+      "paired_phases": {
+        "evaluation": {
+          "initial_state_matched": true,
+          "reset_seed": 1840178976
+        },
+        "retention": {
+          "initial_state_matched": true,
+          "reset_seed": 555877519
+        }
+      }
+    }
+  },
+  "full_report_path": "artifacts/g1_sac_huber_coverage_20260929/audit_validated/report.json",
+  "full_report_sha256": "eaef524b0152f4ac5319817bbb03dfecb2ffcbe6ec4e399e93ffb42604cb35e3",
+  "collection_commit": "d43af03db9e82b894159a5900aca4686b44b22b7",
+  "tests": {
+    "passed": 1636,
+    "skipped": 7
+  },
+  "gain_fix_physical_validation": false,
+  "gain_fix_additional_control_steps": 0,
+  "synthetic_guard_check": {
+    "initial_attempt": "unused helper import failed before any update; zero steps and updates",
+    "physical_steps": 0,
+    "results": {
+      "huber1": {
+        "accepted": true,
+        "actor_loss": null,
+        "actor_updated": false,
+        "alpha": 0.009999999776482582,
+        "alpha_loss": null,
+        "critic_loss": 6.872148513793945,
+        "critic_updated": true,
+        "flat_anchor_loss": null,
+        "flat_batch_fraction": 0.0,
+        "grad_norm": 2.044478416442871,
+        "mean_entropy_bonus": 0.07912510633468628,
+        "mean_flat_q": null,
+        "mean_online_q": null,
+        "mean_q": -0.0013747848570346832,
+        "mean_target_q": 3.9470431804656982,
+        "mean_td_error": 3.948418140411377,
+        "mean_unclipped_target_q": 3.9470431804656982,
+        "n_step": 1,
+        "rejection_reason": null,
+        "target_q_clip_fraction": 0.0,
+        "version": 0
+      },
+      "mse": {
+        "accepted": false,
+        "actor_loss": 0.0,
+        "actor_updated": false,
+        "alpha": 0.009999999776482582,
+        "alpha_loss": 0.0,
+        "critic_loss": 1458.2755126953125,
+        "critic_updated": false,
+        "flat_anchor_loss": null,
+        "flat_batch_fraction": 0.0,
+        "grad_norm": 0.0,
+        "mean_entropy_bonus": 0.07912510633468628,
+        "mean_flat_q": null,
+        "mean_online_q": null,
+        "mean_q": -0.0013747848570346832,
+        "mean_target_q": 3.9470431804656982,
+        "mean_td_error": 3.948418140411377,
+        "mean_unclipped_target_q": 3.9470431804656982,
+        "n_step": 1,
+        "rejection_reason": "critic_loss_limit",
+        "target_q_clip_fraction": 0.0,
+        "version": 0
+      }
+    },
+    "synthetic_accepted_updates": 1,
+    "synthetic_update_attempts": 2
+  },
+  "repeat_validation": {
+    "101": {
+      "added_steps": 0,
+      "added_trials": 0,
+      "states_equal": true
+    },
+    "107": {
+      "added_steps": 0,
+      "added_trials": 0,
+      "states_equal": true
+    }
+  },
+  "control_timeout_events": [
+    {
+      "terrain": 101,
+      "trial_id": "trial-00001",
+      "step": 951,
+      "reported_control_ms": 44.07236888073385,
+      "latency": {
+        "wall_before_fallback_ms": 34.31883989833295,
+        "thread_cpu_ms": 5.025318999997808,
+        "gc_ms": 0.0,
+        "gc_generations": [],
+        "host_stage_ms": {
+          "base_policy": 4.426623927429318,
+          "adapter_and_safety": 28.65401515737176,
+          "fallback_and_device_sync": 1.2348168529570103
+        }
+      }
+    }
+  ],
+  "audit_correction": "First auditor wrongly required frozen session.pt. Corrected to actor before/after tensors, input checkpoint hash, zero-update/write counters and constant replay sizes; original audit failure retained, zero added physics."
+}

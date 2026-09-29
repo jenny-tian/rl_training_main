@@ -667,13 +667,17 @@ class OnlineAdaptationAgent:
         *,
         update_actor: bool = True,
         generator: torch.Generator | None = None,
+        critic_residual_gain: float | None = None,
     ):
+        if critic_residual_gain is not None and update_actor:
+            raise ValueError("critic_residual_gain is only supported for critic-only updates")
+        update_gain = (None if critic_residual_gain is None else _validate_residual_gain(critic_residual_gain))
         if critic_batch is None:
             critic_batch = self.sample_critic_batch(generator=generator)
         stats = self.updater.update(
             critic_batch=critic_batch,
             actor_batch=actor_batch,
-            residual_gain=self.residual_gain,
+            residual_gain=self.residual_gain if update_gain is None else update_gain,
             update_actor=update_actor,
         )
         return replace(

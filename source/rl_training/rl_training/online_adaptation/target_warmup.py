@@ -64,8 +64,12 @@ def restore_target_warmup(args, algorithm, checkpoint):
     return warmup
 
 
-def pretrain_target_critic(warmup, agent, *, on_update):
-    """Run once after collection; the caller serializes access to the learner."""
+def pretrain_target_critic(warmup, agent, *, on_update, residual_gain):
+    """Fit the registered adaptation policy, independent of transient control gain.
+
+    The caller serializes access to the learner. The explicit target gain is
+    configuration-bound by managed sessions; control gain is never mutated.
+    """
     if warmup.algorithm != "sac" or warmup.collecting:
         raise ValueError("target critic pretraining requires completed SAC collection")
     if warmup.ready:
@@ -73,7 +77,7 @@ def pretrain_target_critic(warmup, agent, *, on_update):
     if len(agent.replay) < max(agent.config.batch_size, agent.config.min_replay_size):
         raise RuntimeError("target warmup replay has insufficient distinct transitions")
     while not warmup.ready:
-        stats = agent.update(update_actor=False)
+        stats = agent.update(update_actor=False, critic_residual_gain=residual_gain)
         on_update(stats)
         if not stats.accepted:
             raise RuntimeError(f"target critic warmup rejected: {stats.rejection_reason}")

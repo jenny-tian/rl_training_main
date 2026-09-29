@@ -192,3 +192,10 @@
 - 每地形固定1×2000任务冻结评估、1×1000平地保持；另起fresh base session执行相同phase/reset seeds的1×2000＋1×1000对照。每地形上限11000，总≤22000控制步；最多两GPU、每卡一worker。原始诊断数据不作为免费适应样本，不做LN/UTD/n-step联合改动。
 - managed入口允许已有critic-huber-delta参数并纳入source/config哈希；预热逐更新日志补记当时residual_gain。无探针，候选固定最后提交checkpoint，冻结phase不能回流适应，重复phase调用不得新增试验。失败/aborted及成本全部保留，不按表现替换评估起点；预热失败不晋升其aborted checkpoint，本组不追加救援候选。
 - 观察真实非零请求、探索、接受更新、冻结动作增益、零更新/零replay写入和完整任务/平地指标。本组只有单适应seed及单评估起点，工程/覆盖诊断不等于G1路线晋级或显著性结论。
+
+- 本组物理阶段已完成，随后新日志暴露预热目标增益依赖瞬时控制状态：101全部1000次为.5，107全部1000次为0。两个session虽共享adapting_residual_gain=.5，却拟合了不同增益的目标策略；该数据保留为修复前证据，不作为一致目标策略下的Huber跨地形效果确认。
+- 先完成8次冻结phase重复调用，均新增0步/0试验，再修复预热增益：critic-only更新显式接收注册适应增益，避免读控制等待态；不修改control gain，不改变常规actor更新行为。该修复仅做真实agent集成/单元回归，新增物理步0，不在本组追加救援候选或跨源码续接旧session。
+
+- 本组实际19129/22000控制步、uncertain=0，四session均完成。每地形5000适应步、1000critic-only预热＋500常规critic更新；非零随机请求入库101为361、107为578行。actor更新0/2次；101冻结等于base，二者completion1483步；107候选/base均physical_failure（1106/1057步，前进5.08205/5.12575 m）。四平地窗口均1000步且可比较；单起点结果不作晋级或显著性结论。
+- 一次控制超时保留：101适应trial00001第951步，回退前34.319 ms、线程CPU5.025 ms、GC0；回退后总值44.072 ms。未放宽20 ms阈值，未替换该失败。冻结actor张量不变、零更新/写入和constant replay size验证通过；初版对账错误要求冻结完整checkpoint，修正读取契约后通过，失败记录保留，新增物理步0。
+- 最终回归1636 passed, 7 skipped。报告：[G1.7](lite3-g1-sac-huber-2026-09-29.md)，[验证JSON](lite3_g1_sac_huber_validation_20260929.json)。预热gain修复尚无新物理验证，本轮不追加救援候选；下一步登记新版本复核，再评估有效actor更新调度。
