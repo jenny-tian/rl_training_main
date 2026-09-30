@@ -1,0 +1,49 @@
+{
+  "schema": "lite3_sac_actor_schedule_pair_v1",
+  "base_checkpoint": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "learner_seed": 53,
+  "terrains": [
+    101,
+    107
+  ],
+  "arms": {
+    "reference": 0.005,
+    "actor025": 0.25
+  },
+  "order": {
+    "101": [
+      "reference",
+      "actor025"
+    ],
+    "107": [
+      "actor025",
+      "reference"
+    ]
+  },
+  "adaptation_steps": 5000,
+  "warmup_steps": 4000,
+  "critic_warmup_updates": 1000,
+  "trial_steps": 2000,
+  "evaluation_trials": 1,
+  "evaluation_steps": 2000,
+  "retention_trials": 1,
+  "retention_steps": 1000,
+  "max_actual_control_transitions": 32000,
+  "common_worker_options": {
+    "replay-capacity": 5000,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "critic-huber-delta": 1.0,
+    "target-critic-warmup-updates": 1000,
+    "critic-updates-per-transition": 0.5
+  },
+  "single_factor": "actor update credit per eligible actor replay transition only; critic credit .5 fixed, no LN/lr/n-step/safety changes",
+  "budget_review": "Huber is the retained first SAC candidate; increased actor credit is the second candidate. No third candidate or rescue in this group. Critic UTD=1 from the broader plan is deferred to avoid changing two rates together.",
+  "failure_policy": "Retain all failures/aborted attempts and costs. Do not evaluate an aborted checkpoint. No replacement evaluation/retention starts. No outcome-driven reruns.",
+  "decision": "Descriptive paired development comparison of accepted updates, frozen task progress/completion/falls, flat eligibility and MAE. One seed/start cannot qualify G1 or establish significance; never choose an earlier best checkpoint.",
+  "output": "artifacts/g1_sac_actor_schedule_20260930",
+  "evaluation_reset_seed": 1183164609,
+  "retention_reset_seed": 491872599
+}

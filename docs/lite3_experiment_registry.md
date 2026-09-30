@@ -210,3 +210,10 @@
 
 - 完成：实际1152步、uncertain=0，两地形首256步各完成1000次预热更新，全部target gain=.5/control gain=0；检查点恢复各新增256物理步及128次普通critic更新，warmup计数不增加。共2256次critic更新、0 actor/alpha更新。各64步冻结检查零更新/写入、actor张量不变，重复phase新增0步。控制超时0，最大7.991 ms，原20ms阈值不变。
 - 原actor额度核对：101有效样本分为65/140，分回合额度floor均0；107有效样本579，上界2；实际0/2与上界一致。没有改变调度或提高学习率。报告：[G1.8](lite3-g1-warmup-gain-2026-09-30.md)，[验证JSON](lite3_g1_sac_warmup_gain_validation_20260930.json)。全量1636 passed, 7 skipped，短工程窗口不等于正式4000步预热或G1路线通过。
+
+## G1-20260930-sac-actor-schedule
+
+- 重启恢复检查确认HEAD=e3dc2f6、工作区干净，无未完成仿真进程；不重跑G1.8。预登记[actor额度单因素对照](lite3_g1_sac_schedule_protocol_20260930.json)：development101/107、learner53，reference=.005与actor025=.25；critic额度保持.5。Huber1、预热目标gain=.5、初始alpha=.01、n=1、网络/lr/安全条件相同。暂不同时改critic UTD=1；同样有效行数下名义actor/critic额度比从1:100变为1:2。
+- 每臂/地形从base独立采4000步并做1000 critic-only预热，B5000；随后固定1×2000冻结任务、1×1000真实平地。四session总上限32000控制步，预热数据不共享或免费导入。101先reference，107先actor025，固定顺序不由结果决定；每地形固定GPU，最多两worker。
+- Huber候选作为保留的第一配置，actor额度修订作为第二配置；本组不追加第三配置或救援。取最后提交checkpoint，不挑最好epoch/起点；所有失败和不确定成本保留，aborted checkpoint不晋升，不替换评估起点。输出`artifacts/g1_sac_actor_schedule_20260930/`。
+- 描述接受更新数、非零请求覆盖、任务完成/前进/跌倒和平地有效性/MAE，并核验配对reset初态、冻结零更新/写入及重复phase不增加步数。一个适应seed、一个评估起点不构成G1晋级或显著性证据。
