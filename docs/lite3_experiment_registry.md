@@ -217,3 +217,7 @@
 - 每臂/地形从base独立采4000步并做1000 critic-only预热，B5000；随后固定1×2000冻结任务、1×1000真实平地。四session总上限32000控制步，预热数据不共享或免费导入。101先reference，107先actor025，固定顺序不由结果决定；每地形固定GPU，最多两worker。
 - Huber候选作为保留的第一配置，actor额度修订作为第二配置；本组不追加第三配置或救援。取最后提交checkpoint，不挑最好epoch/起点；所有失败和不确定成本保留，aborted checkpoint不晋升，不替换评估起点。输出`artifacts/g1_sac_actor_schedule_20260930/`。
 - 描述接受更新数、非零请求覆盖、任务完成/前进/跌倒和平地有效性/MAE，并核验配对reset初态、冻结零更新/写入及重复phase不增加步数。一个适应seed、一个评估起点不构成G1晋级或显著性证据。
+
+- 完成：实际30509/32000步（适应20000、任务6509、平地4000），uncertain=0，四session全部结束，无替换。两臂预热root/action/reward/terminal字段逐位一致，配置仅actor额度不同，冻结初态匹配；每session1000预热＋500常规critic更新，全部预热gain=.5。
+- reference/actor025接受actor更新：101为3/176，107为2/182。reference任务均completion（1850/1755步）；actor025在101 lateral_violation/1333步、107 physical_failure/1571步，进度6.87035/5.89782 m，均低于reference约8m。不采用.25、不追加第三候选，不按结果改选checkpoint。平地窗口均有效，但107高额度X误差增大，不能仅用平均XY误差降低宣称整体改善。
+- 控制超时0，最大11.718 ms；冻结actor张量不变、零更新/写入；8次冻结重复调用及2次完成驱动resume新增0步/0试验。全量1639 passed, 7 skipped。报告：[G1.9](lite3-g1-actor-schedule-2026-09-30.md)，[验证JSON](lite3_g1_sac_schedule_validation_20260930.json)。下一步先复盘既有Q/回退，不认定路线通过。

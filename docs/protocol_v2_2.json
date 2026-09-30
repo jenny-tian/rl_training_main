@@ -240,7 +240,7 @@
     "control_timeout_count": 1,
     "gain_fix_physical_validation": false,
     "route_qualified": false,
-    "next_step": "G1.8 separately verified fixed warmup gain in physics; next preregister an isolated effective actor-update schedule comparison"
+    "next_step": "G1.8 gain verification and G1.9 actor-credit comparison complete; .25 worsened both observed task outcomes. Review existing Q/rollback evidence, no third candidate in that group."
   },
   "sac_warmup_gain_physical_validation": {
     "report": "docs/lite3-g1-warmup-gain-2026-09-30.md",
@@ -256,5 +256,35 @@
     "repeated_evaluation_added_steps": 0,
     "limits": "256-step engineering warmup and 64-step frozen windows, not full 4000-step efficacy or route qualification",
     "actor_coverage_audit": "prior 101/107 actual updates0/2 equal per-trial credit upper bounds0/2; no schedule change this round"
+  },
+  "sac_actor_schedule_comparison": {
+    "report": "docs/lite3-g1-actor-schedule-2026-09-30.md",
+    "validation": "docs/lite3_g1_sac_schedule_validation_20260930.json",
+    "actual_control_transitions": 30509,
+    "learner_seed": 53,
+    "actor_updates": {
+      "reference": {
+        "101": 3,
+        "107": 2
+      },
+      "actor025": {
+        "101": 176,
+        "107": 182
+      }
+    },
+    "task_completion": {
+      "reference": {
+        "101": true,
+        "107": true
+      },
+      "actor025": {
+        "101": false,
+        "107": false
+      }
+    },
+    "warmup_trajectory_exact_parity": true,
+    "control_timeout_count": 0,
+    "route_qualified": false,
+    "decision": "Do not adopt actor credit .25; default unchanged. Review existing Q and rollback evidence before any further candidate."
   }
 }
