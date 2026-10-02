@@ -37,7 +37,7 @@ def main():
         cfg.seed=p['seed']
         agent_cfg=load_cfg_from_registry(p['task'],'rsl_rl_cfg_entry_point')
         agent_cfg.device=args.device;agent_cfg.seed=p['seed']
-        prepare_rsl_rl_agent_cfg(agent_cfg)
+        agent_cfg=prepare_rsl_rl_agent_cfg(agent_cfg)
         env=gym.make(p['task'],cfg=cfg)
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
         runner=OnPolicyRunner(wrapped,agent_cfg.to_dict(),log_dir=None,device=args.device)
