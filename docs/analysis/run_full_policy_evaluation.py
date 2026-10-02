@@ -20,7 +20,7 @@ def commands(protocol, terrain, device):
             '--target-warmup-steps', '0', '--trial-steps', str(protocol['evaluation_trial_steps']),
             '--selection-budget', '0', '--probe-milestones', '--evaluation-steps', str(protocol['evaluation_trials']*protocol['evaluation_trial_steps']),
             '--evaluation-trials', str(protocol['evaluation_trials']), '--retention-trials', str(protocol['retention_trials']),
-            '--retention-trial-steps', str(protocol['retention_steps']), '--worker-options', str(root/'evaluation_options.json'),
+            '--retention-trial-steps', str(protocol['retention_steps']), '--worker-options', str(root/('evaluation_candidate_options.json' if arm=='candidate' and protocol.get('route_observations') else 'evaluation_options.json')),
             '--device', device]
         for phase in ('evaluation', 'retention'):
             yield arm, phase, common+['--phase', phase]
@@ -56,6 +56,10 @@ def main():
         'learning_algorithm':'full policy PPO; child SAC label denotes frozen execution engine only'})
     write_locked(root/'evaluation_options.json',{'replay-capacity':256,'min-replay-size':256,
         'target-critic-warmup-updates':0,'n-step':1,'initial-alpha':.01,'critic-huber-delta':1.})
+    if p.get('route_observations'):
+        options=read(root/'evaluation_options.json')
+        options['route-observations']=p['route_observations']
+        write_locked(root/'evaluation_candidate_options.json',options)
     with (root/f'execution-{args.terrain}.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         path = root/f'execution-{args.terrain}.json'

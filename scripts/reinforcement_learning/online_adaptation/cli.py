@@ -330,6 +330,7 @@ def build_play_parser() -> argparse.ArgumentParser:
     add_risk_gate_args(parser)
     add_task_objective_args(parser)
     add_session_args(parser)
+    parser.add_argument('--route-observations', choices=('none', 'sim-localization-v1'), default='none')
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--residual-checkpoint")
     parser.add_argument("--fixed-code", type=_finite_float, nargs=2, default=None,

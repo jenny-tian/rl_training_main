@@ -51,6 +51,11 @@ def main():
         torch.backends.cuda.matmul.allow_tf32=False
         torch.backends.cudnn.allow_tf32=False
         cfg=parse_env_cfg(p['task'],device=args.device,num_envs=p['num_envs']);cfg.seed=p['seed']
+        route=p.get('route_observations')
+        if route:
+            from rl_training.policy_route import ROUTE_SCHEMA, configure_route_training, expand_actor_route_inputs
+            assert route==ROUTE_SCHEMA
+            configure_route_training(cfg,p['route_training'])
         agent_cfg=load_cfg_from_registry(p['task'],'rsl_rl_cfg_entry_point')
         agent_cfg.device=args.device;agent_cfg.seed=p['seed'];agent_cfg.num_steps_per_env=p['rollout_steps']
         agent_cfg.save_interval=p['save_interval'];agent_cfg.policy.init_noise_std=p['initial_std']
@@ -87,8 +92,10 @@ def main():
         counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after,action_transform=clip_lite3_policy_action)
         runner=OnPolicyRunner(counted,agent_cfg.to_dict(),log_dir=str(out/'rsl'),device=args.device)
         obs=counted.get_observations()
-        assert obs['policy'].shape==(p['num_envs'],45) and obs['critic'].shape==(p['num_envs'],48)
+        assert obs['policy'].shape==(p['num_envs'],48 if route else 45) and obs['critic'].shape==(p['num_envs'],51 if route else 48)
         payload=torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False)
+        if route:payload=expand_actor_route_inputs(payload)
+        report['route_observations']=route
         report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'])
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}
         dump_yaml(str(out/'env.yaml'),cfg);dump_yaml(str(out/'agent.yaml'),agent_cfg)

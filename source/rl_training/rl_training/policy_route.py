@@ -40,3 +40,10 @@ def expand_actor_route_inputs(payload):
         raise ValueError('Nonfinite original actor weight')
     expanded = torch.cat((weight[:, :9], weight.new_zeros(weight.shape[0], 3), weight[:, 9:]), dim=1)
     return dict(payload, actor_state_dict=dict(source, **{'mlp.0.weight': expanded}))
+
+
+def configure_route_training(cfg, options):
+    from isaaclab.managers import RewardTermCfg
+    configure_route_observations(cfg)
+    cfg.rewards.track_lin_vel_xy_exp.params['std'] = options['tracking_std']
+    cfg.rewards.course_heading = RewardTermCfg(func=route_heading_cost, weight=options['heading_weight'])

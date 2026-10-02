@@ -35,6 +35,12 @@ def main():
         torch.manual_seed(p['seed'])
         cfg=parse_env_cfg(p['task'],device=args.device,num_envs=p['num_envs'])
         cfg.seed=p['seed']
+        route=p.get('route_observations')
+        if route:
+            from rl_training.policy_route import ROUTE_SCHEMA, configure_route_training, expand_actor_route_inputs
+            assert route==ROUTE_SCHEMA
+            configure_route_training(cfg,p['route_training'])
+        from rl_training.lite3_joint_conventions import clip_lite3_policy_action
         agent_cfg=load_cfg_from_registry(p['task'],'rsl_rl_cfg_entry_point')
         agent_cfg.device=args.device;agent_cfg.seed=p['seed']
         agent_cfg=prepare_rsl_rl_agent_cfg(agent_cfg)
@@ -42,6 +48,8 @@ def main():
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
         runner=OnPolicyRunner(wrapped,agent_cfg.to_dict(),log_dir=None,device=args.device)
         payload=torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False)
+        original_payload=payload
+        if route:payload=expand_actor_route_inputs(payload)
         critic_before=copy.deepcopy(runner.alg.critic.state_dict())
         report['warmstart']=warmstart_actor_only(runner,payload)
         actor_before=copy.deepcopy(runner.alg.actor.state_dict())
@@ -64,11 +72,23 @@ def main():
             forced=step==p['normal_vector_steps']
             if forced:raw.episode_length_buf.fill_(raw.max_episode_length)
             pre=observations['policy'].clone()
-            with torch.inference_mode():action=policy(observations)
+            with torch.inference_mode():
+                action=policy(observations)
+                if route:
+                    reference=torch.cat((pre[:,:9],pre[:,12:]),dim=-1)
+                    state=original_payload['actor_state_dict']
+                    for index in (0,2,4,6):
+                        reference=torch.nn.functional.linear(reference,state[f'mlp.{index}.weight'].to(pre.device),state[f'mlp.{index}.bias'].to(pre.device))
+                        if index!=6:reference=torch.nn.functional.elu(reference)
+                    torch.testing.assert_close(action,reference,atol=2e-5,rtol=1e-5)
+                action=clip_lite3_policy_action(action)
             ledger.reserve()
             observations,reward,done,extras=wrapped.step(action)
             ledger.confirm()
             assert torch.isfinite(observations['policy']).all() and torch.isfinite(reward).all()
+            expected=action.clone();expected[done.bool()]=0
+            for group in ('policy','critic'):
+                torch.testing.assert_close(observations[group][...,-12:],expected,atol=1e-6,rtol=0)
             if forced:
                 assert done.bool().all()
                 assert 'time_outs' not in extras or not extras['time_outs'].bool().any()
@@ -79,6 +99,11 @@ def main():
         for before,model in ((actor_before,runner.alg.actor),(critic_before,runner.alg.critic)):
             for k,v in before.items():assert torch.equal(v,model.state_dict()[k])
         assert not runner.alg.optimizer.state and sha256_file(p['base_checkpoint'])==p['base_sha256']
+        if route:
+            checkpoint=runner.alg.save();checkpoint.update(iter=0,infos={'engineering_only':True,'route_observations':route})
+            torch.save(checkpoint,out/'expanded_base.pt')
+            report['expanded_checkpoint']={'path':str((out/'expanded_base.pt').resolve()),'sha256':sha256_file(out/'expanded_base.pt')}
+            report['route_initial_mean_parity']=True
         ledger.finish()
         report.update(status='complete',ledger=ledger.state,actor_critic_unchanged=True,deadline_terminal_no_bootstrap=True,
                       trajectory_sha256=sha256_file(out/'trajectory.npz'))

@@ -54,6 +54,7 @@ def main():
             manifest = read(directory/'ledger/manifest.json')
             assert Path(manifest['base']['path']).resolve() == Path(checkpoint['path']).resolve()
             assert manifest['worker_configuration']['arguments']['stochastic_control'] is False
+            assert manifest['worker_configuration']['arguments'].get('route_observations','none') == (p.get('route_observations','none') if role=='candidate' else 'none')
             for trial in read(directory/'session_summary.json')['trials'].values():
                 if trial['status'] == 'complete':
                     summary = read(Path(trial['output'])/'episode_summary.json')

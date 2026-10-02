@@ -1311,6 +1311,9 @@ def main() -> int:
             configure_flat_retention_plane(env_cfg)
         else:
             apply_geometry_to_env_cfg(env_cfg, geometry)
+        if args.route_observations != 'none':
+            from rl_training.policy_route import configure_route_observations
+            configure_route_observations(env_cfg)
         env_cfg.seed = args.seed
         env_cfg.scene.num_envs = 1
         initial_state_contract = configure_initial_state(env_cfg, args.initial_state)
