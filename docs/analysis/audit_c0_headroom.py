@@ -60,6 +60,8 @@ def audit_child(directory,p,terrain,seed,code,expected_trials,*,expected_phases=
         after=torch.load(path/'residual_after.pt',map_location='cpu',weights_only=False)
         equal_state(before,after)
         assert torch.count_nonzero(before['mean_layer.weight'])==0
+        limits=torch.zeros(12) if code is None else torch.tensor([.24,.2,.2]*4)
+        torch.testing.assert_close(before['action_limits'],limits,atol=0,rtol=0)
         expected=torch.zeros(12) if code is None else fixed_joint_basis()@torch.tensor(code)
         torch.testing.assert_close(before['mean_layer.bias'],expected,atol=1e-7,rtol=0)
         assert not (path/'session.pt').exists()
