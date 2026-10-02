@@ -49,3 +49,22 @@ def test_proxy_callbacks_observe_confirmed_steps_without_extra_calls(tmp_path):
                         after_step=lambda pre,result:records.append((pre,result,ledger.state['confirmed'])))
     proxy.get_observations();assert proxy.step('action')[0]=='next'
     assert records==[(('initial','action'),('next',2,False,{}),1)]
+
+
+def test_emitted_clipping_preserves_requested_action_for_ppo_likelihood(tmp_path):
+    import torch
+    from rl_training.vector_step_ledger import ChargedVecEnv
+    from rl_training.lite3_joint_conventions import clip_lite3_policy_action
+    ledger=VectorStepLedger(tmp_path/'ledger.json',num_envs=1,max_transitions=1,metadata={})
+    received=[]
+    class Env:
+        num_envs=1
+        def get_observations(self):return None
+        def step(self,action):
+            received.append(action.clone());return (None,0,False,{})
+    requested=torch.full((1,12),20.);original=requested.clone()
+    proxy=ChargedVecEnv(Env(),ledger,action_transform=clip_lite3_policy_action)
+    proxy.step(requested)
+    assert torch.equal(requested,original)
+    assert torch.equal(received[0],clip_lite3_policy_action(original))
+    assert ledger.state['confirmed']==1

@@ -296,3 +296,9 @@
 - 预登记[状态相关完整动作网络微调](lite3_full_policy_pilot_protocol_20261002.json)：通过520转移环境工程检查后，新seed223、128环境、rollout32、128次PPO更新，固定lr1e-4/5epochs/4minibatches、std.2、gamma.99/lam.95。训练上限524288控制转移，逐向量step按128条先计费后确认；原actor初始化，critic/optimizer新建，不导入旧replay或teacher。
 - 这是完整actor参数学习，动作不受旧残差幅度界约束；保留实际关节scale/绝对clip及崎岖姿态/接触终止，单独报告不同方法及预算，不能声称等资源胜过旧在线方案。训练混合25%平地和两种崎岖tile，固定difficulty1；无相位参考或高度输入。
 - 只取完成128次更新后的final checkpoint，保留中间快照但不据测试挑选。随后候选和原base在101/107、seed229相同新起点各5×2000任务＋2×1000平地；最多48000额外控制步，总≤572288。失败与成本全部保留、不自动重试、不晋升aborted状态、不替换评测起点。一个pilot不能完成稳定/多独立学习/新步态验收。
+
+- 首pilot训练数值完成128次更新/524288转移，但轨迹契约审计发现1859行请求触及关节clip，其中1726个非终止后继仍记录裁剪前动作；与原冻结执行链裁剪后上一动作不一致。原模型/轨迹/费用保留，不晋升其final，不运行原48000评估预算。见[契约审计](lite3_policy_history_mismatch_20261002.json)。
+
+## Policy-20261002-full-actor-historyfix
+
+- 单独登记[动作历史修正后的新pilot](lite3_full_policy_historyfix_protocol_20261002.json)：同seed/网络/优化器超参/训练预算，重新从原base初始化，绝不导入前一pilot结果。仅改变env.step实际接收动作先经过共同clip，PPO保存的原始请求/logprob不改；每步断言后继actor/critic的上一动作等于已发送命令（reset行0）。新训练≤524288＋评估≤48000，前一pilot524288成本额外保留，总账不混淆。

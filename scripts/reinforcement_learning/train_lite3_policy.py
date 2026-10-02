@@ -43,6 +43,7 @@ def main():
         from rsl_rl.runners import OnPolicyRunner
         import rl_training.tasks  # noqa: F401
         from rl_training.policy_learning import warmstart_actor_only
+        from rl_training.lite3_joint_conventions import clip_lite3_policy_action
         from rl_training.online_adaptation.rsl_rl_compat import prepare_rsl_rl_agent_cfg
         from rl_training.online_adaptation.step_trajectory import StepTrajectory
         from rl_training.online_adaptation.checkpointing import capture_rng_state
@@ -59,12 +60,16 @@ def main():
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
         trace=StepTrajectory(out/'trajectory',metadata={'kind':'vector_training','num_envs':p['num_envs'],
             'observation':'pre-action','next_observation_and_root':'step return; reset rows already reset',
-            'action':'requested before wrapper and physical joint clipping'},chunk_steps=p['rollout_steps'],vector_dtype='float32')
+            'action':'requested for PPO likelihood; emitted clipped command drives physical action history'},chunk_steps=p['rollout_steps'],vector_dtype='float32')
         def before(obs,action):
             if not torch.isfinite(action).all():raise ValueError('nonfinite requested action')
-            return trace.snapshot(policy_observation=obs['policy'],critic_observation=obs['critic'],requested_action=action)
+            return trace.snapshot(policy_observation=obs['policy'],critic_observation=obs['critic'],requested_action=action,emitted_action=clip_lite3_policy_action(action))
         def after(pre,result):
             obs,reward,done,extras=result
+            expected_history=torch.as_tensor(pre["emitted_action"],device=done.device).clone()
+            expected_history[done.bool()]=0
+            for group in ("policy","critic"):
+                torch.testing.assert_close(obs[group][...,-12:],expected_history,atol=1e-6,rtol=0)
             assert 'time_outs' not in extras or not extras['time_outs'].bool().any()
             manager=raw.termination_manager
             failure=manager.get_term('illegal_contact')|manager.get_term('bad_orientation_2')|manager.get_term('course_lateral')
@@ -76,7 +81,7 @@ def main():
             trace.append(**pre,next_policy_observation=obs['policy'],next_critic_observation=obs['critic'],
                 reward=reward,done=done,returned_root_state=raw.scene['robot'].data.root_state_w,
                 task_success=success,task_failure=failure,task_deadline=deadline)
-        counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after)
+        counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after,action_transform=clip_lite3_policy_action)
         runner=OnPolicyRunner(counted,agent_cfg.to_dict(),log_dir=str(out/'rsl'),device=args.device)
         obs=counted.get_observations()
         assert obs['policy'].shape==(p['num_envs'],45) and obs['critic'].shape==(p['num_envs'],48)
