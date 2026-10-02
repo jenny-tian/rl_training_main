@@ -247,3 +247,8 @@
 - 独立搜索分支预登记[USD名义运动学审核](lite3_c0_kinematic_protocol_20261002.json)：读取实际部署资产的关节轴、父子锚点与局部旋转，零基础动作姿态，既有gain.5和限幅，代码零点及前/后列±1。零仿真/零优化器更新，保存资产哈希与全部位移结果，不据本次结果调基；只能证明名义关节目标运动学，不能声称摆动相位或闭环抬脚/地形成功。
 
 - 完成：实际USD关节图齐全，既有gain/限幅下正代码对应前或后足端名义上移1.740584 mm，零代码精确零；资产哈希未变，零物理步/优化器更新。该幅度不直接支持4cm地形能力，未据此调基。详见[工程报告](lite3-episode-search-engineering-2026-10-02.md)和[结果](lite3_c0_kinematic_validation_20261002.json)；相关22 tests passed。
+
+## C0-20261002-fixed-code-physical
+
+- 预登记[冻结代码工程验证](lite3_c0_physical_protocol_20261002.json)：必须等待当前双seed SAC复现完整审计文件完成后才能启动。101/107、seed71，base/zero/前后腿±1共6臂，各64步任务窗口＋64步平面窗口，总上限1536步；GPU0/1每卡一worker。新source-bound冻结session，无导入learner/replay、零优化器更新，维持既有限幅、gain和安全过滤。
+- 核验零代码物理等价、非零请求公式、冻结零更新/写入及重复调用不新增试验；保存全部失败和成本，不替换起点。64步窗口不作完整任务、平地保持、headroom或学习效果结论；外层归类工程成本，不能把child ledger的evaluation名称冒充独立学习评测。

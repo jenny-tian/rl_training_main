@@ -1,0 +1,58 @@
+{
+  "schema": "lite3_fixed_code_physical_check_v1",
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "terrains": [
+    101,
+    107
+  ],
+  "learner_seed": 71,
+  "arms": {
+    "base": null,
+    "zero": [
+      0.0,
+      0.0
+    ],
+    "front_positive": [
+      1.0,
+      0.0
+    ],
+    "front_negative": [
+      -1.0,
+      0.0
+    ],
+    "hind_positive": [
+      0.0,
+      1.0
+    ],
+    "hind_negative": [
+      0.0,
+      -1.0
+    ]
+  },
+  "trial_steps": 64,
+  "evaluation_steps": 64,
+  "evaluation_trials": 1,
+  "retention_trials": 1,
+  "retention_steps": 64,
+  "max_actual_control_transitions": 1536,
+  "output": "artifacts/c0_fixed_code_physical_20261002",
+  "prior_replication_audit": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_learning_replication_20261002/audit/report.json",
+  "worker_options": {
+    "replay-capacity": 256,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "critic-huber-delta": 1.0,
+    "target-critic-warmup-updates": 0
+  },
+  "execution": "Only after complete prior replication audit. Two GPUs maximum, one worker each. Each arm uses independent source-bound frozen session, no imported learner/replay, evaluation then retention. Shared phase reset seeds per terrain. Preserve all failures; no replacement starts or rescue.",
+  "checks": [
+    "base/zero identical initial root state and zero requests; compare physical trace fields with max absolute tolerance1e-6",
+    "fixed code equals registered L*tanh(Bz)*.5 before safety when input valid; log deviations and executed projection",
+    "zero actor/critic updates and replay writes; actor before/after equal; base hash unchanged",
+    "repeat completed phases adds zero charged steps and zero trials"
+  ],
+  "limits": "64-step engineering windows are not full task success, retention eligibility, headroom, learned gait or algorithm qualification. No policy/search updates. Safety/rate limits unchanged.",
+  "budget_classification": "All 1536 steps are new engineering cost; child ledgers use frozen evaluation/retention phases, not a claim of heldout learning performance."
+}
