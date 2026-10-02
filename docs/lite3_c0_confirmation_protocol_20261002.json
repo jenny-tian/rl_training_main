@@ -1,0 +1,53 @@
+{
+  "schema": "lite3_c0_independent_confirmation_v1",
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "terrains": [
+    101,
+    107
+  ],
+  "learner_seed": 97,
+  "codes": {
+    "101": [
+      -1.0,
+      -1.0
+    ],
+    "107": [
+      1.0,
+      0.0
+    ]
+  },
+  "order": {
+    "101": [
+      "candidate",
+      "base"
+    ],
+    "107": [
+      "base",
+      "candidate"
+    ]
+  },
+  "trial_steps": 2000,
+  "evaluation_steps": 6000,
+  "evaluation_trials": 3,
+  "retention_trials": 2,
+  "retention_steps": 1000,
+  "max_actual_control_transitions": 32000,
+  "output": "artifacts/c0_independent_confirmation_20261002",
+  "prior_headroom_report": "artifacts/c0_grid_headroom_20261002/audit/report.json",
+  "prior_headroom_sha256": "0e539afa0c5965896871621f1810b8d6e9f3241b89f1b6a5e31359e5e7ae5da5",
+  "worker_options": {
+    "replay-capacity": 256,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "critic-huber-delta": 1.0,
+    "target-critic-warmup-updates": 0
+  },
+  "selection": "For each terrain, first original grid rank among nonzero candidates with supported headroom. Codes fixed before this new seed. No substitutions, optimization or selecting on confirmation.",
+  "confirmation_rule": "Same headroom rule on three paired fresh starts: no extra falls, plus extra completion without other-start progress loss OR median progress ratio>=1.1. Apply to full set; do not pool old validation to rescue a failed confirmation.",
+  "retention_rule": "Two complete1000-step windows each; no fall/reset/safety violation and eligible steady750 samples. Mean XY MAE<=max(1.1*base,base+.005 m/s); each X/Y MAE<=base+.01 m/s.",
+  "budget_review": "Task confirmation 12000 per terrain as planned, plus explicitly added4000 per terrain for paired full flat retention. Total16000 each,32000 both. All charged independently.",
+  "failure_policy": "Keep all failed/interrupted trials and uncertain costs; no replacement starts or rescue. Do not revise code against these confirmation results.",
+  "limits": "Development confirmation of fixed joint synergy, not new gait or stable>=9/10 qualification. No sealed seeds/teacher. Further independent learning and broader gait verification still required."
+}
