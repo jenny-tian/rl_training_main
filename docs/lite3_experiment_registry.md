@@ -256,3 +256,5 @@
 
 - 预登记[冻结代码工程验证](lite3_c0_physical_protocol_20261002.json)：必须等待当前双seed SAC复现完整审计文件完成后才能启动。101/107、seed71，base/zero/前后腿±1共6臂，各64步任务窗口＋64步平面窗口，总上限1536步；GPU0/1每卡一worker。新source-bound冻结session，无导入learner/replay、零优化器更新，维持既有限幅、gain和安全过滤。
 - 核验零代码物理等价、非零请求公式、冻结零更新/写入及重复调用不新增试验；保存全部失败和成本，不替换起点。64步窗口不作完整任务、平地保持、headroom或学习效果结论；外层归类工程成本，不能把child ledger的evaluation名称冒充独立学习评测。
+
+- 完成：24短窗口全部完成，1536/1536步，uncertain0，无跌倒/安全违规/控制超时；base/zero轨迹比较字段逐位相同，非零请求公式误差≤7.45058e-9，冻结actor不变、零更新/写入。24次phase重复调用所有session_summary完全不变，新增步/试验0。见[报告](lite3-c0-physical-check-2026-10-02.md)及[验证](lite3_c0_physical_validation_20261002.json)。仅工程通过，下一步另登记完整回合headroom。

@@ -1,0 +1,531 @@
+{
+  "actual_control_transitions": 1536,
+  "engineering_pass": true,
+  "goal_complete": false,
+  "limits": "64-step engineering windows are not full task success, retention eligibility, headroom, learned gait or algorithm qualification. No policy/search updates. Safety/rate limits unchanged.",
+  "protocol_sha256": "3b142f1f6a8d1ecb475a7f3cdbed55e9713a807d6dfd74a7ac2bfdb5606d3425",
+  "status": "complete",
+  "uncertain_steps": 0,
+  "report_path": "artifacts/c0_fixed_code_physical_20261002/audit/report.json",
+  "report_sha256": "92f4cac1521094397b4d76bd84d840888d708806ff4aa08308537b94fbc3879c",
+  "terrains": {
+    "101": {
+      "engineering_pass": true,
+      "base_zero_parity": {
+        "evaluation": {
+          "base_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "executed_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "learning_terminated": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "reward": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "root_state": {
+            "max_abs_error": 0.0,
+            "passed": true
+          }
+        },
+        "retention": {
+          "base_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "executed_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "learning_terminated": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "reward": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "root_state": {
+            "max_abs_error": 0.0,
+            "passed": true
+          }
+        }
+      },
+      "arms": {
+        "base": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "b0a0af9d0be54b7391c0a29166540806d0455238db907fc25b1ee4a81bbb6a25",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "ec4b4727a4c7563c955366f7be5402354c3dba5d6d3e52893427f0b746b7a521",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "front_negative": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "ea2a3364a6677dea459f009fb19adba8398f1e74c6289b76570847f222d499e4",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "eaed36bb7fd6f6cab5fb4ace4b62464b269350b973fcb44a949aac4d7f1a086e",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "front_positive": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "649218a5727548f7262911e3e85a5f41dc74f6942728f469f5e1879ca9169fbd",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "f5299310b5d2a13bff8777656033fad20d7ce1b754a156ad700869e5439f61b0",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "hind_negative": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "efe1973d2050933f257c280d8e0a1dbb9d499b3d98778d7c82869291460f4010",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "a22788ff3110d88dce5eb3ddff94dc81c127218eec487abe365993ea1b30ef2b",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "hind_positive": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "e2c0d8864c64be502e5847700e6b605cf14d9a0f5a7f53be398f18177a977b12",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "e74b221f7070e0a6ac283cb2c829222c38ace43bad6b6ea420fbd68a8af3b37e",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "zero": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "20d3b27a5d9cf3f80e02bc3c19230a66c899d52fa7d0272afc5ed05c158c32ff",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "d75e9c8c803369e2a748d8bb139c2fc9d5feae0af49650b3a0d327a854f1962b",
+            "zero_updates_and_replay_writes": true
+          }
+        ]
+      }
+    },
+    "107": {
+      "engineering_pass": true,
+      "base_zero_parity": {
+        "evaluation": {
+          "base_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "executed_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "learning_terminated": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "reward": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "root_state": {
+            "max_abs_error": 0.0,
+            "passed": true
+          }
+        },
+        "retention": {
+          "base_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "executed_action": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "learning_terminated": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "reward": {
+            "max_abs_error": 0.0,
+            "passed": true
+          },
+          "root_state": {
+            "max_abs_error": 0.0,
+            "passed": true
+          }
+        }
+      },
+      "arms": {
+        "base": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "d0e511f0787efbb0918739c938aace0bd6773565cca6402c8659109b7e370d00",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "179d394019aeb71e5796e23ac9beaaf8f0b239db3b4fb451984352f51d9d0a11",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "front_negative": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "10492e8fc7693adc5e87ac64eb43a90f725cc570d18496b479f0a8476255d7f1",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "4fff97a8a23c05ea899cd2faaaffa0529a9dca8d44a0826bee101a885464e7d1",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "front_positive": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "df51b13fe3147d51d6b9075ad781c698b68dd48f1e91a58b1757e28227868f2f",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "3e5f68835186a7ffe2fa8c490d1a05955f2160b517316e203d4f003dc6890d7d",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "hind_negative": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "7c391fb13daf6d15dd57557b0005033f1155993e10655d49859192038536d776",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "e23300b1d68d4936a96a52470f5e7f6dde56ce5d920ba82e7fb3f6403d2940ce",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "hind_positive": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "2e79f9f9406ba7386b1acde34ebf479764a43e4299f95104d3f200fe207eab76",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.02572598049443179,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 7.450580596923828e-09,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "482bf144e82f4a3c6a03e5f7ab5374e77011a4faf0807538f77f9b89ce1cefe0",
+            "zero_updates_and_replay_writes": true
+          }
+        ],
+        "zero": [
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "evaluation",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 1563983984,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "967b6c5d35ff5b0e1566f6bfb546d52c3774772b8bc86d355493ee188b15a228",
+            "zero_updates_and_replay_writes": true
+          },
+          {
+            "control_timeouts": 0,
+            "executed_residual_rms": 0.0,
+            "fell": false,
+            "frozen_actor_equal": true,
+            "phase": "retention",
+            "request_formula_max_abs_error": 0.0,
+            "request_formula_pass": true,
+            "reset_seed": 822150838,
+            "safety_violation": false,
+            "status": "complete",
+            "steps": 64,
+            "stop_reason": "collector_cutoff",
+            "summary_sha256": "9b32c6c2ff7e1cc423c5f2571ffacfc94a3e5e0ddae5018fa94fb63d94827d40",
+            "zero_updates_and_replay_writes": true
+          }
+        ]
+      }
+    }
+  },
+  "repeat_checks": {
+    "added_control_steps": 0,
+    "added_trials": 0,
+    "seconds": 42.36532867979258,
+    "session_summaries_exactly_unchanged": true,
+    "status": "complete",
+    "calls": 24
+  }
+}
