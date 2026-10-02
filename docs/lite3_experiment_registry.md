@@ -281,3 +281,8 @@
 - 所有回合计费、失败保留，基础设施/数值失败停止受影响session不晋升最终code、不重试替换。child frozen evaluation在搜索期全部归类训练成本；不冒充SAC梯度学习。最后均值不挑最好epoch；最终9/10稳定及独立学习/新地形/步态证据仍需验证，不凭一个seed完成目标。
 
 - 首seed137完成：101025/128000步（训练59885、任务33140、平地8000），uncertain0；两地形各5次分布更新均由原始回合重算一致。最终101候选/base1/5对1/5，107为0/5对0/5，保持均通过。未达每地形≥4/5及学习增益门槛，按预登记不启动149。详见[报告](lite3-c0-episode-learning-2026-10-02.md)及[验证](lite3_c0_episode_learning_validation_20261002.json)。新神经策略方法独立准备，旧失败和预算保留。
+
+## Policy-20261002-environment-smoke
+
+- 预登记[新神经策略环境工程实测](lite3_policy_environment_smoke_protocol_20261002.json)：8环境、64正常向量步＋1明确人工截止步，总520控制转移，单GPU，零优化器更新。混合2平地列＋各3列rough101/107，固定difficulty1/amplitude.04；不宣称与旧随机difficulty mesh逐位相同。保持本体actor45/critic48，无高度扫描输入或相位参考奖励。
+- 新训练奖励与旧有限任务评测奖励区分；动作网络从旧base复制，critic/optimizer不导入。核验观察和动作字段、冻结权重不变、先计费后step以及有限时限不bootstrap；人工截止案例单列，不作为学习/通过证据。所有失败与不确定批成本保留。
