@@ -32,6 +32,8 @@ def main():
     app=None;env=None;trace=None;started=time.perf_counter()
     try:
         assert sha256_file(p['base_checkpoint'])==p['base_sha256']
+        assert sha256_file(p['smoke_report'])==p['smoke_sha256']
+        assert json.loads(Path(p['smoke_report']).read_text())['status']=='complete'
         app=AppLauncher(args)
         import gymnasium as gym
         import torch
