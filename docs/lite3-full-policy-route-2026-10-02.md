@@ -13,3 +13,7 @@ Prior full-policy training/evaluation3,209,837 controls plus this training total
 ## Interim terrain101 evidence
 
 Candidate completed all five registered terrain101 task starts (5/5), each reaching8m. The first two maximum lateral deviations were approximately0.216 and0.181m with no fall or safety violation. Original base terrain107 completed0/5, all physical failures. These are different-terrain interim results, not a paired gain estimate. Terrain107 candidate, terrain101 original base, and retention remain necessary before pilot acceptance. Descriptive foot-contact/lift/cadence reporting is available in `docs/analysis/summarize_full_policy_gait.py`; it must not be treated as causal or stable-gait qualification by itself.
+
+## Final frozen audit
+
+Candidate5/5 versus original base0/5 on both101 and107. Both paired flat-retention comparisons passed: candidate meanXY0.01330m/s versus base0.01738m/s, eligible full windows and per-axis thresholds satisfied. All28 planned trials completed; phase-local paired starts and checkpoint/zero-update checks passed. Evaluation36,862 confirmed controls, uncertain0. Full-policy cumulative training/evaluation5,343,851; including registered environment smokes5,345,019. The pilot supports independent replication but is not by itself stable/generalized gait qualification. `gait_summary.json` describes28 frozen trajectories without causal attribution.
