@@ -1403,6 +1403,10 @@ def main() -> int:
             else:
                 actor = ResidualActor(frame_dim, 12, 64, actor_limits).to(device)
                 actor_architecture = "direct_residual_v1"
+                if args.fixed_code is not None:
+                    from rl_training.online_adaptation.structured_code import compile_constant_code, BASIS_VERSION
+                    actor = compile_constant_code(actor, torch.tensor(args.fixed_code, device=device))
+                    actor_architecture = BASIS_VERSION
             critic = TwinCritic(frame_dim, 12, 64).to(device)
             runtime_config = AgentConfig(
                 frame_dim=frame_dim,

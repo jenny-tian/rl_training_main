@@ -75,7 +75,10 @@ class ManagedTrial:
             if args.evaluation_only != self.frozen:
                 raise ValueError("worker learning mode differs from the registered phase")
             if algorithm == "sac":
-                expected_mode = ("base" if checkpoint is None else "residual_frozen") if self.frozen else "online"
+                fixed_code = getattr(args, "fixed_code", None) is not None
+                if fixed_code and (not self.frozen or checkpoint is not None or args.residual_checkpoint is not None):
+                    raise ValueError("fixed code requires frozen execution without imported learner state")
+                expected_mode = ("base" if checkpoint is None and not fixed_code else "residual_frozen") if self.frozen else "online"
                 if args.mode != expected_mode or args.update_schedule != "control-step":
                     raise ValueError("managed SAC requires phase-correct mode and control-step updates")
                 if self.frozen and args.stochastic_control:

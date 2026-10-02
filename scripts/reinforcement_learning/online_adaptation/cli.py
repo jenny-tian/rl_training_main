@@ -90,6 +90,13 @@ class _PlayArgumentParser(argparse.ArgumentParser):
     def parse_args(self, args=None, namespace=None):
         parsed = super().parse_args(args=args, namespace=namespace)
         validate_risk_gate_args(self, parsed)
+        if parsed.fixed_code is not None:
+            if any(abs(x) > 1 for x in parsed.fixed_code):
+                self.error("--fixed-code must be within [-1,1]")
+            if (parsed.mode != "residual_frozen" or not parsed.evaluation_only or parsed.stochastic_control
+                    or parsed.latent_code_dim or parsed.residual_checkpoint or parsed.experiment_checkpoint_in
+                    or parsed.target_warmup_steps):
+                self.error("--fixed-code requires deterministic frozen evaluation without checkpoint or warmup")
         protocol = default_flat_online_protocol()
         if parsed.terrain_split is None:
             parsed.terrain_split = "sealed" if parsed.evaluation_only else "development"
@@ -325,6 +332,8 @@ def build_play_parser() -> argparse.ArgumentParser:
     add_session_args(parser)
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--residual-checkpoint")
+    parser.add_argument("--fixed-code", type=_finite_float, nargs=2, default=None,
+                        help="fixed front/hind joint synergy code; deterministic frozen evaluation only")
     parser.add_argument("--mode", choices=("base", "residual_frozen", "online"), default="online")
     parser.add_argument("--task", default=FLAT_ONLINE_TASK)
     parser.add_argument("--seed", type=int, default=7)

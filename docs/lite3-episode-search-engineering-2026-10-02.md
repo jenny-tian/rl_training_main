@@ -17,3 +17,7 @@
 实际部署USD名义运动学审核已完成（登记076a714）：零代码位移0；代码[1,0]的FL/FR足端相对躯干上移约1.740584 mm、水平变化约−0.156668 mm，后腿不变；[0,1]对HL/HR同样作用。这是零基础动作、固定躯干姿态下的目标几何，不是站立接触约束下的实际抬脚量，不能把1.7mm偏置当作4cm跨越能力。资产SHA256前后相同，零物理步/优化器更新；[完整记录](lite3_c0_kinematic_validation_20261002.json)。独立90°旋转解析例验证FK矩阵约定；相关22 tests passed。
 
 USD读取沿用实际部署文件，发现4个FOOT visuals引用缺失警告，关节和刚体图可完整读取；本次没有修正视觉资产或启动渲染。此前裸导入缺少libusd_tf/libpython路径，补齐仅此进程的PYTHONPATH/LD_LIBRARY_PATH后成功，没有安装或改动环境。下一步仍需零代码物理等价与非零请求工程验证，再登记有限headroom测试。
+
+冻结执行入口已完成代码接入：`--fixed-code FRONT HIND`只接受[-1,1]有限值，必须是residual_frozen/evaluation-only、无随机控制、无导入checkpoint、无目标预热。worker在生成agent之前编译同一direct actor结构，沿用原安全链与managed frozen gain。supervisor的worker-options支持2元素代码列表，禁止将该入口当作adaptation phase；代码值纳入worker_configuration哈希，managed验证禁止代码变更、导入学习状态和重复执行。运行器manifest中的sac表示复用的执行引擎，不能把外层回合搜索报告成SAC梯度学习；搜索成本仍待外层总账本接入，尚未部署新物理候选。
+
+本次完整回归1680 passed, 8 skipped（USD专用测试需要显式库路径，此前单独运行通过）。初次回归1678 passed/2 failed/8 skipped：独立工作区资产软链接越出根目录，触发几何证书路径约束。用原资产的本地同内容副本替代该软链接后通过，未放宽证书或更改资产；两次日志保留在 `artifacts/c0_executor_engineering_20261002/`。运行中的SAC工作区源码未变，本分支尚未合并到它。

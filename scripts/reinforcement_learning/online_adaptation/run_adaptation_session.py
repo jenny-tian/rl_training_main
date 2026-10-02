@@ -30,6 +30,12 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
     phase = args.phase if phase is None else phase
     frozen = phase in {"selection", "flat_selection", "evaluation", "retention"}
     flat = phase in {"flat_selection", "retention"}
+    options = {} if args.worker_options is None else json.loads(Path(args.worker_options).read_text())
+    if not isinstance(options, dict):
+        raise ValueError("worker options must be an object")
+    fixed_code = "fixed-code" in options
+    if fixed_code and (args.algorithm != "sac" or not frozen or checkpoint is not None):
+        raise ValueError("fixed code supports only frozen SAC execution without a learner checkpoint")
     common = ["--base-checkpoint", str(Path(args.base_checkpoint).resolve()),
               "--task", "RockyRoad-Deeprobotics-Lite3-v0", "--terrain-stage", "rough_4cm",
               "--terrain-seed", str(args.terrain_seed), "--terrain-split", "development",
@@ -45,7 +51,7 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
         if checkpoint is not None:
             common += ["--checkpoint-in", checkpoint["path"]]
     else:
-        mode = ("base" if checkpoint is None else "residual_frozen") if frozen else "online"
+        mode = ("base" if checkpoint is None and not fixed_code else "residual_frozen") if frozen else "online"
         common += ["--run-dir", str(output), "--mode", mode, "--terrain-feature-source", "proprio",
                    "--update-schedule", "control-step", "--experiment-checkpoint-out", str(output / "session.pt")]
         if checkpoint is not None:
@@ -54,12 +60,17 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
         options = json.loads(Path(args.worker_options).read_text())
         allowed = ({"replay-capacity", "min-replay-size", "n-step", "initial-alpha", "actor-updates-per-transition",
                     "critic-updates-per-transition", "novelty-calibration-steps", "target-critic-warmup-updates",
-                    "critic-huber-delta"} if args.algorithm == "sac" else
+                    "critic-huber-delta", "fixed-code"} if args.algorithm == "sac" else
                    {"rollout-steps", "ppo-epochs", "minibatch-size", "actor-lr", "critic-lr", "rank"})
         if not isinstance(options, dict) or not set(options) <= allowed:
             raise ValueError("worker options contain unsupported session overrides")
         for key, value in options.items():
-            common += [f"--{key}", str(value)]
+            if key == "fixed-code":
+                if not isinstance(value, list) or len(value) != 2:
+                    raise ValueError("fixed-code must be a two-element list")
+                common += ["--fixed-code", *(str(x) for x in value)]
+            else:
+                common += [f"--{key}", str(value)]
     if frozen:
         common += ["--evaluation-only"]
     if trial_id is not None:
@@ -129,7 +140,11 @@ def main():
         parser.error("invalid physical trial length/count")
     root = Path(args.session_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
-    prototype = parser_for(args.algorithm).parse_args(worker_arguments(args, output=root / "prototype", steps=args.trial_steps, phase="adaptation"))
+    fixed_code = args.worker_options is not None and "fixed-code" in json.loads(Path(args.worker_options).read_text())
+    if fixed_code and args.phase == "adaptation":
+        raise ValueError("fixed code is a frozen executor; outer search owns learning and selection costs")
+    prototype_phase = "evaluation" if fixed_code else "adaptation"
+    prototype = parser_for(args.algorithm).parse_args(worker_arguments(args, output=root / "prototype", steps=args.trial_steps, phase=prototype_phase))
     base = {"path": str(Path(args.base_checkpoint).resolve()), "sha256": sha256_file(args.base_checkpoint)}
     expected = {"schema": "lite3_session_v2", "session_id": "", "algorithm": args.algorithm,
                 "base": base, "task_objective_sha256": FiniteHorizonObjective(args.deadline_steps).sha256(),
