@@ -1,0 +1,69 @@
+{
+  "schema": "lite3_route_new_development_seed_registration_v1",
+  "namespace": "lite3-route-development-transfer-v1",
+  "anchor_protocol_sha256": "0db06ff2e97954b4ac5017657058491daf9e9da7ceea2d5b3197660dc3bb83cc",
+  "previously_used_or_reserved_terrain_seeds": [
+    101,
+    103,
+    107,
+    109,
+    113,
+    1009,
+    1013,
+    1019,
+    1021,
+    1031,
+    1033,
+    1039,
+    1049,
+    1051,
+    1061,
+    1063,
+    1069,
+    1087,
+    1091,
+    1093,
+    1097,
+    1103,
+    1109,
+    1117,
+    1123
+  ],
+  "generation_records": [
+    {
+      "counter": 0,
+      "seed": 834818272,
+      "accepted": true
+    },
+    {
+      "counter": 1,
+      "seed": 1490653948,
+      "accepted": true
+    },
+    {
+      "counter": 2,
+      "seed": 1132853762,
+      "accepted": true
+    },
+    {
+      "counter": 3,
+      "seed": 874689437,
+      "accepted": true
+    }
+  ],
+  "terrain_seeds": [
+    834818272,
+    1490653948,
+    1132853762,
+    874689437
+  ],
+  "evaluation_master_seeds": [
+    1848426001,
+    1315124702
+  ],
+  "status": "registered_before_execution",
+  "gate": "Both independent route training runs must pass paired task gains and flat retention; aggregate>=9/10 on101/107, eachrun>=4/5. No new-terrain physics before gate and final executable protocol are locked.",
+  "proposed_scope": "All4 terrains, both final learned policies, each with its own same-start original-base control;5x2000 task plus2x1000flat per arm/terrain/run;max192000 controls. No terrain selection, replacement starts, gradients or feedback-driven checkpoint choice.",
+  "acceptance": "For every new terrain candidate aggregate>=9/10 and each learned run>=4/5, no safety violations, all eligible paired retention tests pass; candidate total no more than1/10 below matched base. This is a bounded simulation claim, not universal terrain or hardware qualification.",
+  "runtime_requirement": "Current legacy development allow-list needs an explicit registered extension after active source-bound training/evaluation finishes. Sealed membership must remain disjoint."
+}
