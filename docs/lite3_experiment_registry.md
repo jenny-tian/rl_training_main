@@ -286,3 +286,5 @@
 
 - 预登记[新神经策略环境工程实测](lite3_policy_environment_smoke_protocol_20261002.json)：8环境、64正常向量步＋1明确人工截止步，总520控制转移，单GPU，零优化器更新。混合2平地列＋各3列rough101/107，固定difficulty1/amplitude.04；不宣称与旧随机difficulty mesh逐位相同。保持本体actor45/critic48，无高度扫描输入或相位参考奖励。
 - 新训练奖励与旧有限任务评测奖励区分；动作网络从旧base复制，critic/optimizer不导入。核验观察和动作字段、冻结权重不变、先计费后step以及有限时限不bootstrap；人工截止案例单列，不作为学习/通过证据。所有失败与不确定批成本保留。
+
+- attempt01在动作前记录配置时失败：当前ObservationManager无get_term_cfg，charged/confirmed/uncertain均0。保留原report/log，改为读取实际传入的cfg.observations.policy项；在相同总520步预算内新建attempt02复核，不覆盖失败。运行退出码不能代替持久report状态。

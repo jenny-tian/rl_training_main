@@ -50,7 +50,7 @@ def main():
         assert observations['critic'].shape==(p['num_envs'],p['critic_obs_dim'])
         raw=env.unwrapped
         report['observation_terms']=raw.observation_manager.active_terms
-        report['policy_term_scales']={name:raw.observation_manager.get_term_cfg('policy',name).scale
+        report['policy_term_scales']={name:getattr(cfg.observations.policy,name).scale
                                       for name in raw.observation_manager.active_terms['policy']}
         report['action_joint_names']=cfg.actions.joint_pos.joint_names
         report['action_scales']=cfg.actions.joint_pos.scale
