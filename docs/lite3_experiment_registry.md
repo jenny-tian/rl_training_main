@@ -241,3 +241,5 @@
 - 用户明确要求持续改进直至学习出可稳定通过崎岖地形的步态。预登记[独立学习复现](lite3_learning_replication_protocol_20261002.json)：保留现有Huber1/.005候选，101/107×learner61/67，各独立B5000含4000预热、1000critic-only更新，最终checkpoint固定5×2000任务复测、2×1000平地；各配fresh base同起点复测。总上限116000步，GPU0/1各一worker，所有失败及成本保留。
 - 不追加G1.9第三配置，不导入旧replay或挑旧权重。先检验真实学习增益与复现性，非加长训练掩盖Q问题。工程晋级沿用主计划；稳定开发要求每地形≥9/10且每session≥4/5、无评估安全违规、学习增益及平地保持同时成立。平地阈值及步态记录规则见协议；最终目标还需要步态证据和新开发地形确认，不能以本轮单独宣称普遍稳定。
 - 101先candidate、107先base；各seed61再67。无选择探针、不替换失败起点、不晋升aborted checkpoint。后续如需新配置，须本轮复盘后单独登记，旧候选负结果保留。
+
+- 中期事实（非最终晋级判断）：seed61四session完成并通过逐回合审计，实际49161控制步、uncertain0、timeout0；101候选/base完成1/5与2/5，107为1/5与0/5。相同初态、冻结actor不变/零更新/零回放写入验证通过，两地形平地保持通过。第二seed67仍按注册运行。摘要：[seed61审计](lite3_learning_replication_seed61_audit_20261002.json)，完整原始审计在artifacts/g1_learning_replication_20261002/audit-seed61/。不替换失败起点，不宣称新步态或稳定成功。
