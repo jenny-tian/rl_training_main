@@ -15,8 +15,12 @@ The initial launch attempt failed before any ledger/physics because the manifest
 |1132853762|5/5|3/5|passed|19280|
 |874689437|4/5|0/5|passed|17650|
 
-All expected trials in these pairs completed, phase-local starts matched, zero-update/residual freeze checks passed, and no uncertain controls were found. This partial audit is not a decision to stop or qualify: both learned policies and all four terrain instances must satisfy the registered final criteria. The remaining jobs are still running.
+All expected trials in these pairs completed, phase-local starts matched, zero-update/residual freeze checks passed, and no uncertain controls were found. This partial audit is not a decision to stop or qualify: both learned policies and all four terrain instances must satisfy the registered final criteria. At the time of this interim audit, the remaining jobs were still running. The final result is recorded below.
 
 Repeated flat windows across terrain instances use the same reset master within each model/control pair; they must not be reported as additional independent flat-start samples. Every execution still remains charged and audited.
 
-The seed283 failure on874689437 was a physical fall after approximately6.12m in the fifth registered task trial; it is retained without replacement. Seed307 has now completed5/5 task trials on that terrain, meeting the combined9/10 task threshold. Its remaining terrain/retention work and the final all-session audit remain pending.
+The seed283 failure on874689437 was a physical fall after approximately6.12m in the fifth registered task trial; it is retained without replacement. Seed307 has now completed5/5 task trials on that terrain, meeting the combined9/10 task threshold. That observation preceded completion of the remaining terrain/retention work and final audit.
+
+## Final audit passed
+
+All16 sessions and112 planned trials completed. Candidate totals by new terrain are10/10,10/10,10/10,9/10; paired base totals6/10,6/10,6/10,0/10. Every paired flat-retention comparison passed, and all checkpoint/source/zero-update/initial-state checks passed. Actual152,079 controls, uncertain0. The single candidate fall remains in the dataset. See `lite3-stable-rough-walking-result-2026-10-03.md` and `lite3_registered_acceptance_20261003.json` for the six-terrain completion audit and scope.

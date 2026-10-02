@@ -32,26 +32,35 @@ def summarize(rows, step_dt):
             'all_feet_airborne_fraction':float((~contacts.any(1)).mean())}
 
 
+def session_specs(p):
+    if p['schema']=='lite3_route_transfer_v1':
+        return [(terrain,role,run['learning_seed'],f"{role}-{run['learning_seed']}-{terrain}")
+                for terrain in p['terrain_seeds'] for run in p['policies'] for role in ('candidate','base')]
+    return [(terrain,role,p['seed'],f'{role}-{terrain}')
+            for terrain in p['evaluation_terrains'] for role in ('candidate','base')]
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--protocol',required=True);parser.add_argument('--output',required=True)
-    args=parser.parse_args();p=read(args.protocol);root=Path(p['output']);audit=read(root/'evaluation_audit.json')
+    args=parser.parse_args();p=read(args.protocol);root=Path(p['output'])
+    audit_path=root/('final_audit.json' if p['schema']=='lite3_route_transfer_v1' else 'evaluation_audit.json')
+    audit=read(audit_path)
     assert audit['status']=='complete' and audit['protocol_sha256']==sha256_file(args.protocol)
-    report={'evaluation_audit_sha256':sha256_file(root/'evaluation_audit.json'),'trials':[],
+    report={'evaluation_audit_sha256':sha256_file(audit_path),'trials':[],
             'limit':'Descriptive only: each trajectory has its own duration, position and failure history. No gait qualification or causal mirror/route effect is inferred.'}
-    for terrain in p['evaluation_terrains']:
-        for role in ('candidate','base'):
-            state=read(root/f'{role}-{terrain}'/'session_summary.json')
-            for trial in state['trials'].values():
-                if trial['status']!='complete':continue
-                path=Path(trial['output']);summary=read(path/'episode_summary.json');trace=read(path/'trajectory/manifest.json')
-                rows=[json.loads(line) for line in (path/'metrics.jsonl').read_text().splitlines()]
-                assert len(rows)==summary['steps']==trace['steps']
-                if trial['phase']=='retention':selected=[r for r in rows if r['step']*trace['metadata']['step_dt']>5.]
-                else:selected=[r for r in rows if summary['challenge_start_x']<=r['base_x']<=summary['challenge_end_x']]
-                report['trials'].append({'terrain':terrain,'role':role,'trial':trial['id'],'phase':trial['phase'],
-                    'terminal':summary['task_stop_reason'],'metrics_sha256':sha256_file(path/'metrics.jsonl'),
-                    'motion':summarize(selected,trace['metadata']['step_dt'])})
+    for terrain,role,seed,directory in session_specs(p):
+        state=read(root/directory/'session_summary.json')
+        for trial in state['trials'].values():
+            if trial['status']!='complete':continue
+            path=Path(trial['output']);summary=read(path/'episode_summary.json');trace=read(path/'trajectory/manifest.json')
+            rows=[json.loads(line) for line in (path/'metrics.jsonl').read_text().splitlines()]
+            assert len(rows)==summary['steps']==trace['steps']
+            if trial['phase']=='retention':selected=[r for r in rows if r['step']*trace['metadata']['step_dt']>5.]
+            else:selected=[r for r in rows if summary['challenge_start_x']<=r['base_x']<=summary['challenge_end_x']]
+            report['trials'].append({'terrain':terrain,'role':role,'paired_learning_seed':seed,'trial':trial['id'],'phase':trial['phase'],
+                'terminal':summary['task_stop_reason'],'metrics_sha256':sha256_file(path/'metrics.jsonl'),
+                'motion':summarize(selected,trace['metadata']['step_dt'])})
     write_json_atomic(Path(args.output),report)
     print('Described',len(report['trials']),'frozen trajectories')
 

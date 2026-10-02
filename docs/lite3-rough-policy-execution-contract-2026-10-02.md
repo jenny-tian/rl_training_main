@@ -1,6 +1,6 @@
 # Lite3 rough-policy execution contract
 
-This describes the anchored route policies from training seeds283/307. Independent101/107 qualification passed; the four registered new-development terrains are still being evaluated. It is an implementation contract, not a declaration that the overall goal is complete.
+This describes the anchored route policies from training seeds283/307. Independent101/107 and all four registered new-development terrain qualification passed. The complete bounded simulation result and retained failure are documented in `lite3-stable-rough-walking-result-2026-10-03.md`.
 
 ## Deterministic actor input
 
@@ -33,6 +33,6 @@ The frozen original-flat action target exists only in training. Inference is a s
 - Seed283: `artifacts/full_policy_flat_anchor_20261002/train/final.pt`, SHA256 `5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894`.
 - Seed307: `artifacts/full_policy_flat_anchor_replication_20261002/train/final.pt`, SHA256 `05f5fd60e291aae2d919c5f5836c040af6a60292e700c390f9bf867781ce020d`.
 - Training, history and flat-anchor audits are stored alongside each run. Paired evaluation and the joint replication audit are immutable evidence for101/107.
-- `docs/lite3_flat_anchor_transfer_v2_protocol_20261002.json` locks the new-terrain test; its final audit is pending. Do not rerun completed trials or reuse their outputs as new samples.
+- `docs/lite3_flat_anchor_transfer_v2_protocol_20261002.json` locks the new-terrain test; its final audit passed with one retained candidate fall. Do not rerun completed trials or reuse their outputs as new samples.
 
 The tested control interval is0.02s. Gait timing plots and trajectory statistics are descriptive evidence of the learned walking pattern; no new gait-family classification or hardware-transfer claim is implied.

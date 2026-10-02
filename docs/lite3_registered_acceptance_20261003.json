@@ -1,0 +1,206 @@
+{
+  "base_completions": 21,
+  "candidate_completions": 59,
+  "completion_audit": {
+    "failure_and_cost_preservation": {
+      "evidence": "One final candidate fall retained; failed prior policies and zero-control infrastructure attempts remain recorded; full-series cost ledger included.",
+      "status": "verified"
+    },
+    "flat_retention": {
+      "evidence": "All12 candidate/base comparisons passed original full-window, reset/fall/safety and per-axis/XY error rules;48 executions,8 unique paired reset seeds.",
+      "status": "verified"
+    },
+    "frozen_matched_evaluation": {
+      "evidence": "168 completed trial records; paired phase-local root states; zero actor/critic updates and replay writes; unchanged checkpoints and no action exploration.",
+      "status": "verified"
+    },
+    "gait_evidence": {
+      "evidence": "Learned walking adaptation with four-foot swing/contact records and timing changes; no claim of a distinct new gait family.",
+      "status": "verified_with_scope"
+    },
+    "independent_training": {
+      "evidence": "Distinct seeds283/307 and final checkpoint hashes, identical configuration/source, joint replication audit passed.",
+      "status": "verified"
+    },
+    "learned_policy": {
+      "evidence": "Each actor changed8/8 mean tensors;512 PPO updates with fresh critic/optimizer and original-base initialization; teacher buffers unchanged.",
+      "status": "verified"
+    },
+    "preregistered_budget": {
+      "evidence": "Immutable training protocol hashes, reserve/confirm ledgers, and transfer protocol; all actual counts within caps.",
+      "status": "verified"
+    },
+    "rough_stability": {
+      "evidence": "Original tracks20/20; all four registered new terrains meet10/10,10/10,10/10,9/10, each policy at least4/5.",
+      "status": "verified"
+    },
+    "scope": {
+      "evidence": "Simulation, tested rough_4cm geometry/commands/perturbations and route localization; no hardware or universal-terrain claim.",
+      "status": "explicit"
+    }
+  },
+  "cost_scope": "Existing base pretraining and earlier SAC/C0 studies are excluded from this full-policy-series total; their original records remain preserved in the experiment registry.",
+  "evidence_sha256": {
+    "artifacts/flat_anchor_new_development_v2_20261002/final_audit.json": "d575b120c7d8b6afc22b4151ca8da405e8b5cd9b7ab2e8615dee9a89c2b2a2fb",
+    "artifacts/flat_anchor_new_development_v2_20261002/gait_summary.json": "a308a04a62ec5d6f7262a452a966c34a5644bae13a2913009318dc721f603d69",
+    "artifacts/full_policy_flat_anchor_20261002/action_history_audit.json": "a31540829bfbcb650810c6bbecef2e99be5f223a2ac7fa286a0f81a9b352da92",
+    "artifacts/full_policy_flat_anchor_20261002/evaluation_audit.json": "85a638ee7ff3cf729e149ae9f1c037629c454bc15ae52ec7f33d582d0eb750e6",
+    "artifacts/full_policy_flat_anchor_20261002/flat_anchor_audit.json": "2ec98a069c24ed97bdb47ccf632f40bb02b2fbc8e1c4559003de97cf58199119",
+    "artifacts/full_policy_flat_anchor_20261002/train/report.json": "68300e7a640621c2f492922c5fd1eddb28eb9dbf79dbf4e4f035523bd221b382",
+    "artifacts/full_policy_flat_anchor_replication_20261002/action_history_audit.json": "7c9f6a23f72e095567ee7e4bc8f9b082d06ec072206de62e23d2d66e55354642",
+    "artifacts/full_policy_flat_anchor_replication_20261002/evaluation_audit.json": "5a6d17caf76d13685e400fbc74a0dcdf658481b615ec82e977eb46c83a190c55",
+    "artifacts/full_policy_flat_anchor_replication_20261002/flat_anchor_audit.json": "e8262080716b22a41292d27c01c47289172b424f1d67ae09e7f2e23e16400a4a",
+    "artifacts/full_policy_flat_anchor_replication_20261002/replication_audit.json": "a227d9d4e492bf981463d7c07e8992d913d6dd9b361023cf9a2d5f2f5a81bc66",
+    "artifacts/full_policy_flat_anchor_replication_20261002/train/report.json": "9754428eb8af7de9feb2f93219654361776c65535b0baa1b296fba1eb3606f5d",
+    "docs/lite3_flat_anchor_transfer_v2_protocol_20261002.json": "27ed464ce0a193259442c938419281b911b842a7b418806168a2d28c0673d06d",
+    "docs/lite3_full_policy_flat_anchor_protocol_20261002.json": "0f1acc4c2c1dddd5f6bdcc4ead1813a733aa132e8f0d43dfd8e0777fb7c447f9",
+    "docs/lite3_full_policy_flat_anchor_replication_protocol_20261002.json": "cdda036814d4f72a12140fd4cd42d7cf989ccfa112c22de6cc501cfb75f1803e",
+    "docs/lite3_route_new_development_seeds_20261002.json": "d09d98849d0808c822aecf4d774ceba5d7a6e03b1a5745ff16e3f54c9c52eb77"
+  },
+  "flat_windows_executed": 48,
+  "full_policy_series": [
+    {
+      "evaluation_controls": 0,
+      "retired_incompatible": true,
+      "run": "full_policy_pilot_20261002",
+      "training_controls": 524288
+    },
+    {
+      "evaluation_controls": 30968,
+      "retired_incompatible": false,
+      "run": "full_policy_pilot_historyfix_20261002",
+      "training_controls": 524288
+    },
+    {
+      "evaluation_controls": 33141,
+      "retired_incompatible": false,
+      "run": "full_policy_symmetry_20261002",
+      "training_controls": 2097152
+    },
+    {
+      "evaluation_controls": 36862,
+      "retired_incompatible": false,
+      "run": "full_policy_route_20261002",
+      "training_controls": 2097152
+    },
+    {
+      "evaluation_controls": 37480,
+      "retired_incompatible": false,
+      "run": "full_policy_route_replication_20261002",
+      "training_controls": 2097152
+    },
+    {
+      "evaluation_controls": 38036,
+      "retired_incompatible": false,
+      "run": "full_policy_flat_anchor_20261002",
+      "training_controls": 2097152
+    },
+    {
+      "evaluation_controls": 36294,
+      "retired_incompatible": false,
+      "run": "full_policy_flat_anchor_replication_20261002",
+      "training_controls": 2097152
+    }
+  ],
+  "full_policy_series_controls_including_engineering": 11900884,
+  "gait_evidence": "All40 new-terrain candidate task windows contain recorded swing samples for all four feet; descriptive contact-onset median approximately0.41s vs base0.51s. This is learned walking adaptation, not a claimed new gait-family classification or causal single-factor ablation.",
+  "learning_evidence": "Both independent actors changed8/8 mean-network tensors from expanded original-base initialization; fixed final checkpoints, fresh optimizers/critics, full history and flat-target audits passed.",
+  "models": [
+    {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+        "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+      },
+      "evaluation_seed": 1848426001,
+      "learning_seed": 283,
+      "protocol_sha256": "0f1acc4c2c1dddd5f6bdcc4ead1813a733aa132e8f0d43dfd8e0777fb7c447f9"
+    },
+    {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_replication_20261002/train/final.pt",
+        "sha256": "05f5fd60e291aae2d919c5f5836c040af6a60292e700c390f9bf867781ce020d"
+      },
+      "evaluation_seed": 1315124702,
+      "learning_seed": 307,
+      "protocol_sha256": "cdda036814d4f72a12140fd4cd42d7cf989ccfa112c22de6cc501cfb75f1803e"
+    }
+  ],
+  "new_terrain_candidate_completions": 39,
+  "new_terrain_controls": 152079,
+  "new_terrain_trials_per_arm": 40,
+  "no_hard_safety_violations": true,
+  "registered_engineering_controls": 1688,
+  "results": [
+    {
+      "base": 3,
+      "candidate": 10,
+      "group": "original development",
+      "retention_pass": true,
+      "terrain": 101,
+      "trials_per_arm": 10
+    },
+    {
+      "base": 0,
+      "candidate": 10,
+      "group": "original development",
+      "retention_pass": true,
+      "terrain": 107,
+      "trials_per_arm": 10
+    },
+    {
+      "base": 6,
+      "candidate": 10,
+      "group": "registered new development",
+      "retention_pass": true,
+      "terrain": 834818272,
+      "trials_per_arm": 10
+    },
+    {
+      "base": 0,
+      "candidate": 9,
+      "group": "registered new development",
+      "retention_pass": true,
+      "terrain": 874689437,
+      "trials_per_arm": 10
+    },
+    {
+      "base": 6,
+      "candidate": 10,
+      "group": "registered new development",
+      "retention_pass": true,
+      "terrain": 1132853762,
+      "trials_per_arm": 10
+    },
+    {
+      "base": 6,
+      "candidate": 10,
+      "group": "registered new development",
+      "retention_pass": true,
+      "terrain": 1490653948,
+      "trials_per_arm": 10
+    }
+  ],
+  "retained_candidate_failures": [
+    {
+      "fell": true,
+      "progress_m": 6.119508981704712,
+      "reason": "physical_failure",
+      "session": "candidate-283-874689437",
+      "trial": "trial-00004"
+    }
+  ],
+  "scope": "Lite3 simulation, fixed forward0.3m/s, original rough_4cm course generator, registered small reset perturbations and simulator route localization; no hardware or universal-terrain claim.",
+  "status": "passed_registered_simulation_acceptance",
+  "task_trials_per_arm": 60,
+  "uncertain_controls": 0,
+  "unique_paired_flat_reset_seeds": [
+    29439528,
+    38793142,
+    107424662,
+    940910111,
+    1288713654,
+    1423542565,
+    1686637732,
+    2122290216
+  ]
+}
