@@ -4,6 +4,7 @@ import argparse
 import math
 
 from rl_training.online_adaptation.terrain_protocol import default_flat_online_protocol
+from rl_training.online_adaptation.registered_development import REGISTERED_DEVELOPMENT_SEEDS
 from rl_training.lite3_stability_contract import LITE3_MAX_PROJECTED_GRAVITY_XY
 from rl_training.online_adaptation.safety import SafetyLimits, risk_gate_kwargs
 
@@ -132,7 +133,12 @@ class _PlayArgumentParser(argparse.ArgumentParser):
             and parsed.task_objective == "legacy"
         ):
             self.error("the first formal online worker requires --novelty-baseline-in")
+        if parsed.terrain_split == 'registered-development':
+            if (parsed.mode != 'base' or not parsed.evaluation_only or parsed.stochastic_control
+                    or parsed.target_warmup_steps or parsed.terrain_stage != 'rough_4cm'):
+                self.error('registered-development requires deterministic frozen base-mode rough_4cm execution')
         allowed_seeds = (
+            REGISTERED_DEVELOPMENT_SEEDS if parsed.terrain_split == 'registered-development' else
             (7, 11, 19, 23, 31)
             if parsed.flat_retention_probe and not parsed.session_ledger
             else protocol.sealed_seeds
@@ -428,7 +434,7 @@ def build_play_parser() -> argparse.ArgumentParser:
     parser.add_argument("--terrain-seed", type=int, default=protocol.development_seeds[0])
     parser.add_argument(
         "--terrain-split",
-        choices=("development", "sealed"),
+        choices=("development", "sealed", "registered-development"),
         default=None,
         help=(
             "select the terrain seed partition independently of whether online "

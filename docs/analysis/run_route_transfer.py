@@ -19,7 +19,7 @@ def commands(p, slot, device):
                 name=f"{arm}-{run['learning_seed']}-{terrain}"
                 common=[sys.executable,'-u','scripts/reinforcement_learning/online_adaptation/run_adaptation_session.py',
                     '--session-dir',str(root/name),'--algorithm','sac','--base-checkpoint',run['checkpoint']['path'] if arm=='candidate' else p['base_checkpoint'],
-                    '--terrain-seed',str(terrain),'--seed',str(run['evaluation_seed']),
+                    '--terrain-seed',str(terrain),'--terrain-split',p['terrain_split'],'--seed',str(run['evaluation_seed']),
                     '--budget-steps',str(p['task_steps']),'--target-warmup-steps','0','--trial-steps',str(p['task_steps']),
                     '--selection-budget','0','--probe-milestones','--evaluation-steps',str(p['task_trials']*p['task_steps']),
                     '--evaluation-trials',str(p['task_trials']),'--retention-trials',str(p['retention_trials']),
@@ -33,6 +33,7 @@ def main():
     parser.add_argument('--protocol',required=True);parser.add_argument('--slot',type=int,choices=(0,1),required=True)
     parser.add_argument('--device',required=True);parser.add_argument('--resume',action='store_true');args=parser.parse_args()
     p=read(args.protocol);assert p['schema']=='lite3_route_transfer_v1'
+    assert p['terrain_split']=='registered-development'
     assert len(p['terrain_seeds'])==4 and len(set(p['terrain_seeds']))==4 and len(p['policies'])==2
     assert p['task_steps']==2000 and p['task_trials']==5 and p['retention_trials']==2 and p['retention_steps']==1000
     assert 4*2*2*(5*2000+2*1000)==p['max_controls']==192000
@@ -46,8 +47,9 @@ def main():
         assert sha256_file(run['checkpoint']['path'])==run['checkpoint']['sha256']
     assert sha256_file(p['base_checkpoint'])==p['base_sha256']
     # Fail before creating any physical trial if registered geometry is not enabled yet.
-    from rl_training.online_adaptation.terrain_protocol import development_geometry
-    for seed in p['terrain_seeds']:development_geometry('rough_4cm',seed)
+    from rl_training.online_adaptation.registered_development import registered_development_geometry, REGISTRATION_SHA256
+    assert REGISTRATION_SHA256==p['seed_registration_sha256']
+    for seed in p['terrain_seeds']:registered_development_geometry('rough_4cm',seed)
     root=Path(p['output']);root.mkdir(parents=True,exist_ok=True)
     prior=read(p['prior_program_audit'])
     assert prior['status']=='complete' and prior['protocol_sha256']==p['policies'][-1]['protocol_sha256']

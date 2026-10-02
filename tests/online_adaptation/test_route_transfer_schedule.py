@@ -2,7 +2,7 @@ from docs.analysis.run_route_transfer import commands
 
 
 def test_transfer_slots_cover_all_pairs_once_and_preserve_budget():
-    p={'output':'transfer','terrain_seeds':[1,2,3,4],
+    p={'output':'transfer','terrain_split':'registered-development','terrain_seeds':[1,2,3,4],
        'policies':[{'learning_seed':257,'evaluation_seed':11,'checkpoint':{'path':'first.pt'}},
                    {'learning_seed':269,'evaluation_seed':12,'checkpoint':{'path':'second.pt'}}],
        'base_checkpoint':'original.pt','task_steps':2000,'task_trials':5,'retention_trials':2,'retention_steps':1000}

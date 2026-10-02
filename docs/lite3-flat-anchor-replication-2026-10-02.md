@@ -7,3 +7,9 @@ Training completed512 updates,2,097,152 charged/confirmed controls and524,288 fl
 Full action-history audit:0 actor/critic/reset/stored-command mismatches. Full anchor audit recomputed every target and checked every masked cost, with maximum target error9.54e-7 and0 additional environment controls. Both audits are locked before evaluation.
 
 Frozen paired evaluation has launched on101/107 with new seed311 starts,5 task trials and2 flat windows per arm/terrain, cap48,000 controls. Acceptance requires repeated paired gains and flat retention, aggregate>=9/10 per terrain across the two anchored policies with each>=4/5, then registered new-development terrain validation. Prior unanchored failure is preserved and excluded from this configuration's qualification. Goal remains incomplete.
+
+## Final joint qualification on development tracks
+
+Seed307 candidate5/5 vs base1/5 on101, candidate5/5 vs base0/5 on107; both paired flat-retention comparisons passed (candidate meanXY0.01451m/s vs base0.01925m/s). Both independent anchored policies now total10/10 on each terrain with repeated paired gains and retained flat performance. Joint audit status is complete and independent_route_replication_passed=true. This does not replace new-terrain verification.
+
+This evaluation consumed36,294 confirmed controls with0 uncertainty. Cumulative full-policy training/evaluation11,747,117, including registered engineering11,748,805. Final models and reports remain immutable.

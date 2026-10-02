@@ -492,6 +492,9 @@ def write_actor_update_event(stream: Any, event: dict[str, Any]) -> None:
 def resolve_worker_geometry(
     terrain_stage: str, terrain_seed: int, *, terrain_split: str
 ) -> TerrainGeometry:
+    if terrain_split == "registered-development":
+        from rl_training.online_adaptation.registered_development import registered_development_geometry
+        return registered_development_geometry(terrain_stage, terrain_seed)
     if terrain_split == "sealed":
         return sealed_geometry(terrain_seed)
     if terrain_split == "development":

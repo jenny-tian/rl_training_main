@@ -42,6 +42,7 @@ def main():
                                   expected_phases={'evaluation':5,'retention':2})
                 manifest=read(directory/'ledger/manifest.json')
                 assert Path(manifest['base']['path']).resolve()==Path(checkpoint['path']).resolve()
+                assert manifest['terrain_split']==p['terrain_split']=='registered-development'
                 arguments=manifest['worker_configuration']['arguments']
                 assert arguments['route_observations']==('sim-localization-v1' if role=='candidate' else 'none')
                 assert arguments['stochastic_control'] is False

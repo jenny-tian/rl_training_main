@@ -52,6 +52,8 @@ class ManagedTrial:
             if trial is None or trial["status"] != "ready":
                 raise ValueError("worker trial is not ready; refuse duplicate execution")
             self.trial = trial
+            if args.terrain_split == 'registered-development' and trial['phase'] not in {'evaluation','retention'}:
+                raise ValueError('registered-development forbids learning and selection phases')
             self.frozen = trial["phase"] in {"selection", "flat_selection", "evaluation", "retention"}
             if (args.terrain_split, args.terrain_seed, args.seed) != (manifest["terrain_split"], manifest["terrain_seed"], manifest["learner_seed"]):
                 raise ValueError("worker terrain/reset identity differs from declared session scope")
@@ -145,6 +147,8 @@ def attach_session(args, algorithm):
     if bool(args.session_ledger) != bool(args.session_run_id):
         raise ValueError("session ledger and trial ID must be provided together")
     if not args.session_ledger:
+        if args.terrain_split == 'registered-development':
+            raise ValueError('registered-development requires a locked managed session')
         if args.task_objective != "legacy" and args.terrain_split == "sealed":
             raise ValueError("sealed common-objective execution requires a locked session protocol")
         return None

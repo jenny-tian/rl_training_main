@@ -38,7 +38,7 @@ def worker_arguments(args, *, output, steps, checkpoint=None, trial_id=None, pha
         raise ValueError("fixed code supports only frozen SAC execution without a learner checkpoint")
     common = ["--base-checkpoint", str(Path(args.base_checkpoint).resolve()),
               "--task", "RockyRoad-Deeprobotics-Lite3-v0", "--terrain-stage", "rough_4cm",
-              "--terrain-seed", str(args.terrain_seed), "--terrain-split", "development",
+              "--terrain-seed", str(args.terrain_seed), "--terrain-split", getattr(args,"terrain_split","development"),
               "--seed", str(args.seed), "--forward-speed", "0.3", "--max-steps", str(steps),
               "--task-objective", "finite-horizon-v1", "--task-deadline-steps", str(args.deadline_steps),
               "--initial-state", "perturbed-v1", "--trajectory-dtype", "float32", "--residual-rate-limit", "0.03",
@@ -116,6 +116,7 @@ def main():
     parser.add_argument("--algorithm", choices=("lora", "sac"), required=True)
     parser.add_argument("--base-checkpoint", required=True)
     parser.add_argument("--terrain-seed", type=int, default=101)
+    parser.add_argument("--terrain-split", choices=("development","registered-development"), default="development")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--phase", choices=("adaptation", "evaluation", "retention"), default="adaptation")
     parser.add_argument("--budget-steps", type=int, default=40000)
@@ -138,17 +139,21 @@ def main():
             or not 1 <= args.retention_trial_steps <= args.deadline_steps
             or not 1 <= args.trial_steps <= args.deadline_steps) or (args.max_trials is not None and args.max_trials < 1):
         parser.error("invalid physical trial length/count")
+    if args.terrain_split == 'registered-development' and (
+            args.phase not in ('evaluation','retention') or args.algorithm != 'sac'
+            or args.target_warmup_steps or args.selection_budget):
+        parser.error('registered-development supports frozen evaluation/retention without learning budgets')
     root = Path(args.session_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
     fixed_code = args.worker_options is not None and "fixed-code" in json.loads(Path(args.worker_options).read_text())
     if fixed_code and args.phase == "adaptation":
         raise ValueError("fixed code is a frozen executor; outer search owns learning and selection costs")
-    prototype_phase = "evaluation" if fixed_code else "adaptation"
+    prototype_phase = "evaluation" if fixed_code or args.terrain_split=="registered-development" else "adaptation"
     prototype = parser_for(args.algorithm).parse_args(worker_arguments(args, output=root / "prototype", steps=args.trial_steps, phase=prototype_phase))
     base = {"path": str(Path(args.base_checkpoint).resolve()), "sha256": sha256_file(args.base_checkpoint)}
     expected = {"schema": "lite3_session_v2", "session_id": "", "algorithm": args.algorithm,
                 "base": base, "task_objective_sha256": FiniteHorizonObjective(args.deadline_steps).sha256(),
-                "terrain_split": "development", "terrain_seed": args.terrain_seed, "learner_seed": args.seed,
+                "terrain_split": args.terrain_split, "terrain_seed": args.terrain_seed, "learner_seed": args.seed,
                 "worker_configuration": worker_configuration(prototype),
                 "limits": {"adaptation": args.budget_steps, "selection": args.selection_budget,
                            "evaluation": args.evaluation_steps, "retention": args.retention_trials * args.retention_trial_steps}, "seal": None,
