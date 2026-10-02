@@ -288,3 +288,5 @@
 - 新训练奖励与旧有限任务评测奖励区分；动作网络从旧base复制，critic/optimizer不导入。核验观察和动作字段、冻结权重不变、先计费后step以及有限时限不bootstrap；人工截止案例单列，不作为学习/通过证据。所有失败与不确定批成本保留。
 
 - attempt01在动作前记录配置时失败：当前ObservationManager无get_term_cfg，charged/confirmed/uncertain均0。保留原report/log，改为读取实际传入的cfg.observations.policy项；在相同总520步预算内新建attempt02复核，不覆盖失败。运行退出码不能代替持久report状态。
+
+- attempt02通过：8×65=520控制转移，全部确认、uncertain0；正常终止0，人工截止8/8且无timeout bootstrap；actor45/critic48、均值权重/critic不变、optimizer为空、base哈希不变。attempt01成本0保留，两attempt总520。见[报告](lite3-policy-environment-smoke-2026-10-02.md)及[验证](lite3_policy_environment_smoke_validation_20261002.json)。只完成环境工程，PPO训练和稳定步态仍待登记/执行。
