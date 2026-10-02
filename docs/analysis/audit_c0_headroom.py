@@ -1,5 +1,6 @@
 """Audit locked code selection and paired new-start headroom, not stable gait."""
 import argparse
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -32,20 +33,22 @@ def headroom(candidate, base, code):
             'candidate_safety_violations':sum(t['safety_violation'] for t in candidate)}
 
 
-def audit_child(directory,p,terrain,seed,code,expected_trials):
+def audit_child(directory,p,terrain,seed,code,expected_trials,*,expected_phases=None):
+    expected_phases = expected_phases or {"evaluation": expected_trials}
+    assert sum(expected_phases.values()) == expected_trials
     state=read(directory/'session_summary.json');manifest=read(directory/'ledger/manifest.json')
     assert manifest['terrain_seed']==terrain and manifest['learner_seed']==seed
     assert manifest['base']['sha256']==p['base_sha256']
     assert manifest['worker_configuration']['arguments']['fixed_code']==code
-    assert all(value==0 for phase,value in state['spent'].items() if phase!='evaluation')
+    assert all(value==0 for phase,value in state['spent'].items() if phase not in expected_phases)
     result={'spent':sum(state['spent'].values()),'uncertain_steps':state['uncertain_steps'],'trials':[],
             'source_sha256':manifest['worker_configuration']['source_sha256'],'input_hashes':{},
-            'all_expected_trials_complete':len(state['trials'])==expected_trials}
+            'all_expected_trials_complete':Counter(t['phase'] for t in state['trials'].values())==Counter(expected_phases)}
     for trial in state['trials'].values():
-        row={'id':trial['id'],'status':trial['status'],'reset_seed':trial['reset_seed'],
+        row={'id':trial['id'],'phase':trial['phase'],'status':trial['status'],'reset_seed':trial['reset_seed'],
              'valid_complete_episode':False}
         result['trials'].append(row)
-        assert trial['phase']=='evaluation'
+        assert trial['phase'] in expected_phases
         if trial['status']!='complete':
             result['all_expected_trials_complete']=False
             continue
@@ -67,6 +70,8 @@ def audit_child(directory,p,terrain,seed,code,expected_trials):
             requested_residual_rms=float(np.sqrt(np.mean(arrays['requested_residual_action'].astype(float)**2))),
             executed_residual_rms=float(np.sqrt(np.mean(arrays['executed_residual_action'].astype(float)**2))),
             control_timeouts=int(arrays['control_timed_out'].sum()),frozen_actor_equal=True,zero_updates_and_writes=True)
+        if trial['phase']=='retention':
+            row['flat_retention']=summary['flat_retention']
         result['input_hashes'].update(hashes)
         for file in (path/'episode_summary.json',path/'metrics.jsonl',path/'residual_before.pt',path/'residual_after.pt'):
             result['input_hashes'][str(file)]=sha256_file(file)
