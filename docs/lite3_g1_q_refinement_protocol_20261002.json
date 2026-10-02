@@ -1,0 +1,49 @@
+{
+  "schema": "schedule_q_refinement_v1",
+  "inputs": [
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/report.json",
+      "sha256": "57f2b59382f997f9ecb986304999085e37de87cb4e307b17dcd5710f24efb625"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/actor025-101-online_critic.npz",
+      "sha256": "97d22f71fd76ec23a035e36d0fc423f91ec5bff1836127ded79b222b1a3a3b71"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/actor025-101-target_critic.npz",
+      "sha256": "3783080b914b0f92a1c94a85b5fbf5ccb2ea68cc1f1f9107a2b6341ad7b7f827"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/actor025-107-online_critic.npz",
+      "sha256": "7840a381ea35d86e2a94bf329fb1cd4fa42230b34a724753530faccbcf5b190f"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/actor025-107-target_critic.npz",
+      "sha256": "2cbb3e7def70ff9b83534649764bdcfa6e2dd1a355ea87eb79b4e9934115e265"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/reference-101-online_critic.npz",
+      "sha256": "bc74afae94f4867b63102291e8dd9d7ed6191e8e0536f44fe0caf9778250b042"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/reference-101-target_critic.npz",
+      "sha256": "0f0c6d1b210e592d67bb47d3b069fe116298c164d1022b2cb42eda0ffb7553dc"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/reference-107-online_critic.npz",
+      "sha256": "cf625ce9820aa684ce5365d57ad3753d62ea1933f959f6d390652fd861d282a2"
+    },
+    {
+      "path": "artifacts/g1_schedule_q_20261002/attempt01/reference-107-target_critic.npz",
+      "sha256": "fbcd8be76eea8eb0507001cf90edbabee7c9a45eaaa4bf83c2b287432e1e6301"
+    }
+  ],
+  "new_physics_steps": 0,
+  "new_optimizer_updates": 0,
+  "new_network_forwards": 0,
+  "operations": [
+    "Separate fall_reset from performance_degradation; retain unknown events without assuming rollback.",
+    "For all/common_prefix/own_postwarmup, partition squared Bellman error into terminal and nonterminal; report terminal fraction and nonterminal RMSE."
+  ],
+  "limits": "Posthoc diagnostic refinement of saved rows; not independent calibration, causal evidence, or candidate selection."
+}
