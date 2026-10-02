@@ -72,7 +72,8 @@ def main():
             item['outcomes'][role] = outcomes(phases[role]['evaluation'])
         for phase in ('evaluation', 'retention'):
             check_pairs(phases['candidate'][phase], phases['base'][phase])
-        complete = all(c['all_expected_trials_complete'] for c in item['roles'].values())
+        complete = execution['status']=='complete' and all(c['all_expected_trials_complete'] and c['uncertain_steps']==0 for c in item['roles'].values())
+        complete = complete and all(r['valid_complete_episode'] for arm in phases.values() for r in arm['evaluation'])
         flats = [r for arm in phases.values() for r in arm['retention']]
         full_flats = complete and all(r['flat_retention']['sample_count'] == p['retention_steps']
             and r['flat_retention']['steady_sample_count'] == 750 for r in flats)
