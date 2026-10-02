@@ -221,3 +221,9 @@
 - 完成：实际30509/32000步（适应20000、任务6509、平地4000），uncertain=0，四session全部结束，无替换。两臂预热root/action/reward/terminal字段逐位一致，配置仅actor额度不同，冻结初态匹配；每session1000预热＋500常规critic更新，全部预热gain=.5。
 - reference/actor025接受actor更新：101为3/176，107为2/182。reference任务均completion（1850/1755步）；actor025在101 lateral_violation/1333步、107 physical_failure/1571步，进度6.87035/5.89782 m，均低于reference约8m。不采用.25、不追加第三候选，不按结果改选checkpoint。平地窗口均有效，但107高额度X误差增大，不能仅用平均XY误差降低宣称整体改善。
 - 控制超时0，最大11.718 ms；冻结actor张量不变、零更新/写入；8次冻结重复调用及2次完成驱动resume新增0步/0试验。全量1639 passed, 7 skipped。报告：[G1.9](lite3-g1-actor-schedule-2026-09-30.md)，[验证JSON](lite3_g1_sac_schedule_validation_20260930.json)。下一步先复盘既有Q/回退，不认定路线通过。
+
+## G1-20261002-schedule-q-readonly
+
+- 预登记[只读协议](lite3_g1_schedule_q_protocol_20261002.json)：锁定G1.9四个最终适应checkpoint及日志SHA256，不挑中间版本。新增物理步/优化器更新均0，CPU单线程；每行16次动作采样、seed23、batch128、gain .5。
+- 验证每地形两臂前4000行所有TransitionBatch字段完全一致；首次满库cursor0允许，超过首次填充或字段不同则停止。全库及共同前缀、各自后续、非零请求、终止/成功/失败分层；分别计算lagged target和online Q算子残差、动作敏感性。解析回退事件、累计更新及实际恢复版本，保留原始逐行结果和成本。
+- 固定每个checkpoint自己的actor/alpha，不要求不同臂相同；只诊断训练分布自洽性，不称真实Q校准，不新增第三候选，不凭本次指标选择训练参数。

@@ -1,0 +1,135 @@
+{
+  "schema": "lite3_schedule_q_audit_v1",
+  "draws": 16,
+  "batch_size": 128,
+  "seed": 23,
+  "residual_gain": 0.5,
+  "common_prefix_rows": 4000,
+  "new_physics_steps": 0,
+  "new_optimizer_updates": 0,
+  "selection": "All occupied rows of final committed adaptation checkpoints; common first 4000 verified equal across every TransitionBatch field per terrain. Fail on mismatch or wrapped buffers beyond first fill.",
+  "strata": [
+    "all",
+    "common_prefix",
+    "own_postwarmup",
+    "nonzero_request",
+    "terminal",
+    "success_terminal",
+    "failure_terminal"
+  ],
+  "operators": [
+    "target_critic",
+    "online_critic"
+  ],
+  "limits": "Training replay consistency and action sensitivity, not heldout return calibration or causal attribution. No candidate selection or training.",
+  "snapshots": {
+    "reference-101": {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-101/trial-00002/session.pt",
+        "sha256": "ddda201fbb8561580af1496d3889d830f3bf83331f306f2b36e9699f03c053e6"
+      },
+      "ledger": {
+        "path": "artifacts/g1_sac_actor_schedule_20260930/reference-101/session_summary.json",
+        "sha256": "b030e77b8789fa8986a576d3be93fb81346cf57c8772cf2254e43737ec485e86"
+      },
+      "logs": [
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-101/trial-00000/metrics.jsonl",
+          "sha256": "9374268808a105517807b95e860dd56ece1f0f02667098da37218a83d79bec63"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-101/trial-00001/metrics.jsonl",
+          "sha256": "95e921088d6d4d4ea9928249159100fc5e29f10d08f060c4ae729b87ce822412"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-101/trial-00002/metrics.jsonl",
+          "sha256": "0856427057dffa76d1f044129fe8bd94ddef639b69c9e34e33554f6fb05b5cd8"
+        }
+      ]
+    },
+    "actor025-101": {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-101/trial-00002/session.pt",
+        "sha256": "e96c1a4935c855b4ffec8a218311ded955e55e9562634054a54183cbfa5823dc"
+      },
+      "ledger": {
+        "path": "artifacts/g1_sac_actor_schedule_20260930/actor025-101/session_summary.json",
+        "sha256": "b2320781a49393c777e35216151c42063fb91adf2864492f1ff6775c4b8fc655"
+      },
+      "logs": [
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-101/trial-00000/metrics.jsonl",
+          "sha256": "8050f61b700bec2fc77c261f03e2f14d576365039ac212b0aa3de941b13ce201"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-101/trial-00001/metrics.jsonl",
+          "sha256": "491017c0836ca112568d25f8e8e8518aae0bab7a1a28eaf67c7de08e004674e3"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-101/trial-00002/metrics.jsonl",
+          "sha256": "60fd7e7680ba5bec1c06d3cd7dd6498c6fa79335781ddb756d905f47a5464334"
+        }
+      ]
+    },
+    "reference-107": {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00004/session.pt",
+        "sha256": "1ef9aaa25ef044cbe7224da149ee17245393683c2a238f715180ec0ce4cbb74f"
+      },
+      "ledger": {
+        "path": "artifacts/g1_sac_actor_schedule_20260930/reference-107/session_summary.json",
+        "sha256": "1fa52f3580b112f3879bfdef6782cac1f8d611cd0b7b598d1818ccfa19f0c47c"
+      },
+      "logs": [
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00000/metrics.jsonl",
+          "sha256": "42fd8db9f1c98e05051b4cecf1aeb09207ad87452162a7ff4c97fec717af3a5c"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00001/metrics.jsonl",
+          "sha256": "f9b2397b3478005026dc0040c6e1b07282b5fce12fbd3f3d873b52420a78f914"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00002/metrics.jsonl",
+          "sha256": "c8e47ee0e3b424df9d7ca14b85e16ba9c226f81f6b614a83e6e6e953837133a0"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00003/metrics.jsonl",
+          "sha256": "f88a64b81982dc612e0e9c80e2244935f19fc937d53a6e6f4e52346ab0398966"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00004/metrics.jsonl",
+          "sha256": "ce41a3002786c94886bd49ddd82166ae6a278d7af5bda7323521d1d457d87aa4"
+        }
+      ]
+    },
+    "actor025-107": {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00003/session.pt",
+        "sha256": "220fd6e872aa0f44f461f62f351dbb276e8d9a2c0cea93734c8de645cf1a3cc5"
+      },
+      "ledger": {
+        "path": "artifacts/g1_sac_actor_schedule_20260930/actor025-107/session_summary.json",
+        "sha256": "aecfd823ccd3c090888a8cb0adccdec9bc9bbbe809fe66e9f2442c6c0dd9b023"
+      },
+      "logs": [
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00000/metrics.jsonl",
+          "sha256": "8fcc593c823c8744bd25a67bfcaa3b86d56836f573c24cc83523b15d5daa7565"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00001/metrics.jsonl",
+          "sha256": "a04deb6fb47639bfb0946a57a5bfaf13a1a9fb0878e2ef5a6f013b9afc82f92a"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00002/metrics.jsonl",
+          "sha256": "8a30fb07cfa60badb5245521628fd6e841608f964ff2ce54f83b93c21e94bbd0"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00003/metrics.jsonl",
+          "sha256": "a831587b6d33d3c17789e039d451a7787c480591f71286b2c552f4f95f7409dd"
+        }
+      ]
+    }
+  }
+}
