@@ -1,0 +1,528 @@
+{
+  "actual_control_transitions": 95403,
+  "engineering_qualified": false,
+  "goal_complete": false,
+  "limit": "New gait and unseen development terrain confirmation still required.",
+  "protocol_sha256": "679ede02a31d5986e40c4ab59ef1d65dc2de7a2fac47b4be3f9581d3a29bee47",
+  "stable_development_qualified": false,
+  "status": "complete",
+  "uncertain_steps": 0,
+  "raw_report": "artifacts/g1_learning_replication_20261002/audit/report.json",
+  "raw_report_sha256": "c00c5d474381927bab56ec6c01013380b752683fe5bba2a1ca1f4fda8d9a03e2",
+  "terrains": {
+    "101": [
+      {
+        "base_completion_rate": 0.4,
+        "base_completions": 2,
+        "candidate_completion_rate": 0.2,
+        "candidate_completions": 1,
+        "evaluation_safe": true,
+        "retention_pass": true,
+        "seed": 61,
+        "roles": {
+          "base": {
+            "spent": {
+              "adaptation": 0,
+              "evaluation": 8917,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 0,
+            "critic_updates": 0,
+            "warmup_records": 0,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 8.59898584894836,
+            "evaluation": [
+              {
+                "trial_id": "trial-00000",
+                "reset_seed": 1280565905,
+                "stop_reason": "task_timeout",
+                "progress_m": 6.981405019760132,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00001",
+                "reset_seed": 869938402,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.522658824920654,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00002",
+                "reset_seed": 2052480394,
+                "stop_reason": "completion",
+                "progress_m": 8.007807493209839,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00003",
+                "reset_seed": 2053586996,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.698096990585327,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 190138791,
+                "stop_reason": "completion",
+                "progress_m": 8.004518985748291,
+                "fell": false,
+                "request_rms": 0.0
+              }
+            ]
+          },
+          "candidate": {
+            "spent": {
+              "adaptation": 5000,
+              "evaluation": 8795,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 1,
+            "critic_updates": 1500,
+            "warmup_records": 1000,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 8.244050899520516,
+            "evaluation": [
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 1280565905,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.66718316078186,
+                "fell": false,
+                "request_rms": 0.0005741112288148816
+              },
+              {
+                "trial_id": "trial-00005",
+                "reset_seed": 869938402,
+                "stop_reason": "task_timeout",
+                "progress_m": 4.128872334957123,
+                "fell": false,
+                "request_rms": 0.0006525628530727663
+              },
+              {
+                "trial_id": "trial-00006",
+                "reset_seed": 2052480394,
+                "stop_reason": "lateral_violation",
+                "progress_m": 6.7753586769104,
+                "fell": false,
+                "request_rms": 0.0005620177481451405
+              },
+              {
+                "trial_id": "trial-00007",
+                "reset_seed": 2053586996,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.688560247421265,
+                "fell": false,
+                "request_rms": 0.0005606425661642645
+              },
+              {
+                "trial_id": "trial-00008",
+                "reset_seed": 190138791,
+                "stop_reason": "completion",
+                "progress_m": 8.01306676864624,
+                "fell": false,
+                "request_rms": 0.0005715039282929569
+              }
+            ]
+          }
+        }
+      },
+      {
+        "base_completion_rate": 0.0,
+        "base_completions": 0,
+        "candidate_completion_rate": 0.0,
+        "candidate_completions": 0,
+        "evaluation_safe": true,
+        "retention_pass": true,
+        "seed": 67,
+        "roles": {
+          "base": {
+            "spent": {
+              "adaptation": 0,
+              "evaluation": 8041,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 0,
+            "critic_updates": 0,
+            "warmup_records": 0,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 8.661201922222972,
+            "evaluation": [
+              {
+                "trial_id": "trial-00000",
+                "reset_seed": 427481416,
+                "stop_reason": "task_timeout",
+                "progress_m": 4.1844252943992615,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00001",
+                "reset_seed": 355657574,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.638636589050293,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00002",
+                "reset_seed": 2123663332,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.7033867835998535,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00003",
+                "reset_seed": 2118452532,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.701947212219238,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 1997626,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.699183464050293,
+                "fell": false,
+                "request_rms": 0.0
+              }
+            ]
+          },
+          "candidate": {
+            "spent": {
+              "adaptation": 5000,
+              "evaluation": 7448,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 2,
+            "critic_updates": 1500,
+            "warmup_records": 1000,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 8.873065002262592,
+            "evaluation": [
+              {
+                "trial_id": "trial-00005",
+                "reset_seed": 427481416,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.668511629104614,
+                "fell": false,
+                "request_rms": 0.0005400680506808385
+              },
+              {
+                "trial_id": "trial-00006",
+                "reset_seed": 355657574,
+                "stop_reason": "physical_failure",
+                "progress_m": 4.812608003616333,
+                "fell": true,
+                "request_rms": 0.0005312061923843403
+              },
+              {
+                "trial_id": "trial-00007",
+                "reset_seed": 2123663332,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.7074360847473145,
+                "fell": false,
+                "request_rms": 0.0005445787658343948
+              },
+              {
+                "trial_id": "trial-00008",
+                "reset_seed": 2118452532,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.676657438278198,
+                "fell": false,
+                "request_rms": 0.0005563318934246041
+              },
+              {
+                "trial_id": "trial-00009",
+                "reset_seed": 1997626,
+                "stop_reason": "lateral_violation",
+                "progress_m": 7.691779613494873,
+                "fell": false,
+                "request_rms": 0.0005414964231709125
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "107": [
+      {
+        "base_completion_rate": 0.0,
+        "base_completions": 0,
+        "candidate_completion_rate": 0.2,
+        "candidate_completions": 1,
+        "evaluation_safe": true,
+        "retention_pass": true,
+        "seed": 61,
+        "roles": {
+          "base": {
+            "spent": {
+              "adaptation": 0,
+              "evaluation": 7316,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 0,
+            "critic_updates": 0,
+            "warmup_records": 0,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 8.152313996106386,
+            "evaluation": [
+              {
+                "trial_id": "trial-00000",
+                "reset_seed": 1280565905,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.184346914291382,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00001",
+                "reset_seed": 869938402,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.0616477727890015,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00002",
+                "reset_seed": 2052480394,
+                "stop_reason": "task_timeout",
+                "progress_m": 4.965551853179932,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00003",
+                "reset_seed": 2053586996,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.113273501396179,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 190138791,
+                "stop_reason": "task_timeout",
+                "progress_m": 4.880510926246643,
+                "fell": false,
+                "request_rms": 0.0
+              }
+            ]
+          },
+          "candidate": {
+            "spent": {
+              "adaptation": 5000,
+              "evaluation": 6133,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 2,
+            "critic_updates": 1500,
+            "warmup_records": 1000,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 13.380744960159063,
+            "evaluation": [
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 1280565905,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.149520039558411,
+                "fell": true,
+                "request_rms": 0.0005973798652709955
+              },
+              {
+                "trial_id": "trial-00005",
+                "reset_seed": 869938402,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.091149926185608,
+                "fell": true,
+                "request_rms": 0.0005672458243654103
+              },
+              {
+                "trial_id": "trial-00006",
+                "reset_seed": 2052480394,
+                "stop_reason": "completion",
+                "progress_m": 8.002080202102661,
+                "fell": false,
+                "request_rms": 0.0005745170345530441
+              },
+              {
+                "trial_id": "trial-00007",
+                "reset_seed": 2053586996,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.143807888031006,
+                "fell": true,
+                "request_rms": 0.000564545867939787
+              },
+              {
+                "trial_id": "trial-00008",
+                "reset_seed": 190138791,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.201585173606873,
+                "fell": true,
+                "request_rms": 0.0006007840792950934
+              }
+            ]
+          }
+        }
+      },
+      {
+        "base_completion_rate": 0.0,
+        "base_completions": 0,
+        "candidate_completion_rate": 0.0,
+        "candidate_completions": 0,
+        "evaluation_safe": true,
+        "retention_pass": true,
+        "seed": 67,
+        "roles": {
+          "base": {
+            "spent": {
+              "adaptation": 0,
+              "evaluation": 6188,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 0,
+            "critic_updates": 0,
+            "warmup_records": 0,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 12.343449052423239,
+            "evaluation": [
+              {
+                "trial_id": "trial-00000",
+                "reset_seed": 427481416,
+                "stop_reason": "task_timeout",
+                "progress_m": 6.088056325912476,
+                "fell": false,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00001",
+                "reset_seed": 355657574,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.237872123718262,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00002",
+                "reset_seed": 2123663332,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.1587218046188354,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00003",
+                "reset_seed": 2118452532,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.15941596031189,
+                "fell": true,
+                "request_rms": 0.0
+              },
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 1997626,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.068073987960815,
+                "fell": true,
+                "request_rms": 0.0
+              }
+            ]
+          },
+          "candidate": {
+            "spent": {
+              "adaptation": 5000,
+              "evaluation": 6565,
+              "flat_selection": 0,
+              "retention": 2000,
+              "selection": 0,
+              "warmup": 0
+            },
+            "uncertain_steps": 0,
+            "actor_updates": 2,
+            "critic_updates": 1500,
+            "warmup_records": 1000,
+            "control_timeouts": 0,
+            "max_control_compute_ms": 9.591276058927178,
+            "evaluation": [
+              {
+                "trial_id": "trial-00004",
+                "reset_seed": 427481416,
+                "stop_reason": "task_timeout",
+                "progress_m": 4.686648368835449,
+                "fell": false,
+                "request_rms": 0.0006386632517075463
+              },
+              {
+                "trial_id": "trial-00005",
+                "reset_seed": 355657574,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.164153099060059,
+                "fell": true,
+                "request_rms": 0.0005666227809126781
+              },
+              {
+                "trial_id": "trial-00006",
+                "reset_seed": 2123663332,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.161548733711243,
+                "fell": true,
+                "request_rms": 0.000564179683964292
+              },
+              {
+                "trial_id": "trial-00007",
+                "reset_seed": 2118452532,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.116998314857483,
+                "fell": true,
+                "request_rms": 0.0005714600821022531
+              },
+              {
+                "trial_id": "trial-00008",
+                "reset_seed": 1997626,
+                "stop_reason": "physical_failure",
+                "progress_m": 5.079037427902222,
+                "fell": true,
+                "request_rms": 0.0005618775815975798
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "control_timeouts": 0,
+  "max_control_compute_ms": 13.380744960159063
+}

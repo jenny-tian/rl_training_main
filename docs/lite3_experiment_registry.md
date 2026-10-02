@@ -243,3 +243,5 @@
 - 101先candidate、107先base；各seed61再67。无选择探针、不替换失败起点、不晋升aborted checkpoint。后续如需新配置，须本轮复盘后单独登记，旧候选负结果保留。
 
 - 中期事实（非最终晋级判断）：seed61四session完成并通过逐回合审计，实际49161控制步、uncertain0、timeout0；101候选/base完成1/5与2/5，107为1/5与0/5。相同初态、冻结actor不变/零更新/零回放写入验证通过，两地形平地保持通过。第二seed67仍按注册运行。摘要：[seed61审计](lite3_learning_replication_seed61_audit_20261002.json)，完整原始审计在artifacts/g1_learning_replication_20261002/audit-seed61/。不替换失败起点，不宣称新步态或稳定成功。
+
+- 完成：双seed四学习＋四base session实际95403/116000步，uncertain0，无替换。101学习/base累计1/10与2/10；107为1/10与0/10，未通过≥20百分点双seed正向学习门槛或≥9/10稳定门槛。全部平地保持比较通过，冻结零更新/写入、actor不变和配对起点检查通过。详见[完整报告](lite3-learning-replication-2026-10-02.md)及[验证](lite3_learning_replication_validation_20261002.json)。不追加该配置长训练，转入独立登记C0工程验证。
