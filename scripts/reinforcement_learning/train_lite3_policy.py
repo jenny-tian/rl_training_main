@@ -55,6 +55,9 @@ def main():
         agent_cfg.device=args.device;agent_cfg.seed=p['seed'];agent_cfg.num_steps_per_env=p['rollout_steps']
         agent_cfg.save_interval=p['save_interval'];agent_cfg.policy.init_noise_std=p['initial_std']
         for key,value in p['ppo'].items():setattr(agent_cfg.algorithm,key,value)
+        if p.get('symmetry'):
+            from isaaclab_rl.rsl_rl import RslRlSymmetryCfg
+            agent_cfg.algorithm.symmetry_cfg=RslRlSymmetryCfg(**p['symmetry'])
         agent_cfg=prepare_rsl_rl_agent_cfg(agent_cfg)
         env=gym.make(p['task'],cfg=cfg);raw=env.unwrapped
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)

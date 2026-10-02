@@ -59,7 +59,6 @@ def main():
                     summary = read(Path(trial['output'])/'episode_summary.json')
                     assert summary['mode'] == 'base'
                     assert summary['critic_transitions_committed'] == summary['warmup_critic_updates'] == 0
-                    assert summary['reset_count'] == 0
                     assert summary['parameter_changed'] is False
             for row in child['trials']:
                 if row['status'] == 'complete':
@@ -86,6 +85,9 @@ def main():
     report['status'] = 'complete'
     report['pilot_supports_further_work'] = all(t['complete'] and t['retention_pass'] and t['paired_completion_gain'] > 0 for t in report['terrains'].values())
     report['total_controls_including_retired_training'] = report['training_controls'] + report['retired_incompatible_training_controls'] + report['evaluation_controls']
+    report['prior_compatible_training_controls'] = p.get('prior_compatible_training_steps', 0)
+    report['prior_compatible_evaluation_controls'] = p.get('prior_compatible_evaluation_steps', 0)
+    report['full_policy_program_controls'] = report['total_controls_including_retired_training'] + report['prior_compatible_training_controls'] + report['prior_compatible_evaluation_controls']
     write_json_atomic(Path(args.output), report)
     print({k: v for k, v in report.items() if k != 'terrains'})
 

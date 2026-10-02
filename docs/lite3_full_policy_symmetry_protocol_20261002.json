@@ -32,7 +32,10 @@
   "output": "artifacts/full_policy_symmetry_20261002",
   "smoke_report": "artifacts/policy_environment_smoke_20261002/attempt02/report.json",
   "smoke_sha256": "481314812c822929fd5c1516d6ede33939a314f8beabe74e365a0d5185904d27",
-  "evaluation_terrains": [101, 107],
+  "evaluation_terrains": [
+    101,
+    107
+  ],
   "evaluation_seed": 239,
   "evaluation_trials": 5,
   "evaluation_trial_steps": 2000,
@@ -50,5 +53,7 @@
   "retention_rule": "Full1000-step windows,750steady samples, no fall/reset/safety violation; meanXY<=max(1.1*base,base+.005), eachX/Y<=base+.01 m/s.",
   "failure_policy": "Keep every failure and charged/uncertain control. Preserve both prior pilots and their separate evaluation costs. No replacement starts.",
   "engineering_gate": "Reflection involution, clipping compatibility, physical joint reflection and actual RSL mirror-loss update must pass before simulation. Existing environment smoke covers unchanged physics; first failed training attempt is charged and not retried.",
-  "cost_review": "New2097152 training plus48000 evaluation; prior incompatible524288 and corrected524288 plus its actual evaluation remain separately counted. Not equal-resource superiority evidence."
+  "cost_review": "New2097152 training plus48000 evaluation; prior incompatible524288 and corrected524288 plus its actual evaluation remain separately counted. Not equal-resource superiority evidence.",
+  "prior_compatible_training_steps": 524288,
+  "prior_compatible_evaluation_steps": 30968
 }
