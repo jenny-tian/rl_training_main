@@ -44,10 +44,19 @@ def main():
         agent_cfg=load_cfg_from_registry(p['task'],'rsl_rl_cfg_entry_point')
         agent_cfg.device=args.device;agent_cfg.seed=p['seed']
         agent_cfg=prepare_rsl_rl_agent_cfg(agent_cfg)
+        anchor_weight=p.get('flat_anchor_weight')
+        teacher=None
+        if anchor_weight is not None:
+            from rl_training.policy_flat_anchor import FrozenFlatMean,configure_flat_anchor,prepare_flat_anchor,flat_anchor_cost
+            configure_flat_anchor(cfg,anchor_weight)
         env=gym.make(p['task'],cfg=cfg)
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
         runner=OnPolicyRunner(wrapped,agent_cfg.to_dict(),log_dir=None,device=args.device)
         payload=torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False)
+        if anchor_weight is not None:
+            teacher=FrozenFlatMean(payload).to(args.device).eval()
+            teacher_before=copy.deepcopy(teacher.state_dict())
+            report['flat_anchor_label_rows']=0
         original_payload=payload
         if route:payload=expand_actor_route_inputs(payload)
         critic_before=copy.deepcopy(runner.alg.critic.state_dict())
@@ -72,6 +81,9 @@ def main():
             forced=step==p['normal_vector_steps']
             if forced:raw.episode_length_buf.fill_(raw.max_episode_length)
             pre=observations['policy'].clone()
+            if teacher is not None:
+                target,mask=prepare_flat_anchor(raw,teacher,pre)
+                report['flat_anchor_label_rows']+=int(mask.sum())
             with torch.inference_mode():
                 action=policy(observations)
                 if route:
@@ -81,10 +93,18 @@ def main():
                         reference=torch.nn.functional.linear(reference,state[f'mlp.{index}.weight'].to(pre.device),state[f'mlp.{index}.bias'].to(pre.device))
                         if index!=6:reference=torch.nn.functional.elu(reference)
                     torch.testing.assert_close(action,reference,atol=2e-5,rtol=1e-5)
+                if teacher is not None and step==p['anchor_perturb_step']:
+                    action=action.clone();action[:,0]+=p['anchor_perturb_action']
                 action=clip_lite3_policy_action(action)
+            if teacher is not None:
+                anchor_cost=flat_anchor_cost(action,target,mask)
             ledger.reserve()
             observations,reward,done,extras=wrapped.step(action)
             ledger.confirm()
+            if teacher is not None:
+                torch.testing.assert_close(raw._flat_anchor_applied_cost,anchor_cost,atol=1e-6,rtol=0)
+                assert (anchor_cost[~mask]==0).all()
+                if step==p['anchor_perturb_step']:assert (anchor_cost[mask]>0).all()
             assert torch.isfinite(observations['policy']).all() and torch.isfinite(reward).all()
             expected=action.clone();expected[done.bool()]=0
             for group in ('policy','critic'):
@@ -95,10 +115,16 @@ def main():
             rows.append({'observation':pre.cpu().numpy(),'action':action.cpu().numpy(),
                          'reward':reward.cpu().numpy(),'done':done.cpu().numpy(),
                          'returned_root_pos':raw.scene['robot'].data.root_pos_w.cpu().numpy().copy()})
+            if teacher is not None:
+                rows[-1].update(flat_anchor_target=target.cpu().numpy(),flat_anchor_mask=mask.cpu().numpy(),flat_anchor_cost=anchor_cost.cpu().numpy())
         np.savez_compressed(out/'trajectory.npz',**{k:np.stack([r[k] for r in rows]) for k in rows[0]})
         for before,model in ((actor_before,runner.alg.actor),(critic_before,runner.alg.critic)):
             for k,v in before.items():assert torch.equal(v,model.state_dict()[k])
         assert not runner.alg.optimizer.state and sha256_file(p['base_checkpoint'])==p['base_sha256']
+        if teacher is not None:
+            assert all(torch.equal(v,teacher.state_dict()[k]) for k,v in teacher_before.items())
+            report['flat_anchor_model_unchanged']=True
+            report['flat_anchor_timing_and_mask_passed']=True
         if route:
             checkpoint=runner.alg.save();checkpoint.update(iter=0,infos={'engineering_only':True,'route_observations':route})
             torch.save(checkpoint,out/'expanded_base.pt')

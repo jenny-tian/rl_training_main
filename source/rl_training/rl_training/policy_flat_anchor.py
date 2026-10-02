@@ -46,4 +46,26 @@ def flat_anchor_cost(emitted_action, target, flat_mask):
 
 def flat_anchor_reward(env):
     # The collector must populate both from pre-action state before physics.
-    return flat_anchor_cost(env.action_manager.action, env._flat_anchor_target, env._flat_anchor_mask)
+    cost = flat_anchor_cost(env.action_manager.action, env._flat_anchor_target, env._flat_anchor_mask)
+    env._flat_anchor_applied_cost = cost.detach().clone()
+    return cost
+
+
+def configure_flat_anchor(cfg, weight):
+    from isaaclab.managers import RewardTermCfg
+    import math
+    if not math.isfinite(weight) or weight <= 0:
+        raise ValueError('Anchor weight must be finite and positive')
+    generator = cfg.scene.terrain.terrain_generator
+    if generator.num_cols != 8 or list(generator.sub_terrains)[0] != 'flat' or generator.sub_terrains['flat'].proportion != .25:
+        raise ValueError('Anchor supports only the registered first-two-flat-column layout')
+    cfg.rewards.flat_policy_anchor = RewardTermCfg(func=flat_anchor_reward, weight=-weight)
+
+
+def prepare_flat_anchor(env, teacher, observation):
+    mask = env.scene.terrain.terrain_types < 2
+    target = observation.new_zeros((observation.shape[0], 12))
+    target[mask] = teacher(observation[mask])
+    env._flat_anchor_target = target
+    env._flat_anchor_mask = mask.clone()
+    return target, mask

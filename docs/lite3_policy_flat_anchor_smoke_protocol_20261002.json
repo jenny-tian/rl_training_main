@@ -1,0 +1,42 @@
+{
+  "schema": "lite3_full_policy_environment_smoke_v1",
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "seed": 277,
+  "num_envs": 8,
+  "normal_vector_steps": 64,
+  "forced_deadline_vector_steps": 1,
+  "max_control_transitions": 520,
+  "actor_obs_dim": 48,
+  "critic_obs_dim": 51,
+  "optimizer_updates": 0,
+  "output": "artifacts/policy_flat_anchor_smoke_20261002",
+  "terrain": "8 fixed columns:2 flat,3 rough seed101,3 rough seed107; fixed difficulty1, max height amplitude.04m. Generator curriculum flag is layout-only; no level progression. Not assumed identical mesh to prior single-track random difficulty.",
+  "reward": "Same physical training reward with velocity-tracking std.15 and heading cost weight-1; evaluation reward and criteria unchanged.",
+  "checks": [
+    "actor-only warmstart preserves mean weights, critic and empty optimizer state",
+    "45D proprio actor and48D critic; no height scan or motion phase inputs",
+    "record actual observation term order/scales and joint action order/scales",
+    "charge8 transitions before every env.step, confirm after; retain uncertain whole batch on failure",
+    "force episode_length_buf to deadline only on final registered engineering step; all done and no timeout bootstrap flag",
+    "actor/critic state tensors unchanged after deterministic inference; base hash unchanged",
+    "expanded actor mean matches original on actual observations within float32 tolerance before any learning",
+    "emitted clipped actions match actor/critic histories, reset histories zero",
+    "save expanded untrained checkpoint for separate frozen worker smoke",
+    "Frozen original mean target computed before physics on flat columns only",
+    "Explicit one-step +.1 normalized HipX perturbation exercises nonzero flat cost and exactlyzero rough cost",
+    "Applied RewardManager term equals pre-action expected cost, including forced reset step",
+    "Teacher buffers unchanged; flat target labels counted separately"
+  ],
+  "limits": "Engineering only;520 controls, no optimizer updates. One registered action perturbation and forced deadline are not gait evidence or training data. Existing route frozen path is unchanged; no extra frozen smoke allocation.",
+  "route_observations": "sim-localization-v1",
+  "route_training": {
+    "tracking_std": 0.15,
+    "heading_weight": -1.0
+  },
+  "flat_anchor_weight": 2.0,
+  "anchor_perturb_step": 3,
+  "anchor_perturb_action": 0.1,
+  "failure_policy": "Retain all failure costs; no automatic retry. Fixes require a new registered attempt."
+}
