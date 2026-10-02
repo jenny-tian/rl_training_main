@@ -310,3 +310,7 @@ Protocol: `docs/lite3_full_policy_symmetry_protocol_20261002.json`. Seed233, ori
 ## 2026-10-02 — Route-observation engineering smoke (preregistered)
 
 `docs/lite3_policy_route_smoke_protocol_20261002.json`: vector smoke8x65=520 controls, including one explicit deadline step; then frozen expanded-candidate/original-base64 controls each on terrain101/seed251, total648 maximum. Actor48/critic51 with simulator route localization, original-base mean expansion via zero columns, no optimization. Preserve every failure and uncertain charge; no automatic retries. This validates implementation only, not gait or route qualification. No route learning pilot is launched before the smoke gate passes and its separate protocol is registered.
+
+## 2026-10-02 — Route frozen-smoke CLI correction
+
+`docs/lite3_policy_route_frozen_fix_protocol_20261002.json`: both initial commands were rejected before session creation because retention-trials0 is invalid;0 controls. Preserve logs and failed manifest. Set the required retention count to1 but execute evaluation phase only. New frozen-v2 directories, same seed251/terrain101 and64 steps per arm; new cap128 replaces the unused initial128. Vector smoke remains complete520.
