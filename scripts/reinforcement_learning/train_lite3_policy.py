@@ -37,6 +37,9 @@ def main():
         if p.get('route_observations'):
             assert sha256_file(p['frozen_smoke_report'])==p['frozen_smoke_sha256']
             assert json.loads(Path(p['frozen_smoke_report']).read_text())['status']=='complete'
+        if p.get('flat_anchor_weight') is not None:
+            smoke=json.loads(Path(p['smoke_report']).read_text())
+            assert smoke['flat_anchor_timing_and_mask_passed'] and smoke['flat_anchor_model_unchanged']
         app=AppLauncher(args)
         import gymnasium as gym
         import torch

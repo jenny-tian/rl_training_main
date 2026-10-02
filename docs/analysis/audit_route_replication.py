@@ -23,6 +23,7 @@ def main():
                 'ppo','symmetry','route_observations','route_training','evaluation_terrains','evaluation_trials',
                 'evaluation_trial_steps','retention_trials','retention_steps'):
         assert first[key]==second[key], f'Configuration differs: {key}'
+    assert first.get('flat_anchor_weight')==second.get('flat_anchor_weight')
     assert first['seed']!=second['seed'] and first['evaluation_seed']!=second['evaluation_seed']
     assert second['replication_of_protocol_sha256']==sha256_file(args.first)
     report={'status':'running','terrains':{},'runs':[], 'goal_complete':False,

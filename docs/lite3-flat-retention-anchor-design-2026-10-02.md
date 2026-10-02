@@ -11,3 +11,7 @@ Before any physics, register weight and budget, test mask and action conventions
 ## Initial implementation
 
 The completed replication audit confirms the retention failure. `policy_flat_anchor.py` now provides a frozen original actor using registered tensor buffers (no trainable parameters), route-feature removal before its forward pass, common emitted-action clipping, and an explicit flat-mask MSE term. Five targeted tests passed for frozen targets, route-input invariance, zero rough-column penalty, and route geometry. Collector/reward integration and separately budgeted physics checks remain pending; no anchor training has started.
+
+## Integrated and physically checked
+
+Collector integration snapshots pre-action targets, flat mask and expected cost; the reward term stores applied cost for after-step equality checks, including reset steps. Teacher buffers are checked unchanged after training, and flat label rows are counted. Fifteen targeted tests passed. Registered smoke completed520 controls with130 labels and0 uncertainty; its deliberate+.1 HipX step produced nonzero flat cost and exactlyzero rough cost. Frozen original/learner parameters remained unchanged. The new seed283 pilot is separately registered and must not be pooled with old configurations for replication qualification.
