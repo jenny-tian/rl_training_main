@@ -7,3 +7,9 @@ Training completed2,097,152 charged/confirmed controls, uncertain0. Final checkp
 Full2,097,152-row trajectory audit found0 actor-history, critic-history, reset-history and stored-emitted-command mismatches. Training episodes:767 successes,372 failures,302 deadlines; not a frozen success estimate.
 
 Frozen evaluation is running on101/107 with new paired starts,5 task and2 flat windows per arm/terrain, total cap48,000 controls. `docs/analysis/audit_route_replication.py` will verify configuration and seed independence, checkpoint/report binding, repeated paired gains and flat retention, and>=9/10 aggregate per terrain with each run>=4/5. It deliberately leaves goal_complete false pending new-development terrain and full gait evidence. Prior failures and budgets are preserved; registered new terrain membership has not yet been generated or evaluated.
+
+## Final result: replication gate failed
+
+Seed269 candidate completed5/5 on101 and4/5 on107; original base completed1/5 on each. Combined with seed257, candidate totals10/10 and9/10. However seed269 failed paired flat retention on both comparisons (meanXY approximately0.02765m/s vs base0.01939m/s). The joint replication audit is false: rough completion alone does not qualify this configuration. New-development tests remain unexecuted; do not replace this failed run with a favorable extra seed.
+
+Evaluation consumed37,480 confirmed controls, uncertain0. Cumulative full-policy training/evaluation7,478,483 controls; including registered engineering smokes7,479,651. Both models, all trajectories and failed retention evidence are preserved. Next work is an explicitly separate flat-anchor training configuration, requiring new preregistration and independent validation.
