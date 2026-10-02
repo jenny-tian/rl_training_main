@@ -1,0 +1,49 @@
+{
+  "acceptance": "For every new terrain candidate aggregate>=9/10 and each learned run>=4/5, no safety violations, all eligible paired retention tests pass; candidate total no more than1/10 below matched base. This is a bounded simulation claim, not universal terrain or hardware qualification.",
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "cost": "16 sessions x (5x2000 task +2x1000 flat)=192000 maximum; two GPUs, one worker per GPU. Frozen-base control separately matched to each learned run. All failures/uncertain controls remain charged.",
+  "gate": "Both same-configuration anchored runs pass repeated paired gains and flat retention; combined>=9/10 on each101/107 and each run>=4/5. A missing or false joint audit prohibits launch.",
+  "geometry": "Original rough_4cm physical generator, fixed forward.3m/s and unchanged safety/deadline/lane/interaction criteria. Explicit registered-development membership excludes all sealed seeds. No new terrain mesh or physical rollout has been generated at registration.",
+  "limits": "Bounded simulation evidence on the registered geometry and initial-state distribution, with simulator route localization; not universal terrain or hardware qualification.",
+  "max_controls": 192000,
+  "output": "artifacts/flat_anchor_new_development_20261002",
+  "policies": [
+    {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+        "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+      },
+      "evaluation_seed": 1848426001,
+      "learning_seed": 283,
+      "protocol_sha256": "0f1acc4c2c1dddd5f6bdcc4ead1813a733aa132e8f0d43dfd8e0777fb7c447f9"
+    },
+    {
+      "checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_replication_20261002/train/final.pt",
+        "sha256": "05f5fd60e291aae2d919c5f5836c040af6a60292e700c390f9bf867781ce020d"
+      },
+      "evaluation_seed": 1315124702,
+      "learning_seed": 307,
+      "protocol_sha256": "cdda036814d4f72a12140fd4cd42d7cf989ccfa112c22de6cc501cfb75f1803e"
+    }
+  ],
+  "prior_program_audit": "artifacts/full_policy_flat_anchor_replication_20261002/evaluation_audit.json",
+  "replication_audit": "artifacts/full_policy_flat_anchor_replication_20261002/replication_audit.json",
+  "retention_steps": 1000,
+  "retention_trials": 2,
+  "runtime_gate": "Add a separately guarded registered-development resolver after active source-bound jobs finish; do not weaken legacy development/sealed membership. Only frozen evaluation/retention may use this split.",
+  "schema": "lite3_route_transfer_v1",
+  "seed_registration": "docs/lite3_route_new_development_seeds_20261002.json",
+  "seed_registration_sha256": "d09d98849d0808c822aecf4d774ceba5d7a6e03b1a5745ff16e3f54c9c52eb77",
+  "selection": "Exactly the final seed283 and307 checkpoints identified here. All four registered terrains are evaluated. No retraining, best-checkpoint choice, replacement starts or favorable-terrain selection.",
+  "task_steps": 2000,
+  "task_trials": 5,
+  "terrain_seeds": [
+    834818272,
+    1490653948,
+    1132853762,
+    874689437
+  ],
+  "terrain_split": "registered-development"
+}

@@ -338,3 +338,7 @@ Protocol: `docs/lite3_full_policy_symmetry_protocol_20261002.json`. Seed233, ori
 ## 2026-10-02 — Independent flat-anchor replication (preregistered)
 
 `docs/lite3_full_policy_flat_anchor_replication_protocol_20261002.json`: first anchor pilot5/5 on both terrains, base2/5 and0/5, paired flat retention passed. Gate report hash locked. Fresh original-base initialization, learning seed307, frozen seed311; same anchor weight2 and full configuration,512updates/2,097,152 controls plus48,000 evaluation cap. No learned-state import and no pooling with failed unanchored replication. Require repeated gains, flat retention and>=9/10 per terrain across two anchor policies (each>=4/5), then registered new-terrain validation. Preserve prior9,613,671 training/evaluation and1,688 engineering controls.
+
+## 2026-10-02 — Conditional executable new-development transfer protocol
+
+`docs/lite3_flat_anchor_transfer_protocol_20261002.json` binds the two final anchored checkpoints (seeds283/307), previously registered four terrain seeds, independent reset masters, all16 paired sessions and192,000-control maximum. Missing/failed anchored replication audit prohibits launch. Registered-development must be a separate frozen-only membership guard; legacy/sealed guards stay intact. No new terrain mesh, reset or rollout has been generated. Existing unanchored failed replication is not a valid gate. Evaluation never trains or selects replacement checkpoints/starts.
