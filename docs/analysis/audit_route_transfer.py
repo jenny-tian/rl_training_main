@@ -6,6 +6,7 @@ from docs.analysis.audit_full_policy_evaluation import outcomes
 from docs.analysis.audit_learning_replication import retention_pass
 from docs.analysis.audit_sac_huber_coverage import read
 from rl_training.online_adaptation.provenance import sha256_file,write_json_atomic
+from rl_training.online_adaptation.task_objective import FiniteHorizonObjective
 
 
 def qualify(terrains):
@@ -43,7 +44,10 @@ def main():
                 manifest=read(directory/'ledger/manifest.json')
                 assert Path(manifest['base']['path']).resolve()==Path(checkpoint['path']).resolve()
                 assert manifest['terrain_split']==p['terrain_split']=='registered-development'
+                assert manifest['task_objective_sha256']==FiniteHorizonObjective(p['task_steps']).sha256()
                 arguments=manifest['worker_configuration']['arguments']
+                assert arguments['forward_speed']==.3 and arguments['task_deadline_steps']==p['task_steps']
+                assert arguments['initial_state']=='perturbed-v1' and arguments['terrain_stage']=='rough_4cm'
                 assert arguments['route_observations']==('sim-localization-v1' if role=='candidate' else 'none')
                 assert arguments['stochastic_control'] is False
                 objectives.add(manifest['task_objective_sha256']);sources.add(child['source_sha256'])
