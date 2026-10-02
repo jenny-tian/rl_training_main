@@ -1,0 +1,76 @@
+{
+  "schema": "lite3_c0_grid_headroom_v1",
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "terrains": [
+    101,
+    107
+  ],
+  "grid_seed": 83,
+  "verification_seed": 89,
+  "codes": [
+    [
+      -1.0,
+      -1.0
+    ],
+    [
+      -1.0,
+      0.0
+    ],
+    [
+      -1.0,
+      1.0
+    ],
+    [
+      0.0,
+      -1.0
+    ],
+    [
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0
+    ],
+    [
+      1.0,
+      -1.0
+    ],
+    [
+      1.0,
+      0.0
+    ],
+    [
+      1.0,
+      1.0
+    ]
+  ],
+  "grid_trials": 1,
+  "verification_trials": 3,
+  "trial_steps": 2000,
+  "track_distance_m": 8.0,
+  "worker_options": {
+    "replay-capacity": 256,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "critic-huber-delta": 1.0,
+    "target-critic-warmup-updates": 0
+  },
+  "prior_engineering_report": "artifacts/c0_fixed_code_physical_20261002/audit/report.json",
+  "prior_engineering_sha256": "92f4cac1521094397b4d76bd84d840888d708806ff4aa08308537b94fbc3879c",
+  "output": "artifacts/c0_grid_headroom_20261002",
+  "max_actual_control_transitions": 72000,
+  "per_terrain_max_steps": 36000,
+  "selection": "After all nine grid attempts: completed natural task episodes only; rank completion first, clipped relative progress/8m second, fewer steps with safety_reasons or paused third, grid index ascending tie-break. Lock top2 codes and all input hashes before new-start verification. Zero code remains eligible. No winner replacement.",
+  "verification_order": [
+    "base",
+    "rank1",
+    "rank2"
+  ],
+  "headroom_rule": "For either locked nonzero candidate on 3 paired new starts: no increase in falls; either at least one paired extra completion with no smaller progress on the other starts, or median relative progress >=1.1*base median. This only supports one separate independent confirmation, not stability or gait qualification.",
+  "execution": "Two GPUs maximum, one worker per terrain. Nine one-trial frozen child sessions followed by base and two locked candidates with three trials each. Every control step is selection/development cost; child evaluation phase labels do not imply final heldout qualification. No retention phase in this group (positive one-step child retention placeholder unused).",
+  "failure_policy": "All failures/interrupted attempts and uncertain charges retained. No replacement starts or infrastructure retry of failed stage. Incomplete/collector-cutoff episodes cannot be selected. Fewer than two eligible grid results stops verification. No source changes midgroup.",
+  "gait_limits": "Fixed joint synergies are not a learned swing-phase policy. Nominal lift only1.74mm; keep existing bounds/gain. No teacher/no extra sensing. No optimizer or actor updates within a rollout."
+}
