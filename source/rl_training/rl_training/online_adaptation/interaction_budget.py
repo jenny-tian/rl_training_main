@@ -61,7 +61,7 @@ def validate_manifest(manifest):
             raise ValueError("scheduled probes exceed shared budgets")
     if manifest["algorithm"] not in {"lora", "sac"}:
         raise ValueError("unsupported session algorithm")
-    if manifest["terrain_split"] not in {"development", "sealed"}:
+    if manifest["terrain_split"] not in {"development", "sealed", "registered-development"}:
         raise ValueError("unsupported session terrain split")
     if not isinstance(manifest["worker_configuration"], dict) or not manifest["session_id"]:
         raise ValueError("session requires an identity and locked worker configuration")
@@ -79,6 +79,14 @@ def validate_manifest(manifest):
     for value in (manifest["base"]["sha256"], manifest["task_objective_sha256"]):
         if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
             raise ValueError("session hashes must be SHA-256 digests")
+    if manifest['terrain_split'] == 'registered-development':
+        from .registered_development import registered_development_geometry
+        arguments = manifest['worker_configuration'].get('arguments', {})
+        if not isinstance(arguments, dict) or arguments.get('terrain_split') != 'registered-development':
+            raise ValueError('registered-development requires matching worker configuration')
+        registered_development_geometry(arguments.get('terrain_stage'), manifest['terrain_seed'])
+        if manifest['algorithm'] != 'sac' or manifest['limits']['selection'] != 0:
+            raise ValueError('registered-development requires frozen SAC execution without selection budget')
     if manifest["terrain_split"] == "sealed":
         seal = manifest["seal"]
         if not isinstance(seal, dict) or set(seal) != {"status", "protocol_sha256", "configuration_sha256", "terrain_seeds", "selection_rule_sha256"}:
@@ -196,6 +204,8 @@ class InteractionBudget:
         if kind == "prepare":
             trial = event["trial"]
             phase = trial["phase"]
+            if self.manifest['terrain_split'] == 'registered-development' and phase not in {'evaluation','retention'}:
+                raise ValueError('registered-development forbids learning and selection phases')
             if state["active"] is not None or trial["id"] in state["trials"]:
                 raise ValueError("trial is already active or its ID has been consumed")
             if phase not in PHASES or (phase in ADAPTATION_PHASES) != (state["phase"] == "adaptation"):

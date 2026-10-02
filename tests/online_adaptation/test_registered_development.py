@@ -56,3 +56,26 @@ def test_registered_runtime_rejects_selection_phase_and_releases_ledger(monkeypa
     args=SimpleNamespace(session_ledger='ledger',session_run_id='trial',terrain_split='registered-development')
     with pytest.raises(ValueError,match='selection phases'):module.ManagedTrial(args,'sac')
     assert closed==[True]
+
+
+def test_registered_manifest_roundtrip_and_ledger_phase_guard(tmp_path):
+    from rl_training.online_adaptation.interaction_budget import InteractionBudget,validate_manifest
+    import copy
+    base=tmp_path/'base.pt';base.write_bytes(b'base')
+    manifest={'schema':'lite3_session_v1','session_id':'registered-test','algorithm':'sac',
+              'base':{'path':str(base),'sha256':sha256_file(base)},'task_objective_sha256':'a'*64,
+              'terrain_split':'registered-development','terrain_seed':REGISTERED_DEVELOPMENT_SEEDS[0],'learner_seed':3,
+              'worker_configuration':{'arguments':{'terrain_split':'registered-development','terrain_stage':'rough_4cm'}},
+              'limits':{'adaptation':2,'selection':0,'evaluation':2,'retention':2},'seal':None}
+    directory=tmp_path/'ledger'
+    with InteractionBudget(directory,manifest=manifest) as ledger:
+        with pytest.raises(ValueError,match='forbids learning'):
+            ledger.prepare_trial(phase='adaptation',max_steps=1,output=tmp_path/'bad',input_checkpoint=manifest['base'])
+        ledger.lock_evaluation()
+        trial=ledger.prepare_trial(phase='evaluation',max_steps=1,output=tmp_path/'eval',input_checkpoint=manifest['base'])
+        assert trial['phase']=='evaluation'
+    with InteractionBudget(directory) as reopened:
+        assert reopened.manifest==manifest and sum(reopened.state['spent'].values())==0
+    for seed in (101,1009):
+        bad=copy.deepcopy(manifest);bad['terrain_seed']=seed
+        with pytest.raises(ValueError):validate_manifest(bad)

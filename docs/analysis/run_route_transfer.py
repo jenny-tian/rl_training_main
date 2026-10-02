@@ -76,7 +76,10 @@ def main():
             result['status']='running';write_json_atomic(path,result)
             with (root/f'{name}-{phase}.log').open('a') as log:r=subprocess.run(command,stdout=log,stderr=subprocess.STDOUT)
             result['stages'][key].update(status='complete' if r.returncode==0 else 'failed',returncode=r.returncode)
-            if r.returncode:failed.add(name)
+            if r.returncode:
+                failed.add(name);result['status']='failed'
+                write_json_atomic(path,result)
+                raise SystemExit(r.returncode)
             write_json_atomic(path,result)
         result['status']='failed' if failed else 'complete';write_json_atomic(path,result)
         if failed:raise SystemExit(1)

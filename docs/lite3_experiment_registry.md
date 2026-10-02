@@ -342,3 +342,7 @@ Protocol: `docs/lite3_full_policy_symmetry_protocol_20261002.json`. Seed233, ori
 ## 2026-10-02 — Conditional executable new-development transfer protocol
 
 `docs/lite3_flat_anchor_transfer_protocol_20261002.json` binds the two final anchored checkpoints (seeds283/307), previously registered four terrain seeds, independent reset masters, all16 paired sessions and192,000-control maximum. Missing/failed anchored replication audit prohibits launch. Registered-development must be a separate frozen-only membership guard; legacy/sealed guards stay intact. No new terrain mesh, reset or rollout has been generated. Existing unanchored failed replication is not a valid gate. Evaluation never trains or selects replacement checkpoints/starts.
+
+## 2026-10-02 — New-development ledger compatibility correction
+
+Initial transfer launch failed in all16 sessions before ledger creation or worker physics: InteractionBudget manifest validator lacked the new split. Failure audit verifies no ledger manifests/episode summaries and preserves all logs; actual/uncertain controls0. `docs/lite3_flat_anchor_transfer_v2_protocol_20261002.json` binds this audit and keeps identical models, terrain/reset seeds, trials and thresholds. Completes manifest validation plus journal phase guard, and stops a slot at its first infrastructure failure. New output directories replace the unused192,000-control allocation; no terrain performance was observed or selected. Actual ledger serialization/reopening is now tested.
