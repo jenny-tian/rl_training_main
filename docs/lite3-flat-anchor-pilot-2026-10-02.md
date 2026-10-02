@@ -11,3 +11,7 @@ Frozen evaluation has started on101/107, seed293,5 task trials and2 flat windows
 ## Final frozen result
 
 Candidate5/5 versus base2/5 on101, candidate5/5 versus base0/5 on107. Both paired flat-retention comparisons passed: candidate meanXY0.01511m/s versus base0.01698m/s, full eligible windows and per-axis thresholds passed. All28 trials completed, matched starts and zero-update/checkpoint checks passed. Evaluation38,036 confirmed controls, uncertain0. Cumulative full-policy training/evaluation9,613,671; including registered engineering9,615,359. Supports same-configuration independent replication, not overall goal completion. Descriptive gait summary covers all28 trajectories.
+
+## Reviewable trajectory evidence
+
+`figures/body_paths.png` plots all registered candidate/base task trajectories, with terminal markers and the common lane/finish boundaries. `figures/foot_contacts.png` shows six seconds after rough-section entry for the first registered trial of each arm/terrain. It is descriptive and does not select the best trial or establish a causal gait effect. `figures/manifest.json` binds plotted inputs, generating script and audit hashes. Figures were visually inspected; generation consumed0 environment controls. The plotting tool is `docs/analysis/plot_frozen_policy_evidence.py`.
