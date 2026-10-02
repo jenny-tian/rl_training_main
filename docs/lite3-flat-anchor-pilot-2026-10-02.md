@@ -7,3 +7,7 @@ Training completed512 updates and2,097,152 charged/confirmed controls. The524,28
 Full action-history audit found0 actor, critic, reset-history and stored-emitted-command mismatches across2,097,152 rows. Full anchor audit recomputed every524,288 flat target from the immutable original actor, verified all recorded masked costs and exact zero rough targets/costs; maximum target numerical error1.19e-6. Audits consumed0 additional environment controls.
 
 Frozen evaluation has started on101/107, seed293,5 task trials and2 flat windows per arm/terrain, maximum48,000 controls. Evaluation lock includes both history and anchor audit hashes. Preserve runtime source until both supervisors finish. Prior failures and costs remain recorded; this new configuration needs a successful pilot and its own independent replication before new-development terrain tests. Training completion and audit success do not establish gait qualification.
+
+## Final frozen result
+
+Candidate5/5 versus base2/5 on101, candidate5/5 versus base0/5 on107. Both paired flat-retention comparisons passed: candidate meanXY0.01511m/s versus base0.01698m/s, full eligible windows and per-axis thresholds passed. All28 trials completed, matched starts and zero-update/checkpoint checks passed. Evaluation38,036 confirmed controls, uncertain0. Cumulative full-policy training/evaluation9,613,671; including registered engineering9,615,359. Supports same-configuration independent replication, not overall goal completion. Descriptive gait summary covers all28 trajectories.
