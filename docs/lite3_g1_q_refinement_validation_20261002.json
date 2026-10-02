@@ -1,0 +1,420 @@
+{
+  "cpu_seconds": 0.04249549900000016,
+  "limits": "Posthoc diagnostic refinement of saved rows; not independent calibration, causal evidence, or candidate selection.",
+  "new_network_forwards": 0,
+  "new_optimizer_updates": 0,
+  "new_physics_steps": 0,
+  "protocol_sha256": "580364b625ffc4011b85757019f270fcec30ae42a874e857b62d1c16279e7f10",
+  "schema": "schedule_q_refinement_v1",
+  "script_sha256": "bde3a014f6a6497516d2c6d6c614d834a819392a4a24e78dc8eef7e89ae6a2a4",
+  "snapshots": {
+    "actor025-101": {
+      "events": {
+        "fall_resets": [],
+        "other_events": [],
+        "performance_rollbacks": [
+          {
+            "accepted_actor_updates": 54,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-101/trial-00002/metrics.jsonl",
+            "logged_control_version": 54,
+            "next_control_version": 0,
+            "reason": "performance_degradation",
+            "same_step_update_version": 0,
+            "step": 887
+          },
+          {
+            "accepted_actor_updates": 148,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-101/trial-00002/metrics.jsonl",
+            "logged_control_version": 94,
+            "next_control_version": 25,
+            "reason": "performance_degradation",
+            "same_step_update_version": 25,
+            "step": 1375
+          }
+        ]
+      },
+      "operators": {
+        "online_critic": {
+          "all": {
+            "all_rmse": 4.379276517944938,
+            "nonterminal_rmse": 1.2847651892257017,
+            "nonterminal_samples": 4998,
+            "samples": 5000,
+            "squared_error_sum": 95890.31410311972,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.913966214510716,
+            "terminal_squared_error_sum": 87640.50738907185
+          },
+          "common_prefix": {
+            "all_rmse": 4.8685853791694385,
+            "nonterminal_rmse": 1.3393631672706945,
+            "nonterminal_samples": 3998,
+            "samples": 4000,
+            "squared_error_sum": 94812.4943770497,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.9243560984752036,
+            "terminal_squared_error_sum": 87640.50738907185
+          },
+          "own_postwarmup": {
+            "all_rmse": 1.0381809698072937,
+            "nonterminal_rmse": 1.0381809698072937,
+            "nonterminal_samples": 1000,
+            "samples": 1000,
+            "squared_error_sum": 1077.8197260700126,
+            "terminal_samples": 0,
+            "terminal_squared_error_fraction": 0.0,
+            "terminal_squared_error_sum": 0.0
+          }
+        },
+        "target_critic": {
+          "all": {
+            "all_rmse": 4.195748317860243,
+            "nonterminal_rmse": 0.27610317310303734,
+            "nonterminal_samples": 4998,
+            "samples": 5000,
+            "squared_error_sum": 88021.51973413528,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.995671372793673,
+            "terminal_squared_error_sum": 87640.50738907185
+          },
+          "common_prefix": {
+            "all_rmse": 4.687855649998165,
+            "nonterminal_rmse": 0.2567035182850309,
+            "nonterminal_samples": 3998,
+            "samples": 4000,
+            "squared_error_sum": 87903.96238087887,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.9970029224545589,
+            "terminal_squared_error_sum": 87640.50738907185
+          },
+          "own_postwarmup": {
+            "all_rmse": 0.3428663781364115,
+            "nonterminal_rmse": 0.3428663781364115,
+            "nonterminal_samples": 1000,
+            "samples": 1000,
+            "squared_error_sum": 117.55735325638074,
+            "terminal_samples": 0,
+            "terminal_squared_error_fraction": 0.0,
+            "terminal_squared_error_sum": 0.0
+          }
+        }
+      }
+    },
+    "actor025-107": {
+      "events": {
+        "fall_resets": [
+          {
+            "accepted_actor_updates": 0,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00000/metrics.jsonl",
+            "logged_control_version": 0,
+            "next_control_version": null,
+            "reason": "fall_reset",
+            "same_step_update_version": null,
+            "step": 1195
+          },
+          {
+            "accepted_actor_updates": 0,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00001/metrics.jsonl",
+            "logged_control_version": 0,
+            "next_control_version": null,
+            "reason": "fall_reset",
+            "same_step_update_version": null,
+            "step": 1126
+          },
+          {
+            "accepted_actor_updates": 0,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00002/metrics.jsonl",
+            "logged_control_version": 0,
+            "next_control_version": null,
+            "reason": "fall_reset",
+            "same_step_update_version": null,
+            "step": 1087
+          }
+        ],
+        "other_events": [],
+        "performance_rollbacks": [
+          {
+            "accepted_actor_updates": 63,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00003/metrics.jsonl",
+            "logged_control_version": 63,
+            "next_control_version": 13,
+            "reason": "performance_degradation",
+            "same_step_update_version": 13,
+            "step": 846
+          },
+          {
+            "accepted_actor_updates": 182,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/actor025-107/trial-00003/metrics.jsonl",
+            "logged_control_version": 132,
+            "next_control_version": 82,
+            "reason": "performance_degradation",
+            "same_step_update_version": 82,
+            "step": 1434
+          }
+        ]
+      },
+      "operators": {
+        "online_critic": {
+          "all": {
+            "all_rmse": 1.335741613786312,
+            "nonterminal_rmse": 1.3232515808996277,
+            "nonterminal_samples": 4997,
+            "samples": 5000,
+            "squared_error_sum": 8921.028294002308,
+            "terminal_samples": 3,
+            "terminal_squared_error_fraction": 0.019202668215918317,
+            "terminal_squared_error_sum": 171.30754647454614
+          },
+          "common_prefix": {
+            "all_rmse": 1.3663638629208097,
+            "nonterminal_rmse": 1.3511078560226772,
+            "nonterminal_samples": 3997,
+            "samples": 4000,
+            "squared_error_sum": 7467.80082358351,
+            "terminal_samples": 3,
+            "terminal_squared_error_fraction": 0.02293949055705295,
+            "terminal_squared_error_sum": 171.30754647454614
+          },
+          "own_postwarmup": {
+            "all_rmse": 1.2054988471246235,
+            "nonterminal_rmse": 1.2054988471246235,
+            "nonterminal_samples": 1000,
+            "samples": 1000,
+            "squared_error_sum": 1453.2274704187964,
+            "terminal_samples": 0,
+            "terminal_squared_error_fraction": 0.0,
+            "terminal_squared_error_sum": 0.0
+          }
+        },
+        "target_critic": {
+          "all": {
+            "all_rmse": 0.28610388073780857,
+            "nonterminal_rmse": 0.21822578852003274,
+            "nonterminal_samples": 4997,
+            "samples": 5000,
+            "squared_error_sum": 409.2771528661709,
+            "terminal_samples": 3,
+            "terminal_squared_error_fraction": 0.41856122501556253,
+            "terminal_squared_error_sum": 171.30754647454614
+          },
+          "common_prefix": {
+            "all_rmse": 0.2883012036575582,
+            "nonterminal_rmse": 0.20080074231771855,
+            "nonterminal_samples": 3997,
+            "samples": 4000,
+            "squared_error_sum": 332.4703361215873,
+            "terminal_samples": 3,
+            "terminal_squared_error_fraction": 0.5152566345404647,
+            "terminal_squared_error_sum": 171.30754647454614
+          },
+          "own_postwarmup": {
+            "all_rmse": 0.27714042784224674,
+            "nonterminal_rmse": 0.27714042784224674,
+            "nonterminal_samples": 1000,
+            "samples": 1000,
+            "squared_error_sum": 76.80681674458356,
+            "terminal_samples": 0,
+            "terminal_squared_error_fraction": 0.0,
+            "terminal_squared_error_sum": 0.0
+          }
+        }
+      }
+    },
+    "reference-101": {
+      "events": {
+        "fall_resets": [],
+        "other_events": [],
+        "performance_rollbacks": [
+          {
+            "accepted_actor_updates": 3,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-101/trial-00002/metrics.jsonl",
+            "logged_control_version": 3,
+            "next_control_version": 2,
+            "reason": "performance_degradation",
+            "same_step_update_version": 2,
+            "step": 1369
+          }
+        ]
+      },
+      "operators": {
+        "online_critic": {
+          "all": {
+            "all_rmse": 4.369758204152901,
+            "nonterminal_rmse": 1.2753975848473007,
+            "nonterminal_samples": 4998,
+            "samples": 5000,
+            "squared_error_sum": 95473.93381380793,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.9148464780447022,
+            "terminal_squared_error_sum": 87343.99209463519
+          },
+          "common_prefix": {
+            "all_rmse": 4.859034701101997,
+            "nonterminal_rmse": 1.3323316992149288,
+            "nonterminal_samples": 3998,
+            "samples": 4000,
+            "squared_error_sum": 94440.87290605348,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.9248537143607511,
+            "terminal_squared_error_sum": 87343.99209463519
+          },
+          "own_postwarmup": {
+            "all_rmse": 1.0163960388325397,
+            "nonterminal_rmse": 1.0163960388325397,
+            "nonterminal_samples": 1000,
+            "samples": 1000,
+            "squared_error_sum": 1033.0609077544775,
+            "terminal_samples": 0,
+            "terminal_squared_error_fraction": 0.0,
+            "terminal_squared_error_sum": 0.0
+          }
+        },
+        "target_critic": {
+          "all": {
+            "all_rmse": 4.186833470019194,
+            "nonterminal_rmse": 0.2465773852336973,
+            "nonterminal_samples": 4998,
+            "samples": 5000,
+            "squared_error_sum": 87647.87252836484,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.996532939990856,
+            "terminal_squared_error_sum": 87343.99209463519
+          },
+          "common_prefix": {
+            "all_rmse": 4.678807172436268,
+            "nonterminal_rmse": 0.2350875714821899,
+            "nonterminal_samples": 3998,
+            "samples": 4000,
+            "squared_error_sum": 87564.94622736424,
+            "terminal_samples": 2,
+            "terminal_squared_error_fraction": 0.9974766828251646,
+            "terminal_squared_error_sum": 87343.99209463519
+          },
+          "own_postwarmup": {
+            "all_rmse": 0.28796927093107383,
+            "nonterminal_rmse": 0.28796927093107383,
+            "nonterminal_samples": 1000,
+            "samples": 1000,
+            "squared_error_sum": 82.9263010005742,
+            "terminal_samples": 0,
+            "terminal_squared_error_fraction": 0.0,
+            "terminal_squared_error_sum": 0.0
+          }
+        }
+      }
+    },
+    "reference-107": {
+      "events": {
+        "fall_resets": [
+          {
+            "accepted_actor_updates": 0,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00000/metrics.jsonl",
+            "logged_control_version": 0,
+            "next_control_version": null,
+            "reason": "fall_reset",
+            "same_step_update_version": null,
+            "step": 1195
+          },
+          {
+            "accepted_actor_updates": 0,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00001/metrics.jsonl",
+            "logged_control_version": 0,
+            "next_control_version": null,
+            "reason": "fall_reset",
+            "same_step_update_version": null,
+            "step": 1126
+          },
+          {
+            "accepted_actor_updates": 0,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00002/metrics.jsonl",
+            "logged_control_version": 0,
+            "next_control_version": null,
+            "reason": "fall_reset",
+            "same_step_update_version": null,
+            "step": 1087
+          }
+        ],
+        "other_events": [],
+        "performance_rollbacks": [
+          {
+            "accepted_actor_updates": 1,
+            "log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/artifacts/g1_sac_actor_schedule_20260930/reference-107/trial-00003/metrics.jsonl",
+            "logged_control_version": 1,
+            "next_control_version": 0,
+            "reason": "performance_degradation",
+            "same_step_update_version": 0,
+            "step": 992
+          }
+        ]
+      },
+      "operators": {
+        "online_critic": {
+          "all": {
+            "all_rmse": 4.447852484204143,
+            "nonterminal_rmse": 1.3667274833804413,
+            "nonterminal_samples": 4996,
+            "samples": 5000,
+            "squared_error_sum": 98916.95860620482,
+            "terminal_samples": 4,
+            "terminal_squared_error_fraction": 0.9056557295677256,
+            "terminal_squared_error_sum": 89584.71031312294
+          },
+          "common_prefix": {
+            "all_rmse": 1.4015674605334385,
+            "nonterminal_rmse": 1.3906854066383045,
+            "nonterminal_samples": 3997,
+            "samples": 4000,
+            "squared_error_sum": 7857.565385704606,
+            "terminal_samples": 3,
+            "terminal_squared_error_fraction": 0.016206521512377062,
+            "terminal_squared_error_sum": 127.34380245833108
+          },
+          "own_postwarmup": {
+            "all_rmse": 9.542504557007044,
+            "nonterminal_rmse": 1.2663452689435692,
+            "nonterminal_samples": 999,
+            "samples": 1000,
+            "squared_error_sum": 91059.39322050019,
+            "terminal_samples": 1,
+            "terminal_squared_error_fraction": 0.9824067934874519,
+            "terminal_squared_error_sum": 89457.36651066461
+          }
+        },
+        "target_critic": {
+          "all": {
+            "all_rmse": 4.238755825365941,
+            "nonterminal_rmse": 0.22393973218710497,
+            "nonterminal_samples": 4996,
+            "samples": 5000,
+            "squared_error_sum": 89835.25473536851,
+            "terminal_samples": 4,
+            "terminal_squared_error_fraction": 0.9972110679378201,
+            "terminal_squared_error_sum": 89584.71031312294
+          },
+          "common_prefix": {
+            "all_rmse": 0.27171427696089784,
+            "nonterminal_rmse": 0.20499808743422337,
+            "nonterminal_samples": 3997,
+            "samples": 4000,
+            "squared_error_sum": 295.314593217534,
+            "terminal_samples": 3,
+            "terminal_squared_error_fraction": 0.4312140523462969,
+            "terminal_squared_error_sum": 127.34380245833108
+          },
+          "own_postwarmup": {
+            "all_rmse": 9.462554630867446,
+            "nonterminal_rmse": 0.2875000656941222,
+            "nonterminal_samples": 999,
+            "samples": 1000,
+            "squared_error_sum": 89539.94014215094,
+            "terminal_samples": 1,
+            "terminal_squared_error_fraction": 0.9990778011314813,
+            "terminal_squared_error_sum": 89457.36651066461
+          }
+        }
+      }
+    }
+  },
+  "status": "complete",
+  "wall_seconds": 0.04250714206136763
+}

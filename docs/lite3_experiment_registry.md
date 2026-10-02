@@ -233,3 +233,5 @@
 ## G1-20261002-q-report-refinement
 
 - 预登记[已有行结果再汇总](lite3_g1_q_refinement_protocol_20261002.json)：锁定G1.10 report及8份npz哈希，零物理步、零优化器更新、零网络前向。修复事件字段把fall_reset混入rollbacks的歧义；全库/共同前缀/各自后续分别给出终止样本平方误差占比及非终止RMSE。保留旧报告不覆盖，不把事后分层称为独立校准，不挑新候选。
+
+- 完成：仅保存行再汇总，墙钟0.042507秒/CPU0.042495秒，输入哈希未变。101两臂和107 reference的终止行贡献>99.5%全库lagged平方误差；共同前缀非终止lagged RMSE约.20–.26、current约1.33–1.39。修正control_events命名并分类fall reset，旧结果保留；12 tests passed。详见[补充报告](lite3-g1-q-refinement-2026-10-02.md)，不新增训练、不作独立校准结论。

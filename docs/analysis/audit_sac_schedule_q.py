@@ -79,12 +79,12 @@ def main():
         stable = state['stable_manager']['stable_state']
         item = {'checkpoint_sha256': rec['checkpoint']['sha256'], 'final_version': u['version'],
                 'stable_version': None if stable is None else stable['version'],
-                'alpha': float(u['log_alpha'].exp()), 'operators': {}, 'rollbacks': []}
+                'alpha': float(u['log_alpha'].exp()), 'operators': {}, 'control_events': []}
         for log in rec['logs']:
             records = [json.loads(line) for line in checked(log).read_text().splitlines()]
             for i, row in enumerate(records):
                 if row.get('rollback_reason'):
-                    item['rollbacks'].append({'log': log['path'], 'step': row['step'],
+                    item['control_events'].append({'log': log['path'], 'step': row['step'],
                         'reason': row['rollback_reason'], 'logged_control_version': row['actor_version'],
                         'accepted_actor_updates': row['actor_updates'],
                         'same_step_update_version': (row.get('last_update') or {}).get('version'),
