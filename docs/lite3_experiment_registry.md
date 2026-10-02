@@ -290,3 +290,9 @@
 - attempt01在动作前记录配置时失败：当前ObservationManager无get_term_cfg，charged/confirmed/uncertain均0。保留原report/log，改为读取实际传入的cfg.observations.policy项；在相同总520步预算内新建attempt02复核，不覆盖失败。运行退出码不能代替持久report状态。
 
 - attempt02通过：8×65=520控制转移，全部确认、uncertain0；正常终止0，人工截止8/8且无timeout bootstrap；actor45/critic48、均值权重/critic不变、optimizer为空、base哈希不变。attempt01成本0保留，两attempt总520。见[报告](lite3-policy-environment-smoke-2026-10-02.md)及[验证](lite3_policy_environment_smoke_validation_20261002.json)。只完成环境工程，PPO训练和稳定步态仍待登记/执行。
+
+## Policy-20261002-full-actor-pilot
+
+- 预登记[状态相关完整动作网络微调](lite3_full_policy_pilot_protocol_20261002.json)：通过520转移环境工程检查后，新seed223、128环境、rollout32、128次PPO更新，固定lr1e-4/5epochs/4minibatches、std.2、gamma.99/lam.95。训练上限524288控制转移，逐向量step按128条先计费后确认；原actor初始化，critic/optimizer新建，不导入旧replay或teacher。
+- 这是完整actor参数学习，动作不受旧残差幅度界约束；保留实际关节scale/绝对clip及崎岖姿态/接触终止，单独报告不同方法及预算，不能声称等资源胜过旧在线方案。训练混合25%平地和两种崎岖tile，固定difficulty1；无相位参考或高度输入。
+- 只取完成128次更新后的final checkpoint，保留中间快照但不据测试挑选。随后候选和原base在101/107、seed229相同新起点各5×2000任务＋2×1000平地；最多48000额外控制步，总≤572288。失败与成本全部保留、不自动重试、不晋升aborted状态、不替换评测起点。一个pilot不能完成稳定/多独立学习/新步态验收。

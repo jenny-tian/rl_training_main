@@ -31,3 +31,26 @@ class VectorStepLedger:
         if not aborted and self.state['pending'] is not None:raise ValueError('unconfirmed physical step')
         self.state['status']='aborted' if aborted else 'complete'
         self.state['uncertain_transitions']=self.state['charged']-self.state['confirmed'];self._save()
+
+
+class ChargedVecEnv:
+    """Proxy the RSL vector environment, charging all rows before each step."""
+    def __init__(self,env,ledger,*,before_step=None,after_step=None):
+        self.env=env;self.ledger=ledger;self.before_step=before_step;self.after_step=after_step
+        self._observations=None
+        if env.num_envs!=ledger.state['num_envs']:raise ValueError('vector width differs from ledger')
+
+    def __getattr__(self,name):return getattr(self.env,name)
+
+    def get_observations(self):
+        self._observations=self.env.get_observations()
+        return self._observations
+
+    def step(self,actions):
+        snapshot=self.before_step(self._observations,actions) if self.before_step else None
+        self.ledger.reserve()
+        result=self.env.step(actions)
+        self.ledger.confirm()
+        self._observations=result[0]
+        if self.after_step:self.after_step(snapshot,result)
+        return result

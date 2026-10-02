@@ -19,3 +19,33 @@ def test_failed_step_keeps_whole_batch_charged_as_uncertain(tmp_path):
     with pytest.raises(ValueError):ledger.finish()
     ledger.finish(aborted=True)
     assert ledger.state['charged']==8 and ledger.state['confirmed']==0 and ledger.state['uncertain_transitions']==8
+
+
+def test_proxy_charges_before_environment_and_preserves_uncertain_failure(tmp_path):
+    from rl_training.vector_step_ledger import ChargedVecEnv
+    ledger=VectorStepLedger(tmp_path/'ledger.json',num_envs=8,max_transitions=16,metadata={})
+    class Env:
+        num_envs=8
+        def get_observations(self):return 'obs'
+        def step(self,action):
+            assert ledger.state['charged']==8 and ledger.state['confirmed']==0
+            raise RuntimeError('physics failed')
+    proxy=ChargedVecEnv(Env(),ledger)
+    assert proxy.get_observations()=='obs'
+    with pytest.raises(RuntimeError):proxy.step('action')
+    ledger.finish(aborted=True)
+    assert ledger.state['uncertain_transitions']==8
+
+
+def test_proxy_callbacks_observe_confirmed_steps_without_extra_calls(tmp_path):
+    from rl_training.vector_step_ledger import ChargedVecEnv
+    ledger=VectorStepLedger(tmp_path/'ledger.json',num_envs=1,max_transitions=1,metadata={})
+    class Env:
+        num_envs=1
+        def get_observations(self):return 'initial'
+        def step(self,action):return ('next',2,False,{})
+    records=[]
+    proxy=ChargedVecEnv(Env(),ledger,before_step=lambda obs,act:(obs,act),
+                        after_step=lambda pre,result:records.append((pre,result,ledger.state['confirmed'])))
+    proxy.get_observations();assert proxy.step('action')[0]=='next'
+    assert records==[(('initial','action'),('next',2,False,{}),1)]
