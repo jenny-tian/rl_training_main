@@ -30,6 +30,9 @@ def main():
     assert lock['protocol_sha256'] == sha256_file(args.protocol)
     assert lock['training_report_sha256'] == sha256_file(root/'train/report.json')
     assert lock['history_audit_sha256'] == sha256_file(root/'action_history_audit.json')
+    if p.get('flat_anchor_weight') is not None:
+        assert lock['flat_anchor_audit_sha256']==sha256_file(root/'flat_anchor_audit.json')
+        assert read(root/'flat_anchor_audit.json')['status']=='complete'
     report = {'status': 'running', 'protocol_sha256': sha256_file(args.protocol), 'terrains': {},
               'training_controls': p['training_control_transitions'],
               'retired_incompatible_training_controls': p['prior_incompatible_training_steps'],

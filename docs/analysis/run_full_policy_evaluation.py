@@ -49,11 +49,18 @@ def main():
     assert sha256_file(candidate['path'])==candidate['sha256']
     p['_candidate_checkpoint']=candidate['path']
     from docs.analysis.run_episode_learning import write_locked
+    anchor_lock={}
+    if p.get('flat_anchor_weight') is not None:
+        anchor=read(root/'flat_anchor_audit.json')
+        assert anchor['status']=='complete' and anchor['training_report_sha256']==sha256_file(root/'train/report.json')
+        assert anchor['protocol_sha256']==sha256_file(args.protocol)
+        assert anchor['rows']==p['training_control_transitions'] and anchor['flat_target_rows']==train['flat_anchor_label_rows']
+        anchor_lock['flat_anchor_audit_sha256']=sha256_file(root/'flat_anchor_audit.json')
     write_locked(root/'evaluation_lock.json',{'protocol_sha256':sha256_file(args.protocol),
         'training_report_sha256':sha256_file(root/'train/report.json'),
         'history_audit_sha256':sha256_file(root/'action_history_audit.json'),
         'candidate':candidate,'base':{'path':p['base_checkpoint'],'sha256':p['base_sha256']},
-        'learning_algorithm':'full policy PPO; child SAC label denotes frozen execution engine only'})
+        'learning_algorithm':'full policy PPO; child SAC label denotes frozen execution engine only',**anchor_lock})
     write_locked(root/'evaluation_options.json',{'replay-capacity':256,'min-replay-size':256,
         'target-critic-warmup-updates':0,'n-step':1,'initial-alpha':.01,'critic-huber-delta':1.})
     if p.get('route_observations'):
