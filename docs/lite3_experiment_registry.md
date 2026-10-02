@@ -302,3 +302,7 @@
 ## Policy-20261002-full-actor-historyfix
 
 - 单独登记[动作历史修正后的新pilot](lite3_full_policy_historyfix_protocol_20261002.json)：同seed/网络/优化器超参/训练预算，重新从原base初始化，绝不导入前一pilot结果。仅改变env.step实际接收动作先经过共同clip，PPO保存的原始请求/logprob不改；每步断言后继actor/critic的上一动作等于已发送命令（reset行0）。新训练≤524288＋评估≤48000，前一pilot524288成本额外保留，总账不混淆。
+
+## 2026-10-02 — Full-policy symmetry pilot (preregistered before execution)
+
+Protocol: `docs/lite3_full_policy_symmetry_protocol_20261002.json`. Seed233, original-base actor warmstart, fresh optimizer/critic, fixed512 PPO updates =2,097,152 controls; frozen seed239 evaluation cap48,000. Motivated by corrected-pilot lateral drift and degraded flat tracking. Add sagittal mirror policy loss (coefficient1, no PPO data augmentation), keep physics/rewards/action history unchanged, increase training duration. Compound engineering experiment; no causal symmetry-only claim. Final checkpoint only. Preserve prior costs and failures. Require offline reflection and actual RSL update checks before launch; wait for current source-bound evaluation to finish before runtime edits.
