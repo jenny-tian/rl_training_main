@@ -1,0 +1,55 @@
+{
+  "schema": "lite3_c0_episode_learning_v1",
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "base_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "terrains": [
+    101,
+    107
+  ],
+  "learner_seeds": [
+    137,
+    149
+  ],
+  "generations": 5,
+  "population": 4,
+  "code_dim": 2,
+  "initial_mean": [
+    0.0,
+    0.0
+  ],
+  "initial_std": [
+    0.3,
+    0.3
+  ],
+  "std_floor": 0.1,
+  "train_seed_rule": "learner_seed +100000*(generation+1); all four candidates in one generation share this worker seed",
+  "trial_steps": 2000,
+  "training_max_steps_per_session": 40000,
+  "evaluation_trials": 5,
+  "retention_trials": 2,
+  "retention_steps": 1000,
+  "max_steps_per_terrain_seed": 64000,
+  "max_steps_first_seed": 128000,
+  "max_actual_control_transitions": 256000,
+  "worker_options": {
+    "replay-capacity": 256,
+    "min-replay-size": 256,
+    "n-step": 1,
+    "initial-alpha": 0.01,
+    "critic-huber-delta": 1.0,
+    "target-critic-warmup-updates": 0
+  },
+  "output": "artifacts/c0_episode_learning_20261002",
+  "prior_confirmation_report": "artifacts/c0_independent_confirmation_20261002/audit/report.json",
+  "prior_confirmation_sha256": "dbeb8f2d81e50584b7e9e7223513ac6ae3a12aa2e0539f4db05468684bfe1bc4",
+  "admission": "At least one terrain has independent fixed-code confirmation;101 passes,107 does not. Terrain107 remains exploratory, no prior successful code imported.",
+  "learning": "EpisodeSearch v1: zero mean/std.3, bounded[-1,1], first batch containszero, four candidates per batch, complete episode elites2, mean/std update with floor.1; all outcomes and costs retained. No neural optimizer steps in frozen child workers.",
+  "final_rule": "Freeze final generation mean before evaluation. No best-epoch or best-seen-code selection. No old replay/checkpoint/code imported.",
+  "evaluation": "Each terrain/seed: candidate5x2000 and base5x2000 paired task starts; candidate/base each2x1000 flat. Worker seed equals learner seed, distinct from all training batch seeds. Candidate thenbase on101; base thencandidate on107 after training.",
+  "second_seed_gate": "Only after first-seed complete audit: candidate>=4/5 on each terrain, all flat retention passes, no task safety violations, at least one terrain gains>=.2 vs base, other loses<=.2. Otherwise do not run seed149 for this configuration.",
+  "stable_rule": "If both independent learning seeds run: each terrain>=9/10 and each session>=4/5; repeated positive gain as G1 rule; flat retention and safety pass. Still needs new-development-terrain and gait evidence for full goal.",
+  "retention_rule": "Prior locked rule: full windows,750steady samples,no fall/reset/safety violation; meanXY<=max(1.1*base,base+.005), eachX/Y<=base+.01m/s.",
+  "failure_policy": "No replacement starts or failed-stage retry; infrastructure/numerical failure stops affected session without final promotion. Interrupted outcomes retained and excluded from elites. Source bound; no midrun runtime edits.",
+  "cost_classification": "Child evaluation phases during search are training costs in outer manifest, not heldout evaluation. Unused positive child retention placeholders cannot be spent. 5*4*2000 train +2*5*2000 task +2*2*1000 flat=64000 per terrain/seed.",
+  "limits": "Learning2D fixed joint synergy parameters, not a phase-conditioned gait learner. No broadened action bounds, teacher, extra sensing or sealed terrain."
+}
