@@ -1,6 +1,6 @@
 # Next full-policy method: explicit route observations
 
-Status: design only, not execution authorization or completed experiment. Finish and audit the running symmetry pilot before editing source-bound runtime code. Register the final protocol and budget before physics.
+Status: design and initial implementation; not a preregistered executable protocol or completed experiment. Finish and audit the running symmetry pilot before editing source-bound runtime code. Register the final protocol and budget before physics.
 
 The symmetry pilot's candidate101 failed5/5 by lane departure. Terminal yaw in the first two trials was approximately-22 and-18degrees. Body-frame mean lateral velocity near zero does not imply following the world-aligned track. A memoryless actor with angular rate and gravity cannot directly distinguish different static yaw orientations. Both candidate flat windows completed, but meanXY error0.02969m/s exceeded the matched base mean0.01853 plus0.005 allowance.
 
@@ -16,3 +16,7 @@ Proposed method:
 - Before launch: test feature geometry, reflection, actor-initialization parity, actual PPO update, managed command/schema propagation, and a separately charged simulation smoke covering both training and frozen inference. Freeze the source before training/evaluation.
 
 Keep prior costs and failures. Success still requires independent learning runs, robust task completion, flat retention, new-development terrain confirmation and gait evidence.
+
+## Initial implementation verified
+
+`policy_route.py` implements route features, command-term configuration, heading cost and zero-column actor expansion. `policy_symmetry.py` now accepts explicitly identified actor/critic schemas for both old and route-extended inputs. Fourteen targeted tests passed, including route geometry, reflection involution, arbitrary-route initial first-layer mapping within float32 tolerance, and real RSL PPO mirror-loss updates for both schemas. Training/frozen CLI integration and charged simulator checks remain unfinished; no route training or route evaluation has been launched.

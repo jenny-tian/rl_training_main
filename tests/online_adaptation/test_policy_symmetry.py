@@ -1,4 +1,5 @@
 import torch
+import pytest
 from tensordict import TensorDict
 
 from rl_training.policy_symmetry import mirror_action, mirror_observation, augment_lite3_mirror
@@ -19,12 +20,13 @@ def test_reflection_involution_and_physical_targets():
     torch.testing.assert_close(mirror_observation(critic)[0, :9], torch.tensor([1.,-1,1,-1,1,-1,1,-1,1]))
 
 
-def test_actual_rsl_mirror_loss_update():
+@pytest.mark.parametrize('route_dim', [0, 3])
+def test_actual_rsl_mirror_loss_update(route_dim):
     from rsl_rl.models import MLPModel
     from rsl_rl.algorithms import PPO
     from rsl_rl.storage import RolloutStorage
     torch.manual_seed(23)
-    obs = TensorDict({'policy': torch.randn(8,45), 'critic': torch.randn(8,48)}, batch_size=[8])
+    obs = TensorDict({'policy': torch.randn(8,45+route_dim), 'critic': torch.randn(8,48+route_dim)}, batch_size=[8])
     saved = obs.clone()
     augmented, actions = augment_lite3_mirror(obs, torch.randn(8,12))
     assert augmented.batch_size == torch.Size([16]) and actions.shape == (16,12)
