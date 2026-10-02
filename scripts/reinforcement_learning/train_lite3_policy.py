@@ -34,6 +34,9 @@ def main():
         assert sha256_file(p['base_checkpoint'])==p['base_sha256']
         assert sha256_file(p['smoke_report'])==p['smoke_sha256']
         assert json.loads(Path(p['smoke_report']).read_text())['status']=='complete'
+        if p.get('route_observations'):
+            assert sha256_file(p['frozen_smoke_report'])==p['frozen_smoke_sha256']
+            assert json.loads(Path(p['frozen_smoke_report']).read_text())['status']=='complete'
         app=AppLauncher(args)
         import gymnasium as gym
         import torch

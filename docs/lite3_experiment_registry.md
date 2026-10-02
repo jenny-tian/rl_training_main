@@ -314,3 +314,7 @@ Protocol: `docs/lite3_full_policy_symmetry_protocol_20261002.json`. Seed233, ori
 ## 2026-10-02 — Route frozen-smoke CLI correction
 
 `docs/lite3_policy_route_frozen_fix_protocol_20261002.json`: both initial commands were rejected before session creation because retention-trials0 is invalid;0 controls. Preserve logs and failed manifest. Set the required retention count to1 but execute evaluation phase only. New frozen-v2 directories, same seed251/terrain101 and64 steps per arm; new cap128 replaces the unused initial128. Vector smoke remains complete520.
+
+## 2026-10-02 — Route-observation full-policy pilot (preregistered)
+
+`docs/lite3_full_policy_route_protocol_20261002.json`: seed257,512 PPO updates=2,097,152 controls; frozen seed263 evaluation cap48,000. Fresh original-base actor initialization with zero route-input columns, fresh critic/optimizer. Actor48/critic51, explicit simulator localization; fixed commands and task criteria retained. Mirror loss1, tracking std.15, heading cost-1. Compound method and extra sensing declared. Final checkpoint only. Vector520 and frozen128 engineering checks passed with report hashes locked; preserve the initial0-control CLI failure. Prior full-policy training/evaluation3,209,837 controls and engineering costs remain separate. No route or gait qualification before frozen tests and independent replication.

@@ -90,6 +90,9 @@ def main():
     report['prior_compatible_training_controls'] = p.get('prior_compatible_training_steps', 0)
     report['prior_compatible_evaluation_controls'] = p.get('prior_compatible_evaluation_steps', 0)
     report['full_policy_program_controls'] = report['total_controls_including_retired_training'] + report['prior_compatible_training_controls'] + report['prior_compatible_evaluation_controls']
+    report['route_engineering_controls'] = p.get('route_engineering_controls', 0)
+    report['prior_environment_smoke_controls'] = p.get('prior_environment_smoke_controls', 0)
+    report['full_policy_controls_including_registered_smokes'] = report['full_policy_program_controls'] + report['route_engineering_controls'] + report['prior_environment_smoke_controls']
     write_json_atomic(Path(args.output), report)
     print({k: v for k, v in report.items() if k != 'terrains'})
 
