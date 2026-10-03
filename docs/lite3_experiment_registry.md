@@ -350,3 +350,21 @@ Initial transfer launch failed in all16 sessions before ledger creation or worke
 ## 2026-10-03 — Registered simulation acceptance completed
 
 Anchored seeds283/307 jointly passed original101/107 (20/20 candidate vs3/20 base) and all four preregistered new terrains (39/40 candidate vs18/40 base). All paired flat-retention criteria passed; the one6.12m candidate fall on874689437 remains without replacement. New transfer used152,079/192,000 controls, uncertain0. Full-policy series including registered engineering totals11,900,884; original base pretraining and earlier SAC/C0 costs remain separately recorded. Final report: `docs/lite3-stable-rough-walking-result-2026-10-03.md`; evidence/hash ledger: `docs/lite3_registered_acceptance_20261003.json`. This meets the registered bounded simulation goal, with simulator route localization; it is not a hardware/universal-terrain or novel-gait-family claim.
+
+## FlowDAgger-20261003-pilot-v1
+
+用户授权实现 FlowDAgger。预登记 `docs/lite3_flowdagger_pilot_protocol_20261003.json`：仅使用原 PPO283 的训练观测，按整个环境流划分验证数据；复制其均值网络初始化条件向量场，6000 次共享噪声耦合 flow-matching 更新，生成器具有显式状态/时间输入和8步 Euler 解码。保留 Gaussian 单峰先验的限制，不声称新多模态步态先验。先验证解码误差、逐离散步固定点反演及重建门槛。
+
+随后冻结 flow，以 PPO283 为仿真纠正教师，在学生访问状态按动作偏差触发接管；2轮各64环境×最多2000步，回合成功后才聚合纠正和自主片段标签，严格50/50采样，每轮2500次适配器更新。失败回合、反演拒绝、所有物理转移保留。最后 teacher/flow零噪声/最终适配器各64环境×最多2000步，同一新seed457配对初态，按平地/101/107分别统计首回合完成和横向漂移；总物理上限640000。固定最终checkpoint，不用本次评测选择模型。此为单步关节动作、PPO专家的工程/开发实验，不冒充原论文操作任务复现或原59/60独立验收。当前空闲GPU3用于运行。
+
+### FlowDAgger v1 interrupted / fixed-command v2
+
+v1发现继承的 `rel_zero_vel_envs`/仅单轴覆盖仍会清零前进命令，round00有22/64初态指令为零，违反本轮固定前进测试意图。中断时Kit吞掉SIGINT并退出0，原report/ledger仍显示running，不能按退出码认定完成。保留原始文件，独立 `docs/lite3_flowdagger_v1_interruption_20261003.json`记录charged424064、confirmed424000、uncertain64；不晋升其adapter或任务表现。
+
+预登记 `docs/lite3_flowdagger_v2_protocol_20261003.json`：复用哈希锁定的已验证flow基础模型，重新从零adapter/optimizer/buffers开始；调用已有 `configure_forward_command` 关闭所有静止/单轴覆盖，逐步断言0.3/0/0；增加初态actuator delay配对审计、全部teacher调用计数及安全点信号中断。学习超参不变，新collection461/462、evaluation463，新增物理上限640000；v1成本另计，uncertain64不抹除。仅runner实现和任务指令修正，不改旧PPO源码或已有59/60结果。
+
+### FlowDAgger v2 result
+
+固定指令v2完成：460160/640000控制转移，uncertain0。两轮各2500次噪声策略更新，成功回合纠正标签174+107=281，全部通过离散解码重建；自主片段167030，严格50/50训练。最终相同新初态/actuator delays的teacher、flow零噪声、FlowDAgger分别56/64、64/64、63/64；适配器101为23/24、107为24/24、平地16/16。FlowDAgger最坏中线横偏0.4865m，对比flow0.4528m；未建立适配增益，不晋升为新的正式策略。
+
+独立审计重建全460160条轨迹记录，单独加载最终网络在CPU复现132条动作且不加载teacher。flow/teacher冻结、adapter实际更新、评测零接管及固定指令逐步检查通过。30项相关单元测试通过。v1负结果及64不确定转移保留；本次全部尝试charged884224、confirmed884160。报告 `docs/lite3-flowdagger-result-2026-10-03.md`，证据 `docs/lite3_flowdagger_result_20261003.json`。这是单步动作和PPO专家的FlowDAgger核心机制实现，Gaussian蒸馏先验，无多模态步态、独立训练复现、未知地形或实机结论。

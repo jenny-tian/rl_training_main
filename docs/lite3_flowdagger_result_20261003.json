@@ -1,0 +1,208 @@
+{
+  "schema": "lite3_flowdagger_result_v1",
+  "status": "implementation_and_pilot_verified",
+  "adaptation_gain_supported": false,
+  "reason": "Final adapted63/64 versus frozen zero-noise flow64/64 on this paired development evaluation; no independent training replication/new-terrain evidence.",
+  "scope": "single-action scripted-PPO-expert FlowDAgger; Gaussian-distilled flow prior, route48 sim localization, vector PolicyLearning environment; not original manipulation benchmark reproduction or hardware validation",
+  "foundation": {
+    "updates": 6000,
+    "training_rows": 98304,
+    "validation_rows": 4096,
+    "emitted_action_rmse": 0.023637516424059868,
+    "inversion_accepted": 4096,
+    "inversion_total": 4096,
+    "inverse_max_error": 2.205371856689453e-06,
+    "checkpoint_sha256": "4312def44c24067e727c04592418746c9c1a64bc3d325f4c5e0436579c710cdf",
+    "engineering_gate_passed": true
+  },
+  "rounds": [
+    {
+      "buffer_counts": {
+        "autonomous": 84526,
+        "correction": 174
+      },
+      "final_minibatch_noise_mse": 0.002648616675287485,
+      "intervention_rows": 220,
+      "inversion_attempted": 174,
+      "inversion_rejected": 0,
+      "rollout": {
+        "101": {
+          "max_body_lateral_m": 0.4294416904449463,
+          "success": 23,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.4180765151977539,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10867118835449219,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "round": 0,
+      "updates": 2500
+    },
+    {
+      "buffer_counts": {
+        "autonomous": 167030,
+        "correction": 281
+      },
+      "final_minibatch_noise_mse": 0.001870871288701892,
+      "intervention_rows": 157,
+      "inversion_attempted": 107,
+      "inversion_rejected": 0,
+      "rollout": {
+        "101": {
+          "max_body_lateral_m": 0.4552001953125,
+          "success": 23,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.3787965774536133,
+          "success": 23,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.09512805938720703,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "round": 1,
+      "updates": 2500
+    }
+  ],
+  "evaluation": {
+    "teacher": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.5369665622711182,
+          "success": 19,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.44837379455566406,
+          "success": 21,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.1500396728515625,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "inference_ms_max": 1.6496391035616398,
+      "inference_ms_p99": 1.2928489223122595,
+      "inference_over_20ms": 0,
+      "initial_state_sha256": "dda8c5f93cd495c2ae8d6c2af70a488aebc7858cc59f1302c63d84dc167e3f2a",
+      "median_trial_peak_m": 0.20259368419647217,
+      "max_body_offset_from_start_m": 0.5327434539794922,
+      "mean_trial_body_rms_m": 0.11920775785855692
+    },
+    "flow": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.4527878761291504,
+          "success": 24,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.3169736862182617,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10766220092773438,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "inference_ms_max": 6.892102072015405,
+      "inference_ms_p99": 5.487997638992963,
+      "inference_over_20ms": 0,
+      "initial_state_sha256": "dda8c5f93cd495c2ae8d6c2af70a488aebc7858cc59f1302c63d84dc167e3f2a",
+      "median_trial_peak_m": 0.21032321453094482,
+      "max_body_offset_from_start_m": 0.45541906356811523,
+      "mean_trial_body_rms_m": 0.11009234527123223
+    },
+    "adapted": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.42438435554504395,
+          "success": 23,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.4864635467529297,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10460567474365234,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "inference_ms_max": 7.384116994217038,
+      "inference_ms_p99": 5.962182944640514,
+      "inference_over_20ms": 0,
+      "initial_state_sha256": "dda8c5f93cd495c2ae8d6c2af70a488aebc7858cc59f1302c63d84dc167e3f2a",
+      "median_trial_peak_m": 0.20745551586151123,
+      "max_body_offset_from_start_m": 0.4677305221557617,
+      "mean_trial_body_rms_m": 0.10832266092430562
+    }
+  },
+  "verified": {
+    "step_audit": "verified",
+    "cpu_deployment_replay_rows": 132,
+    "without_teacher": true,
+    "frozen_flow_and_teacher_unchanged": true,
+    "frozen_evaluation_actor_unchanged": true,
+    "initial_states_and_actuator_delays_paired": true,
+    "adapter_weights_changed": true
+  },
+  "cost": {
+    "v2": {
+      "charged": 460160,
+      "confirmed": 460160,
+      "max_transitions": 640000,
+      "metadata": {
+        "protocol_sha256": "8435b7cc2003f5100d278715d0ab47c59efcb1f80e0abc60466ebe5815116fda"
+      },
+      "num_envs": 64,
+      "pending": null,
+      "schema": "lite3_vector_step_ledger_v1",
+      "status": "complete",
+      "uncertain_transitions": 0
+    },
+    "v1_interruption": {
+      "status": "interrupted_invalid_command_contract",
+      "reason": "Inherited rel_zero_vel/only-axis command overrides; round00 had22/64 zero commands. SIGINT handled by Kit exited0 without Python cleanup; raw files retained, never promoted.",
+      "charged": 424064,
+      "confirmed": 424000,
+      "uncertain": 64,
+      "raw_report_status": "running",
+      "runtime_exit_code": 0,
+      "continued_from_v1_adapter": false
+    },
+    "all_attempts_charged": 884224,
+    "all_attempts_confirmed": 884160,
+    "all_attempts_uncertain": 64
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/flowdagger_20261003/pilot-v2/final.pt",
+    "sha256": "3e2e7a8693f7df5fadb102248b00e9257f3ba0c05d9cc445658eb033f446261b"
+  },
+  "evidence": {
+    "artifacts/flowdagger_20261003/pilot-v2/report.json": "d03a47f7bad0a1083583f207616ad3943d5e92f35ff7ad3b4b701cd4320ddc4c",
+    "artifacts/flowdagger_20261003/pilot-v2/trajectory_audit.json": "881424a5bdd3fd4d8c2c2d15bbc0d0850a50ec35b076b52844c669c915853184",
+    "artifacts/flowdagger_20261003/pilot-v2/ledger.json": "8dc1218ddbfa18b6692f0a21aa433a1663cd82be08ff86c665ca5e6468cbadaa",
+    "artifacts/flowdagger_20261003/flow-v1/report.json": "f977e5160c56e3c7d43e6bbdfebc208530b7c8695fecba1b79125e8d42274fa9",
+    "artifacts/flowdagger_20261003/pilot-v1/interruption_audit.json": "6cccd722e61ed286ef29fc1de0042c351da676c1c97447de874a1e73c86deb65",
+    "docs/lite3_flowdagger_v2_protocol_20261003.json": "8435b7cc2003f5100d278715d0ab47c59efcb1f80e0abc60466ebe5815116fda"
+  },
+  "tests": "26 flow/route/action/ledger/trajectory tests passed;4 additional runner-command tests passed. PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 avoids incompatible unrelated typeguard plugin."
+}
