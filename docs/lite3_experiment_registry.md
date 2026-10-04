@@ -368,3 +368,25 @@ v1发现继承的 `rel_zero_vel_envs`/仅单轴覆盖仍会清零前进命令，
 固定指令v2完成：460160/640000控制转移，uncertain0。两轮各2500次噪声策略更新，成功回合纠正标签174+107=281，全部通过离散解码重建；自主片段167030，严格50/50训练。最终相同新初态/actuator delays的teacher、flow零噪声、FlowDAgger分别56/64、64/64、63/64；适配器101为23/24、107为24/24、平地16/16。FlowDAgger最坏中线横偏0.4865m，对比flow0.4528m；未建立适配增益，不晋升为新的正式策略。
 
 独立审计重建全460160条轨迹记录，单独加载最终网络在CPU复现132条动作且不加载teacher。flow/teacher冻结、adapter实际更新、评测零接管及固定指令逐步检查通过。30项相关单元测试通过。v1负结果及64不确定转移保留；本次全部尝试charged884224、confirmed884160。报告 `docs/lite3-flowdagger-result-2026-10-03.md`，证据 `docs/lite3_flowdagger_result_20261003.json`。这是单步动作和PPO专家的FlowDAgger核心机制实现，Gaussian蒸馏先验，无多模态步态、独立训练复现、未知地形或实机结论。
+
+## FlowDAgger-20261004-paired-correction-v3
+
+用户要求继续改进。只读旧训练数据诊断保存于 `docs/lite3_flowdagger_correction_diagnosis_20261003.json`：旧281条标签来自33/43个成功回合，动作重建/拟合本身不足以证明纠正有益；单分支记录没有同状态无接管结果，不能据此认定任何单条纠正改善了任务。
+
+预登记 `docs/lite3_flowdagger_v3_protocol_20261004.json`：保持已锁定flow、2轮、每轮2500更新和50/50批采样，fresh learner479。每轮先无接管当前学生、再带纠正学生，collection487/488全初态及actuator delays配对；首干预前obs/root最大差<=1e-4才能比较。纠正回合须完成，且挽救参考的真实失败/deadline，或RMS至少改善10%且5mm、最大横偏不增、耗时增加<=5%。只接收合格纠正标签，保持数据来自完整无接管成功回合；至少32条各类样本及2个合格回合才更新。数据不足明示跳过，不把零噪声当成学习成功。
+
+最后teacher/flow/原v2/新v3四臂在新seed491配对复测，各64x最多2000步；总新增上限1024000物理转移，包含所有padding、失败和双分支再生成。没有免费快照回滚，额外仿真特权与成本单列。开发晋级要求各地形完成数不低于v2及flow，rough平均回合横偏RMS较flow改善>=5%、最坏横偏不增，且确实更新adapter；如达标，再独立登记第二次学习复现。保留旧v2负结果，不从其权重或replay开始训练。
+
+### v3 result and v4 continual preservation
+
+v3按预算完成733184/1024000物理转移，uncertain0；配对筛选7+10=17个有益干预序列，仅接收60+55=115条反演纠正，5000次更新。独立轨迹/资格审计通过。新seed491测试：flow61/64、旧v2 64/64、新v3 61/64；rough平均回合RMS分别0.1250/0.1206/0.1222m。v3未晋级，不启动其独立复现；筛选质量不能替代最终策略收益，也不能把回合收益归因给每条动作。
+
+另登记 `docs/lite3_flowdagger_v4_protocol_20261004.json`：从锁定的v2 adapter继续学习，fresh optimizer/buffer，不继承v3权重或标签；保持同初态收益筛选和50/50混合，在自主半批增加已执行动作MSE保持项weight25，lr从3e-4降至3e-5，每轮最多1000更新。此为持续学习和保持的组合改进，不作单因素因果归因。learner499，collection503/504，evaluation509，新增最多1024000控制步；原v3成本与负结果保留。各地形完成不低于旧v2及flow、rough RMS较flow改善>=5%、最坏横偏不增且实际更新，才启动单独登记的持续学习复现；未通过不宣称改善。
+
+v4启动前补全增量门槛：除较flow平均rough RMS改善>=5%，还须较继承的旧v2改善>=2%，最坏rough横偏不得高于两对照；避免把继承来的已有收益误算成此次新学习收益。此门槛写入启动前协议，之后不根据结果放宽。
+
+### v4 null result and v5 alternative candidate expert
+
+v4完成735232/1024000转移、uncertain0。仅5个序列合格，共11条纠正，未达预登记32条门槛，两轮均跳过更新；actor与旧v2逐张量相同。seed509旧v2/未更新候选同为63/64、rough平均RMS0.12110m，flow63/64、0.12649m。不能把继承的成绩算成新学习。新增修复：即使数据不足跳过更新，也保存已验证buffer、episode IDs和RNG，避免后续持续收集丢失数据；原v4轨迹/反演/资格文件完整保留，不重写历史。
+
+预登记 `docs/lite3_flowdagger_v5_protocol_20261004.json`：候选纠正教师改为此前独立训练的PPO307（SHA05f5fd60…），不默认它更好，依旧必须通过同初态收益筛选。其余v4方法、初始化和门槛不变；fresh learner547、collection557/558、evaluation563；不读取v3/v4训练或评测数据作为标签。新增上限1024000步，旧累计charged2352640/confirmed2352576/uncertain64保留。仅开发门槛全部通过，才另登记独立持续学习复现。

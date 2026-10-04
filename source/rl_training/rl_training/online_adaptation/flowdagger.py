@@ -197,3 +197,77 @@ def balanced_batch(data, batch_size, generator):
         index = torch.randint(len(obs), (batch_size // 2,), generator=generator, device=obs.device)
         observations.append(obs[index]); noises.append(noise[index])
     return torch.cat(observations), torch.cat(noises)
+
+
+def preservation_loss(flow, actor, observations, target_noise, *, weight=0.):
+    """50/50 noise regression plus actual-action preservation on autonomous rows.
+
+    balanced_batch puts corrections first and autonomous rows second. Targets
+    are the noise actually used on successful reference trajectories. Gradients
+    flow through the frozen decoder into the adapter, never into target labels.
+    """
+    if len(observations) % 2 or len(observations) < 2 or not math.isfinite(weight) or weight < 0:
+        raise ValueError("even mixed batch and finite nonnegative preservation weight required")
+    predicted = actor(observations)
+    noise_loss = F.mse_loss(predicted, target_noise)
+    action_loss = noise_loss.new_zeros(())
+    if weight:
+        if any(parameter.requires_grad for parameter in flow.parameters()):
+            raise ValueError("preservation requires a frozen flow")
+        from rl_training.lite3_joint_conventions import clip_lite3_policy_action
+        half = len(observations) // 2
+        with torch.no_grad():
+            target = clip_lite3_policy_action(flow(observations[half:], target_noise[half:]))
+        emitted = clip_lite3_policy_action(flow(observations[half:], predicted[half:]))
+        action_loss = F.mse_loss(emitted, target)
+    return noise_loss + weight*action_loss, noise_loss.detach(), action_loss.detach()
+
+
+def save_adapter_checkpoint(path, actor, optimizer, buffer, generator, *, round_id, updates,
+                            protocol_sha256, skipped_reason=None):
+    """Retain qualified replay even when the data gate skips optimization."""
+    torch.save(dict(actor=actor.state_dict(), optimizer=optimizer.state_dict(), buffer=buffer.data,
+                    episode_ids=sorted(buffer.episode_ids), round=round_id, generator_state=generator.get_state(),
+                    updates=updates, protocol_sha256=protocol_sha256, skipped_reason=skipped_reason), path)
+
+
+def qualify_paired_correction(reference, corrected, *, prefix_error, intervention_count,
+                             prefix_tolerance=1.e-4, rms_ratio=.9, minimum_rms_gain=.005,
+                             maximum_duration_ratio=1.05):
+    """Qualify a whole intervened rollout against its matched unassisted branch.
+
+    This is evidence about the intervention sequence, not a causal label for
+    each individual action. Both branches must start identically and match up
+    to the first intervention. Failed/cutoff teacher branches never qualify.
+    """
+    options = (prefix_error, prefix_tolerance, rms_ratio, minimum_rms_gain, maximum_duration_ratio)
+    if not all(math.isfinite(v) for v in options) or prefix_error < 0 or prefix_tolerance <= 0:
+        raise ValueError("finite nonnegative prefix error and positive tolerance required")
+    if not 0 < rms_ratio < 1 or minimum_rms_gain <= 0 or maximum_duration_ratio < 1:
+        raise ValueError("invalid benefit thresholds")
+    for episode in (reference, corrected):
+        for key in ("body_lateral_rms_m", "max_body_lateral_m", "steps"):
+            if not math.isfinite(episode[key]) or episode[key] < 0:
+                raise ValueError("invalid episode metric")
+        if episode["steps"] < 1:
+            raise ValueError("empty episode")
+    if intervention_count < 1:
+        return False, "no_intervention"
+    if prefix_error > prefix_tolerance:
+        return False, "prefix_mismatch"
+    if not corrected["success"]:
+        return False, "corrected_episode_failed"
+    if not reference["success"]:
+        # A collector cutoff is not evidence that the reference physically
+        # failed its task. Full task deadline/physical failure can qualify.
+        if reference.get("collector_cutoff", False) or not (reference["failure"] or reference["deadline"]):
+            return False, "reference_incomplete"
+        return True, "completion_recovery"
+    improvement = reference["body_lateral_rms_m"] - corrected["body_lateral_rms_m"]
+    if improvement < max(minimum_rms_gain, (1-rms_ratio)*reference["body_lateral_rms_m"]):
+        return False, "insufficient_rms_gain"
+    if corrected["max_body_lateral_m"] > reference["max_body_lateral_m"]:
+        return False, "peak_regression"
+    if corrected["steps"] > maximum_duration_ratio*reference["steps"]:
+        return False, "duration_regression"
+    return True, "lower_drift"

@@ -11,6 +11,72 @@ from rl_training.online_adaptation.provenance import sha256_file, write_json_ato
 from rl_training.online_adaptation.flowdagger import ConditionalFlow, NoisePolicy
 
 
+def read_pair_fields(folder):
+    fields = ("policy_observation", "post_root_state", "intervention")
+    rows = {key: [] for key in fields}
+    for file in sorted((folder / "trajectory").glob("chunk-*.npz")):
+        with np.load(file, allow_pickle=False) as data:
+            for key in fields:
+                rows[key].append(data[key])
+    return {key: np.concatenate(value) for key, value in rows.items()}
+
+
+def audit_qualification(directory, protocol, report):
+    """Recompute the gate from raw prefixes and independently verified episodes."""
+    q = protocol["paired_correction"]["qualification"]
+    total_accepted = 0
+    accepted_labels = 0
+    summary = []
+    for round_id in range(protocol["rounds"]):
+        ref_dir, cor_dir = directory / f"reference-{round_id:02d}", directory / f"round-{round_id:02d}"
+        reference = json.loads((ref_dir / "report.json").read_text())
+        corrected = json.loads((cor_dir / "report.json").read_text())
+        assert reference["initial_state_sha256"] == corrected["initial_state_sha256"]
+        ref, cor = read_pair_fields(ref_dir), read_pair_fields(cor_dir)
+        decisions = json.loads((cor_dir / "qualification.json").read_text())
+        eligible_indices = set()
+        round_accepted = 0
+        for row in decisions:
+            i = row["env_id"]
+            a, b = reference["episodes"][i], corrected["episodes"][i]
+            assert row["reference"] == a and row["corrected"] == b
+            interventions = np.flatnonzero(cor["intervention"][:b["steps"], i])
+            assert row["intervention_count"] == len(interventions)
+            matched = False
+            prefix = 0.
+            if len(interventions):
+                first = interventions[0]
+                if first < a["steps"]:
+                    prefix = float(np.max(np.abs(cor["policy_observation"][:first+1, i]-ref["policy_observation"][:first+1, i])))
+                    if first:
+                        prefix = max(prefix, float(np.max(np.abs(cor["post_root_state"][:first, i]-ref["post_root_state"][:first, i]))))
+                    matched = prefix <= q["prefix_tolerance"]
+                    np.testing.assert_allclose(prefix, row["prefix_max_abs"], rtol=0., atol=1.e-8)
+            recovered = (not a["success"] and not a.get("collector_cutoff", False) and (a["failure"] or a["deadline"]))
+            lower_drift = (a["success"]
+                and a["body_lateral_rms_m"]-b["body_lateral_rms_m"] >= max(q["minimum_rms_gain"], (1-q["rms_ratio"])*a["body_lateral_rms_m"])
+                and b["max_body_lateral_m"] <= a["max_body_lateral_m"]
+                and b["steps"] <= q["maximum_duration_ratio"]*a["steps"])
+            eligible = bool(matched and b["success"] and (recovered or lower_drift))
+            assert eligible == row["qualified"]
+            if eligible:
+                round_accepted += 1
+                eligible_indices.update((i, int(step)) for step in interventions)
+        inversion_path = cor_dir / "inversions.npz"
+        if inversion_path.exists():
+            with np.load(inversion_path, allow_pickle=False) as inverse:
+                actual = set(zip(map(int, inverse["env_id"]), map(int, inverse["step"])))
+                assert actual == eligible_indices
+                accepted_labels += int(inverse["accepted"].sum())
+        else:
+            assert not eligible_indices
+        assert report["rounds"][round_id]["qualified_episodes"] == round_accepted
+        assert report["rounds"][round_id]["buffer_counts"]["correction"] == accepted_labels
+        total_accepted += round_accepted
+        summary.append(dict(round=round_id, qualified_episodes=round_accepted, attempted_inversions=len(eligible_indices)))
+    return dict(verified=True, qualified_episodes=total_accepted, accepted_labels=accepted_labels, rounds=summary)
+
+
 def audit_phase(folder, protocol):
     report = json.loads((folder / "report.json").read_text())
     assert report["status"] == "complete"
@@ -75,6 +141,7 @@ def audit_phase(folder, protocol):
 
 
 def main():
+    torch.set_num_threads(4)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", required=True)
     parser.add_argument("--protocol", required=True)
@@ -85,12 +152,17 @@ def main():
     p = json.loads(Path(args.protocol).read_text())
     assert report["status"] == "complete"
     assert report["protocol_sha256"] == sha256_file(args.protocol)
-    phases = [f"round-{i:02d}" for i in range(p["rounds"])] + [f"evaluation-{m}" for m in ("teacher", "flow", "adapted")]
+    modes = ("teacher", "flow", "previous", "adapted") if p.get("comparison_checkpoint") else ("teacher", "flow", "adapted")
+    phases = [f"round-{i:02d}" for i in range(p["rounds"])]
+    if p.get("paired_correction"):
+        phases += [f"reference-{i:02d}" for i in range(p["rounds"])]
+    phases += [f"evaluation-{m}" for m in modes]
     results = {name: audit_phase(directory / name, p) for name in phases}
+    qualification = audit_qualification(directory, p, report) if p.get("paired_correction") else None
     assert sum(r["transitions"] for r in results.values()) == report["ledger"]["confirmed"]
     assert report["ledger"]["uncertain_transitions"] == 0
     assert report["initial_states_paired"] and report["frozen_flow_and_teacher_unchanged"] and report["evaluation_actor_unchanged"]
-    assert report["actor_changed"]
+    assert report["actor_changed"] or (p.get("paired_correction") and report["adapter_updates"] == 0)
     assert sha256_file(directory / "final.pt") == report["final_checkpoint_sha256"]
     # Reconstruct deployment from the standalone saved networks on CPU. The
     # expert is never loaded in this check, so it cannot mask a teacher fallback.
@@ -101,19 +173,27 @@ def main():
     actor = NoisePolicy(bound=payload["noise_bound"]).eval().requires_grad_(False)
     actor.load_state_dict(payload["actor"])
     replay_checks = 0
-    for mode in ("flow", "adapted"):
+    replay_modes = ("flow", "previous", "adapted") if p.get("comparison_checkpoint") else ("flow", "adapted")
+    previous = None
+    if p.get("comparison_checkpoint"):
+        assert sha256_file(p["comparison_checkpoint"]) == p["comparison_sha256"]
+        previous_payload = torch.load(p["comparison_checkpoint"], map_location="cpu", weights_only=False)
+        previous = NoisePolicy(bound=previous_payload["noise_bound"]).eval().requires_grad_(False)
+        previous.load_state_dict(previous_payload["actor"])
+    for mode in replay_modes:
         files = sorted((directory / f"evaluation-{mode}" / "trajectory").glob("chunk-*.npz"))
         for file in (files[0], files[len(files)//2], files[-1]):
             with np.load(file, allow_pickle=False) as data:
                 active = data["active"].reshape(-1)
                 obs = torch.from_numpy(data["policy_observation"].reshape(-1, 48)[active][::64][:32])
                 recorded = torch.from_numpy(data["student_requested_action"].reshape(-1, 12)[active][::64][:32])
-                noise = torch.zeros((len(obs), 12)) if mode == "flow" else actor(obs)
+                noise = torch.zeros((len(obs), 12)) if mode == "flow" else (previous(obs) if mode == "previous" else actor(obs))
                 torch.testing.assert_close(flow(obs, noise), recorded, atol=3.e-5, rtol=1.e-5)
                 replay_checks += len(obs)
     audit = dict(status="verified", run=str(directory.resolve()), protocol_sha256=sha256_file(args.protocol),
                  phases=results, ledger=report["ledger"], final_checkpoint_sha256=report["final_checkpoint_sha256"],
                  cpu_deployment_replay_rows=replay_checks, replay_without_teacher=True,
+                 paired_qualification=qualification,
                  scope="development evaluation on paired initial states; no independent training replication or new-terrain claim")
     write_json_atomic(args.output, audit)
     print(json.dumps({k: {n:v for n,v in r.items() if n != "trace_sha256"} for k,r in results.items()}, indent=2))
