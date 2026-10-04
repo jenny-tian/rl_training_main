@@ -23,7 +23,11 @@ def main():
     if p["schema"] != "lite3_flowdagger_pilot_v1":
         raise ValueError("unknown protocol")
     paired = p.get("paired_correction")
+    if p.get("correction_region") and not paired:
+        raise ValueError("disjoint supervision regions require paired reference collection")
     evaluation_modes = ("teacher", "flow", "previous", "adapted") if p.get("comparison_checkpoint") else ("teacher", "flow", "adapted")
+    if p.get("evaluate_initial_adapter"):
+        evaluation_modes = (*evaluation_modes[:-1], "initial", "adapted")
     expected_cap = (p["rounds"] * (2 if paired else 1) + len(evaluation_modes)) * p["steps_per_phase"] * p["num_envs"]
     if expected_cap != p["max_physics_controls"]:
         raise ValueError("phase budget mismatch")
@@ -71,7 +75,7 @@ def main():
         from rl_training.policy_route import configure_route_observations
         from rl_training.lite3_joint_conventions import clip_lite3_policy_action
         from rl_training.online_adaptation.step_trajectory import StepTrajectory
-        from rl_training.online_adaptation.flowdagger import ConditionalFlow, FrozenPPOExpert, NoisePolicy, DualBuffer, balanced_batch, invert_euler, qualify_paired_correction, preservation_loss, save_adapter_checkpoint
+        from rl_training.online_adaptation.flowdagger import ConditionalFlow, FrozenPPOExpert, NoisePolicy, DualBuffer, balanced_batch, invert_euler, qualify_paired_correction, preservation_loss, save_adapter_checkpoint, widen_noise_policy, correction_region_mask, lookahead_teacher_observation
         from rl_training.online_adaptation.runner_contract import configure_forward_command, actuator_delay_metadata
 
         torch.set_num_threads(4)
@@ -83,7 +87,7 @@ def main():
         flow.load_state_dict(payload["flow"], strict=True)
         flow.requires_grad_(False).eval()
         teacher = FrozenPPOExpert(torch.load(p["teacher_checkpoint"], map_location="cpu", weights_only=False)["actor_state_dict"]).to(args.device)
-        actor = NoisePolicy(bound=p["adapter"]["noise_bound"]).to(args.device)
+        actor = NoisePolicy(bound=p["adapter"]["noise_bound"], hidden=tuple(p["adapter"].get("hidden", (256,128)))).to(args.device)
         previous_actor = None
         if p.get("comparison_checkpoint"):
             if sha256_file(p["comparison_checkpoint"]) != p["comparison_sha256"]:
@@ -91,19 +95,39 @@ def main():
             previous_payload = torch.load(p["comparison_checkpoint"], map_location=args.device, weights_only=False)
             if previous_payload["foundation_sha256"] != base_report["checkpoint_sha256"]:
                 raise ValueError("comparison must use the same frozen flow")
-            previous_actor = NoisePolicy(bound=previous_payload["noise_bound"]).to(args.device)
+            previous_actor = NoisePolicy(bound=previous_payload["noise_bound"], hidden=tuple(previous_payload.get("noise_hidden", (256,128)))).to(args.device)
             previous_actor.load_state_dict(previous_payload["actor"], strict=True)
             previous_actor.eval().requires_grad_(False)
             previous_initial = {k: v.clone() for k, v in previous_actor.state_dict().items()}
         if p.get("warmstart_comparison"):
             if previous_actor is None or previous_actor.bound != actor.bound:
                 raise ValueError("warmstart requires a compatible pinned comparison adapter")
-            actor.load_state_dict(previous_actor.state_dict(), strict=True)
+            if actor.hidden == previous_actor.hidden:
+                actor.load_state_dict(previous_actor.state_dict(), strict=True)
+            else:
+                copies = actor.hidden[0] // previous_actor.hidden[0]
+                if actor.hidden != tuple(v*copies for v in previous_actor.hidden):
+                    raise ValueError("only uniform function-preserving widening is supported")
+                widened = widen_noise_policy(previous_actor, copies, seed=p["seed"])
+                actor.load_state_dict(widened.state_dict(), strict=True)
+                probe = torch.linspace(-1,1,48*128,device=args.device).reshape(128,48)
+                with torch.no_grad():
+                    error = float((actor(probe)-previous_actor(probe)).abs().max())
+                if error > 1.e-5:
+                    raise ValueError("initial widened function mismatch")
+                report["widening_initial_max_error"] = error
             report["adapter_initialization"] = dict(kind="pinned_previous_adapter", sha256=p["comparison_sha256"],
                                                      optimizer_and_buffer_restored=False)
         flow_initial = {k: v.clone() for k, v in flow.state_dict().items()}
         teacher_initial = {k: v.clone() for k, v in teacher.state_dict().items()}
         actor_initial = {k: v.clone() for k, v in actor.state_dict().items()}
+        initial_actor = None
+        if p.get("evaluate_initial_adapter"):
+            initial_actor = NoisePolicy(bound=actor.bound, hidden=actor.hidden).to(args.device)
+            initial_actor.load_state_dict(actor_initial)
+            initial_actor.eval().requires_grad_(False)
+            torch.save(dict(actor=actor_initial, noise_hidden=list(actor.hidden), noise_bound=actor.bound), out/"initial_adapter.pt")
+            report["initial_adapter_sha256"] = sha256_file(out/"initial_adapter.pt")
         optimizer = torch.optim.Adam(actor.parameters(), lr=p["adapter"]["learning_rate"])
         buffer = DualBuffer()
         training_generator = torch.Generator(device=args.device).manual_seed(p["seed"] + 2)
@@ -169,6 +193,9 @@ def main():
                     before = obs.detach().clone()
                     before_active = active.clone()
                     with torch.no_grad():
+                        teacher_observation = (lookahead_teacher_observation(obs, lookahead_m=p["teacher_route_lookahead_m"])
+                            if p.get("teacher_route_lookahead_m") is not None else obs)
+                        teacher_route_features = teacher_observation[:,9:12].clone()
                         # End-to-end inference timing excludes teacher querying and inverse fitting.
                         torch.cuda.synchronize(args.device)
                         tick = time.perf_counter()
@@ -176,19 +203,22 @@ def main():
                             noise = torch.zeros((len(obs), 12), device=args.device)
                         elif mode == "previous":
                             noise = previous_actor(obs)
+                        elif mode == "initial":
+                            noise = initial_actor(obs)
                         else:
                             noise = actor(obs)
                         if mode == "teacher":
-                            requested = teacher(obs)
+                            requested = teacher(teacher_observation)
                         else:
                             requested = flow(obs, noise)
                         torch.cuda.synchronize(args.device)
                         inference_ms.append((time.perf_counter() - tick) * 1000)
-                        expert_action = teacher(obs)
+                        expert_action = teacher(teacher_observation)
                         student_emitted = clip_lite3_policy_action(requested)
                         expert_emitted = clip_lite3_policy_action(expert_action)
                         disagreement = (student_emitted-expert_emitted).square().mean(-1).sqrt()
-                        intervene = before_active & (disagreement > p["intervention_action_rmse"]) if mode == "collect" else torch.zeros_like(active)
+                        region = correction_region_mask(obs, **p["correction_region"]) if p.get("correction_region") else torch.ones_like(active)
+                        intervene = before_active & region & (disagreement > p["intervention_action_rmse"]) if mode == "collect" else torch.zeros_like(active)
                         executed_request = torch.where(intervene[:, None], expert_action, requested)
                         emitted = clip_lite3_policy_action(executed_request)
                     if not torch.isfinite(emitted).all():
@@ -217,6 +247,8 @@ def main():
                     samples += before_active
                     snapshot = trajectory.snapshot(policy_observation=before, noise=noise, student_requested_action=requested,
                         teacher_requested_action=expert_action, emitted_action=emitted, intervention=intervene,
+                        correction_region=region, action_disagreement=disagreement,
+                        teacher_route_features=teacher_route_features,
                         active=before_active, done=done, success=success, failure=failure, deadline=deadline,
                         post_root_state=post_root, reward=reward)
                     trajectory.append(**snapshot)
@@ -275,10 +307,13 @@ def main():
                 reference_data = {key: torch.from_numpy(np.stack([row[key] for row in reference_rows])) for key in reference_rows[0]}
                 for episode in reference_phase["episodes"]:
                     i, length = episode["env_id"], episode["steps"]
+                    valid_reference = torch.ones(length, dtype=torch.bool)
+                    if p.get("correction_region"):
+                        valid_reference &= ~correction_region_mask(reference_data["policy_observation"][:length, i], **p["correction_region"])
                     buffer.add_episode(f"{round_id}:reference:{i}", successful=episode["success"],
                         observations=reference_data["policy_observation"][:length, i],
                         noises=reference_data["noise"][:length, i], interventions=torch.zeros(length, dtype=torch.bool),
-                        valid=torch.ones(length, dtype=torch.bool))
+                        valid=valid_reference)
             phase, rows = run_phase(f"round-{round_id:02d}", "collect", p["collection_seed"] + round_id)
             if paired and phase["initial_state_sha256"] != reference_phase["initial_state_sha256"]:
                 raise ValueError("corrected/reference initial state or actuator delay differs")
@@ -350,6 +385,11 @@ def main():
                 write_json_atomic(out / "report.json", report)
                 continue
             training = buffer.tensors(args.device)  # Refuses to invent an absent half of the mixture.
+            if p.get("correction_region"):
+                if not correction_region_mask(training["correction"][0], **p["correction_region"]).all():
+                    raise ValueError("correction label outside corrective region")
+                if correction_region_mask(training["autonomous"][0], **p["correction_region"]).any():
+                    raise ValueError("preservation label conflicts with corrective region")
             for update in range(p["adapter"]["updates_per_round"]):
                 batch_obs, batch_noise = balanced_batch(training, p["adapter"]["batch_size"], training_generator)
                 loss, noise_loss, action_loss = preservation_loss(flow, actor, batch_obs, batch_noise,
@@ -376,7 +416,9 @@ def main():
         frozen_actor = {k: v.clone() for k, v in actor.state_dict().items()}
         torch.save(dict(schema="lite3_flowdagger_v1", flow_config=flow.config, flow=flow.state_dict(),
                         actor=actor.state_dict(), noise_bound=actor.bound, protocol_sha256=protocol_hash,
+                        noise_hidden=list(actor.hidden),
                         expert_sha256=p["teacher_sha256"], foundation_sha256=base_report["checkpoint_sha256"],
+                        teacher_route_lookahead_m=p.get("teacher_route_lookahead_m"),
                         observation_schema="sim-localization-v1", action_schema="lite3_joint_target_offsets_v1"), out / "final.pt")
         for mode in evaluation_modes:
             phase, _ = run_phase(f"evaluation-{mode}", mode, p["evaluation_seed"])
@@ -389,6 +431,8 @@ def main():
                 raise ValueError("frozen weights changed")
         if previous_actor is not None and not all(torch.equal(v, previous_actor.state_dict()[k]) for k, v in previous_initial.items()):
             raise ValueError("comparison policy changed")
+        if initial_actor is not None and not all(torch.equal(v, initial_actor.state_dict()[k]) for k,v in actor_initial.items()):
+            raise ValueError("untrained widened comparison changed")
         if sources != {str(f.relative_to(root)): sha256_file(f) for f in paths}:
             raise ValueError("runtime source changed during managed run")
         if sha256_file(p["teacher_checkpoint"]) != p["teacher_sha256"] or sha256_file(args.protocol) != protocol_hash:

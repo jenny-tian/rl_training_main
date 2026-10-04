@@ -137,17 +137,45 @@ def invert_euler(flow, observation, requested_action, *, iterations=64, toleranc
 
 
 class NoisePolicy(nn.Module):
-    def __init__(self, observation_dim=48, action_dim=12, bound=6.):
+    def __init__(self, observation_dim=48, action_dim=12, bound=6., hidden=(256, 128)):
         super().__init__()
         if not math.isfinite(bound) or bound <= 0:
             raise ValueError("positive finite noise bound required")
         self.bound = bound
-        self.mlp = _mlp((observation_dim, 256, 128, action_dim))
+        if len(hidden) != 2 or any(type(v) is not int or v < 1 for v in hidden):
+            raise ValueError("two positive hidden widths required")
+        self.hidden = tuple(hidden)
+        self.mlp = _mlp((observation_dim, *hidden, action_dim))
         nn.init.zeros_(self.mlp[-1].weight)
         nn.init.zeros_(self.mlp[-1].bias)
 
     def forward(self, obs):
         return self.bound * torch.tanh(self.mlp(obs) / self.bound)
+
+
+def widen_noise_policy(source, copies, *, seed):
+    """Net2Wider initialization: retain the old function while adding capacity.
+
+    Zero-sum outgoing perturbations break cloned-unit symmetry without changing
+    the initial mathematical function. Floating-point parity must be audited.
+    """
+    if type(copies) is not int or copies < 2:
+        raise ValueError("widening requires at least two copies")
+    device, dtype = next(source.parameters()).device, next(source.parameters()).dtype
+    result = NoisePolicy(source.mlp[0].in_features, source.mlp[4].out_features,
+        bound=source.bound, hidden=tuple(v*copies for v in source.hidden)).to(device=device, dtype=dtype)
+    generator = torch.Generator(device=device).manual_seed(seed)
+    with torch.no_grad():
+        result.mlp[0].weight.copy_(source.mlp[0].weight.repeat_interleave(copies, 0))
+        result.mlp[0].bias.copy_(source.mlp[0].bias.repeat_interleave(copies))
+        result.mlp[2].weight.copy_(source.mlp[2].weight.repeat_interleave(copies, 0).repeat_interleave(copies, 1)/copies)
+        result.mlp[2].bias.copy_(source.mlp[2].bias.repeat_interleave(copies))
+        weight = source.mlp[4].weight.repeat_interleave(copies, 1)/copies
+        perturb = torch.randn((weight.shape[0], source.hidden[1], copies), generator=generator, device=device, dtype=dtype)*.001
+        perturb -= perturb.mean(-1, keepdim=True)
+        result.mlp[4].weight.copy_(weight+perturb.reshape_as(weight))
+        result.mlp[4].bias.copy_(source.mlp[4].bias)
+    return result
 
 
 class DualBuffer:
@@ -228,7 +256,49 @@ def save_adapter_checkpoint(path, actor, optimizer, buffer, generator, *, round_
     """Retain qualified replay even when the data gate skips optimization."""
     torch.save(dict(actor=actor.state_dict(), optimizer=optimizer.state_dict(), buffer=buffer.data,
                     episode_ids=sorted(buffer.episode_ids), round=round_id, generator_state=generator.get_state(),
+                    noise_hidden=list(actor.hidden), noise_bound=actor.bound,
                     updates=updates, protocol_sha256=protocol_sha256, skipped_reason=skipped_reason), path)
+
+
+def correction_region_mask(observation, *, lateral_m=.1, yaw_deg=5., tilt_deg=10.):
+    """Observable state partition for supervision, never a deployment fallback.
+
+    Correction labels belong only above these thresholds; autonomous
+    preservation labels belong to the complement. Thus identical observations
+    cannot demand incompatible correction and preservation targets.
+    """
+    if observation.shape[-1] != 48 or not torch.isfinite(observation).all():
+        raise ValueError("finite route48 observations required")
+    if (not all(math.isfinite(v) for v in (lateral_m, yaw_deg, tilt_deg))
+            or lateral_m <= 0 or not 0 < yaw_deg < 180 or not 0 < tilt_deg < 90):
+        raise ValueError("invalid corrective state thresholds")
+    lateral = observation[..., 9].abs()*1.65 > lateral_m
+    heading = observation[..., 11] < math.cos(math.radians(yaw_deg))
+    # Projected unit gravity has z=-1 upright. This also catches inversion,
+    # unlike a horizontal-gravity norm test that vanishes upside down.
+    tilted = -observation[..., 5] < math.cos(math.radians(tilt_deg))
+    return lateral | heading | tilted
+
+
+def lookahead_teacher_observation(observation, *, lookahead_m):
+    """Give a scripted teacher heading error to a point ahead on the centerline.
+
+    Actual route yaw is psi and lateral displacement is y. Desired heading is
+    -atan2(y,L), so the teacher sees psi+atan2(y,L). This uses existing route
+    localization, not terrain foresight. The learner always sees the original
+    observation. This transformation is training-teacher control, not sensing.
+    """
+    if observation.shape[-1] != 48 or not torch.isfinite(observation).all():
+        raise ValueError("finite route48 observation required")
+    if not math.isfinite(lookahead_m) or lookahead_m <= 0:
+        raise ValueError("positive finite lookahead distance required")
+    query = observation.clone()
+    yaw = torch.atan2(observation[...,10], observation[...,11])
+    offset = observation[...,9]*1.65
+    error = yaw + torch.atan2(offset, torch.full_like(offset, lookahead_m))
+    query[...,10] = error.sin()
+    query[...,11] = error.cos()
+    return query
 
 
 def qualify_paired_correction(reference, corrected, *, prefix_error, intervention_count,

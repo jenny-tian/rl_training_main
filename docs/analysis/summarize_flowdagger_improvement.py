@@ -20,6 +20,8 @@ def main():
     assert report["status"] == "complete" and audit["status"] == "verified"
     assert report["protocol_sha256"] == sha256_file(args.protocol)
     modes = ("teacher", "flow", "previous", "adapted")
+    if protocol.get("evaluate_initial_adapter"):
+        modes = (*modes[:-1], "initial", "adapted")
     evaluations = {}
     for mode in modes:
         phase = json.loads((root / f"evaluation-{mode}" / "report.json").read_text())
@@ -40,6 +42,11 @@ def main():
     if protocol.get("warmstart_comparison"):
         gates.update(rough_rms_vs_previous=candidate["rough_mean_trial_rms_m"] <= .98*previous["rough_mean_trial_rms_m"],
                      worst_peak_vs_previous=candidate["rough_max_peak_m"] <= previous["rough_max_peak_m"])
+    if protocol.get("evaluate_initial_adapter"):
+        initial = evaluations["initial"]
+        gates.update(completion_vs_initial=all(candidate["by_terrain"][t]["success"] >= initial["by_terrain"][t]["success"] for t in ("flat","101","107")),
+                     rough_rms_vs_initial=candidate["rough_mean_trial_rms_m"] <= .98*initial["rough_mean_trial_rms_m"],
+                     worst_peak_vs_initial=candidate["rough_max_peak_m"] <= initial["rough_max_peak_m"])
     output = dict(status="audited_development_result", development_gate_passed=all(gates.values()), gates=gates,
         declared_criteria=protocol["acceptance"], evaluation=evaluations, training_rounds=report["rounds"],
         adapter_updates=report["adapter_updates"], ledger=report["ledger"],

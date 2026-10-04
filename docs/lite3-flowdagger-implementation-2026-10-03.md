@@ -2,7 +2,15 @@
 
 This is a single-action, scripted-expert adaptation of the FlowDAgger mechanism for Lite3. It implements a learned conditional flow, inversion of the discrete decoder, expert intervention at learner-visited states, dataset aggregation, and balanced noise-policy regression. It does not reproduce the original vision/language manipulation experiments, and does not claim human feedback or a newly discovered gait family.
 
-The [completed pilot report](lite3-flowdagger-result-2026-10-03.md) records63/64 adapted versus64/64 unadapted flow completions. The implementation is operational; adaptation benefit has not been established.
+The [completed pilot report](lite3-flowdagger-result-2026-10-03.md) records63/64 adapted versus64/64 unadapted flow completions. That initial run did not establish adaptation benefit. Later v8 passed all fixed development gates but failed independent replication (61/64 versus64/64 comparators). Stable reproducible adaptation benefit remains unestablished; see the [v8 result](lite3-flowdagger-v8-result-2026-10-04.md).
+
+## Version scope
+
+The sections below describe the original v2 pilot unless stated otherwise. Current v8 uses a widened1024/512 adapter initialized from pinned v2, fresh optimizer/buffers, paired full-episode qualification, and50/50 correction/autonomous regression with emitted-action preservation weight25 (lr3e-5, two rounds of1000 updates). The frozen flow foundation is unchanged.
+
+Correction supervision is restricted to lateral error>0.10m, yaw error>5 degrees, or tilt>10 degrees; autonomous preservation uses the complementary region of successful unassisted reference episodes. These regions select training data only. A correction must improve its paired reference episode (RMS by at least10% and5mm without increasing peak or duration beyond5%), or recover a physical failure/deadline. At least32 labels per buffer and two qualified episodes are required to update. Skipped rounds retain buffers and RNG state.
+
+The v8 scripted teacher uses PPO283 with a transformed heading query: actual yaw + atan2(actual lateral displacement,1m). All learner observations remain actual simulator observations. Intervention additionally requires emitted-action disagreement>0.02. This declared geometric teacher uses route localization, not terrain foresight. Deployment uses only the learned adapter plus frozen flow. An untrained widened comparator distinguishes training gains from numerical effects of widening. See the immutable [v8 protocol](lite3_flowdagger_v8_protocol_20261004.json) and [experiment registry](lite3_experiment_registry.md) for later outcomes and replication.
 
 ## Model and data contract
 
@@ -76,7 +84,8 @@ checkpoint = torch.load("artifacts/flowdagger_20261003/pilot-v2/final.pt",
 assert checkpoint["schema"] == "lite3_flowdagger_v1"
 flow = ConditionalFlow(**checkpoint["flow_config"]).to("cuda:3")
 flow.load_state_dict(checkpoint["flow"])
-noise_policy = NoisePolicy(bound=checkpoint["noise_bound"]).to("cuda:3")
+noise_policy = NoisePolicy(bound=checkpoint["noise_bound"],
+                           hidden=tuple(checkpoint.get("noise_hidden", (256, 128)))).to("cuda:3")
 noise_policy.load_state_dict(checkpoint["actor"])
 flow.eval().requires_grad_(False)
 noise_policy.eval().requires_grad_(False)

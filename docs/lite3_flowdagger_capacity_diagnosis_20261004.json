@@ -1,0 +1,49 @@
+{
+  "batch_size": 512,
+  "gate": "Wide correction held-out emitted RMS <=0.8*compact, autonomous RMS <=compact+0.002; exact initial function retained",
+  "lr": 3e-05,
+  "models": {
+    "compact": {
+      "autonomous": {
+        "emitted_rms_mean": 0.015076983720064163,
+        "emitted_rms_p99": 0.11361782252788544,
+        "noise_mse": 0.014369877055287361,
+        "rows": 4096
+      },
+      "correction": {
+        "emitted_rms_mean": 0.0868588387966156,
+        "emitted_rms_p99": 0.24662768840789795,
+        "noise_mse": 0.19201895594596863,
+        "rows": 4096
+      },
+      "initial_max_error": 0.0,
+      "parameters": 46988
+    },
+    "wide": {
+      "autonomous": {
+        "emitted_rms_mean": 0.014056667685508728,
+        "emitted_rms_p99": 0.0889754444360733,
+        "noise_mse": 0.010881364345550537,
+        "rows": 4096
+      },
+      "correction": {
+        "emitted_rms_mean": 0.06109815090894699,
+        "emitted_rms_p99": 0.19883522391319275,
+        "noise_mse": 0.09987801313400269,
+        "rows": 4096
+      },
+      "initial_max_error": 1.1408701539039612e-06,
+      "parameters": 581132
+    }
+  },
+  "new_physics": 0,
+  "preservation_weight": 25.0,
+  "prior_sha256": "3e2e7a8693f7df5fadb102248b00e9257f3ba0c05d9cc445658eb033f446261b",
+  "seconds": 53.317811438115314,
+  "seed": 607,
+  "source_sha256": "eef18091d0cac5e0b761bf5f9aa39a395d373bc78727c29c9cfbc9cc8483625b",
+  "split": "Each whole buffer episode at index0 modulo4 held out; no evaluation trajectories used",
+  "status": "complete",
+  "updates_per_model": 1500,
+  "wide_gate_passed": true
+}

@@ -1,0 +1,267 @@
+{
+  "adapter_updates": 2000,
+  "declared_criteria": "For an incremental development improvement, each terrain completion must be nondecreasing versus BOTH pinned v2 and zero-noise flow; mean per-trial rough RMS must be at least5% below flow AND at least2% below inherited v2; worst rough lateral peak must not exceed either comparator. Actual adapter updates/weight change required. These criteria apply before starting a separately registered replication; one run is not reproducibility.",
+  "deployment_replay_rows": 197,
+  "development_gate_passed": false,
+  "evaluation": {
+    "adapted": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.4127624034881592,
+          "success": 23,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.676666259765625,
+          "success": 20,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10285377502441406,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "rough_max_peak_m": 0.676666259765625,
+      "rough_mean_trial_rms_m": 0.12763409471760193,
+      "rough_median_peak_m": 0.266319215297699,
+      "rough_success": 43,
+      "rough_total": 48,
+      "total": 64,
+      "total_success": 59
+    },
+    "flow": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.412186861038208,
+          "success": 24,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.3186779022216797,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10654258728027344,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "rough_max_peak_m": 0.412186861038208,
+      "rough_mean_trial_rms_m": 0.12320238134513299,
+      "rough_median_peak_m": 0.23409748077392578,
+      "rough_success": 48,
+      "rough_total": 48,
+      "total": 64,
+      "total_success": 64
+    },
+    "previous": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.3850126266479492,
+          "success": 23,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.3198862075805664,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.09523677825927734,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "rough_max_peak_m": 0.3850126266479492,
+      "rough_mean_trial_rms_m": 0.11740855453535914,
+      "rough_median_peak_m": 0.21638774871826172,
+      "rough_success": 47,
+      "rough_total": 48,
+      "total": 64,
+      "total_success": 63
+    },
+    "teacher": {
+      "by_terrain": {
+        "101": {
+          "max_body_lateral_m": 0.41478681564331055,
+          "success": 24,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.36458396911621094,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.16043472290039062,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "rough_max_peak_m": 0.41478681564331055,
+      "rough_mean_trial_rms_m": 0.14157041736568013,
+      "rough_median_peak_m": 0.21944570541381836,
+      "rough_success": 48,
+      "rough_total": 48,
+      "total": 64,
+      "total_success": 64
+    }
+  },
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/flowdagger_20261004/pilot-v5/report.json": "40105d9edc2ce1a3846ed29cb4301b1b76807f4f1d89b2c701066fe4653815c6",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/flowdagger_20261004/pilot-v5/trajectory_audit.json": "9d13f8a9ac9aca13c416511ec4c38b5f701d5a246f838d83854cc973ee9b2cc0",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/docs/lite3_flowdagger_v5_protocol_20261004.json": "1d32318b3f08b224b0c3aec1eda8930e8da08f0fb3aff7de50dbe423effe2ae2"
+  },
+  "final_checkpoint_sha256": "c74824e255ff26bfab8c2a17fcb890b793a56106242514ce3ea852985553b9b9",
+  "gates": {
+    "actual_learning": true,
+    "completion_vs_both": false,
+    "rough_rms_vs_flow": false,
+    "rough_rms_vs_previous": false,
+    "worst_peak_vs_flow": false,
+    "worst_peak_vs_previous": false
+  },
+  "ledger": {
+    "charged": 740800,
+    "confirmed": 740800,
+    "max_transitions": 1024000,
+    "metadata": {
+      "protocol_sha256": "1d32318b3f08b224b0c3aec1eda8930e8da08f0fb3aff7de50dbe423effe2ae2"
+    },
+    "num_envs": 64,
+    "pending": null,
+    "schema": "lite3_vector_step_ledger_v1",
+    "status": "complete",
+    "uncertain_transitions": 0
+  },
+  "qualification": {
+    "accepted_labels": 36918,
+    "qualified_episodes": 32,
+    "rounds": [
+      {
+        "attempted_inversions": 21575,
+        "qualified_episodes": 16,
+        "round": 0
+      },
+      {
+        "attempted_inversions": 15343,
+        "qualified_episodes": 16,
+        "round": 1
+      }
+    ],
+    "verified": true
+  },
+  "scope": "One development run with simulator route localization and paid paired training rollouts; not independent replication or hardware evidence.",
+  "status": "audited_development_result",
+  "training_rounds": [
+    {
+      "buffer_counts": {
+        "autonomous": 82610,
+        "correction": 21575
+      },
+      "final_minibatch_autonomous_action_mse": 0.0007160739041864872,
+      "final_minibatch_noise_mse": 0.15024517476558685,
+      "intervention_rows": 84862,
+      "inversion_attempted": 21575,
+      "inversion_rejected": 0,
+      "qualification_reasons": {
+        "completion_recovery": 2,
+        "insufficient_rms_gain": 47,
+        "lower_drift": 14,
+        "peak_regression": 1
+      },
+      "qualified_episodes": 16,
+      "reference": {
+        "101": {
+          "max_body_lateral_m": 0.48050224781036377,
+          "success": 23,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.43639087677001953,
+          "success": 23,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10354042053222656,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "rollout": {
+        "101": {
+          "max_body_lateral_m": 0.6772656440734863,
+          "success": 24,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.43837547302246094,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.14574050903320312,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "round": 0,
+      "updates": 1000
+    },
+    {
+      "buffer_counts": {
+        "autonomous": 157154,
+        "correction": 36918
+      },
+      "final_minibatch_autonomous_action_mse": 0.0005614844849333167,
+      "final_minibatch_noise_mse": 0.09033231437206268,
+      "intervention_rows": 56888,
+      "inversion_attempted": 15343,
+      "inversion_rejected": 0,
+      "qualification_reasons": {
+        "completion_recovery": 8,
+        "insufficient_rms_gain": 48,
+        "lower_drift": 8
+      },
+      "qualified_episodes": 16,
+      "reference": {
+        "101": {
+          "max_body_lateral_m": 0.550336480140686,
+          "success": 18,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.6251058578491211,
+          "success": 22,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.10210514068603516,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "rollout": {
+        "101": {
+          "max_body_lateral_m": 0.4013843536376953,
+          "success": 24,
+          "total": 24
+        },
+        "107": {
+          "max_body_lateral_m": 0.43045616149902344,
+          "success": 24,
+          "total": 24
+        },
+        "flat": {
+          "max_body_lateral_m": 0.23339080810546875,
+          "success": 16,
+          "total": 16
+        }
+      },
+      "round": 1,
+      "updates": 1000
+    }
+  ]
+}

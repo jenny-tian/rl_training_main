@@ -1,6 +1,7 @@
 """Independently reconstruct the FlowDAgger pilot from persisted step chunks."""
 import argparse
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,12 @@ import torch
 from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
 from rl_training.online_adaptation.flowdagger import ConditionalFlow, NoisePolicy
+
+
+def region_from_numpy(obs, options):
+    return ((np.abs(obs[...,9])*np.float32(1.65) > np.float32(options["lateral_m"]))
+        | (obs[...,11] < np.float32(math.cos(math.radians(options["yaw_deg"]))))
+        | (-obs[...,5] < np.float32(math.cos(math.radians(options["tilt_deg"])))))
 
 
 def read_pair_fields(folder):
@@ -26,6 +33,7 @@ def audit_qualification(directory, protocol, report):
     q = protocol["paired_correction"]["qualification"]
     total_accepted = 0
     accepted_labels = 0
+    autonomous_labels = 0
     summary = []
     for round_id in range(protocol["rounds"]):
         ref_dir, cor_dir = directory / f"reference-{round_id:02d}", directory / f"round-{round_id:02d}"
@@ -33,6 +41,11 @@ def audit_qualification(directory, protocol, report):
         corrected = json.loads((cor_dir / "report.json").read_text())
         assert reference["initial_state_sha256"] == corrected["initial_state_sha256"]
         ref, cor = read_pair_fields(ref_dir), read_pair_fields(cor_dir)
+        for episode in reference["episodes"]:
+            if episode["success"]:
+                observations = ref["policy_observation"][:episode["steps"],episode["env_id"]]
+                autonomous_labels += (int((~region_from_numpy(observations, protocol["correction_region"])).sum())
+                    if protocol.get("correction_region") else len(observations))
         decisions = json.loads((cor_dir / "qualification.json").read_text())
         eligible_indices = set()
         round_accepted = 0
@@ -72,6 +85,13 @@ def audit_qualification(directory, protocol, report):
             assert not eligible_indices
         assert report["rounds"][round_id]["qualified_episodes"] == round_accepted
         assert report["rounds"][round_id]["buffer_counts"]["correction"] == accepted_labels
+        assert report["rounds"][round_id]["buffer_counts"]["autonomous"] == autonomous_labels
+        if protocol.get("correction_region"):
+            checkpoint = torch.load(cor_dir/"adapter.pt", map_location="cpu", weights_only=False)
+            for role, rows in checkpoint["buffer"].items():
+                for observations, _ in rows:
+                    region = region_from_numpy(observations.numpy(), protocol["correction_region"])
+                    assert bool(region.all()) if role == "correction" else not bool(region.any())
         total_accepted += round_accepted
         summary.append(dict(round=round_id, qualified_episodes=round_accepted, attempted_inversions=len(eligible_indices)))
     return dict(verified=True, qualified_episodes=total_accepted, accepted_labels=accepted_labels, rounds=summary)
@@ -98,10 +118,26 @@ def audit_phase(folder, protocol):
         with np.load(file, allow_pickle=False) as data:
             obs = data["policy_observation"]
             assert np.isfinite(obs).all()
+            if protocol.get("teacher_route_lookahead_m") is not None:
+                yaw = np.arctan2(obs[...,10], obs[...,11])
+                error = yaw + np.arctan2(obs[...,9]*np.float32(1.65), np.float32(protocol["teacher_route_lookahead_m"]))
+                expected_route = np.stack((obs[...,9], np.sin(error), np.cos(error)), axis=-1)
+                np.testing.assert_allclose(data["teacher_route_features"], expected_route, atol=2.e-6, rtol=1.e-6)
             np.testing.assert_allclose(obs[:, :, 6:9], np.broadcast_to([.3, 0., 0.], obs[:, :, 6:9].shape), rtol=0., atol=1.e-7)
             chosen = np.where(data["intervention"][:, :, None], data["teacher_requested_action"], data["student_requested_action"])
             expected_action = clip_lite3_policy_action(torch.from_numpy(chosen)).numpy()
             np.testing.assert_array_equal(data["emitted_action"], expected_action)
+            if protocol.get("correction_region"):
+                region = region_from_numpy(obs, protocol["correction_region"])
+                np.testing.assert_array_equal(data["correction_region"], region)
+                student = clip_lite3_policy_action(torch.from_numpy(data["student_requested_action"])).numpy()
+                teacher = clip_lite3_policy_action(torch.from_numpy(data["teacher_requested_action"])).numpy()
+                disagreement = np.sqrt(np.mean((student-teacher)**2, axis=-1))
+                np.testing.assert_allclose(data["action_disagreement"], disagreement, atol=2.e-6, rtol=1.e-6)
+                expected_intervention = (data["active"] & region & (data["action_disagreement"] > protocol["intervention_action_rmse"]))
+                if report["mode"] != "collect":
+                    expected_intervention[:] = False
+                np.testing.assert_array_equal(data["intervention"], expected_intervention)
             for row in range(len(obs)):
                 np.testing.assert_array_equal(data["active"][row], active)
                 np.testing.assert_allclose(obs[row, :, -12:], last_history, atol=1.e-6, rtol=0.)
@@ -153,6 +189,8 @@ def main():
     assert report["status"] == "complete"
     assert report["protocol_sha256"] == sha256_file(args.protocol)
     modes = ("teacher", "flow", "previous", "adapted") if p.get("comparison_checkpoint") else ("teacher", "flow", "adapted")
+    if p.get("evaluate_initial_adapter"):
+        modes = (*modes[:-1], "initial", "adapted")
     phases = [f"round-{i:02d}" for i in range(p["rounds"])]
     if p.get("paired_correction"):
         phases += [f"reference-{i:02d}" for i in range(p["rounds"])]
@@ -170,15 +208,22 @@ def main():
     payload = torch.load(directory / "final.pt", map_location="cpu", weights_only=False)
     flow = ConditionalFlow(**payload["flow_config"]).eval().requires_grad_(False)
     flow.load_state_dict(payload["flow"])
-    actor = NoisePolicy(bound=payload["noise_bound"]).eval().requires_grad_(False)
+    actor = NoisePolicy(bound=payload["noise_bound"], hidden=tuple(payload.get("noise_hidden", (256,128)))).eval().requires_grad_(False)
     actor.load_state_dict(payload["actor"])
     replay_checks = 0
     replay_modes = ("flow", "previous", "adapted") if p.get("comparison_checkpoint") else ("flow", "adapted")
+    initial = None
+    if p.get("evaluate_initial_adapter"):
+        assert sha256_file(directory/"initial_adapter.pt") == report["initial_adapter_sha256"]
+        initial_payload = torch.load(directory/"initial_adapter.pt", map_location="cpu", weights_only=False)
+        initial = NoisePolicy(bound=initial_payload["noise_bound"], hidden=tuple(initial_payload["noise_hidden"])).eval().requires_grad_(False)
+        initial.load_state_dict(initial_payload["actor"])
+        replay_modes = (*replay_modes[:-1], "initial", "adapted")
     previous = None
     if p.get("comparison_checkpoint"):
         assert sha256_file(p["comparison_checkpoint"]) == p["comparison_sha256"]
         previous_payload = torch.load(p["comparison_checkpoint"], map_location="cpu", weights_only=False)
-        previous = NoisePolicy(bound=previous_payload["noise_bound"]).eval().requires_grad_(False)
+        previous = NoisePolicy(bound=previous_payload["noise_bound"], hidden=tuple(previous_payload.get("noise_hidden", (256,128)))).eval().requires_grad_(False)
         previous.load_state_dict(previous_payload["actor"])
     for mode in replay_modes:
         files = sorted((directory / f"evaluation-{mode}" / "trajectory").glob("chunk-*.npz"))
@@ -187,7 +232,7 @@ def main():
                 active = data["active"].reshape(-1)
                 obs = torch.from_numpy(data["policy_observation"].reshape(-1, 48)[active][::64][:32])
                 recorded = torch.from_numpy(data["student_requested_action"].reshape(-1, 12)[active][::64][:32])
-                noise = torch.zeros((len(obs), 12)) if mode == "flow" else (previous(obs) if mode == "previous" else actor(obs))
+                noise = torch.zeros((len(obs), 12)) if mode == "flow" else {"previous":previous,"initial":initial,"adapted":actor}[mode](obs)
                 torch.testing.assert_close(flow(obs, noise), recorded, atol=3.e-5, rtol=1.e-5)
                 replay_checks += len(obs)
     audit = dict(status="verified", run=str(directory.resolve()), protocol_sha256=sha256_file(args.protocol),

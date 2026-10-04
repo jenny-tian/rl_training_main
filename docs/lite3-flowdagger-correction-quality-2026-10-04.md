@@ -57,3 +57,7 @@ PYTHONPATH=.:source/rl_training /home/tjx/anaconda3/envs/env_isaaclab/bin/python
 Registered output directories cannot be overwritten. Runtime source and protocol must remain fixed during each physical run. `docs/analysis/audit_lite3_flowdagger.py` reconstructs every transition, paired qualification decision and inverse-label eligibility, and replays sampled deployed actions without loading a teacher. `docs/analysis/summarize_flowdagger_improvement.py` evaluates the declared gates without selecting checkpoints.
 
 The39 relevant tests cover the decoder/inverse, failed/prefix-mismatched/nonbeneficial correction rejection, recovery versus cutoff semantics, action preservation gradients, skipped-checkpoint retention, fixed commands, action history, and physical-step accounting. All work remains simulation-only with explicit route localization, a Gaussian-distilled flow prior and single-action decoding.
+
+## 后续 v6–v8 与独立复现
+
+[后续完整报告](lite3-flowdagger-v8-result-2026-10-04.md)记录扩大噪声网络、互斥监督区域及路线参考教师的实现与负结果。v8开发64/64且漂移门槛全通过，但独立训练复现61/64，三个对照均64/64，不晋升为稳定改善。全部失败保留；工程审计通过不替代控制可靠性验收。

@@ -9,6 +9,9 @@ from rl_training.online_adaptation.flowdagger import (
     qualify_paired_correction,
     preservation_loss,
     save_adapter_checkpoint,
+    widen_noise_policy,
+    correction_region_mask,
+    lookahead_teacher_observation,
 )
 
 
@@ -165,3 +168,53 @@ def test_skipped_update_still_preserves_qualified_replay_and_rng(tmp_path):
     assert len(saved["buffer"]["correction"][0][0]) == 1
     assert saved["optimizer"]["state"] == {}
     torch.testing.assert_close(saved["generator_state"], generator.get_state())
+
+
+def test_widening_preserves_function_without_sharing_parameters():
+    torch.manual_seed(13)
+    source = NoisePolicy(3, 12, hidden=(16, 8))
+    with torch.no_grad():
+        source.mlp[-1].weight.normal_(0., .1)
+    before = copy.deepcopy(source.state_dict())
+    wider = widen_noise_policy(source, 4, seed=17)
+    observations = torch.randn(64, 3)*2
+    torch.testing.assert_close(wider(observations), source(observations), atol=1.e-6, rtol=1.e-5)
+    optimizer = torch.optim.SGD(wider.parameters(), lr=.1)
+    loss = (wider(observations)-1).square().mean()
+    loss.backward(); optimizer.step()
+    assert not torch.equal(wider.mlp[2].weight[0], wider.mlp[2].weight[1])
+    assert all(torch.equal(v, source.state_dict()[k]) for k,v in before.items())
+    clone = NoisePolicy(3, 12, hidden=wider.hidden)
+    clone.load_state_dict(wider.state_dict())
+    torch.testing.assert_close(clone(observations), wider(observations))
+
+
+def test_corrective_and_preservation_regions_are_disjoint_and_catch_inversion():
+    import math
+    obs = torch.zeros(5, 48); obs[:, 5] = -1; obs[:, 11] = 1
+    obs[1, 9] = .11/1.65
+    obs[2, 11] = math.cos(math.radians(6))
+    obs[3, 5] = -math.cos(math.radians(11))
+    obs[4, 5] = 1.  # Upside down must not count as low-risk preservation.
+    region = correction_region_mask(obs)
+    assert region.tolist() == [False, True, True, True, True]
+    assert not (region & ~region).any()
+    duplicate = obs.repeat(2, 1)
+    torch.testing.assert_close(correction_region_mask(duplicate)[:5], region)
+    with pytest.raises(ValueError):
+        correction_region_mask(obs, lateral_m=-1)
+
+
+def test_lookahead_teacher_uses_centerline_heading_without_mutating_sensor_input():
+    obs = torch.zeros(3,48); obs[:,5] = -1; obs[:,11] = 1
+    obs[0,9] = .2/1.65; obs[1,9] = -.2/1.65
+    original = obs.clone()
+    query = lookahead_teacher_observation(obs, lookahead_m=1.)
+    torch.testing.assert_close(obs, original)
+    assert query[0,10] > 0 and query[1,10] < 0
+    torch.testing.assert_close(query[2], obs[2])
+    torch.testing.assert_close(query[:,:10], obs[:,:10])
+    torch.testing.assert_close(query[:,12:], obs[:,12:])
+    torch.testing.assert_close(query[:,10].square()+query[:,11].square(), torch.ones(3))
+    with pytest.raises(ValueError):
+        lookahead_teacher_observation(obs, lookahead_m=0.)
