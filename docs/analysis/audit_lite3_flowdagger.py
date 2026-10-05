@@ -13,9 +13,10 @@ from rl_training.online_adaptation.flowdagger import ConditionalFlow, NoisePolic
 
 
 def region_from_numpy(obs, options):
-    return ((np.abs(obs[...,9])*np.float32(1.65) > np.float32(options["lateral_m"]))
-        | (obs[...,11] < np.float32(math.cos(math.radians(options["yaw_deg"]))))
-        | (-obs[...,5] < np.float32(math.cos(math.radians(options["tilt_deg"])))))
+    route = ((np.abs(obs[...,9])*np.float32(1.65) > np.float32(options["lateral_m"]))
+        | (obs[...,11] < np.float32(math.cos(math.radians(options["yaw_deg"])))))
+    tilted = -obs[...,5] < np.float32(math.cos(math.radians(options["tilt_deg"])))
+    return route & ~tilted if options.get("tilt_role") == "preservation" else route | tilted
 
 
 def read_pair_fields(folder):
@@ -92,6 +93,11 @@ def audit_qualification(directory, protocol, report):
                 for observations, _ in rows:
                     region = region_from_numpy(observations.numpy(), protocol["correction_region"])
                     assert bool(region.all()) if role == "correction" else not bool(region.any())
+            if protocol.get("recovery_sampling") and "recovery_sampling" in report["rounds"][round_id]:
+                obs = torch.cat([o for o, _ in checkpoint["buffer"]["autonomous"]]).numpy()
+                threshold = np.float32(math.cos(math.radians(protocol["recovery_sampling"]["tilt_deg"])))
+                count = int((-obs[:,5] < threshold).sum())
+                assert report["rounds"][round_id]["recovery_sampling"]["recovery_rows"] == count
         total_accepted += round_accepted
         summary.append(dict(round=round_id, qualified_episodes=round_accepted, attempted_inversions=len(eligible_indices)))
     return dict(verified=True, qualified_episodes=total_accepted, accepted_labels=accepted_labels, rounds=summary)
@@ -108,6 +114,7 @@ def audit_phase(folder, protocol):
     last_history = np.zeros((width, 12), dtype=np.float32)
     peak = np.zeros(width); peak_from_start = np.zeros(width); squares = np.zeros(width); samples = np.zeros(width)
     successes = np.zeros(width, dtype=bool)
+    terminal_failure_terms = {k: np.zeros(width, dtype=bool) for k in ("contact", "orientation", "lateral")}
     ends = np.zeros(width, dtype=int)
     intervention_count = 0
     steps = 0
@@ -143,6 +150,9 @@ def audit_phase(folder, protocol):
                 np.testing.assert_allclose(obs[row, :, -12:], last_history, atol=1.e-6, rtol=0.)
                 np.testing.assert_array_equal(data["done"][row].astype(bool),
                     data["success"][row] | data["failure"][row] | data["deadline"][row])
+                if protocol.get("record_failure_terms"):
+                    np.testing.assert_array_equal(data["failure"][row], data["failure_contact"][row]
+                        | data["failure_orientation"][row] | data["failure_lateral"][row])
                 lateral = data["post_root_state"][row, :, 1] - initial["origins"][:, 1]
                 offset = data["post_root_state"][row, :, 1] - initial["root_state"][:, 1]
                 peak = np.maximum(peak, np.where(active, abs(lateral), 0.))
@@ -150,6 +160,9 @@ def audit_phase(folder, protocol):
                 squares += np.where(active, lateral**2, 0.)
                 samples += active
                 ending = active & data["done"][row].astype(bool)
+                if protocol.get("record_failure_terms"):
+                    for key in terminal_failure_terms:
+                        terminal_failure_terms[key][ending] = data[f"failure_{key}"][row, ending]
                 successes[ending] = data["success"][row, ending]
                 ends[ending] = steps + 1
                 intervention_count += int(data["intervention"][row].sum())
@@ -166,6 +179,9 @@ def audit_phase(folder, protocol):
         i = episode["env_id"]
         assert bool(successes[i]) == episode["success"]
         assert (ends[i] or steps) == episode["steps"]
+        if protocol.get("record_failure_terms") and not episode.get("collector_cutoff", False):
+            assert episode["failure_terms"] == {k: bool(v[i]) for k,v in terminal_failure_terms.items()}
+            assert episode["failure"] == any(episode["failure_terms"].values())
         np.testing.assert_allclose(peak[i], episode["max_body_lateral_m"], atol=1.e-6)
         np.testing.assert_allclose(peak_from_start[i], episode["max_body_offset_from_start_m"], atol=1.e-6)
         np.testing.assert_allclose(np.sqrt(squares[i]/samples[i]), episode["body_lateral_rms_m"], atol=1.e-5)

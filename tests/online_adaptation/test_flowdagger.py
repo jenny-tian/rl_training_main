@@ -12,6 +12,7 @@ from rl_training.online_adaptation.flowdagger import (
     widen_noise_policy,
     correction_region_mask,
     lookahead_teacher_observation,
+    correction_anchor_loss,
 )
 
 
@@ -218,3 +219,52 @@ def test_lookahead_teacher_uses_centerline_heading_without_mutating_sensor_input
     torch.testing.assert_close(query[:,10].square()+query[:,11].square(), torch.ones(3))
     with pytest.raises(ValueError):
         lookahead_teacher_observation(obs, lookahead_m=0.)
+
+
+def test_recovery_preservation_overrides_route_correction_only_during_training():
+    import math
+    obs = torch.zeros(4, 48); obs[:,5] = -1; obs[:,11] = 1
+    obs[:,9] = .2/1.65
+    obs[1,5] = -math.cos(math.radians(12))
+    obs[2,5] = -math.cos(math.radians(25))
+    obs[3,5] = 1
+    assert correction_region_mask(obs).all()  # Legacy protocol remains unchanged.
+    assert correction_region_mask(obs, tilt_role="preservation").tolist() == [True, False, False, False]
+    with pytest.raises(ValueError):
+        correction_region_mask(obs, tilt_role="unknown")
+
+
+def test_recovery_sampling_keeps_half_corrections_and_preserves_target_alignment():
+    # Recovery occupies only one of a hundred autonomous rows; it must still
+    # receive one quarter of the autonomous half without modifying labels.
+    obs = torch.arange(100.).reshape(-1,1)
+    data = {"correction": (obs+1000, -(obs+1000)), "autonomous": (obs, -obs)}
+    mask = torch.arange(100) == 0
+    a, n = balanced_batch(data, 32, torch.Generator().manual_seed(19), autonomous_recovery_mask=mask)
+    assert (a[:16] >= 1000).all() and (a[16:] < 100).all()
+    assert int((a[16:] == 0).sum()) == 4
+    torch.testing.assert_close(n, -a)
+    with pytest.raises(ValueError, match="nonempty strata"):
+        balanced_batch(data, 32, torch.Generator(), autonomous_recovery_mask=torch.zeros_like(mask))
+
+
+def test_correction_anchor_gradients_update_student_only_and_reduce_action_shift():
+    torch.manual_seed(29)
+    flow = ConditionalFlow(hidden=(8,), steps=2).eval().requires_grad_(False)
+    anchor = NoisePolicy(hidden=(8,4)).eval().requires_grad_(False)
+    actor = NoisePolicy(hidden=(8,4))
+    actor.load_state_dict(anchor.state_dict())
+    with torch.no_grad():
+        actor.mlp[-1].bias.fill_(.3)
+    obs = torch.randn(16,48)*.1
+    optimizer = torch.optim.SGD(actor.parameters(), lr=10.)
+    before = correction_anchor_loss(flow, actor, anchor, obs)
+    assert before > 0
+    before.backward()
+    assert all(p.grad is None for p in flow.parameters())
+    assert all(p.grad is None for p in anchor.parameters())
+    optimizer.step()
+    assert correction_anchor_loss(flow, actor, anchor, obs) < before
+    anchor.requires_grad_(True)
+    with pytest.raises(ValueError, match="frozen"):
+        correction_anchor_loss(flow, actor, anchor, obs)

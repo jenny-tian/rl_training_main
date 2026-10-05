@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import random
 import signal
@@ -25,6 +26,9 @@ def main():
     paired = p.get("paired_correction")
     if p.get("correction_region") and not paired:
         raise ValueError("disjoint supervision regions require paired reference collection")
+    anchor_weight = p["adapter"].get("correction_anchor_weight", 0.)
+    if not math.isfinite(anchor_weight) or anchor_weight < 0 or (anchor_weight and not p.get("evaluate_initial_adapter")):
+        raise ValueError("nonnegative correction anchor weight requires a saved frozen initial actor")
     evaluation_modes = ("teacher", "flow", "previous", "adapted") if p.get("comparison_checkpoint") else ("teacher", "flow", "adapted")
     if p.get("evaluate_initial_adapter"):
         evaluation_modes = (*evaluation_modes[:-1], "initial", "adapted")
@@ -75,7 +79,7 @@ def main():
         from rl_training.policy_route import configure_route_observations
         from rl_training.lite3_joint_conventions import clip_lite3_policy_action
         from rl_training.online_adaptation.step_trajectory import StepTrajectory
-        from rl_training.online_adaptation.flowdagger import ConditionalFlow, FrozenPPOExpert, NoisePolicy, DualBuffer, balanced_batch, invert_euler, qualify_paired_correction, preservation_loss, save_adapter_checkpoint, widen_noise_policy, correction_region_mask, lookahead_teacher_observation
+        from rl_training.online_adaptation.flowdagger import ConditionalFlow, FrozenPPOExpert, NoisePolicy, DualBuffer, balanced_batch, invert_euler, qualify_paired_correction, preservation_loss, save_adapter_checkpoint, widen_noise_policy, correction_region_mask, lookahead_teacher_observation, correction_anchor_loss
         from rl_training.online_adaptation.runner_contract import configure_forward_command, actuator_delay_metadata
 
         torch.set_num_threads(4)
@@ -234,7 +238,9 @@ def main():
                     torch.testing.assert_close(next_obs["policy"][:, -12:], expected_history, atol=1.e-6, rtol=0)
                     torch.testing.assert_close(next_obs["critic"][:, -12:], expected_history, atol=1.e-6, rtol=0)
                     manager = raw.termination_manager
-                    failure = manager.get_term("illegal_contact") | manager.get_term("bad_orientation_2") | manager.get_term("course_lateral")
+                    failure_terms = dict(contact=manager.get_term("illegal_contact"),
+                        orientation=manager.get_term("bad_orientation_2"), lateral=manager.get_term("course_lateral"))
+                    failure = failure_terms["contact"] | failure_terms["orientation"] | failure_terms["lateral"]
                     success = manager.get_term("course_success") & ~failure
                     deadline = manager.get_term("time_out") & ~success & ~failure
                     if not torch.equal(done.bool(), success | failure | deadline):
@@ -249,6 +255,7 @@ def main():
                         teacher_requested_action=expert_action, emitted_action=emitted, intervention=intervene,
                         correction_region=region, action_disagreement=disagreement,
                         teacher_route_features=teacher_route_features,
+                        **{f"failure_{key}": value for key, value in failure_terms.items()},
                         active=before_active, done=done, success=success, failure=failure, deadline=deadline,
                         post_root_state=post_root, reward=reward)
                     trajectory.append(**snapshot)
@@ -258,6 +265,7 @@ def main():
                         terrain_type = int(raw.scene.terrain.terrain_types[index])
                         first_end[index] = dict(env_id=index, steps=step+1, success=bool(success[index]),
                             failure=bool(failure[index]), deadline=bool(deadline[index]),
+                            failure_terms={key: bool(value[index]) for key, value in failure_terms.items()},
                             terrain="flat" if terrain_type < 2 else ("101" if terrain_type < 5 else "107"),
                             progress_m=float(post_root[index, 0]-origin[index, 0]),
                             max_body_lateral_m=float(peak[index]), max_body_offset_from_start_m=float(peak_initial[index]),
@@ -385,15 +393,35 @@ def main():
                 write_json_atomic(out / "report.json", report)
                 continue
             training = buffer.tensors(args.device)  # Refuses to invent an absent half of the mixture.
+            recovery_mask = None
+            if p.get("recovery_sampling"):
+                sampling = p["recovery_sampling"]
+                recovery_mask = -training["autonomous"][0][:,5] < math.cos(math.radians(sampling["tilt_deg"]))
+                recovery_count = int(recovery_mask.sum())
+                info["recovery_sampling"] = dict(recovery_rows=recovery_count,
+                    other_rows=len(recovery_mask)-recovery_count, fraction=sampling["fraction"])
+                if min(recovery_count, len(recovery_mask)-recovery_count) < sampling["minimum_rows"]:
+                    info["training_skipped_reason"] = "insufficient_successful_recovery_strata"
+                    save_adapter_checkpoint(out / f"round-{round_id:02d}" / "adapter.pt", actor, optimizer, buffer,
+                        training_generator, round_id=round_id, updates=0, protocol_sha256=protocol_hash,
+                        skipped_reason=info["training_skipped_reason"])
+                    write_json_atomic(out / "report.json", report)
+                    continue
             if p.get("correction_region"):
                 if not correction_region_mask(training["correction"][0], **p["correction_region"]).all():
                     raise ValueError("correction label outside corrective region")
                 if correction_region_mask(training["autonomous"][0], **p["correction_region"]).any():
                     raise ValueError("preservation label conflicts with corrective region")
             for update in range(p["adapter"]["updates_per_round"]):
-                batch_obs, batch_noise = balanced_batch(training, p["adapter"]["batch_size"], training_generator)
+                batch_obs, batch_noise = balanced_batch(training, p["adapter"]["batch_size"], training_generator,
+                    autonomous_recovery_mask=recovery_mask,
+                    recovery_fraction=p.get("recovery_sampling", {}).get("fraction", .25))
                 loss, noise_loss, action_loss = preservation_loss(flow, actor, batch_obs, batch_noise,
                     weight=p["adapter"].get("action_preservation_weight", 0.))
+                anchor_loss = loss.new_zeros(())
+                if anchor_weight:
+                    anchor_loss = correction_anchor_loss(flow, actor, initial_actor, batch_obs[:len(batch_obs)//2])
+                    loss = loss + anchor_weight*anchor_loss
                 if not torch.isfinite(loss):
                     raise ValueError("nonfinite adapter objective")
                 optimizer.zero_grad(set_to_none=True)
@@ -403,12 +431,14 @@ def main():
                 info["updates"] = update + 1
                 if (update + 1) % 250 == 0:
                     event = dict(round=round_id, update=update+1, noise_mse=float(noise_loss),
-                                 autonomous_action_mse=float(action_loss), total_loss=float(loss))
+                                 autonomous_action_mse=float(action_loss), correction_anchor_action_mse=float(anchor_loss.detach()),
+                                 total_loss=float(loss))
                     with (out / "adapter_updates.jsonl").open("a") as stream:
                         stream.write(json.dumps(event)+"\n")
                     print(json.dumps(event), flush=True)
             info["final_minibatch_noise_mse"] = float(noise_loss)
             info["final_minibatch_autonomous_action_mse"] = float(action_loss)
+            info["final_minibatch_correction_anchor_action_mse"] = float(anchor_loss.detach())
             save_adapter_checkpoint(out / f"round-{round_id:02d}" / "adapter.pt", actor, optimizer, buffer,
                 training_generator, round_id=round_id, updates=info["updates"], protocol_sha256=protocol_hash)
             write_json_atomic(out / "report.json", report)

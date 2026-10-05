@@ -12,6 +12,10 @@ Correction supervision is restricted to lateral error>0.10m, yaw error>5 degrees
 
 The v8 scripted teacher uses PPO283 with a transformed heading query: actual yaw + atan2(actual lateral displacement,1m). All learner observations remain actual simulator observations. Intervention additionally requires emitted-action disagreement>0.02. This declared geometric teacher uses route localization, not terrain foresight. Deployment uses only the learned adapter plus frozen flow. An untrained widened comparator distinguishes training gains from numerical effects of widening. See the immutable [v8 protocol](lite3_flowdagger_v8_protocol_20261004.json) and [experiment registry](lite3_experiment_registry.md) for later outcomes and replication.
 
+## Recovery experiments (2026-10-05)
+
+The [v9/v10 report](lite3-flowdagger-recovery-2026-10-05.md) records two unsuccessful follow-up candidates; neither is promoted. V9 moves tilt>10-degree states to preservation from successful unassisted episodes, with25% of the autonomous half sampled from recovery states (at least32 rows in each stratum). This optional `tilt_role="preservation"` retains the legacy correction-region semantics by default. V10 adds a weight25 action penalty against the frozen initial widened actor on correction rows. It is soft regularization, not a hard safety constraint or a new teacher label. Both changes are training-only; no reference actor or state fallback is needed at deployment. Failure traces now retain contact/orientation/lateral terms individually.
+
 ## Model and data contract
 
 - Inputs: the existing 48D `sim-localization-v1` observation, including simulator lateral position and yaw. No height scan. Both expert and learner receive the same observation.

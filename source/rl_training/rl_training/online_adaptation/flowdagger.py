@@ -216,13 +216,27 @@ class DualBuffer:
         return {name: tuple(torch.cat([row[i] for row in rows]).to(device) for i in (0, 1)) for name, rows in self.data.items()}
 
 
-def balanced_batch(data, batch_size, generator):
+def balanced_batch(data, batch_size, generator, *, autonomous_recovery_mask=None, recovery_fraction=.25):
     if type(batch_size) is not int or batch_size < 2 or batch_size % 2:
         raise ValueError("50/50 sampling requires a positive even batch size")
     observations, noises = [], []
     for name in ("correction", "autonomous"):
         obs, noise = data[name]
-        index = torch.randint(len(obs), (batch_size // 2,), generator=generator, device=obs.device)
+        half = batch_size // 2
+        if name == "autonomous" and autonomous_recovery_mask is not None:
+            mask = autonomous_recovery_mask
+            if mask.dtype != torch.bool or mask.shape != (len(obs),) or mask.device != obs.device:
+                raise ValueError("recovery mask must match autonomous observations")
+            if not math.isfinite(recovery_fraction) or not 0 < recovery_fraction < 1:
+                raise ValueError("recovery fraction must be between zero and one")
+            count = int(half * recovery_fraction)
+            pools = (torch.where(mask)[0], torch.where(~mask)[0])
+            if not 0 < count < half or any(len(pool) == 0 for pool in pools):
+                raise ValueError("recovery stratification requires both nonempty strata")
+            index = torch.cat([pool[torch.randint(len(pool), (size,), generator=generator, device=obs.device)]
+                               for pool, size in zip(pools, (count, half-count))])
+        else:
+            index = torch.randint(len(obs), (half,), generator=generator, device=obs.device)
         observations.append(obs[index]); noises.append(noise[index])
     return torch.cat(observations), torch.cat(noises)
 
@@ -251,6 +265,23 @@ def preservation_loss(flow, actor, observations, target_noise, *, weight=0.):
     return noise_loss + weight*action_loss, noise_loss.detach(), action_loss.detach()
 
 
+def correction_anchor_loss(flow, actor, anchor, correction_observations):
+    """Soft action penalty relative to the pinned initial policy, not a safety bound.
+
+    The anchor supplies regularization, not a claim that its action is the best
+    label. It remains frozen and is absent from learned-policy deployment.
+    """
+    if any(p.requires_grad for p in flow.parameters()) or any(p.requires_grad for p in anchor.parameters()):
+        raise ValueError("correction anchor and flow must be frozen")
+    if not len(correction_observations):
+        raise ValueError("nonempty correction observations required")
+    from rl_training.lite3_joint_conventions import clip_lite3_policy_action
+    with torch.no_grad():
+        target = clip_lite3_policy_action(flow(correction_observations, anchor(correction_observations)))
+    emitted = clip_lite3_policy_action(flow(correction_observations, actor(correction_observations)))
+    return F.mse_loss(emitted, target)
+
+
 def save_adapter_checkpoint(path, actor, optimizer, buffer, generator, *, round_id, updates,
                             protocol_sha256, skipped_reason=None):
     """Retain qualified replay even when the data gate skips optimization."""
@@ -260,7 +291,7 @@ def save_adapter_checkpoint(path, actor, optimizer, buffer, generator, *, round_
                     updates=updates, protocol_sha256=protocol_sha256, skipped_reason=skipped_reason), path)
 
 
-def correction_region_mask(observation, *, lateral_m=.1, yaw_deg=5., tilt_deg=10.):
+def correction_region_mask(observation, *, lateral_m=.1, yaw_deg=5., tilt_deg=10., tilt_role="correction"):
     """Observable state partition for supervision, never a deployment fallback.
 
     Correction labels belong only above these thresholds; autonomous
@@ -272,11 +303,17 @@ def correction_region_mask(observation, *, lateral_m=.1, yaw_deg=5., tilt_deg=10
     if (not all(math.isfinite(v) for v in (lateral_m, yaw_deg, tilt_deg))
             or lateral_m <= 0 or not 0 < yaw_deg < 180 or not 0 < tilt_deg < 90):
         raise ValueError("invalid corrective state thresholds")
+    if tilt_role not in ("correction", "preservation"):
+        raise ValueError("unknown tilt supervision role")
     lateral = observation[..., 9].abs()*1.65 > lateral_m
     heading = observation[..., 11] < math.cos(math.radians(yaw_deg))
     # Projected unit gravity has z=-1 upright. This also catches inversion,
     # unlike a horizontal-gravity norm test that vanishes upside down.
     tilted = -observation[..., 5] < math.cos(math.radians(tilt_deg))
+    if tilt_role == "preservation":
+        # Admit these states only from successful unassisted reference episodes.
+        # A route-following teacher is not presumed to be a recovery expert.
+        return (lateral | heading) & ~tilted
     return lateral | heading | tilted
 
 
