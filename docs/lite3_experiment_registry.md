@@ -458,3 +458,23 @@ v11完成824576物理步、uncertain0，192训练env-impulse、所有评测0扰�
 ### v11/v12 audits complete; v12 null learning result
 
 v11/v12逐步轨迹、扰动日程、前后root状态、实际body角速度观测、配对资格、失败原因与CPU部署回放审计通过。v12完成825344物理步、uncertain0、192训练env-impulse，所有评测无扰动。8309纠正、116685自主样本中没有>20度的成功恢复状态，两轮都因恢复层不足跳过；0更新，最终actor逐张量等于初始宽网络，64个配对评测回合指标也完全相同。seed919 flow63/64、旧v2 62/64、initial/candidate均61/64；候选rough RMS0.114923m、最坏0.427394m。零学习结果不晋升、不启动复现。累计charged9713344/confirmed9713280/uncertain64。47项相关测试通过，报告 `docs/lite3-flowdagger-perturbation-2026-10-05.md`。下一阶段需先研究有效的大倾角恢复示范来源，不能在现有不足数据上堆优化次数。
+
+### Recovery teacher: training-only kinematic bank and engineering smoke
+
+从v11/v12的reference/round训练失败中，每完整回合只取首个20–30度实际观测及配套pre-root/joints；不读取评测。27个初态按地形内每第4个完整回合留出：train20（101为8、107为12），validation7（101为3、107为4）。这些是运动学重置，不恢复求解器/接触/执行器记忆或旧动作历史，不声称精确快照，也不把失败动作当标签。首个离线提取尝试因关闭npz后取长度报错，0物理步；修复后的bank-v1-attempt02保留哈希和来源，旧目录不覆盖。
+
+登记 `docs/lite3_recovery_teacher_smoke_protocol_20261005.json`：PPO283冻结执行，仅训练split初态，64环境×64步上限4096，seed947；验证重置顺序、实际倾角/观测、命令与动作历史，无优化、不做资格结论。之后计划以PPO主动学习恢复，仍必须独立验证完整跑道与未参与训练的恢复初态，未验证前不接入FlowDAgger纠正标签。
+
+### Recovery PPO teacher development preregistration
+
+smoke-v1完成4096物理步、uncertain0，重置实际倾角>=19.9度、joint/event顺序、固定命令与动作历史检查通过；48个训练恢复初态试验中44个在64步内物理失败，不能把状态初始化成功当成恢复成功。59项相关测试覆盖重置训练/验证隔离、完整初态遍历、48D平地锚定、actor-only初始化及既有FlowDAgger契约。
+
+预登记 `docs/lite3_recovery_teacher_train_protocol_20261005.json`：learner953，PPO283 route48 actor-only起步，fresh critic/optimizer，std0.2、lr3e-5、512迭代/2097152物理步，粗糙地形回合起点交替普通/20个训练恢复初态，flat始终普通。横偏reward改-4，保留原姿态奖励、flat anchor2和mirror1。恢复动作通过真实物理PPO收益学习，不用失败动作作教师标签。最终检查点唯一，不重试择优。
+
+同时预登记 `docs/lite3_recovery_teacher_eval_protocol_20261005.json`：seed971，PPO283/旧v2/候选三模型分别普通全程与7个未参与训练的恢复初态（48rough槽重复，另16flat），最多768000物理步。候选完整跑道逐地形完成不低于两基线、rough平均RMS较v2下降>=2%、最坏不增；恢复须连续25步倾角<=10度且完成终点，逐地形不低于两基线、rough总>=80%、每个留出来源初态至少成功一次。全部通过才另登记FlowDAgger接入，不默认新教师更好。新增开发上限2869248含smoke；旧FlowDAgger9713344/9713280/64与更早PPO成本分别保留。
+
+### Recovery teacher result: full-course improvement, recovery gate not met
+
+训练512迭代/2097152物理步，覆盖全部20训练初态、0验证泄漏；恢复回合控制109998、重置1444、完成224/失败1206。完整跑道seed971：旧PPO283为54/64、旧v2为63/64、新PPO教师64/64；rough平均RMS分别0.12723/0.11834/0.04562m，最坏0.50833/0.42922/0.13767m。留出恢复48槽（7来源初态重复）基线均0/48，新教师29/48（101为17/24、107为12/24）；case0/19均0/6。全部完整跑道门槛及相对恢复基线门槛通过，但80%恢复率/每来源至少一次成功门槛失败。不晋升、不接入FlowDAgger、不宣称独立训练复现。
+
+59项相关测试通过；训练/冻结轨迹、重置分区与状态、动作历史、CPU动作回放独立审计通过。实际新增2622592控制步（smoke4096+训练2097152+评测521344），无不确定步。加此前FlowDAgger累计charged12335936/confirmed12335872/uncertain64，更早PPO基础成本另列。最终SHA67006951ebb2ed337aeac7ede2a21709ba6bcc985e28220429a9368d2c17cdb9，报告 `docs/lite3-recovery-teacher-2026-10-05.md`。

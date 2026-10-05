@@ -4,6 +4,7 @@ import copy
 import importlib.metadata
 import json
 import math
+import signal
 from pathlib import Path
 import time
 
@@ -37,10 +38,17 @@ def main():
         if p.get('route_observations'):
             assert sha256_file(p['frozen_smoke_report'])==p['frozen_smoke_sha256']
             assert json.loads(Path(p['frozen_smoke_report']).read_text())['status']=='complete'
+        if p.get('recovery_resets'):
+            assert p['recovery_resets']['split']=='train'
+            assert sha256_file(p['recovery_smoke_report'])==p['recovery_smoke_sha256']
+            assert json.loads(Path(p['recovery_smoke_report']).read_text())['status']=='complete'
         if p.get('flat_anchor_weight') is not None:
             smoke=json.loads(Path(p['smoke_report']).read_text())
             assert smoke['flat_anchor_timing_and_mask_passed'] and smoke['flat_anchor_model_unchanged']
         app=AppLauncher(args)
+        stop_requested=[]
+        def request_stop(signum, frame):stop_requested.append(signum)
+        signal.signal(signal.SIGINT,request_stop);signal.signal(signal.SIGTERM,request_stop)
         import gymnasium as gym
         import torch
         from isaaclab_tasks.utils import parse_env_cfg,load_cfg_from_registry
@@ -57,11 +65,18 @@ def main():
         torch.backends.cuda.matmul.allow_tf32=False
         torch.backends.cudnn.allow_tf32=False
         cfg=parse_env_cfg(p['task'],device=args.device,num_envs=p['num_envs']);cfg.seed=p['seed']
+        if p.get('fixed_forward_command') is not None:
+            from rl_training.online_adaptation.runner_contract import configure_forward_command
+            configure_forward_command(cfg.commands.base_velocity, p['fixed_forward_command'])
         route=p.get('route_observations')
         if route:
             from rl_training.policy_route import ROUTE_SCHEMA, configure_route_training, expand_actor_route_inputs
             assert route==ROUTE_SCHEMA
             configure_route_training(cfg,p['route_training'])
+        if p.get('recovery_resets'):
+            from rl_training.recovery_teacher import configure_recovery_resets, check_recovery_event_order
+            configure_recovery_resets(cfg,p['recovery_resets'])
+            cfg.rewards.course_lateral.weight=p['recovery_course_lateral_weight']
         agent_cfg=load_cfg_from_registry(p['task'],'rsl_rl_cfg_entry_point')
         agent_cfg.device=args.device;agent_cfg.seed=p['seed'];agent_cfg.num_steps_per_env=p['rollout_steps']
         agent_cfg.save_interval=p['save_interval'];agent_cfg.policy.init_noise_std=p['initial_std']
@@ -76,17 +91,25 @@ def main():
             from rl_training.policy_flat_anchor import FrozenFlatMean, configure_flat_anchor, prepare_flat_anchor, flat_anchor_cost
             configure_flat_anchor(cfg,anchor_weight)
         env=gym.make(p['task'],cfg=cfg);raw=env.unwrapped
+        if p.get('recovery_resets'):
+            check_recovery_event_order(raw)
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
         trace=StepTrajectory(out/'trajectory',metadata={'kind':'vector_training','num_envs':p['num_envs'],
             'observation':'pre-action','next_observation_and_root':'step return; reset rows already reset',
             'action':'requested for PPO likelihood; emitted clipped command drives physical action history'},chunk_steps=p['rollout_steps'],vector_dtype='float32')
         def before(obs,action):
+            if stop_requested:raise InterruptedError('stop requested before next physical step')
             if not torch.isfinite(action).all():raise ValueError('nonfinite requested action')
             extra={}
+            if p.get('fixed_forward_command') is not None:
+                expected=obs['policy'].new_tensor([p['fixed_forward_command'],0.,0.]).expand(p['num_envs'],3)
+                torch.testing.assert_close(obs['policy'][:,6:9],expected,atol=1e-7,rtol=0)
+            if p.get('recovery_resets'):
+                extra.update(recovery_case=raw._recovery_case,pre_root_state=raw.scene['robot'].data.root_state_w)
             if teacher is not None:
                 target,mask=prepare_flat_anchor(raw,teacher,obs['policy'])
                 report['flat_anchor_label_rows']+=int(mask.sum())
-                extra=dict(flat_anchor_target=target,flat_anchor_mask=mask,flat_anchor_cost=flat_anchor_cost(clip_lite3_policy_action(action),target,mask))
+                extra.update(flat_anchor_target=target,flat_anchor_mask=mask,flat_anchor_cost=flat_anchor_cost(clip_lite3_policy_action(action),target,mask))
             return trace.snapshot(policy_observation=obs['policy'],critic_observation=obs['critic'],requested_action=action,emitted_action=clip_lite3_policy_action(action),**extra)
         def after(pre,result):
             obs,reward,done,extras=result
@@ -104,6 +127,11 @@ def main():
             assert torch.equal(done.bool(),failure|success|deadline)
             for name,mask in (('success',success),('failure',failure),('deadline',deadline)):
                 report['episode_counts'][name]+=int(mask.sum())
+            if p.get('recovery_resets'):
+                recovery=torch.as_tensor(pre['recovery_case'],device=done.device)>=0
+                for name,mask in (('success',success),('failure',failure),('deadline',deadline)):
+                    report.setdefault('recovery_episode_counts',{}).setdefault(name,0)
+                    report['recovery_episode_counts'][name]+=int((mask&recovery).sum())
             trace.append(**pre,next_policy_observation=obs['policy'],next_critic_observation=obs['critic'],
                 reward=reward,done=done,returned_root_state=raw.scene['robot'].data.root_state_w,
                 task_success=success,task_failure=failure,task_deadline=deadline)
@@ -117,7 +145,11 @@ def main():
             teacher_initial={k:v.clone() for k,v in teacher.state_dict().items()}
             report['flat_anchor_label_rows']=0
             report['flat_anchor_weight']=anchor_weight
-        if route:payload=expand_actor_route_inputs(payload)
+        if route:
+            if p.get('base_observation_schema') == route:
+                assert payload['actor_state_dict']['mlp.0.weight'].shape[1]==48
+            else:
+                payload=expand_actor_route_inputs(payload)
         report['route_observations']=route
         report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'])
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}

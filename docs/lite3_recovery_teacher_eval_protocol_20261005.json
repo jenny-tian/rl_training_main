@@ -1,0 +1,39 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 2000,
+  "max_controls": 768000,
+  "evaluation_seed": 971,
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "validation",
+    "mixed": false
+  },
+  "acceptance": "Teacher candidate must complete full course per terrain at least as often as BOTH PPO283 and pinned v2; rough mean per-trial lateral RMS <=98% of v2 and worst rough lateral <=v2. Held-out recovery successes require sustained tilt<=10deg for25 controls plus course completion: >=both baselines per terrain, >=80% of48 rough trials overall, with no held-out source case completing zero trials. Every gate required. Success would qualify candidate for separately registered FlowDAgger integration, not prove learned adapter improvement or hardware recovery.",
+  "models": {
+    "base": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+      "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+    },
+    "previous": {
+      "kind": "flow",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/flowdagger_20261003/pilot-v2/final.pt",
+      "sha256": "3e2e7a8693f7df5fadb102248b00e9257f3ba0c05d9cc445658eb033f446261b"
+    },
+    "candidate": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/teacher-v1/train/final.pt",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/teacher-v1/train/report.json",
+      "training_protocol_sha256": "c44bd4dc6becd657b9834d7698a6c787c751620257ba663560548b11f0ed933e"
+    }
+  },
+  "registered_at_utc": "2026-10-05T08:15:08.051207+00:00",
+  "scope": "See separate immutable recovery teacher evaluation protocol: three frozen models on full course and7 held-out source-episode recovery states, repeated across48 rough slots;16flat slots retained. New candidate uses actual route observation directly, no geometric teacher transform."
+}

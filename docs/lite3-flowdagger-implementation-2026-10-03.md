@@ -20,6 +20,10 @@ The [v9/v10 report](lite3-flowdagger-recovery-2026-10-05.md) records two unsucce
 
 The [perturbation report](lite3-flowdagger-perturbation-2026-10-05.md) adds deterministic training-only COM velocity impulses with explicit state/observation audits and charging before mutation. V11 failed reliability gates; v12 collected no successful tilt>20-degree recovery samples and correctly skipped all updates. Neither is promoted. Deployment and evaluation have no impulses or extra recovery controller.
 
+## Recovery teacher development
+
+A separately trained [PPO recovery teacher](lite3-recovery-teacher-2026-10-05.md) achieved64/64 on the registered full-course development evaluation (rough mean lateral RMS4.56cm, peak13.77cm). It recovered29/48 held-out kinematic-reset trials versus0/48 baselines, below the80% requirement with two source cases still at zero. It is not integrated into FlowDAgger or promoted as reproducibly stable. The flow and adapter results above remain separate.
+
 ## Model and data contract
 
 - Inputs: the existing 48D `sim-localization-v1` observation, including simulator lateral position and yaw. No height scan. Both expert and learner receive the same observation.

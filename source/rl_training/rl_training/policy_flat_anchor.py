@@ -9,7 +9,10 @@ class FrozenFlatMean(nn.Module):
     def __init__(self, payload):
         super().__init__()
         state = payload['actor_state_dict']
-        previous = 45
+        self.observation_dim = state['mlp.0.weight'].shape[1]
+        if self.observation_dim not in (45, 48):
+            raise ValueError('Expected a canonical45 or route48 actor')
+        previous = self.observation_dim
         for index in (0, 2, 4, 6):
             weight, bias = state[f'mlp.{index}.weight'], state[f'mlp.{index}.bias']
             if weight.ndim != 2 or weight.shape[1] != previous or bias.shape != (weight.shape[0],):
@@ -24,9 +27,9 @@ class FrozenFlatMean(nn.Module):
 
     @torch.no_grad()
     def forward(self, observation):
-        if observation.shape[-1] == 48:
+        if observation.shape[-1] == 48 and self.observation_dim == 45:
             observation = torch.cat((observation[..., :9], observation[..., 12:]), dim=-1)
-        if observation.shape[-1] != 45:
+        if observation.shape[-1] != self.observation_dim:
             raise ValueError('Expected actor45 or route-actor48 observation')
         value = observation
         for index in (0, 2, 4, 6):
