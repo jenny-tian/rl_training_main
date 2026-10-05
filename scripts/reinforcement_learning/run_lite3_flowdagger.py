@@ -81,6 +81,7 @@ def main():
         from rl_training.online_adaptation.step_trajectory import StepTrajectory
         from rl_training.online_adaptation.flowdagger import ConditionalFlow, FrozenPPOExpert, NoisePolicy, DualBuffer, balanced_batch, invert_euler, qualify_paired_correction, preservation_loss, save_adapter_checkpoint, widen_noise_policy, correction_region_mask, lookahead_teacher_observation, correction_anchor_loss
         from rl_training.online_adaptation.runner_contract import configure_forward_command, actuator_delay_metadata
+        from rl_training.online_adaptation.recovery_perturbation import scheduled_recovery_impulse
 
         torch.set_num_threads(4)
         torch.manual_seed(p["seed"])
@@ -144,6 +145,7 @@ def main():
             trajectory = None
             phase_start = ledger.state["confirmed"]
             phase = dict(status="running", mode=mode, seed=seed, teacher_query_rows=0, eligible_teacher_label_rows=0, interventions=0)
+            phase["recovery_impulse_rows"] = 0
             write_json_atomic(folder / "report.json", phase)
             saved_rows = []
             try:
@@ -194,6 +196,26 @@ def main():
                 for step in range(p["steps_per_phase"]):
                     if stop_requested:
                         raise InterruptedError("stop requested; no physical transition pending")
+                    perturbation_trace = {}
+                    if p.get("recovery_perturbation"):
+                        # Charge before any simulator state mutation. If an
+                        # exception follows an impulse, the pending row remains.
+                        ledger.reserve()
+                        pre_root = robot.data.root_state_w.detach().clone()
+                        delta = torch.zeros((len(obs), 6), device=args.device)
+                        if mode in ("collect", "reference"):
+                            delta = scheduled_recovery_impulse(step, active, raw.scene.terrain.terrain_types,
+                                **p["recovery_perturbation"])
+                        selected = torch.where(delta.abs().sum(-1) > 0)[0]
+                        if len(selected):
+                            robot.write_root_velocity_to_sim(pre_root[selected,7:]+delta[selected], env_ids=selected)
+                            obs = wrapped.get_observations()["policy"]
+                            phase["recovery_impulse_rows"] += len(selected)
+                        policy_root = robot.data.root_state_w.detach().clone()
+                        torch.testing.assert_close(policy_root[:,7:], pre_root[:,7:]+delta, rtol=0., atol=1.e-6)
+                        torch.testing.assert_close(policy_root[:,:7], pre_root[:,:7], rtol=0., atol=0.)
+                        perturbation_trace = dict(pre_impulse_root_state=pre_root,
+                            policy_root_state=policy_root, applied_velocity_delta=delta)
                     before = obs.detach().clone()
                     before_active = active.clone()
                     with torch.no_grad():
@@ -230,7 +252,8 @@ def main():
                     phase["teacher_query_rows"] += len(obs) * (2 if mode == "teacher" else 1)
                     phase["eligible_teacher_label_rows"] += int(before_active.sum())
                     phase["interventions"] += int(intervene.sum())
-                    ledger.reserve()
+                    if not p.get("recovery_perturbation"):
+                        ledger.reserve()
                     next_obs, reward, done, extras = wrapped.step(emitted)
                     ledger.confirm()
                     torch.testing.assert_close(next_obs["policy"][:, 6:9], expected_command, rtol=0., atol=1.e-7)
@@ -252,6 +275,7 @@ def main():
                     lateral_squared += torch.where(before_active, lateral.square(), 0.)
                     samples += before_active
                     snapshot = trajectory.snapshot(policy_observation=before, noise=noise, student_requested_action=requested,
+                        **perturbation_trace,
                         teacher_requested_action=expert_action, emitted_action=emitted, intervention=intervene,
                         correction_region=region, action_disagreement=disagreement,
                         teacher_route_features=teacher_route_features,

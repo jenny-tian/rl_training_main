@@ -117,6 +117,7 @@ def audit_phase(folder, protocol):
     terminal_failure_terms = {k: np.zeros(width, dtype=bool) for k in ("contact", "orientation", "lateral")}
     ends = np.zeros(width, dtype=int)
     intervention_count = 0
+    impulse_rows = 0
     steps = 0
     hashes = {}
     for chunk in manifest["chunks"]:
@@ -125,6 +126,28 @@ def audit_phase(folder, protocol):
         with np.load(file, allow_pickle=False) as data:
             obs = data["policy_observation"]
             assert np.isfinite(obs).all()
+            if protocol.get("recovery_perturbation"):
+                options = protocol["recovery_perturbation"]
+                expected = np.zeros_like(data["applied_velocity_delta"])
+                index = np.arange(width)
+                for row in range(len(obs)):
+                    step = steps + row
+                    if report["mode"] in ("collect", "reference") and step in options["steps"]:
+                        selected = data["active"][row] & (initial["terrain_types"] >= 2) & (index % 2 == 0)
+                        sign = np.where((index//2 + options["steps"].index(step)) % 2 == 0, 1., -1.)
+                        expected[row,selected,1] = -sign[selected]*options["lateral_velocity_m_s"]
+                        expected[row,selected,3] = sign[selected]*options["roll_velocity_rad_s"]
+                np.testing.assert_array_equal(data["applied_velocity_delta"], expected)
+                impulse_rows += int((np.abs(expected).sum(-1)>0).sum())
+                pre, state = data["pre_impulse_root_state"], data["policy_root_state"]
+                np.testing.assert_array_equal(state[...,:7], pre[...,:7])
+                np.testing.assert_allclose(state[...,7:], pre[...,7:]+expected, atol=1.e-6, rtol=0.)
+                # The policy must observe the modified actual angular velocity,
+                # not the stale observation from before the training impulse.
+                q, omega = state[...,3:7], state[...,10:13]
+                cross = np.cross(q[...,1:], omega)
+                body_omega = omega - 2*q[...,:1]*cross + 2*np.cross(q[...,1:], cross)
+                np.testing.assert_allclose(obs[...,:3], body_omega*.25, atol=3.e-6, rtol=1.e-6)
             if protocol.get("teacher_route_lookahead_m") is not None:
                 yaw = np.arctan2(obs[...,10], obs[...,11])
                 error = yaw + np.arctan2(obs[...,9]*np.float32(1.65), np.float32(protocol["teacher_route_lookahead_m"]))
@@ -173,6 +196,8 @@ def audit_phase(folder, protocol):
                 steps += 1
     assert steps * width == report["confirmed_controls"]
     assert intervention_count == report["interventions"]
+    if protocol.get("recovery_perturbation"):
+        assert impulse_rows == report["recovery_impulse_rows"]
     if report["mode"] != "collect":
         assert intervention_count == 0
     for episode in report["episodes"]:
@@ -185,7 +210,7 @@ def audit_phase(folder, protocol):
         np.testing.assert_allclose(peak[i], episode["max_body_lateral_m"], atol=1.e-6)
         np.testing.assert_allclose(peak_from_start[i], episode["max_body_offset_from_start_m"], atol=1.e-6)
         np.testing.assert_allclose(np.sqrt(squares[i]/samples[i]), episode["body_lateral_rms_m"], atol=1.e-5)
-    return dict(status="verified", transitions=steps*width, interventions=intervention_count,
+    return dict(status="verified", transitions=steps*width, interventions=intervention_count, recovery_impulse_rows=impulse_rows,
                 max_body_lateral_m=float(peak.max()), median_trial_peak_m=float(np.median(peak)),
                 max_body_offset_from_start_m=float(peak_from_start.max()),
                 mean_trial_body_rms_m=float(np.sqrt(squares/samples).mean()),

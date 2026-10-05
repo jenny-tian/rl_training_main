@@ -442,3 +442,19 @@ v9完成822784物理步、uncertain0，轨迹/恢复样本/失败项/CPU动作�
 ### v10 audited failure, no promotion or replication
 
 v10完成829568物理步、uncertain0；2000更新、8030纠正/118604自主（1278恢复）。8条定期损失日志独立核验锚定项实际参与训练。seed823：flow62/64、旧v2 64/64、初始宽网络63/64、v10 60/64（101为20/24）。rough RMS分别0.12335/0.11576/0.12285/0.10823m，最坏0.50027/0.33881/0.81118/0.48415m；完成及相对旧v2最坏横偏门槛失败。逐步轨迹、恢复样本数、细分失败项、无教师/锚定模型CPU部署回放审计通过。v9/v10六次失败全为姿态超限、roll约−43度，接触/越界为false。未认定因果修复，不晋升、不启动独立复现、不换种子补试。累计charged8063424/confirmed8063360/uncertain64，45项相关测试通过。报告 `docs/lite3-flowdagger-recovery-2026-10-05.md`。
+
+### v11 predeclared recovery perturbation collection
+
+前轮六次失败主要为约−43度侧滚，成功恢复训练中大倾角覆盖稀少。只读v10四个失败最后2秒观测：倾角<10度且横向角速率>1rad/s的行数均0，最高角速率约1.9–4.2rad/s发生在已倾斜后，不能据此声称小倾角角速率阈值能提前预警。评测观测仅作诊断，不进入训练标签。
+
+预登记 `docs/lite3_flowdagger_v11_protocol_20261005.json`：保持v10学习算法/软约束/成功恢复采样，单改训练收集分布。zero-based步600/900，对active且rough的偶数env施加world COM roll速度增量±1.25rad/s和相反方向横向速度∓0.12m/s，选中env之间方向交替，第二次反向。两条配对训练分支日程相同；每次状态写入后重算实际观测并记录前后root/增量。各评测臂全部无扰动，物理规则/任务门槛不变。最多192个训练env-impulse，单独统计；仍最多1152000物理控制步，先预留控制预算再写状态，无额外免费仿真。fresh learner859、collection863/864、evaluation877，从锁定v2重新初始化，不继承失败权重/数据。通过全部原门槛才另登记881/883/884/887独立复现。旧累计charged8063424/confirmed8063360/uncertain64保留。
+
+### v11 failed; v12 severe-recovery collection preregistration
+
+v11完成824576物理步、uncertain0，192训练env-impulse、所有评测0扰动。2000更新、5590纠正/120198自主，>20度成功恢复仅27行、>30度为0。seed877三个对照均64/64，v11为62/64（101为22/24），rough RMS0.10722m、最坏0.45930m，完成和最坏横偏门槛失败；不晋升、不启动复现。累计charged8888000/confirmed8887936/uncertain64。
+
+预登记 `docs/lite3_flowdagger_v12_protocol_20261005.json`：沿用v11训练扰动日程/选择，只将roll增量提高至±3.0rad/s、横向增量∓0.25m/s；自主恢复半批内25%层改为倾角>20度，至少32条成功样本才更新（另一层也>=32）。纠正排除阈值仍10度，不纳入失败回合、不改变评测或验收门槛。fresh learner907、collection911/912、evaluation919，从原始v2初始化；最多1152000物理步/192训练env-impulse。通过后才另登记929/937/938/941独立复现。针对训练覆盖不足的数据候选，不预先宣称稳定收益。
+
+### v11/v12 audits complete; v12 null learning result
+
+v11/v12逐步轨迹、扰动日程、前后root状态、实际body角速度观测、配对资格、失败原因与CPU部署回放审计通过。v12完成825344物理步、uncertain0、192训练env-impulse，所有评测无扰动。8309纠正、116685自主样本中没有>20度的成功恢复状态，两轮都因恢复层不足跳过；0更新，最终actor逐张量等于初始宽网络，64个配对评测回合指标也完全相同。seed919 flow63/64、旧v2 62/64、initial/candidate均61/64；候选rough RMS0.114923m、最坏0.427394m。零学习结果不晋升、不启动复现。累计charged9713344/confirmed9713280/uncertain64。47项相关测试通过，报告 `docs/lite3-flowdagger-perturbation-2026-10-05.md`。下一阶段需先研究有效的大倾角恢复示范来源，不能在现有不足数据上堆优化次数。
