@@ -1,0 +1,54 @@
+{
+  "schema": "lite3_frozen_multiseed_v1",
+  "runs": [
+    {
+      "seed": 2017,
+      "protocol": "docs/lite3_teacher_frozen_seed2017_protocol_20261006.json",
+      "sha256": "f79f558b05aa63685bae50c0fd4fba822a0be914a3ec80a576505f149cec31cc",
+      "output": "artifacts/recovery_teacher_20261006/frozen-seed2017",
+      "log": "/tmp/lite3-teacher-frozen-2017.log"
+    },
+    {
+      "seed": 2027,
+      "protocol": "docs/lite3_teacher_frozen_seed2027_protocol_20261006.json",
+      "sha256": "9bac492ac881ba01a74fc4dede1d98e8ecc8b4da9db92e95d0bd0f4996693b06",
+      "output": "artifacts/recovery_teacher_20261006/frozen-seed2027",
+      "log": "/tmp/lite3-teacher-frozen-2027.log"
+    },
+    {
+      "seed": 2029,
+      "protocol": "docs/lite3_teacher_frozen_seed2029_protocol_20261006.json",
+      "sha256": "ec64ebaf2dbccb793cc33b6c62289516d65797a64734f1b6c2fb8f6a586869bf",
+      "output": "artifacts/recovery_teacher_20261006/frozen-seed2029",
+      "log": "/tmp/lite3-teacher-frozen-2029.log"
+    },
+    {
+      "seed": 2039,
+      "protocol": "docs/lite3_teacher_frozen_seed2039_protocol_20261006.json",
+      "sha256": "eb7cd804246af5f03837b9145135e1c7848abeeb1635cb7b02a5cc0dd2e756d9",
+      "output": "artifacts/recovery_teacher_20261006/frozen-seed2039",
+      "log": "/tmp/lite3-teacher-frozen-2039.log"
+    },
+    {
+      "seed": 2053,
+      "protocol": "docs/lite3_teacher_frozen_seed2053_protocol_20261006.json",
+      "sha256": "394746570ba96fd4307ea472a67f333706fc7472788e6c6a83402c6eb0dd5639",
+      "output": "artifacts/recovery_teacher_20261006/frozen-seed2053",
+      "log": "/tmp/lite3-teacher-frozen-2053.log"
+    }
+  ],
+  "max_controls": 1280000,
+  "device": "cuda:3",
+  "acceptance": {
+    "minimum_total_completion_rate": 0.98,
+    "minimum_per_terrain_completion_rate": 0.95,
+    "maximum_rough_mean_trial_rms_m": 0.06,
+    "maximum_rough_peak_m": 0.2,
+    "completion_noninferior_per_terrain": true
+  },
+  "scope": "P1 frozen full-course verification only. Does not replace prior failed recovery qualification or independent training replication. Wilson interval is trial-level descriptive, not independent-terrain confidence.",
+  "prior_charged": 12508224,
+  "prior_confirmed": 12508160,
+  "prior_uncertain": 64,
+  "registered_at_utc": "2026-10-06T13:34:29.153896+00:00"
+}

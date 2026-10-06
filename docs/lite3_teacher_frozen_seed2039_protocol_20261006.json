@@ -1,0 +1,33 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 2000,
+  "max_controls": 256000,
+  "evaluation_seed": 2039,
+  "conditions": [
+    "course"
+  ],
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "validation",
+    "mixed": false
+  },
+  "acceptance": "All five preregistered seeds aggregated under the master protocol. No seed replacement or checkpoint selection.",
+  "models": {
+    "previous": {
+      "kind": "flow",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/flowdagger_20261003/pilot-v2/final.pt",
+      "sha256": "3e2e7a8693f7df5fadb102248b00e9257f3ba0c05d9cc445658eb033f446261b"
+    },
+    "teacher": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/teacher-v1/train/final.pt",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/teacher-v1/train/report.json",
+      "training_protocol_sha256": "c44bd4dc6becd657b9834d7698a6c787c751620257ba663560548b11f0ed933e"
+    }
+  },
+  "registered_at_utc": "2026-10-06T13:34:29.153656+00:00",
+  "scope": "Frozen teacher-v1 versus pinned v2 on a new initial-state seed, same fixed terrain101/107. No training, no recovery claim, no new-terrain or independent-training claim."
+}

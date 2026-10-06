@@ -25,6 +25,11 @@ def audit_training(root, protocol):
         hashes[file.name]=sha256_file(file)
         with np.load(file,allow_pickle=False) as d:
             obs=d["policy_observation"];case=d["recovery_case"];valid=case>=0
+            if protocol["recovery_resets"].get("dedicated_per_terrain") is not None:
+                # This registered128-slot layout has32flat,48rough101,48rough107.
+                assert protocol['num_envs']==128 and protocol['recovery_resets']['dedicated_per_terrain']==16
+                expected=np.zeros(128,bool);expected[32:48]=True;expected[80:96]=True
+                np.testing.assert_array_equal(valid,np.broadcast_to(expected,valid.shape))
             np.testing.assert_allclose(obs[...,6:9],np.broadcast_to([.3,0,0],obs[...,6:9].shape),atol=1e-7,rtol=0)
             assert not bank["validation"][case[valid]].any()
             assert np.isfinite(obs).all() and np.isfinite(d["requested_action"]).all()
@@ -134,7 +139,9 @@ def audit_evaluation(root,protocol):
             recovery_80percent=r["recovery_success"]>=.8*48,every_heldout_case=all(v>0 for v in r["recovery_by_case"].values()))
     return dict(status="verified",controls=total,cpu_replay_rows=replay_rows,phases=summaries,gates=gates,
         teacher_gate_passed=bool(gates) and all(gates.values()),
-        scope=f"Kinematic-reset development on bank split={protocol['recovery_resets']['split']}; repeated starts are not independent source episodes or hardware/unseen-terrain evidence.")
+        scope=(f"Kinematic-reset development on bank split={protocol['recovery_resets']['split']}; repeated starts are not independent source episodes or hardware/unseen-terrain evidence."
+            if any(c!='course' for c in protocol['conditions']) else
+            "Frozen full-course verification only; no recovery qualification, independent training replication, or unseen-terrain evidence."))
 
 
 def main():

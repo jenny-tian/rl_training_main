@@ -28,7 +28,21 @@ def bank_indices(terrain_types, env_ids, reset_counts, bank_terrain, validation,
     return result
 
 
-def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed):
+def dedicated_recovery_mask(terrain_types, per_terrain):
+    """Choose fixed recovery slots from the entire scene, not the reset subset."""
+    if type(per_terrain) is not int or per_terrain < 1:
+        raise ValueError("positive dedicated slot count required")
+    mask=torch.zeros_like(terrain_types,dtype=torch.bool)
+    for category in ((terrain_types>=2)&(terrain_types<5),terrain_types>=5):
+        pool=torch.where(category)[0]
+        if len(pool)<per_terrain:raise ValueError("insufficient rough slots for recovery allocation")
+        mask[pool[:per_terrain]]=True
+    return mask
+
+
+def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None):
+    if dedicated_per_terrain is not None and (split!='train' or mixed):
+        raise ValueError("dedicated recovery requires unmixed training resets")
     if not hasattr(env, "_recovery_bank"):
         if sha256_file(bank_path) != bank_sha256:
             raise ValueError("recovery bank hash mismatch")
@@ -37,10 +51,14 @@ def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed)
         env._recovery_case = torch.full((env.num_envs,), -1, device=env.device, dtype=torch.long)
         env._recovery_reset_count = torch.zeros_like(env._recovery_case)
         env._recovery_reset_rows = 0
+        env._recovery_dedicated_mask = (dedicated_recovery_mask(env.scene.terrain.terrain_types,dedicated_per_terrain)
+            if dedicated_per_terrain is not None else None)
     ids = torch.as_tensor(env_ids, device=env.device, dtype=torch.long)
     bank = env._recovery_bank
     cases = bank_indices(env.scene.terrain.terrain_types[ids], ids, env._recovery_reset_count[ids],
         bank["terrain"], bank["validation"], split=split, mixed=mixed)
+    if env._recovery_dedicated_mask is not None:
+        cases[~env._recovery_dedicated_mask[ids]]=-1
     env._recovery_reset_count[ids] += 1
     env._recovery_case[ids] = cases
     chosen = ids[cases >= 0]; cases = cases[cases >= 0]

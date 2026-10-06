@@ -106,3 +106,7 @@ with torch.inference_mode():
 # Send emitted_action to the canonical Lite3 joint-action interface and retain
 # that same emitted_action in the next observation's action history.
 ```
+
+## 2026-10-07 教师开发复现更新
+
+冻结PPO教师五种子320/320（旧v2为314/320），但原采样独立重训恢复0/48，未复现。固定32恢复槽消融两学习种子分别恢复0→37/48、29→39/48；后者横偏精度保持失败，两者仍有同一来源case零恢复。教师资格和完整收益复现均未通过，FlowDAgger新教师集成尚未启动。详见 [P1复现](lite3-p1-replication-result-2026-10-06.md)、[P2配对消融](lite3-p2-sampling-result-2026-10-06.md)。当前这些成绩属于PPO教师，不能写成FlowDAgger成绩。

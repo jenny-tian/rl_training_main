@@ -1,7 +1,7 @@
 import torch
 import pytest
 
-from rl_training.recovery_teacher import bank_indices
+from rl_training.recovery_teacher import bank_indices, dedicated_recovery_mask
 from rl_training.policy_flat_anchor import FrozenFlatMean
 
 
@@ -37,3 +37,14 @@ def test_route_anchor_retains_route_inputs_instead_of_stripping_them():
     obs=torch.zeros(2,48);obs[1,9]=.2
     assert anchor(obs)[1,0]>.19 and anchor(obs)[0,0]==0
     assert all(not p.requires_grad for p in anchor.parameters())
+
+
+def test_dedicated_recovery_uses_fixed_25percent_slots_and_preserves_flat():
+    terrain=torch.arange(8).repeat_interleave(16)
+    mask=dedicated_recovery_mask(terrain,16)
+    assert int(mask.sum())==32 and not mask[:32].any()
+    assert torch.where(mask)[0].tolist()==list(range(32,48))+list(range(80,96))
+    # Repeated fragmented reset calls must retain the scene-level allocation.
+    ids=torch.tensor([33,70,82,120])
+    assert mask[ids].tolist()==[True,False,True,False]
+    with pytest.raises(ValueError):dedicated_recovery_mask(terrain,49)

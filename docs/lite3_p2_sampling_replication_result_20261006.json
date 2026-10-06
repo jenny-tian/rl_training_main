@@ -1,0 +1,212 @@
+{
+  "ablation_gain_passed": false,
+  "ablation_gates": {
+    "course_completion": true,
+    "course_peak": false,
+    "course_rms": false,
+    "recovery_gain": true
+  },
+  "control_cost_reused_not_repeated": true,
+  "evidence": {
+    "artifacts/recovery_teacher_20261005/teacher-v1/evaluation/report.json": "180b2d606c7599831c2e0d7afeb87e5481a39b2fa311497c5991b8325c2f102f",
+    "artifacts/recovery_teacher_20261006/dedicated-recovery-seed953/evaluation/report.json": "8e794d03e449a9c6dbcdc14c38bb0599a432e823e4549da7a37c43266b3f1825",
+    "docs/lite3_p2_dedicated_replication_eval_audit_20261006.json": "61954f1b555b7cf7548ae953854b1a19472e7a6d96245dc125e7ccf31ab2cf1d",
+    "docs/lite3_p2_sampling_replication_protocol_20261006.json": "24179e75ca4fe396056cdced04af1839ef235a718c2ebaee48fb96021a6e5d06",
+    "docs/lite3_recovery_teacher_eval_result_20261005.json": "ebd131924c8bdbcf2dcd7c3499e825c6b799aca9b2d1bf8f6b772890f0829396"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed953/train/final.pt",
+    "sha256": "3df3832685e5cac181bb7c9a4d48c42415d84539c781b7bd43d5b889aef89ed3"
+  },
+  "new_controls": 2269504,
+  "paired_initial_states": true,
+  "results": {
+    "course-base": {
+      "by_terrain": {
+        "101": 20,
+        "107": 18,
+        "flat": 16
+      },
+      "recovered": 38,
+      "recovery_by_case": {
+        "-1": 38
+      },
+      "recovery_by_terrain": {
+        "101": 20,
+        "107": 18
+      },
+      "rough_peak": 0.5083293914794922,
+      "rough_rms": 0.1272254652964572,
+      "success": 54,
+      "total": 64
+    },
+    "course-candidate": {
+      "by_terrain": {
+        "101": 24,
+        "107": 24,
+        "flat": 16
+      },
+      "recovered": 48,
+      "recovery_by_case": {
+        "-1": 48
+      },
+      "recovery_by_terrain": {
+        "101": 24,
+        "107": 24
+      },
+      "rough_peak": 0.13767433166503906,
+      "rough_rms": 0.045620067161507905,
+      "success": 64,
+      "total": 64
+    },
+    "course-previous": {
+      "by_terrain": {
+        "101": 24,
+        "107": 23,
+        "flat": 16
+      },
+      "recovered": 47,
+      "recovery_by_case": {
+        "-1": 47
+      },
+      "recovery_by_terrain": {
+        "101": 24,
+        "107": 23
+      },
+      "rough_peak": 0.4292163848876953,
+      "rough_rms": 0.11833639489486814,
+      "success": 63,
+      "total": 64
+    },
+    "course-trial": {
+      "by_terrain": {
+        "101": 24,
+        "107": 24,
+        "flat": 16
+      },
+      "recovered": 48,
+      "recovery_by_case": {
+        "-1": 48
+      },
+      "recovery_by_terrain": {
+        "101": 24,
+        "107": 24
+      },
+      "rough_peak": 0.22871875762939453,
+      "rough_rms": 0.07146715396083891,
+      "success": 64,
+      "total": 64
+    },
+    "recovery-base": {
+      "by_terrain": {
+        "101": 0,
+        "107": 0,
+        "flat": 16
+      },
+      "recovered": 0,
+      "recovery_by_case": {
+        "0": 0,
+        "1": 0,
+        "10": 0,
+        "14": 0,
+        "19": 0,
+        "23": 0,
+        "5": 0
+      },
+      "recovery_by_terrain": {
+        "101": 0,
+        "107": 0
+      },
+      "rough_peak": 0.5085246562957764,
+      "rough_rms": 0.33596527576446533,
+      "success": 16,
+      "total": 64
+    },
+    "recovery-candidate": {
+      "by_terrain": {
+        "101": 17,
+        "107": 12,
+        "flat": 16
+      },
+      "recovered": 29,
+      "recovery_by_case": {
+        "0": 0,
+        "1": 2,
+        "10": 6,
+        "14": 7,
+        "19": 0,
+        "23": 6,
+        "5": 8
+      },
+      "recovery_by_terrain": {
+        "101": 17,
+        "107": 12
+      },
+      "rough_peak": 0.6628365516662598,
+      "rough_rms": 0.357528880238533,
+      "success": 45,
+      "total": 64
+    },
+    "recovery-previous": {
+      "by_terrain": {
+        "101": 0,
+        "107": 0,
+        "flat": 16
+      },
+      "recovered": 0,
+      "recovery_by_case": {
+        "0": 0,
+        "1": 0,
+        "10": 0,
+        "14": 0,
+        "19": 0,
+        "23": 0,
+        "5": 0
+      },
+      "recovery_by_terrain": {
+        "101": 0,
+        "107": 0
+      },
+      "rough_peak": 0.5203900337219238,
+      "rough_rms": 0.3323632460087538,
+      "success": 16,
+      "total": 64
+    },
+    "recovery-trial": {
+      "by_terrain": {
+        "101": 24,
+        "107": 15,
+        "flat": 16
+      },
+      "recovered": 39,
+      "recovery_by_case": {
+        "0": 0,
+        "1": 8,
+        "10": 6,
+        "14": 8,
+        "19": 3,
+        "23": 6,
+        "5": 8
+      },
+      "recovery_by_terrain": {
+        "101": 24,
+        "107": 15
+      },
+      "rough_peak": 0.5901508331298828,
+      "rough_rms": 0.31535312936951715,
+      "success": 55,
+      "total": 64
+    }
+  },
+  "scope": "One matched learning-seed sampling ablation; original qualification and independent-pair replication remain separate.",
+  "status": "audited_sampling_ablation",
+  "teacher_gate_passed": false,
+  "teacher_gates": {
+    "course_completion": true,
+    "course_peak": true,
+    "course_rms": true,
+    "every_case": false,
+    "recovery_80percent": true,
+    "recovery_noninferior": true
+  }
+}
