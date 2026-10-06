@@ -21,6 +21,7 @@ def audit_training(root, protocol):
     assert sha256_file(protocol["recovery_resets"]["bank_path"])==protocol["recovery_resets"]["bank_sha256"]
     total=0; selected_rows=0; resets=0; exposed=set(); counts={k:0 for k in ("success","failure","deadline")};hashes={}
     previous_done=np.ones(protocol["num_envs"],bool);previous_cases=None
+    vector_step=0;curriculum_resets={}
     for file in sorted((root/"trajectory").glob("chunk-*.npz")):
         hashes[file.name]=sha256_file(file)
         with np.load(file,allow_pickle=False) as d:
@@ -48,8 +49,16 @@ def audit_training(root, protocol):
                     np.testing.assert_allclose(d["pre_root_state"][j,reset,3:],bank["root"][ids,3:],atol=2e-6,rtol=1e-6)
                     np.testing.assert_allclose(obs[j,reset,12:24]+np.array([0,-.65,1.3]*4,np.float32),bank["joint_pos"][ids],atol=2e-6,rtol=0)
                     np.testing.assert_allclose(obs[j,reset,24:36]/.05,bank["joint_vel"][ids],atol=2e-5,rtol=1e-6)
-                    assert (-obs[j,reset,5] <= np.cos(np.deg2rad(19.9))).all()
-                previous_done=d["done"][j].astype(bool);previous_cases=case[j]
+                    schedule=protocol["recovery_resets"].get("curriculum")
+                    minimum=19.9
+                    if schedule:
+                        tier=schedule["bins"][sum(vector_step>=start for start in schedule["stage_starts"])-1]
+                        assert (bank["tilt_bin"][ids]==tier).all()
+                        curriculum_resets[str(tier)]=curriculum_resets.get(str(tier),0)+len(ids)
+                        minimum=(9.9,14.9,19.9)[tier]
+                        assert (-obs[j,reset,5] >= np.cos(np.deg2rad((15.1,20.1,30.1)[tier]))).all()
+                    assert (-obs[j,reset,5] <= np.cos(np.deg2rad(minimum))).all()
+                previous_done=d["done"][j].astype(bool);previous_cases=case[j];vector_step+=1
             for key in counts:counts[key]+=int((d[f"task_{key}"]&valid).sum())
             total+=case.size;selected_rows+=int(valid.sum())
     assert counts==report["recovery_episode_counts"]
@@ -57,7 +66,7 @@ def audit_training(root, protocol):
     assert report["ledger"]["uncertain_transitions"]==0
     assert sha256_file(root/"final.pt")==report["final_checkpoint"]["sha256"]
     return dict(status="verified",controls=total,recovery_controls=selected_rows,recovery_resets=resets,
-        exposed_training_cases=sorted(exposed),validation_cases_used=0,recovery_episode_counts=counts,
+        curriculum_resets_by_bin=curriculum_resets,exposed_training_cases=sorted(exposed),validation_cases_used=0,recovery_episode_counts=counts,
         final_sha256=report["final_checkpoint"]["sha256"],trace_sha256=hashes)
 
 
@@ -84,6 +93,14 @@ def audit_evaluation(root,protocol):
             assert (bank["validation"][cases[selected]]==(protocol["recovery_resets"]["split"]=="validation")).all()
             np.testing.assert_allclose(initial["root"][selected,:3]-initial["origins"][selected],bank["root"][cases[selected],:3],atol=5e-6,rtol=0)
             np.testing.assert_allclose(initial["root"][selected,3:],bank["root"][cases[selected],3:],atol=2e-6,rtol=1e-6)
+            assert sha256_file(protocol["recovery_resets"]["bank_path"])==protocol["recovery_resets"]["bank_sha256"]
+            if protocol["recovery_resets"].get("curriculum"):
+                tier=protocol["recovery_resets"]["curriculum"]["bins"][0]
+                assert (bank["tilt_bin"][cases[selected]]==tier).all()
+                tilt=np.rad2deg(np.arccos(np.clip(-initial["observation"][selected,5],-1,1)))
+                assert (tilt>=(9.9,14.9,19.9)[tier]).all() and (tilt<=(15.1,20.1,30.1)[tier]).all()
+                np.testing.assert_allclose(initial["observation"][selected,12:24]+np.array([0,-.65,1.3]*4,np.float32),bank["joint_pos"][cases[selected]],atol=2e-6,rtol=0)
+                np.testing.assert_allclose(initial["observation"][selected,24:36]/.05,bank["joint_vel"][cases[selected]],atol=2e-5,rtol=1e-6)
         width=protocol["num_envs"];active=np.ones(width,bool);history=np.zeros((width,12),np.float32)
         peak=np.zeros(width);squares=peak.copy();count=peak.copy();ends=np.zeros(width,int)
         streak=np.zeros(width,int);recovered=np.zeros(width,bool);successes=np.zeros(width,bool)

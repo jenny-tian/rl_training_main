@@ -122,7 +122,8 @@ def main():
                 initial_hash=hashlib.sha256(b"".join(v.tobytes() for v in initial.values())+json.dumps(delays,sort_keys=True).encode()).hexdigest()
                 if condition != "course":
                     chosen=cases>=0
-                    assert chosen.any() and (obs[chosen,5] > -np.cos(np.deg2rad(19.9))).all()
+                    minimum_tilt = p.get("minimum_initial_tilt_deg", 19.9)
+                    assert chosen.any() and (obs[chosen,5] > -np.cos(np.deg2rad(minimum_tilt))).all()
                     assert not bool(getattr(raw,"startup_active",False))
                 active=torch.ones(p["num_envs"],device=args.device,dtype=torch.bool)
                 peak=torch.zeros(p["num_envs"],device=args.device); squares=peak.clone(); count=peak.clone()

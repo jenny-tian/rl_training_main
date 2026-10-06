@@ -8,12 +8,15 @@ from rl_training.lite3_joint_conventions import LITE3_POLICY_JOINT_NAMES
 from rl_training.online_adaptation.provenance import sha256_file
 
 
-def bank_indices(terrain_types, env_ids, reset_counts, bank_terrain, validation, *, split, mixed):
+def bank_indices(terrain_types, env_ids, reset_counts, bank_terrain, validation, *, split, mixed, eligible=None):
     if split not in ("train", "validation"):
         raise ValueError("explicit recovery bank split required")
     result = torch.full_like(env_ids, -1)
     for category, mask in ((101, (terrain_types >= 2) & (terrain_types < 5)), (107, terrain_types >= 5)):
-        pool = torch.where((bank_terrain == category) & (validation == (split == "validation")))[0]
+        pool_mask = (bank_terrain == category) & (validation == (split == "validation"))
+        if eligible is not None:
+            pool_mask = pool_mask & eligible
+        pool = torch.where(pool_mask)[0]
         if not len(pool):
             raise ValueError("empty terrain/split recovery pool")
         selected = mask
@@ -40,7 +43,22 @@ def dedicated_recovery_mask(terrain_types, per_terrain):
     return mask
 
 
-def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None):
+def curriculum_bin(control_step, schedule):
+    """Select a preregistered tier using global vector steps, never episode outcomes."""
+    starts = schedule["stage_starts"]
+    bins = schedule["bins"]
+    if (not starts or len(starts) != len(bins) or starts[0] != 0
+            or any(type(x) is not int or x < 0 for x in starts)
+            or any(a >= b for a, b in zip(starts, starts[1:]))
+            or any(type(b) is not int or b not in (0, 1, 2) for b in bins)
+            or control_step < 0):
+        raise ValueError("invalid fixed recovery curriculum")
+    return bins[sum(control_step >= start for start in starts) - 1]
+
+
+def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None, curriculum=None):
+    if curriculum is not None and (split != "train" or mixed):
+        raise ValueError("curriculum requires unmixed training resets")
     if dedicated_per_terrain is not None and (split!='train' or mixed):
         raise ValueError("dedicated recovery requires unmixed training resets")
     if not hasattr(env, "_recovery_bank"):
@@ -55,8 +73,12 @@ def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed,
             if dedicated_per_terrain is not None else None)
     ids = torch.as_tensor(env_ids, device=env.device, dtype=torch.long)
     bank = env._recovery_bank
+    eligible = None
+    if curriculum is not None:
+        tier = curriculum_bin(env.common_step_counter, curriculum)
+        eligible = bank["tilt_bin"] == tier
     cases = bank_indices(env.scene.terrain.terrain_types[ids], ids, env._recovery_reset_count[ids],
-        bank["terrain"], bank["validation"], split=split, mixed=mixed)
+        bank["terrain"], bank["validation"], split=split, mixed=mixed, eligible=eligible)
     if env._recovery_dedicated_mask is not None:
         cases[~env._recovery_dedicated_mask[ids]]=-1
     env._recovery_reset_count[ids] += 1

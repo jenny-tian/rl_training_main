@@ -1,0 +1,26 @@
+{
+  "schema": "lite3_p2_sampling_ablation_v1",
+  "control_train_protocol": "docs/lite3_p2_dedicated_train_protocol_20261006.json",
+  "control_train_sha256": "4757ca303d8b244662009ebc12a4e9d3dbc8f69263601a078e7c92d3813f82fa",
+  "control_run": "artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063",
+  "control_eval_report_sha256": "d59e460d8cd83bfcd42d8b7206274ea6fad1a434a7cc886c754e7a8e066462fe",
+  "candidate_train_protocol": "docs/lite3_curriculum_train_protocol_20261007.json",
+  "candidate_train_sha256": "ee6ab45f396641681a01eaf882db0c8506ad317532b91cce14bfd583155da524",
+  "candidate_eval_protocol": "docs/lite3_curriculum_eval_protocol_20261007.json",
+  "candidate_eval_sha256": "ad347b82f0ed76e2397e91a98fd194a80e627f98a75b6b2fb3f5c9597ae84f73",
+  "candidate_run": "artifacts/recovery_teacher_20261007/curriculum-seed2063",
+  "max_new_controls": 2353152,
+  "acceptance": {
+    "minimum_recovery_gain_trials": 8,
+    "course_completion_noninferior_per_terrain": true,
+    "maximum_course_rms_ratio_vs_control": 1.05,
+    "worst_course_peak_noninferior": true
+  },
+  "qualification": "Report original teacher gates separately: course completion >=PPO283 and v2 per terrain, RMS<=.98*v2, peak<=v2; recovery>=both per terrain,>=80% overall, every held-out case successful at least once. Ablation gain alone does not qualify teacher.",
+  "conditional_replication": "Only if all unchanged ablation gain gates pass, separately register learner953 paired replication. No replacement of failed seed or thresholds.",
+  "registered_at_utc": "2026-10-06T16:40:12.375870+00:00",
+  "control_model": "trial",
+  "baseline_run": "artifacts/recovery_teacher_20261006/teacher-replica-v1",
+  "baseline_audit": "docs/lite3_teacher_replication_eval_result_20261006.json",
+  "baseline_eval_report_sha256": "ffe1459eb067cfc140dd29bc169ba4d021664c3d0c0168b79521ee69771344ef"
+}

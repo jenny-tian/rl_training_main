@@ -1,0 +1,35 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 64,
+  "max_controls": 4096,
+  "evaluation_seed": 2099,
+  "conditions": [
+    "smoke"
+  ],
+  "models": {
+    "base": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+      "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+    }
+  },
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261007/curriculum-bank-v1/bank.npz",
+    "bank_sha256": "9e680d98059437bc078251b88da8fffe8ca3cd43e7de92ce1fdd92b7f8440af1",
+    "split": "train",
+    "mixed": false,
+    "curriculum": {
+      "stage_starts": [
+        0
+      ],
+      "bins": [
+        1
+      ]
+    }
+  },
+  "registered_at_utc": "2026-10-06T16:37:31.933094+00:00",
+  "scope": "Engineering smoke only for tier1; original PPO283,48 rough starts,64 steps,4096 charged cap. Test reset/state validity; do not require policy recovery or discard failures.",
+  "minimum_initial_tilt_deg": 14.9
+}

@@ -48,3 +48,21 @@ def test_dedicated_recovery_uses_fixed_25percent_slots_and_preserves_flat():
     ids=torch.tensor([33,70,82,120])
     assert mask[ids].tolist()==[True,False,True,False]
     with pytest.raises(ValueError):dedicated_recovery_mask(terrain,49)
+
+
+def test_curriculum_boundaries_and_split_filtering():
+    from rl_training.recovery_teacher import curriculum_bin
+    schedule={"stage_starts":[0,4096,8192],"bins":[0,1,2]}
+    assert [curriculum_bin(s,schedule) for s in (0,4095,4096,8191,8192,16384)]==[0,0,1,1,2,2]
+    terrain=torch.tensor([101,101,101,107,107,107])
+    validation=torch.tensor([False,False,True,False,False,True])
+    tier=torch.tensor([0,1,0,0,1,0])
+    for b,expected in ((0,[0,3]),(1,[1,4])):
+        cases=bank_indices(torch.tensor([2,5]),torch.tensor([2,5]),torch.zeros(2,dtype=torch.long),
+            terrain,validation,split='train',mixed=False,eligible=tier==b)
+        assert cases.tolist()==expected
+    with pytest.raises(ValueError):
+        curriculum_bin(0,{"stage_starts":[0,0],"bins":[0,1]})
+    with pytest.raises(ValueError):
+        bank_indices(torch.tensor([2,5]),torch.tensor([2,5]),torch.zeros(2,dtype=torch.long),
+            terrain,validation,split='train',mixed=False,eligible=tier==2)

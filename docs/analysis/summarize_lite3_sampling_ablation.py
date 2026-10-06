@@ -28,11 +28,26 @@ def main():
         audit=json.loads(Path(audit_file).read_text())
         assert report['status']=='complete' and audit['status']=='verified'
         assert audit['evidence'][str(path)]==sha256_file(path)
+    assert sha256_file(p['control_train_protocol'])==p['control_train_sha256']
     assert sha256_file(p['candidate_train_protocol'])==p['candidate_train_sha256']
     assert sha256_file(p['candidate_eval_protocol'])==p['candidate_eval_sha256']
     for condition in ('course','recovery'):
-        assert trial['phases'][condition+'-trial']['initial_sha256']==control['phases'][condition+'-candidate']['initial_sha256']
+        assert trial['phases'][condition+'-trial']['initial_sha256']==control['phases'][condition+'-'+p.get('control_model','candidate')]['initial_sha256']
+    control_model=p.get('control_model','candidate')
     results={name:metrics(phase) for name,phase in control['phases'].items()}
+    for condition in ('course','recovery'):
+        results[condition+'-candidate']=metrics(control['phases'][condition+'-'+control_model])
+    if p.get('baseline_run'):
+        baseline_path=Path(p['baseline_run'])/'evaluation/report.json'
+        assert sha256_file(baseline_path)==p['baseline_eval_report_sha256']
+        baseline=json.loads(baseline_path.read_text())
+        audit=json.loads(Path(p['baseline_audit']).read_text())
+        assert audit['status']=='verified' and audit['evidence'][str(baseline_path)]==sha256_file(baseline_path)
+        for condition in ('course','recovery'):
+            for model in ('base','previous'):
+                phase=baseline['phases'][condition+'-'+model]
+                assert phase['initial_sha256']==trial['phases'][condition+'-trial']['initial_sha256']
+                results[condition+'-'+model]=metrics(phase)
     results.update({name:metrics(phase) for name,phase in trial['phases'].items()})
     a=results['course-trial'];b=results['course-candidate'];r=results['recovery-trial'];rb=results['recovery-candidate']
     criteria=p['acceptance']

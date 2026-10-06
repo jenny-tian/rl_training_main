@@ -1,0 +1,29 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 2000,
+  "max_controls": 256000,
+  "evaluation_seed": 2081,
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "validation",
+    "mixed": false
+  },
+  "acceptance": "Teacher candidate must complete full course per terrain at least as often as BOTH PPO283 and pinned v2; rough mean per-trial lateral RMS <=98% of v2 and worst rough lateral <=v2. Held-out recovery successes require sustained tilt<=10deg for25 controls plus course completion: >=both baselines per terrain, >=80% of48 rough trials overall, with no held-out source case completing zero trials. Every gate required. Success would qualify candidate for separately registered FlowDAgger integration, not prove learned adapter improvement or hardware recovery.",
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261007/curriculum-seed2063/train/final.pt",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261007/curriculum-seed2063/train/report.json",
+      "training_protocol_sha256": "ee6ab45f396641681a01eaf882db0c8506ad317532b91cce14bfd583155da524"
+    }
+  },
+  "registered_at_utc": "2026-10-06T16:40:12.375870+00:00",
+  "scope": "Original unchanged validation bank and eval2081. Candidate-only paired comparison versus fixed-slot2063 and pinned baselines. Never feed validation states into curriculum."
+}
