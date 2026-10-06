@@ -478,3 +478,15 @@ smoke-v1完成4096物理步、uncertain0，重置实际倾角>=19.9度、joint/e
 训练512迭代/2097152物理步，覆盖全部20训练初态、0验证泄漏；恢复回合控制109998、重置1444、完成224/失败1206。完整跑道seed971：旧PPO283为54/64、旧v2为63/64、新PPO教师64/64；rough平均RMS分别0.12723/0.11834/0.04562m，最坏0.50833/0.42922/0.13767m。留出恢复48槽（7来源初态重复）基线均0/48，新教师29/48（101为17/24、107为12/24）；case0/19均0/6。全部完整跑道门槛及相对恢复基线门槛通过，但80%恢复率/每来源至少一次成功门槛失败。不晋升、不接入FlowDAgger、不宣称独立训练复现。
 
 59项相关测试通过；训练/冻结轨迹、重置分区与状态、动作历史、CPU动作回放独立审计通过。实际新增2622592控制步（smoke4096+训练2097152+评测521344），无不确定步。加此前FlowDAgger累计charged12335936/confirmed12335872/uncertain64，更早PPO基础成本另列。最终SHA67006951ebb2ed337aeac7ede2a21709ba6bcc985e28220429a9368d2c17cdb9，报告 `docs/lite3-recovery-teacher-2026-10-05.md`。
+
+### 2026-10-06 requested video and experiment planning
+
+用户询问成功录像并要求后续计划。原64/64运行只有状态/动作轨迹，没有相机视频。登记 `docs/lite3_video_demo_protocol_20261006.json`：冻结新PPO教师SHA67006951…、原seed971、原64环境普通跑道，提前固定env16（首个rough101槽）为录制对象，960×540/25fps，首回合成功或失败都保留。仅渲染隐藏其他机器人，物理仍执行并计入最多128000控制步；相机帧不额外推进物理。明确新运行演示而非原评测录像，不训练、不替换种子、不宣称独立复现。此前累计12335936 charged/12335872 confirmed/64 uncertain，原PPO更早基础成本另列。
+
+录像attempt01继承DISPLAY=:3，Kit相机启动报GLXBadFBConfig并退出2，0 charged/confirmed/uncertain，原running日志保留，sidecar `startup_failure.json`补充退出原因。随后同模型/协议/seed/env16改用unset DISPLAY离屏后端，输出新目录attempt02；这是0物理步的图形初始化修复，不是择优重跑成功样本。
+
+录像attempt02完成86080控制步、uncertain0，64/64，选定env16成功；编码659帧/26.36秒。图像检查发现env0的visibility通过克隆继承隐藏了选中机器人，画面无机器人，不作为交付录像。保留原MP4/轨迹并修复选中env显式MakeVisible。另登记2×64=128步可见性工程probe，先看预览再进行完整补录；不是成功样本筛选。
+
+visibility-probe完成128步，预览确认选定机器人已可见。登记delivery协议：同一冻结模型/seed971/env16，换较近跟随镜头与balanced渲染，仍最多128000步，任何结果保留。前两次图形故障/空画面结果均保留，不作独立复现或替换旧评测。
+
+最终delivery完成86080控制步、uncertain0，64/64；预选env16/rough101成功，1318步，RMS0.0262197m、峰值0.0962181m。可见机器人MP4为659帧/25fps/26.36秒，SHA7402a723f1924d27b83aee2e59cfe792f38739e67744d6af8f05d0191cc67740；起点/中后段画面人工检查，帧遥测与物理轨迹/CPU动作回放独立审计。新运行演示，不冒充原评测或独立训练复现。本轮工程总172288步，累计charged12508224/confirmed12508160/uncertain64。后续方案 `docs/lite3-next-experiments-plan-2026-10-06.md` 为分阶段计划，除P0未启动新训练或新场景矩阵。

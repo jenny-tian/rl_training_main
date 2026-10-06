@@ -1,0 +1,34 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 2000,
+  "max_controls": 128000,
+  "evaluation_seed": 971,
+  "conditions": [
+    "course"
+  ],
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "validation",
+    "mixed": false
+  },
+  "acceptance": "Visualization and trace audit only; not a teacher qualification run.",
+  "models": {
+    "demo": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/teacher-v1/train/final.pt",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/teacher-v1/train/report.json",
+      "training_protocol_sha256": "c44bd4dc6becd657b9834d7698a6c787c751620257ba663560548b11f0ed933e"
+    }
+  },
+  "registered_at_utc": "2026-10-06T10:38:52.123169+00:00",
+  "scope": "New rendered frozen-model demonstration, same evaluation seed971. Not original64/64 footage or independent replication. Environment16 chosen before launch (first rough101 slot), record first episode regardless of success; all64 physics slots charged, no training or seed replacement.",
+  "video": {
+    "env_id": 16,
+    "width": 960,
+    "height": 540,
+    "stride": 2
+  }
+}

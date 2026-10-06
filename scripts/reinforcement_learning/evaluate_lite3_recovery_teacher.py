@@ -18,6 +18,11 @@ def main():
     from rl_training.online_adaptation.provenance import sha256_file, write_json_atomic
     from rl_training.vector_step_ledger import VectorStepLedger
     p = json.loads(Path(args.protocol).read_text())
+    video_options=p.get("video")
+    if video_options:
+        if not 0 <= video_options["env_id"] < p["num_envs"] or video_options["stride"] < 1:
+            raise ValueError("invalid video environment or frame stride")
+        args.enable_cameras=True
     out = Path(args.output); out.mkdir(parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[2]
     sources = {str(f.relative_to(root)): sha256_file(f) for folder in (root/"source/rl_training/rl_training", root/"scripts/reinforcement_learning") for f in sorted(folder.rglob("*.py"))}
@@ -27,7 +32,7 @@ def main():
                              metadata={"protocol_sha256":sha256_file(args.protocol)})
     report = dict(status="running", protocol_sha256=sha256_file(args.protocol), sources=sources, phases={})
     write_json_atomic(out/"report.json", report)
-    launcher = None; env = None; trace = None
+    launcher = None; env = None; trace = None; video = None
     try:
         launcher = AppLauncher(args)
         stop_requested=[]
@@ -77,15 +82,37 @@ def main():
                 cfg = parse_env_cfg(p["task"], device=args.device, num_envs=p["num_envs"])
                 cfg.seed = p["evaluation_seed"]
                 configure_route_observations(cfg); configure_forward_command(cfg.commands.base_velocity,.3)
+                if video_options:
+                    cfg.viewer.origin_type="asset_root";cfg.viewer.asset_name="robot"
+                    cfg.viewer.env_index=video_options["env_id"]
+                    cfg.viewer.eye=tuple(video_options.get("eye",(-2.2,-2.2,1.5)))
+                    cfg.viewer.lookat=tuple(video_options.get("lookat",(.45,0.,0.)))
+                    cfg.viewer.resolution=(video_options["width"],video_options["height"])
                 if condition != "course":
                     configure_recovery_resets(cfg,p["recovery_resets"])
-                env = gym.make(p["task"], cfg=cfg); raw = env.unwrapped
+                env = gym.make(p["task"], cfg=cfg,render_mode="rgb_array" if video_options else None); raw = env.unwrapped
                 if condition != "course":
                     check_recovery_event_order(raw)
                 wrapped = RslRlVecEnvWrapper(env,clip_actions=None)
                 obs = wrapped.get_observations()["policy"]
                 robot = raw.scene["robot"]; origins = raw.scene.env_origins.clone()
                 folder = out/f"{condition}-{name}"; folder.mkdir()
+                if video_options:
+                    from pxr import UsdGeom
+                    from rl_training.online_adaptation.simulation_video import SimulationVideo
+                    # Only visual visibility changes. Other actors continue
+                    # their registered physical trials and remain in the ledger.
+                    for i in range(p["num_envs"]):
+                        if i!=video_options["env_id"]:
+                            UsdGeom.Imageable(raw.sim.stage.GetPrimAtPath(f"/World/envs/env_{i}")).MakeInvisible()
+                    # Cloned environments inherit env_0 properties. Override
+                    # visibility locally after hiding the source environment.
+                    selected_prim=raw.sim.stage.GetPrimAtPath(f"/World/envs/env_{video_options['env_id']}")
+                    UsdGeom.Imageable(selected_prim).MakeVisible()
+                    assert UsdGeom.Imageable(selected_prim).ComputeVisibility()!=UsdGeom.Tokens.invisible
+                    for _ in range(10):raw.render()
+                    video=SimulationVideo(folder/"demo.mp4",width=video_options["width"],height=video_options["height"],
+                        fps=1/(raw.step_dt*video_options["stride"]))
                 cases = raw._recovery_case.clone() if condition != "course" else torch.full((p["num_envs"],),-1,device=args.device)
                 initial = dict(root=robot.data.root_state_w.cpu().numpy().copy(), origins=origins.cpu().numpy(),
                     observation=obs.cpu().numpy(),joint_pos=robot.data.joint_pos.cpu().numpy(),
@@ -113,6 +140,12 @@ def main():
                         requested=model[0](obs,model[1](obs)) if isinstance(model,tuple) else model(obs)
                         emitted=clip_lite3_policy_action(requested)
                     before=obs.clone(); before_active=active.clone()
+                    if video is not None and bool(active[video_options["env_id"]]) and step%video_options["stride"]==0:
+                        i=video_options["env_id"];t=int(initial["terrain"][i])
+                        video.append(raw.render(),step=step,time_s=step*raw.step_dt,
+                            lateral_m=float(robot.data.root_pos_w[i,1]-origins[i,1]),
+                            tilt_deg=float(torch.rad2deg(torch.acos((-obs[i,5]).clamp(-1,1)))),
+                            terrain="flat" if t<2 else (101 if t<5 else 107),env_id=i)
                     ledger.reserve(); next_obs,reward,done,_=wrapped.step(emitted);ledger.confirm()
                     history=emitted.clone();history[done.bool()]=0
                     torch.testing.assert_close(next_obs["policy"][:,-12:],history,atol=1e-6,rtol=0)
@@ -145,6 +178,11 @@ def main():
                             max_body_lateral_m=float(peak[i]),body_lateral_rms_m=float((squares[i]/count[i]).sqrt()))
                 trace.close(complete=True);trace=None
                 phase=dict(status="complete",initial_sha256=initial_hash,episodes=episodes,confirmed_controls=ledger.state["confirmed"]-phase_start)
+                if video is not None:
+                    video.close();phase["video"]=dict(path=str(video.path),sha256=sha256_file(video.path),
+                        frames=len(video.samples),env_id=video_options["env_id"],
+                        scope="New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.")
+                    video=None
                 write_json_atomic(folder/"report.json",phase);report["phases"][f"{condition}-{name}"]=phase
                 write_json_atomic(out/"report.json",report)
                 env.close();env=None
@@ -160,6 +198,7 @@ def main():
         report.update(status="failed",error=repr(error),ledger=ledger.state);write_json_atomic(out/"report.json",report)
         raise
     finally:
+        if video is not None:video.close()
         if env is not None:env.close()
         if launcher is not None:launcher.app.close()
 
