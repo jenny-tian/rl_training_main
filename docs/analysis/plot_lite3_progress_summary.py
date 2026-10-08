@@ -18,7 +18,9 @@ OUT=ROOT/'docs/figures';OUT.mkdir(exist_ok=True)
 def read(name):return json.loads((ROOT/'docs'/name).read_text())
 def save(fig,name):
     fig.savefig(OUT/(name+'.png'),dpi=160,bbox_inches='tight')
-    fig.savefig(OUT/(name+'.svg'),bbox_inches='tight')
+    svg=OUT/(name+'.svg')
+    fig.savefig(svg,bbox_inches='tight')
+    svg.write_text('\n'.join(line.rstrip() for line in svg.read_text().splitlines())+'\n')
     plt.close(fig)
 
 
