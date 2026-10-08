@@ -1,0 +1,35 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 64,
+  "max_controls": 4096,
+  "evaluation_seed": 2143,
+  "conditions": [
+    "smoke"
+  ],
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+      "sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f"
+    }
+  },
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "train",
+    "mixed": false,
+    "fixed_train_case": 11
+  },
+  "registered_at_utc": "2026-10-08T07:30:42.603043+00:00",
+  "scope": "Engineering check only: repeat TRAIN case11 on matching terrain; ordinary rows are paid padding. Compare no prefix, zero prefix and fixed nonzero prefix. Verify handoff, command/action history and torque/contact logs; never claim task success from cutoff.",
+  "contact_diagnostics": true,
+  "action_prefix": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_search_20261008/smoke-zero-prefix.npy",
+    "sha256": "4e06a4da22c72b423bd420280c51f59ffbf6cced712b411eb7c2ee35458d34fd",
+    "knots": 3,
+    "hold_steps": 4,
+    "bound": 2.0
+  }
+}

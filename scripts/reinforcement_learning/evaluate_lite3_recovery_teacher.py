@@ -54,6 +54,15 @@ def main():
         torch.set_num_threads(4)
         torch.backends.cuda.matmul.allow_tf32 = False
         torch.backends.cudnn.allow_tf32 = False
+        prefix=None
+        if p.get("action_prefix"):
+            from rl_training.recovery_sequence_search import prefix_at_step
+            spec=p["action_prefix"]
+            assert sha256_file(spec["path"])==spec["sha256"]
+            prefix=np.load(spec["path"],allow_pickle=False)
+            assert prefix.shape==(p["num_envs"],spec["knots"],12) and np.isfinite(prefix).all()
+            assert np.abs(prefix).max()<=spec["bound"] and spec["hold_steps"]>=1
+            assert p["recovery_resets"]["split"]=="train" and p["recovery_resets"].get("fixed_train_case") is not None
         models = {}
         for name, spec in p["models"].items():
             expected = spec.get("sha256")
@@ -125,6 +134,8 @@ def main():
                     minimum_tilt = p.get("minimum_initial_tilt_deg", 19.9)
                     assert chosen.any() and (obs[chosen,5] > -np.cos(np.deg2rad(minimum_tilt))).all()
                     assert not bool(getattr(raw,"startup_active",False))
+                if prefix is not None:
+                    assert np.all(prefix[cases.cpu().numpy()<0]==0)
                 active=torch.ones(p["num_envs"],device=args.device,dtype=torch.bool)
                 peak=torch.zeros(p["num_envs"],device=args.device); squares=peak.clone(); count=peak.clone()
                 streak=torch.zeros(p["num_envs"],device=args.device,dtype=torch.long); recovered=torch.zeros_like(active)
@@ -135,8 +146,11 @@ def main():
                     sensor = raw.scene["contact_forces"]
                     contact_ids, contact_names = sensor.find_bodies(feet, preserve_order=True)
                     assert list(foot_names) == list(contact_names) == feet
+                    from rl_training.lite3_joint_conventions import LITE3_POLICY_JOINT_NAMES
+                    torque_ids, torque_names=robot.find_joints(list(LITE3_POLICY_JOINT_NAMES),preserve_order=True)
+                    assert tuple(torque_names)==LITE3_POLICY_JOINT_NAMES
                     write_json_atomic(folder/"diagnostic_metadata.json", dict(
-                        foot_order=feet, step_dt=raw.step_dt, timing="post-control, before automatic reset",
+                        foot_order=feet, joint_order=list(torque_names), step_dt=raw.step_dt, timing="post-control, before automatic reset",
                         contact_measurement="last physics substep net force, not a static support polygon",
                         root_com="base-link COM, not whole-robot COM"))
                 episodes=[None]*p["num_envs"]; captured={}; compute=raw.termination_manager.compute
@@ -146,7 +160,9 @@ def main():
                         captured["diagnostics"] = dict(
                             foot_position_w=robot.data.body_pos_w[:,foot_ids].detach().clone(),
                             foot_contact_force_w=sensor.data.net_forces_w[:,contact_ids].detach().clone(),
-                            base_com_position_w=robot.data.root_com_pos_w.detach().clone())
+                            base_com_position_w=robot.data.root_com_pos_w.detach().clone(),
+                            joint_computed_torque=robot.data.computed_torque[:,torque_ids].detach().clone(),
+                            joint_applied_torque=robot.data.applied_torque[:,torque_ids].detach().clone())
                     return value
                 raw.termination_manager.compute=capture
                 trace=StepTrajectory(folder/"trajectory",metadata={"condition":condition,"model":name,"root":"post-step pre-reset"},chunk_steps=128,vector_dtype="float32")
@@ -156,6 +172,10 @@ def main():
                     torch.testing.assert_close(obs[:,6:9],obs.new_tensor([.3,0.,0.]).expand(len(obs),3),atol=1e-7,rtol=0)
                     with torch.no_grad():
                         requested=model[0](obs,model[1](obs)) if isinstance(model,tuple) else model(obs)
+                        base_requested=requested
+                        if prefix is not None:
+                            offset=torch.as_tensor(prefix_at_step(prefix,step,p["action_prefix"]["hold_steps"]),device=args.device)
+                            requested=base_requested+offset
                         emitted=clip_lite3_policy_action(requested)
                     before=obs.clone(); before_active=active.clone()
                     if video is not None and bool(active[video_options["env_id"]]) and step%video_options["stride"]==0:
@@ -180,7 +200,8 @@ def main():
                     trace.append(**trace.snapshot(policy_observation=before,requested_action=requested,emitted_action=emitted,
                         active=before_active,done=done,success=success,failure=failure,deadline=deadline,post_root_state=state,
                         **{f"failure_{k}":v for k,v in terms.items()},
-                        **(captured["diagnostics"] if diagnostic else {})))
+                        **(captured["diagnostics"] if diagnostic else {}),
+                        **(dict(base_requested_action=base_requested,search_offset=offset) if prefix is not None else {})))
                     for i in torch.where(active&done.bool())[0].tolist():
                         t=int(initial["terrain"][i]);episodes[i]=dict(env_id=i,terrain="flat" if t<2 else str(101 if t<5 else 107),
                             case=int(cases[i]),steps=step+1,success=bool(success[i]),recovery_success=bool(success[i]&recovered[i]),
@@ -209,6 +230,7 @@ def main():
             assert len({report["phases"][f"{condition}-{m}"]["initial_sha256"] for m in models})==1
         assert all(sha256_file(s["path"])==s["actual_sha256"] for s in p["models"].values())
         assert all(sha256_file(root/f)==h for f,h in sources.items())
+        if prefix is not None:assert sha256_file(p["action_prefix"]["path"])==p["action_prefix"]["sha256"]
         ledger.finish();report.update(status="complete",ledger=ledger.state)
         write_json_atomic(out/"report.json",report)
     except BaseException as error:

@@ -56,6 +56,17 @@ def source_stratified_cases(terrain_types, per_terrain, bank_terrain, validation
     return cases
 
 
+def single_training_case(terrain_types, bank_terrain, validation, case):
+    """A diagnostic may repeat one TRAIN state only on its matching terrain."""
+    if type(case) is not int or not 0 <= case < len(bank_terrain) or bool(validation[case]):
+        raise ValueError("diagnostic case must be an existing TRAIN source")
+    terrain=int(bank_terrain[case])
+    if terrain not in (101,107):raise ValueError("unknown recovery terrain")
+    selected=((terrain_types>=2)&(terrain_types<5)) if terrain==101 else terrain_types>=5
+    if not bool(selected.any()):raise ValueError("diagnostic terrain has no slots")
+    return torch.where(selected,torch.full_like(terrain_types,case),torch.full_like(terrain_types,-1)).long()
+
+
 def curriculum_bin(control_step, schedule):
     """Select a preregistered tier using global vector steps, never episode outcomes."""
     starts = schedule["stage_starts"]
@@ -69,7 +80,9 @@ def curriculum_bin(control_step, schedule):
     return bins[sum(control_step >= start for start in starts) - 1]
 
 
-def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None, curriculum=None, source_stratified=False):
+def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None, curriculum=None, source_stratified=False, fixed_train_case=None):
+    if fixed_train_case is not None and (split != "train" or mixed or dedicated_per_terrain is not None or curriculum is not None or source_stratified):
+        raise ValueError("fixed case is only for unmixed TRAIN diagnostics")
     if source_stratified and (split != "train" or mixed or curriculum is not None or dedicated_per_terrain is None):
         raise ValueError("source stratification requires dedicated unmixed training without curriculum")
     if curriculum is not None and (split != "train" or mixed):
@@ -100,6 +113,8 @@ def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed,
         cases[~env._recovery_dedicated_mask[ids]]=-1
     if env._recovery_fixed_cases is not None:
         cases = env._recovery_fixed_cases[ids].clone()
+    if fixed_train_case is not None:
+        cases = single_training_case(env.scene.terrain.terrain_types, bank["terrain"], bank["validation"], fixed_train_case)[ids]
     env._recovery_reset_count[ids] += 1
     env._recovery_case[ids] = cases
     chosen = ids[cases >= 0]; cases = cases[cases >= 0]

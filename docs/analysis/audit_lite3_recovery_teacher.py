@@ -79,6 +79,13 @@ def audit_training(root, protocol):
 
 def audit_evaluation(root,protocol):
     report=json.loads((root/"report.json").read_text());assert report["status"]=="complete"
+    prefix=None
+    if protocol.get("action_prefix"):
+        spec=protocol["action_prefix"]
+        assert sha256_file(spec["path"])==spec["sha256"]
+        prefix=np.load(spec["path"],allow_pickle=False)
+        assert prefix.shape==(protocol["num_envs"],spec["knots"],12)
+        assert np.isfinite(prefix).all() and np.abs(prefix).max()<=spec["bound"]
     models={}
     for name,spec in report["models"].items():
         assert sha256_file(spec["path"])==spec["actual_sha256"]
@@ -101,6 +108,13 @@ def audit_evaluation(root,protocol):
             np.testing.assert_allclose(initial["root"][selected,:3]-initial["origins"][selected],bank["root"][cases[selected],:3],atol=5e-6,rtol=0)
             np.testing.assert_allclose(initial["root"][selected,3:],bank["root"][cases[selected],3:],atol=2e-6,rtol=1e-6)
             assert sha256_file(protocol["recovery_resets"]["bank_path"])==protocol["recovery_resets"]["bank_sha256"]
+            if protocol["recovery_resets"].get("fixed_train_case") is not None:
+                case=protocol["recovery_resets"]["fixed_train_case"]
+                assert not bank["validation"][case] and protocol["recovery_resets"]["split"]=="train"
+                terrain=initial["terrain"]
+                mask=((terrain>=2)&(terrain<5)) if bank["terrain"][case]==101 else terrain>=5
+                np.testing.assert_array_equal(cases,np.where(mask,case,-1))
+                if prefix is not None:assert np.all(prefix[~mask]==0)
             if protocol["recovery_resets"].get("source_stratified"):
                 assert protocol["num_envs"]==128 and protocol["recovery_resets"]["dedicated_per_terrain"]==16
                 expected_cases=np.full(128,-1,dtype=int)
@@ -132,13 +146,26 @@ def audit_evaluation(root,protocol):
                         assert d[key].shape==(*obs.shape[:2],4,3) and np.isfinite(d[key]).all()
                     assert d["base_com_position_w"].shape==(*obs.shape[:2],3)
                     assert np.isfinite(d["base_com_position_w"]).all()
+                    for key in ("joint_computed_torque","joint_applied_torque"):
+                        if key in d:
+                            assert d[key].shape==(*obs.shape[:2],12) and np.isfinite(d[key]).all()
+                        elif prefix is not None:raise AssertionError("missing search torque telemetry")
                     assert (np.linalg.norm(d["base_com_position_w"]-d["post_root_state"][...,:3],axis=-1)<.5).all()
 
                 np.testing.assert_allclose(obs[...,6:9],np.broadcast_to([.3,0,0],obs[...,6:9].shape),atol=1e-7,rtol=0)
                 expected=np.clip(d["requested_action"],np.array(LITE3_SAFE_ACTION_LOWER,np.float32),np.array(LITE3_SAFE_ACTION_UPPER,np.float32))
                 np.testing.assert_array_equal(d["emitted_action"],expected)
+                replay_key="requested_action"
+                if prefix is not None:
+                    expected_offset=np.zeros_like(d["requested_action"])
+                    for j in range(len(obs)):
+                        knot=(steps+j)//protocol["action_prefix"]["hold_steps"]
+                        if knot<prefix.shape[1]:expected_offset[j]=prefix[:,knot]
+                    np.testing.assert_array_equal(d["search_offset"],expected_offset)
+                    np.testing.assert_allclose(d["requested_action"],d["base_requested_action"]+expected_offset,atol=1e-6,rtol=0)
+                    replay_key="base_requested_action"
                 sampled=obs.reshape(-1,48)[d["active"].reshape(-1)][::128][:8]
-                actions=d["requested_action"].reshape(-1,12)[d["active"].reshape(-1)][::128][:8]
+                actions=d[replay_key].reshape(-1,12)[d["active"].reshape(-1)][::128][:8]
                 with torch.no_grad():
                     o=torch.from_numpy(sampled);model=models[name]
                     prediction=model[0](o,model[1](o)) if isinstance(model,tuple) else model(o)

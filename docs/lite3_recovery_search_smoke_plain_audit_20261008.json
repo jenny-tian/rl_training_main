@@ -1,0 +1,35 @@
+{
+  "controls": 4096,
+  "cpu_replay_rows": 8,
+  "evidence": {
+    "artifacts/recovery_search_20261008/smoke-plain/report.json": "fc8e5dce83b36796b21456f17bd1523a6481eb11b968a6f58e5a9b30199eaa1b",
+    "docs/lite3_recovery_search_smoke_plain_protocol_20261008.json": "4d68447d0c867f47d86aa62a6db21c50b23608500f77c02acfc0a84919d4bec9"
+  },
+  "gates": {},
+  "phases": {
+    "smoke-trial": {
+      "by_terrain": {
+        "101": 0,
+        "107": 0,
+        "flat": 0
+      },
+      "recovery_by_case": {
+        "-1": 0,
+        "11": 0
+      },
+      "recovery_by_terrain": {
+        "101": 0,
+        "107": 0
+      },
+      "recovery_success": 0,
+      "rough_mean_rms_m": 0.1800225504557602,
+      "rough_peak_m": 0.42583465576171875,
+      "trace_sha256": {
+        "chunk-00000.npz": "56fad782d8234bc76f22d0ceb1b01061109677261735f22bd3a193021da6ff3a"
+      }
+    }
+  },
+  "scope": "Kinematic-reset development on bank split=train; repeated starts are not independent source episodes or hardware/unseen-terrain evidence.",
+  "status": "verified",
+  "teacher_gate_passed": false
+}

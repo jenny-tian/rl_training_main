@@ -1,0 +1,84 @@
+{
+  "acceptance": "Each seed requires >=20/24 target episodes completing original course after post-handoff25-control upright recovery with >=5 controls of2-foot upward force; >=80% in all four Hip/Knee delay strata, and more completions than paired base. Missing stratum fails evidence gate. No altered failures, rewards, input states or learned weights.",
+  "expanded_prefix_sha256": "2a6dc49109d382d3110b5a88f7605e59ddd47cd5bbecba0d2c7aa62992aea274",
+  "max_controls": 512000,
+  "minimum_positives": 20,
+  "minimum_stratum_fraction": 0.8,
+  "model_sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f",
+  "registered_at_utc": "2026-10-08T08:23:28.083791+00:00",
+  "runs": [
+    {
+      "arm": "base",
+      "audit": "docs/lite3_recovery_fullcourse_seed2213_base_audit_20261008.json",
+      "output": "artifacts/recovery_search_20261008/fullcourse-seed2213-base",
+      "protocol": "docs/lite3_recovery_fullcourse_seed2213_base_protocol_20261008.json",
+      "protocol_sha256": "90c0a13628abbc489c8c91310fbc200ab2dcfa30d92c4c5fbf22506d52578427",
+      "seed": 2213
+    },
+    {
+      "arm": "prefix",
+      "audit": "docs/lite3_recovery_fullcourse_seed2213_prefix_audit_20261008.json",
+      "output": "artifacts/recovery_search_20261008/fullcourse-seed2213-prefix",
+      "protocol": "docs/lite3_recovery_fullcourse_seed2213_prefix_protocol_20261008.json",
+      "protocol_sha256": "d83c90eec2a0d995739bfa01ab7a46bc2d74701995aee84472faf09c61825ee5",
+      "seed": 2213
+    },
+    {
+      "arm": "base",
+      "audit": "docs/lite3_recovery_fullcourse_seed2221_base_audit_20261008.json",
+      "output": "artifacts/recovery_search_20261008/fullcourse-seed2221-base",
+      "protocol": "docs/lite3_recovery_fullcourse_seed2221_base_protocol_20261008.json",
+      "protocol_sha256": "0da28da998f020974bda43fd082908b148a83d85e99caf9dd00d53a8cac107bb",
+      "seed": 2221
+    },
+    {
+      "arm": "prefix",
+      "audit": "docs/lite3_recovery_fullcourse_seed2221_prefix_audit_20261008.json",
+      "output": "artifacts/recovery_search_20261008/fullcourse-seed2221-prefix",
+      "protocol": "docs/lite3_recovery_fullcourse_seed2221_prefix_protocol_20261008.json",
+      "protocol_sha256": "50d2ade35497de8cfbd8404474495ba015868f1f27befa0346754dd3e247674c",
+      "seed": 2221
+    }
+  ],
+  "schema": "lite3_recovery_prefix_fullcourse_v1",
+  "scope": "Only previously confirmed TRAIN case26; use fixed robust-screen candidate15, never reselect after full-course outcome. This tests existence of a usable recovery prefix, not a trained state-conditioned policy, held-out qualification or hardware.",
+  "screen_audit": "docs/lite3_recovery_robust_screen_audit_20261008.json",
+  "screen_audit_sha256": "0ed7e3e297f50908f7c8a15a60319241cccfd2a1db27d2e55671fc075b0dee21",
+  "seeds": [
+    2213,
+    2221
+  ],
+  "selected_prefix": {
+    "path": "artifacts/recovery_search_20261008/positive-prefix-pool/candidate15.npy",
+    "sha256": "d134e1c7fbfa231304e3c32abc563233e27759b6f962fd812b16133e144df975",
+    "source_env_id": 57,
+    "source_phase": "case26/generation05",
+    "source_prefix_sha256": "c73c2cc92797176e20ded26b65648046bf9ae7ee2238b38fda87b558caa5831e"
+  },
+  "target_env_ids": [
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63
+  ]
+}
