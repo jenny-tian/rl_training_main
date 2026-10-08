@@ -1,0 +1,55 @@
+{
+  "base_checkpoint": "artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+  "base_sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f",
+  "batch_groups": {
+    "correction": 128,
+    "flat": 128,
+    "post_recovery": 128,
+    "rough101": 64,
+    "rough107": 64
+  },
+  "collections": [
+    {
+      "audit": "docs/lite3_prefix_imitation_collect_course_audit_20261008.json",
+      "output": "artifacts/prefix_imitation_20261008/collect-course",
+      "phase": "course-trial",
+      "protocol": "docs/lite3_prefix_imitation_collect_course_protocol_20261008.json",
+      "protocol_sha256": "f65bce6b3dd1817d11acfbd73aee981e4255b711df30a1f3f0e22b5bb287bce3",
+      "role": "course",
+      "seed": 2243
+    },
+    {
+      "audit": "docs/lite3_prefix_imitation_collect_prefix_audit_20261008.json",
+      "output": "artifacts/prefix_imitation_20261008/collect-prefix",
+      "phase": "recovery-trial",
+      "protocol": "docs/lite3_prefix_imitation_collect_prefix_protocol_20261008.json",
+      "protocol_sha256": "1c025132a54a5dd2d9eb62f9b8935e85af6d78d280c823399d8d628df16e7de9",
+      "role": "prefix",
+      "seed": 2237
+    }
+  ],
+  "conditional_validation": "Only if every pilot gate passes, candidate-only course/recovery at original seed2081 and original7-source validation bank, reuse paid baselines after exact initial hash matching; original teacher gates unchanged, no FlowDAgger integration.",
+  "dataset": "artifacts/prefix_imitation_20261008/dataset/dataset.npz",
+  "learner_seed": 2247,
+  "learning_rate": 1e-05,
+  "max_collection_controls": 256000,
+  "max_conditional_validation_controls": 256000,
+  "max_grad_norm": 1.0,
+  "max_new_controls": 1024000,
+  "max_pilot_controls": 512000,
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-08T12:11:02.866498+00:00",
+  "schema": "lite3_prefix_imitation_plan_v1",
+  "scope": "First test whether a48D state-conditioned actor can reproduce the demonstrated recovery without scripted prefix, while retaining ordinary walking. The0.70m TRAIN-case engineering ceiling is not a precision-tracking or original teacher-qualification threshold. Recovery lateral error is reported separately; supervised imitation alone is not assumed to improve on teacher drift.",
+  "selection": "Final2000-update full actor only, no epoch/seed replacement. Supervised MSE to emitted targets, no critic or PPO/SAC/flow update. Original actor initialization, no time index/case id/prefix flag added to48D inputs; all actor layers train.",
+  "split": "Whole environment streams env_id%4==0 are offline validation, never fitted. This is not source holdout; original7 validation sources remain untouched.",
+  "updates": 2000
+}

@@ -1,0 +1,36 @@
+{
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 512000,
+  "models": {
+    "base": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+      "sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f"
+    },
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/prefix_imitation_20261008/learner2247/train/final.pt",
+      "training_algorithm": "supervised mean-actor MSE; not PPO",
+      "training_protocol_sha256": "798c4345cbbf92873c546358d41a42901afd128e1e722609dadfdccfe99abf33",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/prefix_imitation_20261008/learner2247/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-08T12:37:51.614681+00:00",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "No scripted prefix or teacher takeover. Compare original frozen actor and supervised48D actor at same initial states/delays, ordinary course plus TRAIN case26. Original7-source qualification separate.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

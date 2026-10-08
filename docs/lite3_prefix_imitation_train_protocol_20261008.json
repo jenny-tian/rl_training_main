@@ -1,0 +1,24 @@
+{
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+  "base_sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f",
+  "batch_groups": {
+    "correction": 128,
+    "flat": 128,
+    "post_recovery": 128,
+    "rough101": 64,
+    "rough107": 64
+  },
+  "collection_protocol_sha256": "4e71fed828f4aadc0330d63440a21e17ceee14a5c38d65af6169cf85f983dfd6",
+  "dataset": "artifacts/prefix_imitation_20261008/dataset/dataset.npz",
+  "dataset_audit": "docs/lite3_prefix_imitation_dataset_audit_20261008.json",
+  "dataset_audit_sha256": "420b855216c53630f13cfc425748532b820e75d74b287ffc758a5fd944e4fe87",
+  "dataset_report": "artifacts/prefix_imitation_20261008/dataset/report.json",
+  "dataset_report_sha256": "b656e661315806e37619a9eb89c0ef2ae6e379f4642b2639ea7d0b7c825eb2dc",
+  "learning_rate": 1e-05,
+  "max_grad_norm": 1.0,
+  "registered_at_utc": "2026-10-08T12:37:51.613024+00:00",
+  "schema": "lite3_prefix_imitation_train_v1",
+  "seed": 2247,
+  "selection": "Final2000-update full actor only, no epoch/seed replacement. Supervised MSE to emitted targets, no critic or PPO/SAC/flow update. Original actor initialization, no time index/case id/prefix flag added to48D inputs; all actor layers train.",
+  "updates": 2000
+}

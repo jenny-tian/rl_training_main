@@ -1,0 +1,72 @@
+{
+  "after": {
+    "train": {
+      "correction": 0.010385046770543228,
+      "flat": 3.071435742466367e-05,
+      "post_recovery": 0.0005460037967167304,
+      "rough101": 7.550340356591659e-05,
+      "rough107": 7.772334010210382e-05
+    },
+    "validation": {
+      "correction": 0.009073113401730856,
+      "flat": 3.116957779719408e-05,
+      "post_recovery": 0.0006733598380253233,
+      "rough101": 8.32306886021095e-05,
+      "rough107": 8.10242051313698e-05
+    }
+  },
+  "before": {
+    "train": {
+      "correction": 0.7280637953016493,
+      "flat": 3.3541756644001665e-14,
+      "post_recovery": 0.00030783356855882386,
+      "rough101": 3.503882575118827e-14,
+      "rough107": 3.498127477596804e-14
+    },
+    "validation": {
+      "correction": 0.723671383327908,
+      "flat": 3.3445171658647445e-14,
+      "post_recovery": 0.0001685113215425392,
+      "rough101": 3.1133436194778954e-14,
+      "rough107": 3.091568609178568e-14
+    }
+  },
+  "changed_tensors": [
+    "mlp.0.weight",
+    "mlp.0.bias",
+    "mlp.2.weight",
+    "mlp.2.bias",
+    "mlp.4.weight",
+    "mlp.4.bias",
+    "mlp.6.weight",
+    "mlp.6.bias"
+  ],
+  "collection_controls": 176896,
+  "dataset_counts": {
+    "correction_train_obs": 216,
+    "correction_validation_obs": 72,
+    "flat_train_obs": 15474,
+    "flat_validation_obs": 5312,
+    "post_recovery_train_obs": 5681,
+    "post_recovery_validation_obs": 1885,
+    "rough101_train_obs": 23390,
+    "rough101_validation_obs": 7900,
+    "rough107_train_obs": 23539,
+    "rough107_validation_obs": 7900
+  },
+  "evidence": {
+    "artifacts/prefix_imitation_20261008/dataset/report.json": "b656e661315806e37619a9eb89c0ef2ae6e379f4642b2639ea7d0b7c825eb2dc",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/train/report.json": "5eb861ff38ee5deae2a99f528cced945cd30ad98ae5c2a92600291a27df8775e",
+    "docs/lite3_prefix_imitation_plan_20261008.json": "4e71fed828f4aadc0330d63440a21e17ceee14a5c38d65af6169cf85f983dfd6",
+    "docs/lite3_prefix_imitation_preserve10_train_protocol_20261008.json": "3c36ca83c0bb0202dd41536926ab764bd710e0ac903ee3bea08d3770a3f82481"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/prefix_imitation_20261008/learner2247-preserve10/train/final.pt",
+    "sha256": "80c8fbe3eee67b9c689374f51dc99c25ac8e871d828b227baa4db630d07621fd"
+  },
+  "new_physics": 0,
+  "preservation_weight": 10.0,
+  "scope": "Supervised full-mean-actor fit only; offline validation streams are not held-out source cases. Closed-loop performance must be evaluated separately.",
+  "status": "verified",
+  "training_updates": 2000
+}

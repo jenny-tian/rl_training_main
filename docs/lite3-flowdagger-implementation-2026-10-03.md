@@ -116,3 +116,5 @@ with torch.inference_mode():
 2026-10-08按来源固定槽PPO教师实验已完成：困难来源曝光增加但留出恢复仍37/48，普通通关62/64，完整收益与教师资格未过，未启动新FlowDAgger集成。见[动态诊断与来源分配结果](lite3-source-stratified-result-2026-10-08.md)。
 
 2026-10-08受约束短动作搜索找到TRAIN case26的恢复正例，经延迟分组筛选后两个新启动种子均24/24恢复并完成路段，原PPO均0/24。该结果属于固定0.24秒修正＋冻结PPO，横偏仍大；不是新的神经策略，也不计入原留出教师资格，未接入FlowDAgger。见[搜索与跟进报告](lite3-recovery-sequence-search-result-2026-10-08.md)。
+
+随后新采集示范并完成两次48D完整Actor监督微调，case26自主恢复均24/24，不再使用固定前缀。保持损失权重1→10使普通61→64/64，RMS16.01→8.77cm、峰值79.20→41.95cm；普通精度仍劣于同初态原PPO，恢复峰值71.30cm亦超过70cm工程门槛，两版pilot均未通过。原7来源资格验证未触发，未启动新FlowDAgger集成；该监督Actor成绩不算作FlowDAgger更新收益。见[监督迁移与消融报告](lite3-prefix-imitation-result-2026-10-08.md)。

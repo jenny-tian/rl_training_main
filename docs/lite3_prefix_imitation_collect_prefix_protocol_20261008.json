@@ -1,0 +1,36 @@
+{
+  "action_prefix": {
+    "bound": 2.0,
+    "hold_steps": 4,
+    "knots": 3,
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_search_20261008/fullcourse-prefix.npy",
+    "sha256": "2a6dc49109d382d3110b5a88f7605e59ddd47cd5bbecba0d2c7aa62992aea274"
+  },
+  "conditions": [
+    "recovery"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2237,
+  "max_controls": 128000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+      "sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f"
+    }
+  },
+  "num_envs": 64,
+  "purpose": "fresh_training_demonstration",
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-08T12:11:02.864889+00:00",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Fresh training collection only, never reuse search/confirmation trajectories as training labels. Prefix role repeats TRAIN case26; course role supplies normal walking preservation. Keep complete successful first episodes only; all failures still charged and retained.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

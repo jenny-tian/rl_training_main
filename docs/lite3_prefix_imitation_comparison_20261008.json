@@ -1,0 +1,764 @@
+{
+  "costs": {
+    "collection": 176896,
+    "conditional_validation": 0,
+    "cumulative_charged": 26579456,
+    "cumulative_confirmed": 26579392,
+    "first_pilot": 352512,
+    "historical_uncertain": 64,
+    "new_uncertain": 0,
+    "preserve10_pilot": 173696,
+    "separate_full_ppo_controls": 11900884,
+    "stage_controls": 703104,
+    "supervised_physics": 0
+  },
+  "diagnostics": {
+    "Imitation (weight 1)": {
+      "course": {
+        "by_terrain": {
+          "101": {
+            "mean_rms_m": 0.15437187006076178,
+            "peak_m": 0.7919549942016602,
+            "success": 24,
+            "total": 24
+          },
+          "107": {
+            "mean_rms_m": 0.16580317138383785,
+            "peak_m": 0.7624301910400391,
+            "success": 21,
+            "total": 24
+          }
+        },
+        "failures": [
+          {
+            "body_lateral_rms_m": 0.47018834948539734,
+            "case": -1,
+            "deadline": false,
+            "env_id": 60,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.7624301910400391,
+            "recovery_success": false,
+            "steps": 263,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.4667729139328003,
+            "case": -1,
+            "deadline": false,
+            "env_id": 61,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.7609529495239258,
+            "recovery_success": false,
+            "steps": 274,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3235439956188202,
+            "case": -1,
+            "deadline": false,
+            "env_id": 63,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.553013801574707,
+            "recovery_success": false,
+            "steps": 268,
+            "success": false,
+            "terrain": "107"
+          }
+        ],
+        "initial_absolute_y_max_m": 0.019661903381347656,
+        "maximum_displacement_from_own_initial_y_m": 0.7963511943817139,
+        "mean_absolute_y_at_episode_end_m": 0.17662929991881052,
+        "worst_episode": {
+          "body_lateral_rms_m": 0.4734669625759125,
+          "case": -1,
+          "deadline": false,
+          "env_id": 31,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.7919549942016602,
+          "recovery_success": true,
+          "steps": 1160,
+          "success": true,
+          "terrain": "101"
+        },
+        "worst_peak": {
+          "absolute_lateral_m": 0.7919549942016602,
+          "time_s": 5.58,
+          "x_from_terrain_origin_m": 2.913881301879883
+        }
+      },
+      "recovery": {
+        "by_terrain": {
+          "107": {
+            "mean_rms_m": 0.6371404503782591,
+            "peak_m": 0.7856760025024414,
+            "success": 24,
+            "total": 24
+          }
+        },
+        "failures": [],
+        "initial_absolute_y_max_m": 0.3265237808227539,
+        "maximum_displacement_from_own_initial_y_m": 0.4591522216796875,
+        "mean_absolute_y_at_episode_end_m": 0.5963144302368164,
+        "worst_episode": {
+          "body_lateral_rms_m": 0.6824511885643005,
+          "case": 26,
+          "deadline": false,
+          "env_id": 57,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.7856760025024414,
+          "recovery_success": true,
+          "steps": 325,
+          "success": true,
+          "terrain": "107"
+        },
+        "worst_peak": {
+          "absolute_lateral_m": 0.7856760025024414,
+          "time_s": 4.08,
+          "x_from_terrain_origin_m": 7.220999717712402
+        }
+      }
+    },
+    "Imitation (weight 10)": {
+      "course": {
+        "by_terrain": {
+          "101": {
+            "mean_rms_m": 0.09116154878089826,
+            "peak_m": 0.4194622039794922,
+            "success": 24,
+            "total": 24
+          },
+          "107": {
+            "mean_rms_m": 0.08424202011277278,
+            "peak_m": 0.23073768615722656,
+            "success": 24,
+            "total": 24
+          }
+        },
+        "failures": [],
+        "initial_absolute_y_max_m": 0.019661903381347656,
+        "maximum_displacement_from_own_initial_y_m": 0.43236827850341797,
+        "mean_absolute_y_at_episode_end_m": 0.08488006889820099,
+        "worst_episode": {
+          "body_lateral_rms_m": 0.27036893367767334,
+          "case": -1,
+          "deadline": false,
+          "env_id": 22,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.4194622039794922,
+          "recovery_success": true,
+          "steps": 1082,
+          "success": true,
+          "terrain": "101"
+        },
+        "worst_peak": {
+          "absolute_lateral_m": 0.4194622039794922,
+          "time_s": 7.04,
+          "x_from_terrain_origin_m": 3.656531572341919
+        }
+      },
+      "recovery": {
+        "by_terrain": {
+          "107": {
+            "mean_rms_m": 0.6069412728150686,
+            "peak_m": 0.713017463684082,
+            "success": 24,
+            "total": 24
+          }
+        },
+        "failures": [],
+        "initial_absolute_y_max_m": 0.3265237808227539,
+        "maximum_displacement_from_own_initial_y_m": 0.3864936828613281,
+        "mean_absolute_y_at_episode_end_m": 0.5688264767328898,
+        "worst_episode": {
+          "body_lateral_rms_m": 0.6318992972373962,
+          "case": 26,
+          "deadline": false,
+          "env_id": 57,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.713017463684082,
+          "recovery_success": true,
+          "steps": 323,
+          "success": true,
+          "terrain": "107"
+        },
+        "worst_peak": {
+          "absolute_lateral_m": 0.713017463684082,
+          "time_s": 3.98,
+          "x_from_terrain_origin_m": 7.207329273223877
+        }
+      }
+    },
+    "Original actor": {
+      "course": {
+        "by_terrain": {
+          "101": {
+            "mean_rms_m": 0.07986101834103465,
+            "peak_m": 0.19274425506591797,
+            "success": 24,
+            "total": 24
+          },
+          "107": {
+            "mean_rms_m": 0.08144220678756635,
+            "peak_m": 0.18179607391357422,
+            "success": 24,
+            "total": 24
+          }
+        },
+        "failures": [],
+        "initial_absolute_y_max_m": 0.019661903381347656,
+        "maximum_displacement_from_own_initial_y_m": 0.21240615844726562,
+        "mean_absolute_y_at_episode_end_m": 0.08050475021203359,
+        "worst_episode": {
+          "body_lateral_rms_m": 0.10065612941980362,
+          "case": -1,
+          "deadline": false,
+          "env_id": 18,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.19274425506591797,
+          "recovery_success": true,
+          "steps": 1322,
+          "success": true,
+          "terrain": "101"
+        },
+        "worst_peak": {
+          "absolute_lateral_m": 0.19274425506591797,
+          "time_s": 14.540000000000001,
+          "x_from_terrain_origin_m": 4.427961349487305
+        }
+      },
+      "recovery": {
+        "by_terrain": {
+          "107": {
+            "mean_rms_m": 0.38399362936615944,
+            "peak_m": 0.4621601104736328,
+            "success": 0,
+            "total": 24
+          }
+        },
+        "failures": [
+          {
+            "body_lateral_rms_m": 0.3885191082954407,
+            "case": 26,
+            "deadline": false,
+            "env_id": 40,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4510231018066406,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774386942386627,
+            "case": 26,
+            "deadline": false,
+            "env_id": 41,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.42441701889038086,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38157305121421814,
+            "case": 26,
+            "deadline": false,
+            "env_id": 42,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523740768432617,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38157305121421814,
+            "case": 26,
+            "deadline": false,
+            "env_id": 43,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523740768432617,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.394348680973053,
+            "case": 26,
+            "deadline": false,
+            "env_id": 44,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.46215105056762695,
+            "recovery_success": false,
+            "steps": 13,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885191082954407,
+            "case": 26,
+            "deadline": false,
+            "env_id": 45,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4510231018066406,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885191082954407,
+            "case": 26,
+            "deadline": false,
+            "env_id": 46,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4510231018066406,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38157305121421814,
+            "case": 26,
+            "deadline": false,
+            "env_id": 47,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523740768432617,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38856375217437744,
+            "case": 26,
+            "deadline": false,
+            "env_id": 48,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4512491226196289,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815692365169525,
+            "case": 26,
+            "deadline": false,
+            "env_id": 49,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523693084716797,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815692365169525,
+            "case": 26,
+            "deadline": false,
+            "env_id": 50,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523693084716797,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.39434629678726196,
+            "case": 26,
+            "deadline": false,
+            "env_id": 51,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4621438980102539,
+            "recovery_success": false,
+            "steps": 13,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.37743955850601196,
+            "case": 26,
+            "deadline": false,
+            "env_id": 52,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.42441749572753906,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38856375217437744,
+            "case": 26,
+            "deadline": false,
+            "env_id": 53,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4512491226196289,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.37743955850601196,
+            "case": 26,
+            "deadline": false,
+            "env_id": 54,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.42441749572753906,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815692365169525,
+            "case": 26,
+            "deadline": false,
+            "env_id": 55,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523693084716797,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 56,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885098099708557,
+            "case": 26,
+            "deadline": false,
+            "env_id": 57,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.45101165771484375,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885098099708557,
+            "case": 26,
+            "deadline": false,
+            "env_id": 58,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.45101165771484375,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815666735172272,
+            "case": 26,
+            "deadline": false,
+            "env_id": 59,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4352130889892578,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 60,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 61,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.39435699582099915,
+            "case": 26,
+            "deadline": false,
+            "env_id": 62,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4621601104736328,
+            "recovery_success": false,
+            "steps": 13,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 63,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          }
+        ],
+        "initial_absolute_y_max_m": 0.3265237808227539,
+        "maximum_displacement_from_own_initial_y_m": 0.1356363296508789,
+        "mean_absolute_y_at_episode_end_m": 0.44006747007369995,
+        "worst_episode": {
+          "body_lateral_rms_m": 0.39435699582099915,
+          "case": 26,
+          "deadline": false,
+          "env_id": 62,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": true
+          },
+          "max_body_lateral_m": 0.4621601104736328,
+          "recovery_success": false,
+          "steps": 13,
+          "success": false,
+          "terrain": "107"
+        },
+        "worst_peak": {
+          "absolute_lateral_m": 0.4621601104736328,
+          "time_s": 0.26,
+          "x_from_terrain_origin_m": 6.042827129364014
+        }
+      }
+    }
+  },
+  "evidence": {
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00000.npz": "ba0119477765807bb024cacf4bb9c2e77b97010d437077676f4162d794cbdcff",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00001.npz": "ff7ed92972c032ecba4267a0180c4ed60c981dfb8510a245b216a4f579dc24f9",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00002.npz": "300dceaad8f337bbcbe7ecbf6a46ac3d88563ce68a55dc06fd0f6143c49b0015",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00003.npz": "ec0c5ff094c48d939f6a39c91eaf9ebe9df3928d64699d3e54180a370279a4c2",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00004.npz": "a9fc822da4448856bcbc187e50d51c0b0d9747066e66c638f8ffeb6c7e67d761",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00005.npz": "1ef1a5c68ad2fb5edba89a2646e64c25bf553a5a98b1d7cd5b3ba8d0cf1ab46b",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00006.npz": "53a278235c644518836dbba9bd14b896b273be02a7b9e8bf8bbadb51dd0b7537",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00007.npz": "4bec4476cb506cc922e039994ff2cca8718f1c3bb61a5494acfccac9e4c7df33",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00008.npz": "6a5cc3f530f9d221c2f810af358bef6209d83e9d7dd8f5abcfaff06ee7a5898f",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00009.npz": "a53e759cb403f435e467d8564c68425b514b1a4151e7c3664fdaa9e2d2220b8b",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/course-trial/trajectory/chunk-00010.npz": "914cc7cba7ae3d7a01d3d6ded0aee5db592d2572c1b1ab7c2d5517e42f978f3d",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00000.npz": "50f1599f3863454c6dffd4ff316bf2ca7cc7b8119ea369d6670dbec2180b20d1",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00001.npz": "4ec2f695faa5cb8e7c8d495f1a13fe9b25a255fc413a89b94587aa37bf2d5515",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00002.npz": "3f62d7fa605b1820f2e537631bc1f2c420f0d31ef0e2c57ba62376584afd68f6",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00003.npz": "1a48dce0399087698de57ea34aa38e2400591e0cf2dbb6066414416de1faef71",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00004.npz": "5842117cf2ed28bce93833014498a6ca4b6b57adbf05821ebbae4124d234383c",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00005.npz": "c05021f8123aca96f36c118f353cfda7925f60d201337fe7112c6c81f8bdc6f3",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00006.npz": "87ad4924d4d907204b486490bc5fa59707d4a73c909221984516d103cc64a811",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00007.npz": "9ec49962755d2c7f169727589e048b21986d97b02ebabb789ecc2bf313ddad0c",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00008.npz": "b1228946af93407f207312c9a433e1f951301f254618ec2d56fd757ee051e311",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00009.npz": "425fd0e752d0320fdfc871e28e26e8a5291168fa9fedd908d9771b3a869c7cd9",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/recovery-trial/trajectory/chunk-00010.npz": "823bbe68312892bff9c277dc05fdce5dafa4b6b94a040108e8ea65cce91ceae2",
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/report.json": "145600a9c979009e2a36b5a771e028b2b690ee8c673864684ab4927b9441e3a7",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00000.npz": "0079bfd05a26113b2a886984f023a830b2a6af7dd734315e6f923ab6997f8f2d",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00001.npz": "781b63d47d657e467beadcd9f52df81ca4cb522a3cc515d9dc67b1c6af93c1ad",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00002.npz": "6a6b7bad59ab47155f2933eb12b6d062ec7df932b57047ea29ac5177d43132f7",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00003.npz": "467cb488f9bd1fd7d87ef12daeff2434d3db95ef8e722672e12b8fafd658bf5e",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00004.npz": "e362940e3a7045f28fcccbda751d98b1fe0eedfc686c9d53670e6a0ad2ca745a",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00005.npz": "a526139d0f653ee21172ffde099c0a6d52b31b42de6663375eca38cbce61f1f6",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00006.npz": "413bd563b5bddfb3817a48f0ebf2fe9f91d51fa83000c70dca58558c5553b184",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00007.npz": "60e3c48b54405feffd7393f7ceca6a340f993a73c91b928683633d129b41c734",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00008.npz": "51261425e188f2327bf350e4de1b42d577a16057c54e27657b90a23d40695446",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00009.npz": "4d50b4f8b142cb2c1cac1a7357a1aa95bcba749a75c6a5277fad27e9343360c4",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-base/trajectory/chunk-00010.npz": "faaf3cc273de8c60d33b95187dc96e38765ae28f475eab5c99b9e17eed860c84",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00000.npz": "15fe86bccd819e4453cb68813364296185ec2ee956e20eb2910a755040fb4a69",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00001.npz": "ace35f001e2859c6a70872f7ec9ec00a25a0421c84ef619b03ae473350ac01e6",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00002.npz": "e3dee82c19c6ef3ca802d1b86d3bc4d3a10d7351db2bf7bc5f665532555d8b79",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00003.npz": "2e7c8f1bf00dad3a5c5fc071f8e978bd2cadee8b82a185798e1af677ec666f74",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00004.npz": "5184dba7b3b0b6d4b9121c419f7648513d3ea14f42e2b0a380dcd01bb37727fe",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00005.npz": "994561cc94adc1a0adbb4db6e49bf4113783f071dbc582db1163a38f4f98fa5c",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00006.npz": "66b5c518f82ca25d048fe54d28ba3ec79147d7cad9d0a84b1cfb2873ba6919b1",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00007.npz": "c0ebf7ab2bcd912bd572a060535ce9cce1ac5863cdc099e3c5a3acfee3d78391",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00008.npz": "6be806aab4f6236b68c7de93928263cbf50d7a989625159cc4eeef0db53c4050",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00009.npz": "227ef3125cff59a020ea0c701baab2e46f7454f4fb02d13997fc3388cbba0726",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/course-trial/trajectory/chunk-00010.npz": "408981e394d8df62103133236add9304c9eda6d6a813837f3cb613305c124b81",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00000.npz": "3f472f16566539bb8e0375f966bd06ae7457de911ee060863aca543bcd77da03",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00001.npz": "e34d94ac2585d888356bab1403b234a57ac3d02a85c03ea66637d2e373d6585c",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00002.npz": "5db1e2acfd8c89b529be79d312d922ed24f2c8d8cf507a90ba5f3e92ef6cb4c9",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00003.npz": "0e0b7a87c838fb8f0da8c27b352bb7bc1f9845f54525d0c22b990ed938ec23af",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00004.npz": "3e0991502e9979cab572133e01441f89a1e3d5bebf8af1d8c7e66771e12ef619",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00005.npz": "199cbcf0bd361195e89a93239834ab8068f4d9a096c3cce8e9e3b634aa929edf",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00006.npz": "cfcb4d4ad093339d9c96cd8a3eafab892ac0e890af496b110803803a9d12937a",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00007.npz": "e0a722e647c3df00ec4b6709567caff7878731d406723aa68e3dd81535309c87",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00008.npz": "975b333fc5d59683ad3bf6ddbc6e3f2bad668673d786f7f80202dfbeae3675fe",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00009.npz": "2d75dbd2cee7195241d5dad372cd777aa3ae55f7db1c8db8dee6eb02b1961fbe",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-base/trajectory/chunk-00010.npz": "0219f202b56f9b047b1da608175681881f9baf96f10ec54f5701a0df154c6451",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00000.npz": "b981d9c3cccc77a77357baa68a97ea41324b7e41e98bdefea45372eaf89f5fd4",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00001.npz": "67cbbc498855e4f6e1fe39ee1d323fbb67e37e3420a03c13d4aee9719eb7f26b",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00002.npz": "ffc2084fa9d4a9e5aad98d30e5f7214c0bedb77330a72661392a4eb93cc533b6",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00003.npz": "2c23af596e1cff04bfba863f30293f194b27c6f7686acfa01a1a8c372885f3d6",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00004.npz": "ec8c86ee1e7a4ee82d0b3dc7559547464b707323fea23c147c74e81e2fa17bd5",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00005.npz": "92ec033d6fabc3de359d35e97e2f15fa414f942097907323775e17f725644f2a",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00006.npz": "7ec36a8e6eb0814c694aa88a249a12c0a720e1fbba8a323f2b762400ebeee21e",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00007.npz": "6e8a2321de1218841671e24362fe8e6b9c529c60098963f829e8df7d1f8b213b",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00008.npz": "b5d2f934eb84571f1e05e245a99a34da78f8a4250108684ff4a9ff1bd3f8a100",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00009.npz": "0d1679f4f7bd9880a40d4748404327255d4276a9fd8c972d19936b18bba8bee1",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/recovery-trial/trajectory/chunk-00010.npz": "bd7e2ecabfb730a432480b5f9c33fffa8c8948df7512b31e7a714ace1a16fa13",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/report.json": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+    "docs/lite3_prefix_imitation_collect_course_audit_20261008.json": "d6182875437f535369ef377ac52354af1866b93135e22077d18a8f9c5f9d6190",
+    "docs/lite3_prefix_imitation_collect_prefix_audit_20261008.json": "0f290b3e85e0fcf09d21e6387c0f1523877f0baaa8342674d48dc19111ec0eda",
+    "docs/lite3_prefix_imitation_pilot_result_20261008.json": "491671033649d66b21814b29ec6620771754acd43e07e489ae6fdf40bf2d1cfa",
+    "docs/lite3_prefix_imitation_preserve10_pilot_result_20261008.json": "58ecf2d27a5ce055abb1fbef75fda9a7a587de5fd8205bd68d78bb142645060a"
+  },
+  "first_pilot_passed": false,
+  "new_physics": 0,
+  "preserve10_pilot_passed": false,
+  "scope": "One TRAIN recovery source; repeated delay slots, no original7-source qualification, independent learner replication, new terrain, or hardware test in this stage.",
+  "status": "verified"
+}
