@@ -1,0 +1,29 @@
+{
+  "conditions": [
+    "course"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2267,
+  "max_controls": 128000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/prefix_imitation_20261008/learner2247-preserve10/train/final.pt",
+      "sha256": "80c8fbe3eee67b9c689374f51dc99c25ac8e871d828b227baa4db630d07621fd"
+    }
+  },
+  "num_envs": 64,
+  "purpose": "fresh_training_retention_coverage",
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-08T13:35:16.800453+00:00",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "New ordinary first-episode trajectories of frozen preservation10 actor. No intervention. All active rows including before failures retained for diagnosis; only abs(y)<=0.30m may receive offline original-PPO action labels, separated from correction/post-recovery domain. This is TRAIN collection, not evaluation.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

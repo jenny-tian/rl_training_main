@@ -1,0 +1,26 @@
+{
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+  "base_sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f",
+  "batch_groups": {
+    "correction": 128,
+    "flat": 128,
+    "post_recovery": 128,
+    "rough101": 64,
+    "rough107": 64
+  },
+  "change": "One fixed dataset-coverage ablation. Append original-PPO labels on a new rollout of preservation10 policy to ordinary flat/rough groups. Keep original initialization, learner2247, 2000 updates, loss preservation weight10, batch proportions and all pilot gates. No pilot trajectories become training labels.",
+  "collection_protocol_sha256": "b7ca40f8c48c3354c3850c492293a879f100ff9927297a5ad942602432854e81",
+  "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+  "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+  "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+  "dataset_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/report.json",
+  "dataset_report_sha256": "fd936961b4407b906cb8d8fa3e4319df59ba4d441ed3b904c9671a9b1dc62243",
+  "learning_rate": 1e-05,
+  "max_grad_norm": 1.0,
+  "preservation_weight": 10.0,
+  "registered_at_utc": "2026-10-08T13:45:20.803259+00:00",
+  "schema": "lite3_prefix_imitation_train_v1",
+  "seed": 2247,
+  "selection": "Final2000-update full actor only, no epoch/seed replacement. Supervised MSE to emitted targets, no critic or PPO/SAC/flow update. Original actor initialization, no time index/case id/prefix flag added to48D inputs; all actor layers train.",
+  "updates": 2000
+}

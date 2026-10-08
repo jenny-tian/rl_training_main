@@ -1,0 +1,32 @@
+{
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 256000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+      "training_algorithm": "supervised mean-actor MSE; not PPO",
+      "training_protocol_sha256": "760dca68c278e225499a000c777ad5f06459b419f38fc09f24ef49b02e65693d",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-08T13:45:20.803259+00:00",
+  "reused_baseline_report_sha256": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Autonomous48D actor after retention data-coverage ablation. TRAIN case26 and ordinary pilot only, no prefix or teacher takeover. Same unchanged pilot gates and exact initial/delay baseline reuse.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

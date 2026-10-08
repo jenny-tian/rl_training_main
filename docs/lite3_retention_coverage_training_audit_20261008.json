@@ -1,0 +1,131 @@
+{
+  "after": {
+    "train": {
+      "correction": 0.010456013090816545,
+      "flat": 3.0862216686784066e-05,
+      "post_recovery": 0.0005434899306917025,
+      "rough101": 7.794789916823046e-05,
+      "rough107": 0.00013048793055713578
+    },
+    "validation": {
+      "correction": 0.009129765960905287,
+      "flat": 3.1601129986683544e-05,
+      "post_recovery": 0.0006705865514267872,
+      "rough101": 7.60422937669168e-05,
+      "rough107": 8.091883094880785e-05
+    }
+  },
+  "before": {
+    "train": {
+      "correction": 0.7280637953016493,
+      "flat": 6.12278818776503e-14,
+      "post_recovery": 0.00030783356855882386,
+      "rough101": 5.907114581832058e-14,
+      "rough107": 2.7804092622090205e-07
+    },
+    "validation": {
+      "correction": 0.723671383327908,
+      "flat": 6.495826604693362e-14,
+      "post_recovery": 0.0001685113215425392,
+      "rough101": 6.174135762897525e-14,
+      "rough107": 6.186367472841786e-14
+    }
+  },
+  "changed_tensors": [
+    "mlp.0.weight",
+    "mlp.0.bias",
+    "mlp.2.weight",
+    "mlp.2.bias",
+    "mlp.4.weight",
+    "mlp.4.bias",
+    "mlp.6.weight",
+    "mlp.6.bias"
+  ],
+  "collection_controls": 87488,
+  "counts": {
+    "correction_train_obs": 216,
+    "correction_validation_obs": 72,
+    "flat_train_obs": 31114,
+    "flat_validation_obs": 10426,
+    "post_recovery_train_obs": 5681,
+    "post_recovery_validation_obs": 1885,
+    "rough101_train_obs": 46866,
+    "rough101_validation_obs": 15617,
+    "rough107_train_obs": 46631,
+    "rough107_validation_obs": 15774
+  },
+  "evidence": {
+    "artifacts/retention_coverage_20261008/dataset/report.json": "fd936961b4407b906cb8d8fa3e4319df59ba4d441ed3b904c9671a9b1dc62243",
+    "artifacts/retention_coverage_20261008/learner2247/train/report.json": "1b6691c26b9b1751e9e8884aebef94cdc3ecbff8aa4c97a07a89f9f04b8d5b6c",
+    "docs/lite3_retention_coverage_collect_audit_20261008.json": "a88b121a27f8c846b56132476ad33fce29c2d124370fbdde3efc5d53d89b7385",
+    "docs/lite3_retention_coverage_plan_20261008.json": "b7ca40f8c48c3354c3850c492293a879f100ff9927297a5ad942602432854e81",
+    "docs/lite3_retention_coverage_train_protocol_20261008.json": "760dca68c278e225499a000c777ad5f06459b419f38fc09f24ef49b02e65693d"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+    "sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead"
+  },
+  "new_counts": {
+    "flat_train_obs": 15640,
+    "flat_validation_obs": 5114,
+    "rough101_train_obs": 23476,
+    "rough101_validation_obs": 7717,
+    "rough107_train_obs": 23092,
+    "rough107_validation_obs": 7874
+  },
+  "new_label_rows_replayed": 82913,
+  "new_physics": 0,
+  "offline_validation_by_origin": {
+    "correction": {
+      "original": {
+        "after_mse": 0.009129767064695005,
+        "rows": 72
+      }
+    },
+    "flat": {
+      "added": {
+        "after_mse": 3.647123937065389e-05,
+        "rows": 5114
+      },
+      "original": {
+        "after_mse": 2.6912584360389703e-05,
+        "rows": 5312
+      }
+    },
+    "post_recovery": {
+      "original": {
+        "after_mse": 0.0006705867622301285,
+        "rows": 1885
+      }
+    },
+    "rough101": {
+      "added": {
+        "after_mse": 7.10624257388792e-05,
+        "rows": 7717
+      },
+      "original": {
+        "after_mse": 8.09067688913788e-05,
+        "rows": 7900
+      }
+    },
+    "rough107": {
+      "added": {
+        "after_mse": 8.361125192213458e-05,
+        "rows": 7874
+      },
+      "original": {
+        "after_mse": 7.823530128736536e-05,
+        "rows": 7900
+      }
+    }
+  },
+  "scope": "Same TRAIN case26 data plus fresh ordinary learner-state labels, whole-stream offline split; no original7-source qualification or independent learning replication.",
+  "selection_counts": {
+    "active_rows": 82913,
+    "eligible_rows_from_failed_episodes": 0,
+    "excluded_rows": 0,
+    "ordinary_domain_rows": 82913
+  },
+  "status": "verified",
+  "training_updates": 2000
+}

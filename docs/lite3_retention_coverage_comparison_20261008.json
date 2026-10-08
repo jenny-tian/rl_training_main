@@ -1,0 +1,660 @@
+{
+  "costs": {
+    "collection": 87488,
+    "cumulative_charged_through_pilot": 26840704,
+    "cumulative_confirmed_through_pilot": 26840640,
+    "historical_uncertain": 64,
+    "new_uncertain": 0,
+    "pilot": 173760,
+    "stage_through_pilot": 261248,
+    "supervised_physics": 0
+  },
+  "diagnostics": {
+    "Added retention coverage": {
+      "course": {
+        "by_terrain": {
+          "101": {
+            "peak_m": 0.18029356002807617,
+            "rms_m": 0.08011048038800557,
+            "success": 24
+          },
+          "107": {
+            "peak_m": 0.15922069549560547,
+            "rms_m": 0.07818754265705745,
+            "success": 24
+          }
+        },
+        "failures": [],
+        "initial_sha256": "f46e33fc8671d818902c004c4f52afd4d246f857a3955ff6435687af7a5f837e",
+        "worst_episode": {
+          "body_lateral_rms_m": 0.09247685223817825,
+          "case": -1,
+          "deadline": false,
+          "env_id": 18,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.18029356002807617,
+          "recovery_success": true,
+          "steps": 1314,
+          "success": true,
+          "terrain": "101"
+        }
+      },
+      "recovery": {
+        "by_terrain": {
+          "107": {
+            "peak_m": 0.7161827087402344,
+            "rms_m": 0.5973440433541933,
+            "success": 24
+          }
+        },
+        "failures": [],
+        "initial_sha256": "6eb9e1c7771a503ee03cae3ff825c37227e0b2364d663b7f6fdc50b89924d9e2",
+        "worst_episode": {
+          "body_lateral_rms_m": 0.6348522901535034,
+          "case": 26,
+          "deadline": false,
+          "env_id": 40,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.7161827087402344,
+          "recovery_success": true,
+          "steps": 321,
+          "success": true,
+          "terrain": "107"
+        }
+      }
+    },
+    "Original PPO2063": {
+      "course": {
+        "by_terrain": {
+          "101": {
+            "peak_m": 0.19274425506591797,
+            "rms_m": 0.07986101834103465,
+            "success": 24
+          },
+          "107": {
+            "peak_m": 0.18179607391357422,
+            "rms_m": 0.08144220678756635,
+            "success": 24
+          }
+        },
+        "failures": [],
+        "initial_sha256": "f46e33fc8671d818902c004c4f52afd4d246f857a3955ff6435687af7a5f837e",
+        "worst_episode": {
+          "body_lateral_rms_m": 0.10065612941980362,
+          "case": -1,
+          "deadline": false,
+          "env_id": 18,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.19274425506591797,
+          "recovery_success": true,
+          "steps": 1322,
+          "success": true,
+          "terrain": "101"
+        }
+      },
+      "recovery": {
+        "by_terrain": {
+          "107": {
+            "peak_m": 0.4621601104736328,
+            "rms_m": 0.38399362936615944,
+            "success": 0
+          }
+        },
+        "failures": [
+          {
+            "body_lateral_rms_m": 0.3885191082954407,
+            "case": 26,
+            "deadline": false,
+            "env_id": 40,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4510231018066406,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774386942386627,
+            "case": 26,
+            "deadline": false,
+            "env_id": 41,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.42441701889038086,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38157305121421814,
+            "case": 26,
+            "deadline": false,
+            "env_id": 42,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523740768432617,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38157305121421814,
+            "case": 26,
+            "deadline": false,
+            "env_id": 43,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523740768432617,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.394348680973053,
+            "case": 26,
+            "deadline": false,
+            "env_id": 44,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.46215105056762695,
+            "recovery_success": false,
+            "steps": 13,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885191082954407,
+            "case": 26,
+            "deadline": false,
+            "env_id": 45,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4510231018066406,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885191082954407,
+            "case": 26,
+            "deadline": false,
+            "env_id": 46,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4510231018066406,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38157305121421814,
+            "case": 26,
+            "deadline": false,
+            "env_id": 47,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523740768432617,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38856375217437744,
+            "case": 26,
+            "deadline": false,
+            "env_id": 48,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4512491226196289,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815692365169525,
+            "case": 26,
+            "deadline": false,
+            "env_id": 49,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523693084716797,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815692365169525,
+            "case": 26,
+            "deadline": false,
+            "env_id": 50,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523693084716797,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.39434629678726196,
+            "case": 26,
+            "deadline": false,
+            "env_id": 51,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4621438980102539,
+            "recovery_success": false,
+            "steps": 13,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.37743955850601196,
+            "case": 26,
+            "deadline": false,
+            "env_id": 52,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.42441749572753906,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.38856375217437744,
+            "case": 26,
+            "deadline": false,
+            "env_id": 53,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4512491226196289,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.37743955850601196,
+            "case": 26,
+            "deadline": false,
+            "env_id": 54,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.42441749572753906,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815692365169525,
+            "case": 26,
+            "deadline": false,
+            "env_id": 55,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.43523693084716797,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 56,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885098099708557,
+            "case": 26,
+            "deadline": false,
+            "env_id": 57,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.45101165771484375,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3885098099708557,
+            "case": 26,
+            "deadline": false,
+            "env_id": 58,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.45101165771484375,
+            "recovery_success": false,
+            "steps": 12,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3815666735172272,
+            "case": 26,
+            "deadline": false,
+            "env_id": 59,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4352130889892578,
+            "recovery_success": false,
+            "steps": 11,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 60,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 61,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.39435699582099915,
+            "case": 26,
+            "deadline": false,
+            "env_id": 62,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4621601104736328,
+            "recovery_success": false,
+            "steps": 13,
+            "success": false,
+            "terrain": "107"
+          },
+          {
+            "body_lateral_rms_m": 0.3774448335170746,
+            "case": 26,
+            "deadline": false,
+            "env_id": 63,
+            "failure_terms": {
+              "contact": false,
+              "lateral": false,
+              "orientation": true
+            },
+            "max_body_lateral_m": 0.4244213104248047,
+            "recovery_success": false,
+            "steps": 10,
+            "success": false,
+            "terrain": "107"
+          }
+        ],
+        "initial_sha256": "6eb9e1c7771a503ee03cae3ff825c37227e0b2364d663b7f6fdc50b89924d9e2",
+        "worst_episode": {
+          "body_lateral_rms_m": 0.39435699582099915,
+          "case": 26,
+          "deadline": false,
+          "env_id": 62,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": true
+          },
+          "max_body_lateral_m": 0.4621601104736328,
+          "recovery_success": false,
+          "steps": 13,
+          "success": false,
+          "terrain": "107"
+        }
+      }
+    },
+    "Preservation10": {
+      "course": {
+        "by_terrain": {
+          "101": {
+            "peak_m": 0.4194622039794922,
+            "rms_m": 0.09116154878089826,
+            "success": 24
+          },
+          "107": {
+            "peak_m": 0.23073768615722656,
+            "rms_m": 0.08424202011277278,
+            "success": 24
+          }
+        },
+        "failures": [],
+        "initial_sha256": "f46e33fc8671d818902c004c4f52afd4d246f857a3955ff6435687af7a5f837e",
+        "worst_episode": {
+          "body_lateral_rms_m": 0.27036893367767334,
+          "case": -1,
+          "deadline": false,
+          "env_id": 22,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.4194622039794922,
+          "recovery_success": true,
+          "steps": 1082,
+          "success": true,
+          "terrain": "101"
+        }
+      },
+      "recovery": {
+        "by_terrain": {
+          "107": {
+            "peak_m": 0.713017463684082,
+            "rms_m": 0.6069412728150686,
+            "success": 24
+          }
+        },
+        "failures": [],
+        "initial_sha256": "6eb9e1c7771a503ee03cae3ff825c37227e0b2364d663b7f6fdc50b89924d9e2",
+        "worst_episode": {
+          "body_lateral_rms_m": 0.6318992972373962,
+          "case": 26,
+          "deadline": false,
+          "env_id": 57,
+          "failure_terms": {
+            "contact": false,
+            "lateral": false,
+            "orientation": false
+          },
+          "max_body_lateral_m": 0.713017463684082,
+          "recovery_success": true,
+          "steps": 323,
+          "success": true,
+          "terrain": "107"
+        }
+      }
+    }
+  },
+  "evidence": {
+    "artifacts/prefix_imitation_20261008/learner2247-preserve10/pilot-evaluation/report.json": "145600a9c979009e2a36b5a771e028b2b690ee8c673864684ab4927b9441e3a7",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/report.json": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+    "artifacts/retention_coverage_20261008/learner2247/pilot-evaluation/report.json": "2188c1bc1f3e4e752e0ac674d84527f8a18f7d236100f7a9f91baf826d4a3a2a",
+    "docs/lite3_prefix_imitation_preserve10_pilot_result_20261008.json": "58ecf2d27a5ce055abb1fbef75fda9a7a587de5fd8205bd68d78bb142645060a",
+    "docs/lite3_retention_coverage_dataset_audit_20261008.json": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "docs/lite3_retention_coverage_pilot_result_20261008.json": "35389432dbd83f027def0cfa6ede6aae15c1355bc1919db86240a4c3e3a71850",
+    "docs/lite3_retention_coverage_plan_20261008.json": "b7ca40f8c48c3354c3850c492293a879f100ff9927297a5ad942602432854e81",
+    "docs/lite3_retention_coverage_training_audit_20261008.json": "398ffef99dcbb2547250b78e8a7e76faeed2fd485175f527e15ab113808bc7c4"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+    "sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead"
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": true,
+    "ordinary_rms": true,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "new_physics": 0,
+  "offline_validation_by_origin": {
+    "correction": {
+      "original": {
+        "after_mse": 0.009129767064695005,
+        "rows": 72
+      }
+    },
+    "flat": {
+      "added": {
+        "after_mse": 3.647123937065389e-05,
+        "rows": 5114
+      },
+      "original": {
+        "after_mse": 2.6912584360389703e-05,
+        "rows": 5312
+      }
+    },
+    "post_recovery": {
+      "original": {
+        "after_mse": 0.0006705867622301285,
+        "rows": 1885
+      }
+    },
+    "rough101": {
+      "added": {
+        "after_mse": 7.10624257388792e-05,
+        "rows": 7717
+      },
+      "original": {
+        "after_mse": 8.09067688913788e-05,
+        "rows": 7900
+      }
+    },
+    "rough107": {
+      "added": {
+        "after_mse": 8.361125192213458e-05,
+        "rows": 7874
+      },
+      "original": {
+        "after_mse": 7.823530128736536e-05,
+        "rows": 7900
+      }
+    }
+  },
+  "paired_delta_vs_preserve10": {
+    "case26_peak_m": 0.0031652450561523438,
+    "case26_recovery": 0,
+    "case26_rms_m": -0.009597229460875267,
+    "course_peak_m": -0.23916864395141602,
+    "course_rms_m": -0.008552772924304008,
+    "course_total": 0
+  },
+  "pilot_passed": false,
+  "scope": "Fixed data coverage ablation at learner2247/eval2251. Same TRAIN case26, no new original7-source validation in this summary or independent training replication.",
+  "status": "verified"
+}
