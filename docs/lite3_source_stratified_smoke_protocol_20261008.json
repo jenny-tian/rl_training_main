@@ -1,0 +1,28 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 128,
+  "steps": 64,
+  "max_controls": 8192,
+  "evaluation_seed": 2113,
+  "conditions": [
+    "smoke"
+  ],
+  "models": {
+    "base": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+      "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+    }
+  },
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "train",
+    "mixed": false,
+    "dedicated_per_terrain": 16,
+    "source_stratified": true
+  },
+  "registered_at_utc": "2026-10-08T01:17:05.675686+00:00",
+  "scope": "Engineering check of permanent TRAIN-source assignment,32 dedicated slots in128. All20 original training cases retained,16 slots per terrain; sequential bank-order modulo assignment, no outcome weighting. GPU0 selected because GPU2/3 busy with unrelated jobs. All failures retained."
+}

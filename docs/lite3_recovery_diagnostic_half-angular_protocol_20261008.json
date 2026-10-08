@@ -1,0 +1,27 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 128,
+  "max_controls": 8192,
+  "evaluation_seed": 2111,
+  "conditions": [
+    "smoke"
+  ],
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261006/dedicated-recovery-seed2063/train/final.pt",
+      "sha256": "065c1c3b27675eca5aa632f7f31eff7cf4d514568298a90b8d66ca9d95759d8f"
+    }
+  },
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261008/half-angular-bank.npz",
+    "bank_sha256": "bd7a84952271ec84531ce11644f06a43a142ec05bd168889397a223935aede30",
+    "split": "train",
+    "mixed": false
+  },
+  "registered_at_utc": "2026-10-08T01:05:50.962377+00:00",
+  "scope": "Training-source diagnostic,2.56s horizon; count failures and cutoff survivors, not full-course recovery. Counterfactual changes only initial root angular velocity. No validation state used.",
+  "contact_diagnostics": true
+}

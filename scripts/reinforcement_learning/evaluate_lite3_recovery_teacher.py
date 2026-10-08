@@ -128,9 +128,26 @@ def main():
                 active=torch.ones(p["num_envs"],device=args.device,dtype=torch.bool)
                 peak=torch.zeros(p["num_envs"],device=args.device); squares=peak.clone(); count=peak.clone()
                 streak=torch.zeros(p["num_envs"],device=args.device,dtype=torch.long); recovered=torch.zeros_like(active)
+                diagnostic = bool(p.get("contact_diagnostics"))
+                if diagnostic:
+                    feet = ["FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"]
+                    foot_ids, foot_names = robot.find_bodies(feet, preserve_order=True)
+                    sensor = raw.scene["contact_forces"]
+                    contact_ids, contact_names = sensor.find_bodies(feet, preserve_order=True)
+                    assert list(foot_names) == list(contact_names) == feet
+                    write_json_atomic(folder/"diagnostic_metadata.json", dict(
+                        foot_order=feet, step_dt=raw.step_dt, timing="post-control, before automatic reset",
+                        contact_measurement="last physics substep net force, not a static support polygon",
+                        root_com="base-link COM, not whole-robot COM"))
                 episodes=[None]*p["num_envs"]; captured={}; compute=raw.termination_manager.compute
                 def capture():
-                    value=compute();captured["root"]=robot.data.root_state_w.detach().clone();return value
+                    value=compute();captured["root"]=robot.data.root_state_w.detach().clone()
+                    if diagnostic:
+                        captured["diagnostics"] = dict(
+                            foot_position_w=robot.data.body_pos_w[:,foot_ids].detach().clone(),
+                            foot_contact_force_w=sensor.data.net_forces_w[:,contact_ids].detach().clone(),
+                            base_com_position_w=robot.data.root_com_pos_w.detach().clone())
+                    return value
                 raw.termination_manager.compute=capture
                 trace=StepTrajectory(folder/"trajectory",metadata={"condition":condition,"model":name,"root":"post-step pre-reset"},chunk_steps=128,vector_dtype="float32")
                 phase_start=ledger.state["confirmed"]
@@ -162,7 +179,8 @@ def main():
                     streak=torch.where(active&upright,streak+1,0);recovered|=streak>=25
                     trace.append(**trace.snapshot(policy_observation=before,requested_action=requested,emitted_action=emitted,
                         active=before_active,done=done,success=success,failure=failure,deadline=deadline,post_root_state=state,
-                        **{f"failure_{k}":v for k,v in terms.items()}))
+                        **{f"failure_{k}":v for k,v in terms.items()},
+                        **(captured["diagnostics"] if diagnostic else {})))
                     for i in torch.where(active&done.bool())[0].tolist():
                         t=int(initial["terrain"][i]);episodes[i]=dict(env_id=i,terrain="flat" if t<2 else str(101 if t<5 else 107),
                             case=int(cases[i]),steps=step+1,success=bool(success[i]),recovery_success=bool(success[i]&recovered[i]),

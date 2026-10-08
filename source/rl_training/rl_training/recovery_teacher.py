@@ -43,6 +43,19 @@ def dedicated_recovery_mask(terrain_types, per_terrain):
     return mask
 
 
+def source_stratified_cases(terrain_types, per_terrain, bank_terrain, validation):
+    """Assign each dedicated slot a permanent TRAIN source, including fast failures."""
+    mask = dedicated_recovery_mask(terrain_types, per_terrain)
+    cases = torch.full_like(terrain_types, -1, dtype=torch.long)
+    for terrain, category in ((101, (terrain_types >= 2) & (terrain_types < 5)), (107, terrain_types >= 5)):
+        slots = torch.where(mask & category)[0]
+        pool = torch.where((bank_terrain == terrain) & ~validation)[0]
+        if not len(pool) or len(slots) < len(pool):
+            raise ValueError("source-stratified slots must cover every training source")
+        cases[slots] = pool[torch.arange(len(slots), device=slots.device) % len(pool)]
+    return cases
+
+
 def curriculum_bin(control_step, schedule):
     """Select a preregistered tier using global vector steps, never episode outcomes."""
     starts = schedule["stage_starts"]
@@ -56,7 +69,9 @@ def curriculum_bin(control_step, schedule):
     return bins[sum(control_step >= start for start in starts) - 1]
 
 
-def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None, curriculum=None):
+def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed, dedicated_per_terrain=None, curriculum=None, source_stratified=False):
+    if source_stratified and (split != "train" or mixed or curriculum is not None or dedicated_per_terrain is None):
+        raise ValueError("source stratification requires dedicated unmixed training without curriculum")
     if curriculum is not None and (split != "train" or mixed):
         raise ValueError("curriculum requires unmixed training resets")
     if dedicated_per_terrain is not None and (split!='train' or mixed):
@@ -71,6 +86,8 @@ def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed,
         env._recovery_reset_rows = 0
         env._recovery_dedicated_mask = (dedicated_recovery_mask(env.scene.terrain.terrain_types,dedicated_per_terrain)
             if dedicated_per_terrain is not None else None)
+        env._recovery_fixed_cases = (source_stratified_cases(env.scene.terrain.terrain_types, dedicated_per_terrain,
+            env._recovery_bank["terrain"], env._recovery_bank["validation"]) if source_stratified else None)
     ids = torch.as_tensor(env_ids, device=env.device, dtype=torch.long)
     bank = env._recovery_bank
     eligible = None
@@ -81,6 +98,8 @@ def reset_recovery_states(env, env_ids, *, bank_path, bank_sha256, split, mixed,
         bank["terrain"], bank["validation"], split=split, mixed=mixed, eligible=eligible)
     if env._recovery_dedicated_mask is not None:
         cases[~env._recovery_dedicated_mask[ids]]=-1
+    if env._recovery_fixed_cases is not None:
+        cases = env._recovery_fixed_cases[ids].clone()
     env._recovery_reset_count[ids] += 1
     env._recovery_case[ids] = cases
     chosen = ids[cases >= 0]; cases = cases[cases >= 0]

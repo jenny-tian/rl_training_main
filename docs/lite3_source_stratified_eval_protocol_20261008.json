@@ -1,0 +1,29 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 64,
+  "steps": 2000,
+  "max_controls": 256000,
+  "evaluation_seed": 2081,
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "split": "validation",
+    "mixed": false
+  },
+  "acceptance": "Teacher candidate must complete full course per terrain at least as often as BOTH PPO283 and pinned v2; rough mean per-trial lateral RMS <=98% of v2 and worst rough lateral <=v2. Held-out recovery successes require sustained tilt<=10deg for25 controls plus course completion: >=both baselines per terrain, >=80% of48 rough trials overall, with no held-out source case completing zero trials. Every gate required. Success would qualify candidate for separately registered FlowDAgger integration, not prove learned adapter improvement or hardware recovery.",
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261008/source-stratified-seed2063/train/final.pt",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261008/source-stratified-seed2063/train/report.json",
+      "training_protocol_sha256": "5af7547b24b54ef7d3db5f698206ac584582446f1fcfa631130115ac18362df8"
+    }
+  },
+  "registered_at_utc": "2026-10-08T01:20:24.423115+00:00",
+  "scope": "Original validation bank and eval2081, candidate-only comparison to fixed-slot2063. Source assignment is training-only; no source-stratified reset at evaluation. Exact condition-wise initial/delay hashes required. GPU0 is same RTX3090 type as prior GPU3 baseline."
+}

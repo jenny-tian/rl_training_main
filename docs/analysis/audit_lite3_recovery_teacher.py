@@ -31,6 +31,13 @@ def audit_training(root, protocol):
                 assert protocol['num_envs']==128 and protocol['recovery_resets']['dedicated_per_terrain']==16
                 expected=np.zeros(128,bool);expected[32:48]=True;expected[80:96]=True
                 np.testing.assert_array_equal(valid,np.broadcast_to(expected,valid.shape))
+                if protocol["recovery_resets"].get("source_stratified"):
+                    expected_cases=np.full(128,-1,dtype=int)
+                    for terrain,first in ((101,32),(107,80)):
+                        pool=np.flatnonzero((bank["terrain"]==terrain)&~bank["validation"])
+                        assert len(pool)<=16
+                        expected_cases[first:first+16]=pool[np.arange(16)%len(pool)]
+                    np.testing.assert_array_equal(case,np.broadcast_to(expected_cases,case.shape))
             np.testing.assert_allclose(obs[...,6:9],np.broadcast_to([.3,0,0],obs[...,6:9].shape),atol=1e-7,rtol=0)
             assert not bank["validation"][case[valid]].any()
             assert np.isfinite(obs).all() and np.isfinite(d["requested_action"]).all()
@@ -94,6 +101,13 @@ def audit_evaluation(root,protocol):
             np.testing.assert_allclose(initial["root"][selected,:3]-initial["origins"][selected],bank["root"][cases[selected],:3],atol=5e-6,rtol=0)
             np.testing.assert_allclose(initial["root"][selected,3:],bank["root"][cases[selected],3:],atol=2e-6,rtol=1e-6)
             assert sha256_file(protocol["recovery_resets"]["bank_path"])==protocol["recovery_resets"]["bank_sha256"]
+            if protocol["recovery_resets"].get("source_stratified"):
+                assert protocol["num_envs"]==128 and protocol["recovery_resets"]["dedicated_per_terrain"]==16
+                expected_cases=np.full(128,-1,dtype=int)
+                for terrain,first in ((101,32),(107,80)):
+                    pool=np.flatnonzero((bank["terrain"]==terrain)&~bank["validation"])
+                    expected_cases[first:first+16]=pool[np.arange(16)%len(pool)]
+                np.testing.assert_array_equal(cases,expected_cases)
             if protocol["recovery_resets"].get("curriculum"):
                 tier=protocol["recovery_resets"]["curriculum"]["bins"][0]
                 assert (bank["tilt_bin"][cases[selected]]==tier).all()
@@ -110,6 +124,16 @@ def audit_evaluation(root,protocol):
             with np.load(file,allow_pickle=False) as d:
                 obs=d["policy_observation"]
                 assert np.isfinite(obs).all()
+                if protocol.get("contact_diagnostics"):
+                    meta=json.loads((folder/"diagnostic_metadata.json").read_text())
+                    assert meta["foot_order"]==["FL_FOOT","FR_FOOT","HL_FOOT","HR_FOOT"]
+                    assert meta["timing"]=="post-control, before automatic reset"
+                    for key in ("foot_position_w","foot_contact_force_w"):
+                        assert d[key].shape==(*obs.shape[:2],4,3) and np.isfinite(d[key]).all()
+                    assert d["base_com_position_w"].shape==(*obs.shape[:2],3)
+                    assert np.isfinite(d["base_com_position_w"]).all()
+                    assert (np.linalg.norm(d["base_com_position_w"]-d["post_root_state"][...,:3],axis=-1)<.5).all()
+
                 np.testing.assert_allclose(obs[...,6:9],np.broadcast_to([.3,0,0],obs[...,6:9].shape),atol=1e-7,rtol=0)
                 expected=np.clip(d["requested_action"],np.array(LITE3_SAFE_ACTION_LOWER,np.float32),np.array(LITE3_SAFE_ACTION_UPPER,np.float32))
                 np.testing.assert_array_equal(d["emitted_action"],expected)

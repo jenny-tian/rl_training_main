@@ -1,0 +1,80 @@
+{
+  "controls": 170112,
+  "cpu_replay_rows": 169,
+  "evidence": {
+    "artifacts/recovery_teacher_20261008/source-stratified-seed2063/evaluation/report.json": "857bcd114453622cb9eafeef8de9acb0ee881a6490d7644472d5c3698e24751c",
+    "docs/lite3_source_stratified_eval_protocol_20261008.json": "c8cb7fd09fb9490a2143cfd934b0f85aa4817c4769798d3e7148f092f0f609ac"
+  },
+  "gates": {},
+  "phases": {
+    "course-trial": {
+      "by_terrain": {
+        "101": 23,
+        "107": 23,
+        "flat": 16
+      },
+      "recovery_by_case": {
+        "-1": 46
+      },
+      "recovery_by_terrain": {
+        "101": 23,
+        "107": 23
+      },
+      "recovery_success": 46,
+      "rough_mean_rms_m": 0.0674529371317476,
+      "rough_peak_m": 0.2564809322357178,
+      "trace_sha256": {
+        "chunk-00000.npz": "f102b9bc49f19216cc132cab4009cf1375aa3e0e138e6a454588344a241f7912",
+        "chunk-00001.npz": "5cdab790d2586e1c2a0db6848dbd918e8acb258efa34ce9799d24eed0f4f09e7",
+        "chunk-00002.npz": "cea38a1b960146be594eaa5afe1ed97a3454373403c266d14307b1f0ac670ef5",
+        "chunk-00003.npz": "9f25c3260e586fddcfd996a0195bd6894e8d68b2032770bf1b499e3e20601302",
+        "chunk-00004.npz": "6a96b8ead03928e0580bfdff8f9a10cb1d0f940991667747034acadfccac3f2a",
+        "chunk-00005.npz": "b9cca56b273c171a4243750ee4407f07593c9eb184fbf6a6a6471cd80044ab9a",
+        "chunk-00006.npz": "3962dc4eed708b0992abef546599b34e7b9b81b413160584866d254fdd67c657",
+        "chunk-00007.npz": "891f7890b65d8f62363c0b4ead8f3e971000aa84f463c3b477bf7358e865a49b",
+        "chunk-00008.npz": "e51f318030a8336bc908670507304fb9041270c35ec8dd9f4b9c7166ecd1d423",
+        "chunk-00009.npz": "0396940b96dead6b6520da44a09fcd6c56009bfe84009662b9b8341f9136c0c1",
+        "chunk-00010.npz": "6ca340fbcc92ed06fd33a88dcd6028d3c567b56ebb6b4d7833895781782ccc14"
+      }
+    },
+    "recovery-trial": {
+      "by_terrain": {
+        "101": 24,
+        "107": 13,
+        "flat": 16
+      },
+      "recovery_by_case": {
+        "0": 0,
+        "1": 8,
+        "10": 6,
+        "14": 8,
+        "19": 1,
+        "23": 6,
+        "5": 8
+      },
+      "recovery_by_terrain": {
+        "101": 24,
+        "107": 13
+      },
+      "recovery_success": 37,
+      "rough_mean_rms_m": 0.4043625357250373,
+      "rough_peak_m": 0.8801536560058594,
+      "trace_sha256": {
+        "chunk-00000.npz": "5a042db123763cfee4ddf93e030dff5fe276c7425dc8640d61e3ee025493dcb9",
+        "chunk-00001.npz": "87b16222236f482b86668dfc95cce2ab74e9ef171eb2232b51370e19752aab95",
+        "chunk-00002.npz": "159acf075dba69cc9834c7bec6f8b090a9b4660e9d0f17e068a7eca2a465097c",
+        "chunk-00003.npz": "822a82a6bbc2fef7ab53b195aea8100d7d752c0b8784b7f858abe23dc1c236a8",
+        "chunk-00004.npz": "c36f89c515ed3242a9eae2af8a2580536101879e3a8bbcda6c85913b6e541d22",
+        "chunk-00005.npz": "6a10664d5d4b02def565d47629fa8611a3c3604856159df3665757088725630c",
+        "chunk-00006.npz": "c1121da16991074f9c2469546c8a60fc3ccb81d88424d3c8c8a7a22c15b3ced0",
+        "chunk-00007.npz": "8290f608b8d366d31fb9ad19b757a574ff82fbef37b6fb0f7a43b9dd5a35ada2",
+        "chunk-00008.npz": "9599c537a0f83aa367d1788014612e47616e0dbaf39865f818ed0826bef4150f",
+        "chunk-00009.npz": "34d7503c2b369be9b7f28723df5576ee8c03b8085f7fbe58b5b8c604c2d208f5",
+        "chunk-00010.npz": "5397ea5397018e1c94dc935cd29126a5c21b13196fa7bdbe55b30874e5af1a83"
+      }
+    }
+  },
+  "scope": "Kinematic-reset development on bank split=validation; repeated starts are not independent source episodes or hardware/unseen-terrain evidence.",
+  "status": "verified",
+  "teacher_gate_passed": false
+}
