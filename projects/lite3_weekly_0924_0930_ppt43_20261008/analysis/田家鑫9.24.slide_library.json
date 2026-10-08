@@ -1,0 +1,1087 @@
+{
+  "schema": "template_fill_pptx_library.v1",
+  "source_pptx": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/projects/lite3_weekly_0924_0930_ppt43_20261008/sources/田家鑫9.24.pptx",
+  "slide_count": 6,
+  "canvas_px": {
+    "width": 960,
+    "height": 720
+  },
+  "slides": [
+    {
+      "slide_index": 1,
+      "page_type": "cover_candidate",
+      "text_summary": "机器人组 田家鑫组会汇报2026.9.24",
+      "slots": [
+        {
+          "slot_id": "s01_sh105",
+          "role": "title_candidate",
+          "text": "机器人组 田家鑫组会汇报2026.9.24",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 47,
+            "y": 457,
+            "width": 866,
+            "height": 133
+          },
+          "text_metrics": {
+            "font_size_px": 48.0,
+            "paragraph_count": 1
+          }
+        }
+      ],
+      "tables": [],
+      "charts": [],
+      "diagrams": []
+    },
+    {
+      "slide_index": 2,
+      "page_type": "content_candidate",
+      "text_summary": "工作目标与总体流程\n2\n保留基础模型\n已有平地行走能力\n教师指导初始化\n给出动作参考\n小模块在线学习\n根据行走结果调整\n暂停学习复测\n检查效果与安全\n工作目标：让已有平地行走能力的 Lite3，在石块、起伏等陌生地面上，通过有限次数的行走学会调整动作。基础网络保持不变，只训练小模块，并检查回到平地后是否仍能稳定行走。\n总体做法：先用能看到地面高度的教师提供动作参考，给小模块一个较好的起点；再边走边学习少量动作修正。新模型暂停学习后复测，通过安全和行走检查才保留。\n目前位置：LoRA-PPO、残差 SAC 已做小规模试验；本周新增教师、动作反演和潜变量模块。目前教师尚未通过验收，新路线还没有完整的行走效果结论。",
+      "slots": [
+        {
+          "slot_id": "s02_sh112",
+          "role": "title_candidate",
+          "text": "工作目标与总体流程",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh114",
+          "role": "label_candidate",
+          "text": "2",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh115",
+          "role": "label_candidate",
+          "text": "保留基础模型\n已有平地行走能力",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 62,
+            "y": 186,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh117",
+          "role": "label_candidate",
+          "text": "教师指导初始化\n给出动作参考",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 278,
+            "y": 186,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh119",
+          "role": "label_candidate",
+          "text": "小模块在线学习\n根据行走结果调整",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 494,
+            "y": 186,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh121",
+          "role": "label_candidate",
+          "text": "暂停学习复测\n检查效果与安全",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 710,
+            "y": 186,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh122",
+          "role": "label_candidate",
+          "text": "工作目标：让已有平地行走能力的 Lite3，在石块、起伏等陌生地面上，通过有限次数的行走学会调整动作。基础网络保持不变，只训练小模块，并检查回到平地后是否仍能稳定行走。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 300,
+            "width": 835,
+            "height": 87
+          },
+          "text_metrics": {
+            "font_size_px": 24.0,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh123",
+          "role": "label_candidate",
+          "text": "总体做法：先用能看到地面高度的教师提供动作参考，给小模块一个较好的起点；再边走边学习少量动作修正。新模型暂停学习后复测，通过安全和行走检查才保留。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 406,
+            "width": 835,
+            "height": 87
+          },
+          "text_metrics": {
+            "font_size_px": 24.0,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh124",
+          "role": "label_candidate",
+          "text": "目前位置：LoRA-PPO、残差 SAC 已做小规模试验；本周新增教师、动作反演和潜变量模块。目前教师尚未通过验收，新路线还没有完整的行走效果结论。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 512,
+            "width": 835,
+            "height": 59
+          },
+          "text_metrics": {
+            "font_size_px": 24.0,
+            "paragraph_count": 1
+          }
+        }
+      ],
+      "tables": [],
+      "charts": [],
+      "diagrams": []
+    },
+    {
+      "slide_index": 3,
+      "page_type": "chapter_candidate",
+      "text_summary": "本周新增：FlowDAgger 相关方法\n3\n教师给动作\n提供参考\n反推调整量\n动作反演\n小网络预测\n学习状态与调整关系\n还原关节修正\n固定解码器\n借鉴的思路：FlowDAgger 把人的纠正动作反推成策略内部的控制量，再让小网络学习预测。本项目改用仿真教师提供参考动作，基础控制器仍是 PPO。\n具体怎么做：先从教师与基础策略的动作差中提取少量共同变化；再反推出几个调整量，让解码后的动作尽量接近教师。小网络学习“看到什么状态，就给出什么调整量”。\n执行与保护：固定解码器把少量调整量转成 12 个关节的修正；身体倾斜、过低或关节过快时，风险门控缩小修正，再经过动作限幅后执行。\n本周做到的部分：已加入反演、解码器拟合、监督初始化工具和独立测试入口。教师数据与整条流程仍待打通；当前是借鉴 FlowDAgger 的反演思路，尚未复现其完整算法。",
+      "slots": [
+        {
+          "slot_id": "s03_sh112",
+          "role": "title_candidate",
+          "text": "本周新增：FlowDAgger 相关方法",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh114",
+          "role": "label_candidate",
+          "text": "3",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh115",
+          "role": "label_candidate",
+          "text": "教师给动作\n提供参考",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 62,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s03_sh117",
+          "role": "label_candidate",
+          "text": "反推调整量\n动作反演",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 278,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s03_sh119",
+          "role": "label_candidate",
+          "text": "小网络预测\n学习状态与调整关系",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 494,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s03_sh121",
+          "role": "label_candidate",
+          "text": "还原关节修正\n固定解码器",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 710,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s03_sh122",
+          "role": "label_candidate",
+          "text": "借鉴的思路：FlowDAgger 把人的纠正动作反推成策略内部的控制量，再让小网络学习预测。本项目改用仿真教师提供参考动作，基础控制器仍是 PPO。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 292,
+            "width": 835,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh123",
+          "role": "label_candidate",
+          "text": "具体怎么做：先从教师与基础策略的动作差中提取少量共同变化；再反推出几个调整量，让解码后的动作尽量接近教师。小网络学习“看到什么状态，就给出什么调整量”。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 361,
+            "width": 835,
+            "height": 85
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh124",
+          "role": "label_candidate",
+          "text": "执行与保护：固定解码器把少量调整量转成 12 个关节的修正；身体倾斜、过低或关节过快时，风险门控缩小修正，再经过动作限幅后执行。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 457,
+            "width": 835,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh125",
+          "role": "label_candidate",
+          "text": "本周做到的部分：已加入反演、解码器拟合、监督初始化工具和独立测试入口。教师数据与整条流程仍待打通；当前是借鉴 FlowDAgger 的反演思路，尚未复现其完整算法。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 526,
+            "width": 835,
+            "height": 85
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        }
+      ],
+      "tables": [],
+      "charts": [],
+      "diagrams": []
+    },
+    {
+      "slide_index": 4,
+      "page_type": "content_candidate",
+      "text_summary": "本周进展：教师训练与修复\n4\n修复前冻结复测 · 地形 101 · 两组均因跌倒结束\n实际训练结果：同一个教师依次在 101、103、107 三种训练地形各训练 2 万步。冻结复测在第一种地形第 683 步跌倒；基础 PPO 为 675 步，两者均未完成路段，教师未通过验收。\n发现并修复的问题：高度扫描应按“15 行横向 × 23 列前向”读取，旧版把两个方向读反。现已修正并升级数据版本，旧教师权重不能直接续训。\n修复后验证：9/24 记录为 1506 项测试通过、7 项跳过；CPU 环境可启动并执行仿真。修复版 GPU 训练尚待补跑，这些检查还不能证明行走性能改善。\n训练与验收\n记录\n训练总步数\n60,000\n通过教师验收\n否\n完整潜变量训练\n待开展",
+      "slots": [
+        {
+          "slot_id": "s04_sh112",
+          "role": "title_candidate",
+          "text": "本周进展：教师训练与修复",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh114",
+          "role": "label_candidate",
+          "text": "4",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh115",
+          "role": "label_candidate",
+          "text": "修复前冻结复测 · 地形 101 · 两组均因跌倒结束",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 63,
+            "y": 179,
+            "width": 835,
+            "height": 31
+          },
+          "text_metrics": {
+            "font_size_px": 21.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh118",
+          "role": "label_candidate",
+          "text": "实际训练结果：同一个教师依次在 101、103、107 三种训练地形各训练 2 万步。冻结复测在第一种地形第 683 步跌倒；基础 PPO 为 675 步，两者均未完成路段，教师未通过验收。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 409,
+            "width": 835,
+            "height": 82
+          },
+          "text_metrics": {
+            "font_size_px": 22.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh119",
+          "role": "label_candidate",
+          "text": "发现并修复的问题：高度扫描应按“15 行横向 × 23 列前向”读取，旧版把两个方向读反。现已修正并升级数据版本，旧教师权重不能直接续训。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 502,
+            "width": 835,
+            "height": 56
+          },
+          "text_metrics": {
+            "font_size_px": 22.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh120",
+          "role": "label_candidate",
+          "text": "修复后验证：9/24 记录为 1506 项测试通过、7 项跳过；CPU 环境可启动并执行仿真。修复版 GPU 训练尚待补跑，这些检查还不能证明行走性能改善。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 568,
+            "width": 835,
+            "height": 56
+          },
+          "text_metrics": {
+            "font_size_px": 22.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh117",
+          "role": "body_candidate",
+          "text": "训练与验收\n记录\n训练总步数\n60,000\n通过教师验收\n否\n完整潜变量训练\n待开展",
+          "paragraph_count": 8,
+          "geometry": {
+            "x": 552,
+            "y": 214,
+            "width": 346,
+            "height": 166
+          },
+          "text_metrics": {
+            "font_size_px": 20.0,
+            "paragraph_count": 8
+          }
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "s04_tbl117",
+          "row_count": 4,
+          "column_count": 2,
+          "rows": [
+            {
+              "row": 0,
+              "cells": [
+                {
+                  "row": 0,
+                  "col": 0,
+                  "text": "训练与验收",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 0,
+                  "col": 1,
+                  "text": "记录",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 1
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "cells": [
+                {
+                  "row": 1,
+                  "col": 0,
+                  "text": "训练总步数",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 1,
+                  "col": 1,
+                  "text": "60,000",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 1
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "cells": [
+                {
+                  "row": 2,
+                  "col": 0,
+                  "text": "通过教师验收",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 2,
+                  "col": 1,
+                  "text": "否",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 1
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "cells": [
+                {
+                  "row": 3,
+                  "col": 0,
+                  "text": "完整潜变量训练",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 3,
+                  "col": 1,
+                  "text": "待开展",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 1
+                }
+              ]
+            }
+          ],
+          "merge_topology": {
+            "has_merges": false,
+            "anchors": [],
+            "slave_cells": []
+          }
+        }
+      ],
+      "charts": [
+        {
+          "chart_id": "s04_ch116",
+          "chart_type": "barChart",
+          "category_count": 2,
+          "series_count": 1,
+          "categories": [
+            "基础 PPO",
+            "高度扫描教师"
+          ],
+          "series": [
+            {
+              "name": "跌倒时控制步数",
+              "values": [
+                675,
+                683
+              ],
+              "chart_type": "barChart"
+            }
+          ],
+          "chart_kind": "classic",
+          "plot_types": [
+            "barChart"
+          ],
+          "edit_capability": {
+            "supported": true,
+            "code": "chart_edit_category_single_plot",
+            "message": "single classic plot uses c:cat/c:val series",
+            "plot_type": "barChart",
+            "plot_count": 1,
+            "data_model": "category",
+            "warnings": []
+          }
+        }
+      ],
+      "diagrams": [],
+      "fill_risk": {
+        "has_non_text_content": true,
+        "kinds": [
+          "table",
+          "chart"
+        ],
+        "reason": "has non-text content (table/chart) that text-fill does not replace automatically; cover tables/charts with explicit edits"
+      }
+    },
+    {
+      "slide_index": 5,
+      "page_type": "content_candidate",
+      "text_summary": "本周进展：行走视频\n5\n9 月 19 日 · 本体历史信息版本 · 地形编号 113 · 暂停学习复测\n对应结果：9/19 本体历史信息版本：暂停学习后完成石块路段，1526 个控制步，前进约 8.01 m；记录中没有跌倒或安全违规。\n这段视频的作用：展示本周已有的完成样例。它属于此前版本，不是新教师或动作反演方案的结果，也不能单独证明比基础模型更好。",
+      "slots": [
+        {
+          "slot_id": "s05_sh112",
+          "role": "title_candidate",
+          "text": "本周进展：行走视频",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s05_sh114",
+          "role": "label_candidate",
+          "text": "5",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s05_sh115",
+          "role": "label_candidate",
+          "text": "9 月 19 日 · 本体历史信息版本 · 地形编号 113 · 暂停学习复测",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 180,
+            "width": 835,
+            "height": 34
+          },
+          "text_metrics": {
+            "font_size_px": 20.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s05_sh117",
+          "role": "label_candidate",
+          "text": "对应结果：9/19 本体历史信息版本：暂停学习后完成石块路段，1526 个控制步，前进约 8.01 m；记录中没有跌倒或安全违规。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 542,
+            "width": 835,
+            "height": 51
+          },
+          "text_metrics": {
+            "font_size_px": 20.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s05_sh118",
+          "role": "label_candidate",
+          "text": "这段视频的作用：展示本周已有的完成样例。它属于此前版本，不是新教师或动作反演方案的结果，也不能单独证明比基础模型更好。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 601,
+            "width": 835,
+            "height": 51
+          },
+          "text_metrics": {
+            "font_size_px": 20.67,
+            "paragraph_count": 1
+          }
+        }
+      ],
+      "tables": [],
+      "charts": [],
+      "diagrams": []
+    },
+    {
+      "slide_index": 6,
+      "page_type": "ending_candidate",
+      "text_summary": "遇到的困难与下一周计划\n6\n当前困难与思考：教师还没有提供可靠的动作参考，扫描输入又出现过方向错误。因此先确认输入和教师质量，再判断潜变量方法的效果；直接加长训练还无法回答失败原因。\n时间\n具体工作\n完成后留下什么\n9/25—26\n核对扫描方向；跑修复版 GPU\n短测试，并补基础模型对照。\n输入检查图与同条件基线；\n明确修复版能否正常训练。\n9/27—28\n重新训练教师；在 3 种训练\n地形分别暂停学习验收。\n完成率、跌倒位置与安全记录；\n明确教师是否可以用。\n9/29—30\n教师合格后采集动作、拟合\n解码器，做短程潜变量试验。\n动作重建误差及行走对照；\n未合格则继续定位教师失败。",
+      "slots": [
+        {
+          "slot_id": "s06_sh112",
+          "role": "title_candidate",
+          "text": "遇到的困难与下一周计划",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s06_sh114",
+          "role": "label_candidate",
+          "text": "6",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s06_sh115",
+          "role": "label_candidate",
+          "text": "当前困难与思考：教师还没有提供可靠的动作参考，扫描输入又出现过方向错误。因此先确认输入和教师质量，再判断潜变量方法的效果；直接加长训练还无法回答失败原因。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 187,
+            "width": 835,
+            "height": 87
+          },
+          "text_metrics": {
+            "font_size_px": 24.0,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s06_sh116",
+          "role": "body_candidate",
+          "text": "时间\n具体工作\n完成后留下什么\n9/25—26\n核对扫描方向；跑修复版 GPU\n短测试，并补基础模型对照。\n输入检查图与同条件基线；\n明确修复版能否正常训练。\n9/27—28\n重新训练教师；在 3 种训练\n地形分别暂停学习验收。\n完成率、跌倒位置与安全记录；\n明确教师是否可以用。\n9/29—30\n教师合格后采集动作、拟合\n解码器，做短程潜变量试验。\n动作重建误差及行走对照；\n未合格则继续定位教师失败。",
+          "paragraph_count": 18,
+          "geometry": {
+            "x": 62,
+            "y": 311,
+            "width": 835,
+            "height": 253
+          },
+          "text_metrics": {
+            "font_size_px": 20.67,
+            "paragraph_count": 18
+          }
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "s06_tbl116",
+          "row_count": 4,
+          "column_count": 3,
+          "rows": [
+            {
+              "row": 0,
+              "cells": [
+                {
+                  "row": 0,
+                  "col": 0,
+                  "text": "时间",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 0,
+                  "col": 1,
+                  "text": "具体工作",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 0,
+                  "col": 2,
+                  "text": "完成后留下什么",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 2
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "cells": [
+                {
+                  "row": 1,
+                  "col": 0,
+                  "text": "9/25—26",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 1,
+                  "col": 1,
+                  "text": "核对扫描方向；跑修复版 GPU\n短测试，并补基础模型对照。",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 1,
+                  "col": 2,
+                  "text": "输入检查图与同条件基线；\n明确修复版能否正常训练。",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 2
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "cells": [
+                {
+                  "row": 2,
+                  "col": 0,
+                  "text": "9/27—28",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 2,
+                  "col": 1,
+                  "text": "重新训练教师；在 3 种训练\n地形分别暂停学习验收。",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 2,
+                  "col": 2,
+                  "text": "完成率、跌倒位置与安全记录；\n明确教师是否可以用。",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 2
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "cells": [
+                {
+                  "row": 3,
+                  "col": 0,
+                  "text": "9/29—30",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 3,
+                  "col": 1,
+                  "text": "教师合格后采集动作、拟合\n解码器，做短程潜变量试验。",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 3,
+                  "col": 2,
+                  "text": "动作重建误差及行走对照；\n未合格则继续定位教师失败。",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 2
+                }
+              ]
+            }
+          ],
+          "merge_topology": {
+            "has_merges": false,
+            "anchors": [],
+            "slave_cells": []
+          }
+        }
+      ],
+      "charts": [],
+      "diagrams": [],
+      "fill_risk": {
+        "has_non_text_content": true,
+        "kinds": [
+          "table"
+        ],
+        "reason": "has non-text content (table) that text-fill does not replace automatically; cover tables/charts with explicit edits"
+      }
+    }
+  ],
+  "plan_contract": {
+    "schema": "template_fill_pptx_plan.v1",
+    "slides": [
+      {
+        "source_slide": 1,
+        "purpose": "封面 / 章节 / 内容 / 结尾",
+        "replacements": [
+          {
+            "slot_id": "s01_sh2",
+            "text": "替换后的文字"
+          }
+        ],
+        "table_edits": [
+          {
+            "table_id": "s01_tbl3",
+            "cells": [
+              {
+                "row": 0,
+                "col": 0,
+                "text": "替换后的单元格"
+              }
+            ]
+          }
+        ],
+        "chart_edits": [
+          {
+            "chart_id": "s01_ch4",
+            "categories": [
+              "A",
+              "B"
+            ],
+            "series": [
+              {
+                "name": "系列1",
+                "values": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
