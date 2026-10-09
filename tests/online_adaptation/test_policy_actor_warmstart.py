@@ -50,3 +50,23 @@ def test_invalid_initialization_rejected_before_actor_changes(failure):
     else:runner.alg.optimizer.state[next(runner.alg.actor.parameters())]={'step':1}
     with pytest.raises(ValueError):warmstart_actor_only(runner,payload,initial_std=std)
     for k,v in before.items():assert torch.equal(v,runner.alg.actor.state_dict()[k])
+
+
+def test_mean_only_checkpoint_explicitly_initializes_only_exploration():
+    runner,payload=fixture()
+    del payload['actor_state_dict']['distribution.log_std_param']
+    saved=copy.deepcopy(payload['actor_state_dict'])
+    critic=copy.deepcopy(runner.alg.critic.state_dict())
+    rng=torch.get_rng_state().clone()
+    with pytest.raises(ValueError):
+        warmstart_actor_only(runner,payload,initial_std=.05)
+    with pytest.raises(ValueError,match='explicit exploration'):
+        warmstart_actor_only(runner,payload,allow_mean_only=True)
+    report=warmstart_actor_only(runner,payload,initial_std=.05,allow_mean_only=True)
+    assert report['distribution_initialized_from_mean_only']
+    assert torch.equal(rng,torch.get_rng_state()) and not runner.alg.optimizer.state
+    assert payload['actor_state_dict'].keys()==saved.keys()
+    for k,v in saved.items():
+        assert torch.equal(v,payload['actor_state_dict'][k]) and torch.equal(v,runner.alg.actor.state_dict()[k])
+    for k,v in critic.items():assert torch.equal(v,runner.alg.critic.state_dict()[k])
+    torch.testing.assert_close(runner.alg.actor.distribution.log_std_param.exp(),torch.full((2,),.05))

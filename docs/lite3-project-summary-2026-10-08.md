@@ -123,3 +123,5 @@ v2最终63/64，未适配零噪声flow64/64，没有净收益。后续围绕标�
 - [监督恢复迁移与保持权重消融](lite3-prefix-imitation-result-2026-10-08.md)
 - [普通状态覆盖与精度保持改善](lite3-retention-coverage-result-2026-10-08.md)
 - [全部实验登记](lite3_experiment_registry.md)、[后续场景计划](lite3-next-experiments-plan-2026-10-06.md)
+
+2026-10-09接续更新：带普通/恢复前段动作奖励保持的PPO配对实验已完成；原横偏惩罚−4与主组−8都未改善，主组普通63/64、RMS13.39cm、峰值35.97cm，case26恢复24/24但峰值75.94cm。未晋升或触发原7来源验证，未进入新FlowDAgger集成，仍保留原监督候选6a470cec…。新增920000步，累计charged27760704/confirmed27760640/历史uncertain64。下一项是直接均值动作保持损失。见[完整PPO配对报告](lite3-recovery-return-ppo-result-2026-10-08.md)。

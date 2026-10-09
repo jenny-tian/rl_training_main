@@ -45,6 +45,14 @@ def main():
         if p.get('flat_anchor_weight') is not None:
             smoke=json.loads(Path(p['smoke_report']).read_text())
             assert smoke['flat_anchor_timing_and_mask_passed'] and smoke['flat_anchor_model_unchanged']
+        recovery_anchor = p.get('recovery_anchor')
+        if recovery_anchor is not None:
+            assert p.get('flat_anchor_weight') is None and p.get('recovery_resets')
+            smoke = json.loads(Path(recovery_anchor['smoke_report']).read_text())
+            assert sha256_file(recovery_anchor['smoke_report']) == recovery_anchor['smoke_sha256']
+            assert smoke['status'] == 'complete' and smoke['recovery_anchor_timing_and_mask_passed']
+            assert smoke['anchor_model_unchanged'] and smoke['base_sha256'] == p['base_sha256']
+            assert smoke['anchor_options'] == {k: recovery_anchor[k] for k in ('weight', 'early_steps')}
         app=AppLauncher(args)
         stop_requested=[]
         def request_stop(signum, frame):stop_requested.append(signum)
@@ -90,7 +98,12 @@ def main():
         if anchor_weight is not None:
             from rl_training.policy_flat_anchor import FrozenFlatMean, configure_flat_anchor, prepare_flat_anchor, flat_anchor_cost
             configure_flat_anchor(cfg,anchor_weight)
+        if recovery_anchor is not None:
+            from rl_training.policy_recovery_anchor import configure_recovery_anchor, prepare_recovery_anchor
+            from rl_training.policy_flat_anchor import FrozenFlatMean, flat_anchor_cost
+            configure_recovery_anchor(cfg, recovery_anchor)
         env=gym.make(p['task'],cfg=cfg);raw=env.unwrapped
+        anchor_reward_index=raw.reward_manager.active_terms.index('recovery_policy_anchor') if recovery_anchor is not None else None
         if p.get('recovery_resets'):
             check_recovery_event_order(raw)
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
@@ -106,14 +119,24 @@ def main():
                 torch.testing.assert_close(obs['policy'][:,6:9],expected,atol=1e-7,rtol=0)
             if p.get('recovery_resets'):
                 extra.update(recovery_case=raw._recovery_case,pre_root_state=raw.scene['robot'].data.root_state_w)
-            if teacher is not None:
+            if recovery_anchor is not None:
+                target,mask=prepare_recovery_anchor(raw,teacher,obs['policy'],recovery_anchor['early_steps'])
+                report['recovery_anchor_label_rows']+=int(mask.sum())
+                extra.update(recovery_anchor_target=target,recovery_anchor_mask=mask,
+                    recovery_anchor_cost=flat_anchor_cost(clip_lite3_policy_action(action),target,mask),
+                    episode_steps=raw.episode_length_buf.clone())
+            elif teacher is not None:
                 target,mask=prepare_flat_anchor(raw,teacher,obs['policy'])
                 report['flat_anchor_label_rows']+=int(mask.sum())
                 extra.update(flat_anchor_target=target,flat_anchor_mask=mask,flat_anchor_cost=flat_anchor_cost(clip_lite3_policy_action(action),target,mask))
             return trace.snapshot(policy_observation=obs['policy'],critic_observation=obs['critic'],requested_action=action,emitted_action=clip_lite3_policy_action(action),**extra)
         def after(pre,result):
             obs,reward,done,extras=result
-            if teacher is not None:
+            if recovery_anchor is not None:
+                torch.testing.assert_close(raw._recovery_anchor_applied_cost,torch.as_tensor(pre['recovery_anchor_cost'],device=done.device),atol=1e-6,rtol=0)
+                anchor_component=raw.reward_manager._step_reward[:,anchor_reward_index]*raw.step_dt
+                torch.testing.assert_close(anchor_component,-recovery_anchor['weight']*raw._recovery_anchor_applied_cost*raw.step_dt,atol=1e-6,rtol=1e-5)
+            elif teacher is not None:
                 torch.testing.assert_close(raw._flat_anchor_applied_cost,torch.as_tensor(pre['flat_anchor_cost'],device=done.device),atol=1e-6,rtol=0)
             expected_history=torch.as_tensor(pre["emitted_action"],device=done.device).clone()
             expected_history[done.bool()]=0
@@ -134,24 +157,29 @@ def main():
                     report['recovery_episode_counts'][name]+=int((mask&recovery).sum())
             trace.append(**pre,next_policy_observation=obs['policy'],next_critic_observation=obs['critic'],
                 reward=reward,done=done,returned_root_state=raw.scene['robot'].data.root_state_w,
-                task_success=success,task_failure=failure,task_deadline=deadline)
+                task_success=success,task_failure=failure,task_deadline=deadline,
+                **(dict(recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost,recovery_anchor_reward=anchor_component) if recovery_anchor is not None else {}))
         counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after,action_transform=clip_lite3_policy_action)
         runner=OnPolicyRunner(counted,agent_cfg.to_dict(),log_dir=str(out/'rsl'),device=args.device)
         obs=counted.get_observations()
         assert obs['policy'].shape==(p['num_envs'],48 if route else 45) and obs['critic'].shape==(p['num_envs'],51 if route else 48)
         payload=torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False)
-        if anchor_weight is not None:
+        if anchor_weight is not None or recovery_anchor is not None:
             teacher=FrozenFlatMean(payload).to(args.device).eval()
             teacher_initial={k:v.clone() for k,v in teacher.state_dict().items()}
-            report['flat_anchor_label_rows']=0
-            report['flat_anchor_weight']=anchor_weight
+            if recovery_anchor is not None:
+                report['recovery_anchor_label_rows']=0
+                report['recovery_anchor_options']={k: recovery_anchor[k] for k in ('weight','early_steps')}
+            else:
+                report['flat_anchor_label_rows']=0
+                report['flat_anchor_weight']=anchor_weight
         if route:
             if p.get('base_observation_schema') == route:
                 assert payload['actor_state_dict']['mlp.0.weight'].shape[1]==48
             else:
                 payload=expand_actor_route_inputs(payload)
         report['route_observations']=route
-        report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'])
+        report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'],allow_mean_only=p.get('base_actor_mean_only',False))
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}
         dump_yaml(str(out/'env.yaml'),cfg);dump_yaml(str(out/'agent.yaml'),agent_cfg)
         report['versions']={name:importlib.metadata.version(name) for name in ('torch','rsl-rl-lib')}
@@ -175,7 +203,7 @@ def main():
         assert sources=={str(x.relative_to(root)):sha256_file(x) for x in paths}
         if teacher is not None:
             assert all(torch.equal(v,teacher.state_dict()[k]) for k,v in teacher_initial.items())
-            report['flat_anchor_model_unchanged']=True
+            report['recovery_anchor_model_unchanged' if recovery_anchor is not None else 'flat_anchor_model_unchanged']=True
         checkpoint=runner.alg.save();checkpoint.update(iter=runner.current_learning_iteration,
             infos={'protocol_sha256':protocol_hash,'base_sha256':p['base_sha256'],'rng_state':capture_rng_state()})
         torch.save(checkpoint,out/'final.pt')

@@ -6,7 +6,7 @@ import math
 import torch
 
 
-def warmstart_actor_only(runner, payload, *, initial_std=None):
+def warmstart_actor_only(runner, payload, *, initial_std=None, allow_mean_only=False):
     """Copy compatible actor tensors into a fresh learner, preserving critic/optimizers.
 
     This is initialization, never a training resume. Mean-network tensors are
@@ -27,6 +27,12 @@ def warmstart_actor_only(runner, payload, *, initial_std=None):
     if not optimizers or any(not isinstance(o,torch.optim.Optimizer) or o.state for o in optimizers):
         raise ValueError('fresh empty optimizer state required')
     current=actor.state_dict();source=payload['actor_state_dict']
+    distribution_initialized = False
+    if allow_mean_only and set(source) == set(current) - {'distribution.log_std_param'}:
+        if initial_std is None or 'distribution.log_std_param' not in current:
+            raise ValueError('mean-only initialization requires explicit exploration scale')
+        source = dict(source, **{'distribution.log_std_param': current['distribution.log_std_param'].detach().clone()})
+        distribution_initialized = True
     if current.keys()!=source.keys():raise ValueError('actor observation/action schema differs')
     for name,value in source.items():
         if (not isinstance(value,torch.Tensor) or value.shape!=current[name].shape
@@ -52,5 +58,6 @@ def warmstart_actor_only(runner, payload, *, initial_std=None):
         raise
     actor.requires_grad_(True)
     return {'actor_loaded':True,'critic_loaded':False,'optimizer_loaded':False,
+            'distribution_initialized_from_mean_only':distribution_initialized,
             'initial_std_override':initial_std,'mean_state_preserved':True,
             'actor_tensor_shapes':{k:list(v.shape) for k,v in current.items()}}
