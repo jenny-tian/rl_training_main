@@ -1,0 +1,86 @@
+{
+  "allowed_control_protocol_changes": [
+    "registered_at_utc",
+    "arm",
+    "scope",
+    "selection",
+    "tail_anchor"
+  ],
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "change": "Only remove the separate tail_anchor (effective coefficient25 to0). Keep four-group frozen initialization means100, heading weight-1/lookahead1m/limit20deg, online anchor100, lateral-8, learner2281, fresh initialization6a and final256. No stored action labels for updates.",
+  "conditional_validation": "Only all unchanged pilot gates pass then register original7-source seed2081 candidate evaluation, max256000. Final256 checkpoint only, no replacement seed/checkpoint and no changed70cm threshold.",
+  "control_protocol": "docs/lite3_self_target_heading_train_protocol_20261009.json",
+  "control_protocol_sha256": "36716c0d0889e13a974a7c7f71159c69295691ed782430d434258773f9f853ba",
+  "control_result": "docs/lite3_self_target_heading_pilot_result_20261009.json",
+  "control_result_sha256": "f0203b642b7be841d9eda3850c03998ac0dc4598398543f6364740d6c0221886",
+  "control_training_run": "artifacts/self_target_heading_20261009/train",
+  "cumulative_before": {
+    "charged": 32588800,
+    "confirmed": 32588736,
+    "uncertain": 64
+  },
+  "device_reason": "Same currently idle GPU1 RTX3090 as weight-1 control; first rollout physics and rewards must match exactly.",
+  "diagnostic": "docs/lite3_self_target_heading_result_20261009.json",
+  "diagnostic_sha256": "b690943e0489c0b1dc8fe7e7e3e0eac8039793a4d11d858c07732c2987868eea",
+  "execution_device": "cuda:1",
+  "iterations": 256,
+  "max_conditional_validation_controls": 256000,
+  "max_engineering_controls": 0,
+  "max_new_controls": 1036288,
+  "max_pilot_controls": 256000,
+  "mean_anchor": {
+    "batch_groups": {
+      "correction": 128,
+      "flat": 128,
+      "rough101": 128,
+      "rough107": 128
+    },
+    "coefficient": 100.0,
+    "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+    "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+    "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "seed": 2293
+  },
+  "original_queries": 2621440,
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-09T16:01:22.495152+00:00",
+  "removed_tail_anchor": {
+    "batch_groups": {
+      "post_recovery": 128
+    },
+    "coefficient": 25.0,
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "seed": 2309
+  },
+  "reused_engineering_evidence": "Runtime176 sources unchanged from completed self-target heading run; absent-tail path and heading reward independently tested and physically exercised. Reuse53 passing tests, no new test execution or engineering physics.",
+  "route_training": {
+    "heading_lookahead_m": 1.0,
+    "heading_maximum_deg": 20.0,
+    "heading_weight": -1.0,
+    "tracking_std": 0.15
+  },
+  "schema": "lite3_no_tail_heading_ablation_v1",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_queries": 0,
+  "tests": {
+    "failed": 0,
+    "log": "docs/lite3_route_heading_tests_20261009.txt",
+    "passed": 53,
+    "sha256": "f1156157e539b4bee9c2c6ceac8bb899a7a807350614437b5368115b9a8ec309"
+  },
+  "total_replay_queries": 2621440,
+  "training_controls": 524288,
+  "training_seed": 2281,
+  "update": "Runtime unchanged. Omit tail_anchor entirely; main replay stream and all first-rollout fields including rewards must equal self-target heading control.",
+  "vendor_ppo_source_sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+}

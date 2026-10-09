@@ -65,6 +65,7 @@ def main():
     heading_weight=plan['schema']=='lite3_route_heading_weight_ablation_v1'
     heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
     self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
+    no_tail=plan['schema']=='lite3_no_tail_heading_ablation_v1'
     if demo_target:assert args.retry_addendum
     engineering=0
     if heading:
@@ -81,7 +82,7 @@ def main():
         cumulative_confirmed_through_pilot=plan['cumulative_before']['confirmed']+total,historical_uncertain=64)
     if args.retry_addendum:costs['interrupted_training']=aborted_controls
     if heading:costs['engineering']=engineering
-    if self_target:
+    if self_target or no_tail:
         assert plan['max_engineering_controls']==0
         costs['engineering']=0
     out=dict(status='verified',initial=initial['results']['trial'],control=control['results']['trial'],trial=result['results']['trial'],
@@ -108,6 +109,13 @@ def main():
         assert trained['stored_action_target_rows_for_updates']==0 and trained['first_rollout_all_recorded_fields_bitwise_equal']
         out['stored_action_target_rows_for_updates']=0
         out['scope']='Correction targets only: frozen initialization means replace stored demo labels. Same heading weight-1, tail25, learner2281/eval2251/final256; first rollout including rewards identical. TRAIN-source developer pilot only.'
+    if no_tail:
+        assert trained['stored_action_target_rows_for_updates']==trained['tail_replay_rows']==0
+        assert trained['first_rollout_all_recorded_fields_bitwise_equal']
+        out.update(stored_action_target_rows_for_updates=0,tail_replay_rows=0,
+            total_replay_rows=trained['total_replay_rows'],removed_tail_coefficient=25.,
+            offline_correction_mse_to_demonstrated_emitted_action=trained['offline_correction_mse_to_demonstrated_emitted_action'],
+            scope='Only separate tail preservation removed; same four-group self-mean targets, heading weight-1, learner2281/eval2251/final256. Main draws and first full rollout identical. Repeated TRAIN-source pilot only.')
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
@@ -117,6 +125,7 @@ def main():
     if heading:labels=['Supervised init','Zero heading target','Centerline heading target']
     if heading_weight:labels=['Supervised init','Heading weight -1','Heading weight -4']
     if self_target:labels=['Supervised init','Demo correction\ntargets','Self-mean correction\ntargets']
+    if no_tail:labels=['Supervised init','Self-mean targets\nwith tail25','Self-mean targets\nwithout tail']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -139,6 +148,7 @@ def main():
     if heading:title='Centerline-directed heading reward'
     if heading_weight:title='Centerline heading reward strength'
     if self_target:title='Correction targets with fixed centerline heading reward'
+    if no_tail:title='Tail preservation with fixed self-mean targets and heading reward'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

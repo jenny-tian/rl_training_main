@@ -38,9 +38,19 @@ def main():
     heading_weight=plan['schema']=='lite3_route_heading_weight_ablation_v1'
     heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
     self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
-    has_heading=heading or self_target
-    has_tail=tail_anchor or has_heading
+    no_tail=plan['schema']=='lite3_no_tail_heading_ablation_v1'
+    self_mean=self_target or no_tail
+    has_heading=heading or self_mean
+    has_tail=(tail_anchor or has_heading) and not no_tail
     fixed_demo=(demo_target or has_tail) and not self_target
+    if no_tail:
+        allowed.add('tail_anchor')
+        assert set(plan['allowed_control_protocol_changes'])==allowed
+        assert set(p)==set(control)-{'tail_anchor'}
+        assert control['tail_anchor']==plan['removed_tail_anchor']
+        assert control['tail_anchor']['coefficient']==25.
+        assert 'tail_anchor' not in r and 'tail_anchor' not in plan
+        assert plan['tail_queries']==0 and plan['total_replay_queries']==plan['original_queries']
     if self_target:
         allowed.add('mean_anchor')
         assert set(plan['allowed_control_protocol_changes'])==allowed and set(p)==set(control)
@@ -92,7 +102,7 @@ def main():
         if key not in allowed:
             assert p[key]==value,key
     spec=p['mean_anchor'];observed=r['mean_anchor']
-    if self_target:
+    if self_mean:
         assert not any(k.startswith('fixed_target') for k in spec)
         assert not any(k.startswith('fixed_target') for k in observed)
         assert plan['stored_action_target_rows_for_updates']==0
@@ -143,7 +153,7 @@ def main():
                 deltas=torch.cat([candidate(torch.from_numpy(values[i:i+4096]))-teacher(torch.from_numpy(values[i:i+4096])) for i in range(0,len(values),4096)])
                 offline[group]=dict(rows=len(values),mean_squared_raw_action_change=float(deltas.square().mean()),
                     p95_absolute_raw_action_change=float(torch.quantile(deltas.abs().flatten(),.95)),max_absolute_raw_action_change=float(deltas.abs().max()))
-            if fixed_demo or self_target:
+            if fixed_demo or self_mean:
                 control_report=json.loads((Path(plan['control_training_run'])/'report.json').read_text())
                 control_checkpoint=control_report['final_checkpoint']
                 assert sha256_file(control_checkpoint['path'])==control_checkpoint['sha256']
@@ -185,7 +195,7 @@ def main():
         for key in ('policy_observation','critic_observation','pre_root_state','requested_action','emitted_action'):
             np.testing.assert_array_equal(before[key],after[key])
             prefix[key]=0.
-        if self_target:
+        if self_mean:
             assert set(before.files)==set(after.files)
             for key in before.files:np.testing.assert_array_equal(before[key],after[key])
         if heading:
@@ -216,7 +226,7 @@ def main():
             fixed_target_sha256=target_digest.hexdigest(),fixed_target_array_sha256=spec['fixed_target_array_sha256'],
             offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
             scope='Only correction TRAIN replay labels changed; ordinary frozen means retained. Validation label MSE is post-training diagnostic only. First rollout paired, later updates intentionally differ.')
-    if fixed_demo or self_target:
+    if fixed_demo or self_mean:
         control_report=json.loads((control_root/'report.json').read_text())
         assert digest.hexdigest()==control_report['mean_anchor']['draw_sha256']
     if has_tail:
@@ -228,6 +238,7 @@ def main():
             total_replay_rows=observed['rows']+seen['rows'],
             scope='Only additive25*tail TRAIN preservation changed. Original four-group loss coefficients, data, normalization, draw stream and fixed demo targets unchanged. Offline validation is diagnostic only.')
         if not self_target:assert target_digest.hexdigest()==control_report['mean_anchor']['fixed_target_sha256']
+    if has_tail or no_tail:
         tests=plan['tests']
         assert tests['failed']==0 and tests['passed']==(53 if has_heading else 42) and sha256_file(tests['log'])==tests['sha256']
         assert sha256_file(plan['diagnostic'])==plan['diagnostic_sha256']
@@ -245,6 +256,18 @@ def main():
             offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
             first_rollout_all_recorded_fields_bitwise_equal=True,first_rollout_reward_maximum_difference=0.,
             scope='Only correction replay target changes from stored demonstration actions to frozen initialization means. Both draw streams and first rollout including rewards identical. Stored action labels read only here for offline diagnostics, never for updates.')
+    if no_tail:
+        assert fixed_rows==0 and not fixed_targets
+        assert observed['rows']==plan['original_queries']==plan['total_replay_queries']
+        assert all('tail_anchor' not in u['losses'] for u in updates)
+        assert r['source_files']==control_report['source_files']
+        for path,digest_value in r['source_files'].items():assert sha256_file(path)==digest_value
+        result.update(stored_action_target_rows_for_updates=0,tail_replay_rows=0,
+            total_replay_rows=observed['rows'],removed_tail_coefficient=25.,
+            offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
+            first_rollout_all_recorded_fields_bitwise_equal=True,first_rollout_reward_maximum_difference=0.,
+            runtime_sources_equal_to_control=True,
+            scope='Only the separate25*tail preservation term removed. Main replay configuration and draw stream, self-mean targets, heading reward and first full rollout unchanged. Stored labels used only in post-training diagnostics; no validation updates.')
     if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
         maxima={key:0. for key in prefix}
         files=sorted((control_root/'trajectory').glob('chunk-*.npz'))

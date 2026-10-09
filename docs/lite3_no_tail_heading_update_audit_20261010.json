@@ -1,0 +1,95 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/self_target_heading_20261009/train/final.pt": "1d3e32fff6e553c7c28fdc7f5f59d621c6b0d3258b5d83ba9506ff2ceddf48c7",
+    "artifacts/no_tail_heading_20261010/train/report.json": "29963df008c1b08a6c37e66424d39a5a79b394db2d38afd06c676d0a9be81ed8",
+    "artifacts/no_tail_heading_20261010/train/trajectory/chunk-00000.npz": "84b846a2a692cd02db2b1c6118c7ce2a1d1196acbdbcd946453e1fdaa3e106c8",
+    "artifacts/no_tail_heading_20261010/train/updates.jsonl": "8aca888dc66f23f2c4f254096ccfeb2c98f6eba6f919336553dab5b486627c98",
+    "artifacts/route_heading_20261009/smoke/report.json": "280b6903f258d08825e6770790fa287b4d06c0140e67a2fc657130055bf24d02",
+    "artifacts/self_target_heading_20261009/train/trajectory/chunk-00000.npz": "84b846a2a692cd02db2b1c6118c7ce2a1d1196acbdbcd946453e1fdaa3e106c8",
+    "docs/lite3_no_tail_heading_geometry_audit_20261010.json": "14f1562807328a4373258929268390f8b454ed5a1da0df9760890e8aafa17d11",
+    "docs/lite3_no_tail_heading_plan_20261010.json": "b6c6ea45d34602e5bbb721db00bb79513169f0e51f701c49926b52c2fa96567f",
+    "docs/lite3_no_tail_heading_reward_audit_20261010.json": "22649337798fb49c48b685d24281207e281909ae1a6d32d98e32aa49ef4f61cf",
+    "docs/lite3_no_tail_heading_train_protocol_20261010.json": "3e2697ada321b44d02713e73cad12caa6f67272a264aa58e4a380810265f838e",
+    "docs/lite3_no_tail_heading_training_audit_20261010.json": "65bb37b398eb3ddf79900a600efcd29ed2eaf3a39b8546f2e204527052f1efc5",
+    "docs/lite3_route_heading_tests_20261009.txt": "f1156157e539b4bee9c2c6ceac8bb899a7a807350614437b5368115b9a8ec309",
+    "docs/lite3_self_target_heading_result_20261009.json": "b690943e0489c0b1dc8fe7e7e3e0eac8039793a4d11d858c07732c2987868eea"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/no_tail_heading_20261010/train/final.pt",
+    "sha256": "f9cb2e415fae056af538201b3fb77efe650d5054d1b1351d591e646b2c7111a9"
+  },
+  "first_rollout_all_recorded_fields_bitwise_equal": true,
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "first_rollout_reward_maximum_difference": 0.0,
+  "mean_anchor_calls": 5120,
+  "mean_anchor_loss": {
+    "first": 6.5903124180977105e-06,
+    "last": 0.00012100442545488476,
+    "maximum": 0.00012291665734665003,
+    "mean": 7.039552235882374e-05
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.022668123245239258,
+      "mean_squared_raw_action_change": 5.490329931490123e-05,
+      "p95_absolute_raw_action_change": 0.014059347100555897,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.036179423332214355,
+      "mean_squared_raw_action_change": 0.0001409807155141607,
+      "p95_absolute_raw_action_change": 0.023768309503793716,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.09855985641479492,
+      "mean_squared_raw_action_change": 0.00023252732353284955,
+      "p95_absolute_raw_action_change": 0.029299788177013397,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.047870784997940063,
+      "mean_squared_raw_action_change": 0.0001462524669477716,
+      "p95_absolute_raw_action_change": 0.024305589497089386,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.048162639141082764,
+      "mean_squared_raw_action_change": 0.000144426929182373,
+      "p95_absolute_raw_action_change": 0.024166010320186615,
+      "rows": 15774
+    }
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.010375593788921833,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.01049189455807209
+    },
+    "validation": {
+      "control": 0.009123791940510273,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.009181438013911247
+    }
+  },
+  "removed_tail_coefficient": 25.0,
+  "replay_rows": 2621440,
+  "runtime_sources_equal_to_control": true,
+  "scope": "Only the separate25*tail preservation term removed. Main replay configuration and draw stream, self-mean targets, heading reward and first full rollout unchanged. Stored labels used only in post-training diagnostics; no validation updates.",
+  "status": "verified",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_replay_rows": 0,
+  "total_replay_rows": 2621440,
+  "validation_rows_used_for_updates": 0
+}
