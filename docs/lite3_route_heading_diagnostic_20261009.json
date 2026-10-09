@@ -1,0 +1,48 @@
+{
+  "evidence": {
+    "artifacts/prefix_imitation_20261008/collect-course/report.json": "6418f6f5e99c2a2fba92547421c36db20531d1c1a590988286641bc4b6957193",
+    "artifacts/prefix_imitation_20261008/collect-prefix/report.json": "c5c019396a27d4b4d1206e33d3d367857c146dfea9fa87f0d774f78effc814cf",
+    "docs/lite3_prefix_imitation_collect_course_audit_20261008.json": "d6182875437f535369ef377ac52354af1866b93135e22077d18a8f9c5f9d6190",
+    "docs/lite3_prefix_imitation_collect_course_protocol_20261008.json": "f65bce6b3dd1817d11acfbd73aee981e4255b711df30a1f3f0e22b5bb287bce3",
+    "docs/lite3_prefix_imitation_collect_prefix_audit_20261008.json": "0f290b3e85e0fcf09d21e6387c0f1523877f0baaa8342674d48dc19111ec0eda",
+    "docs/lite3_prefix_imitation_collect_prefix_protocol_20261008.json": "1c025132a54a5dd2d9eb62f9b8935e85af6d78d280c823399d8d628df16e7de9",
+    "docs/lite3_prefix_imitation_plan_20261008.json": "4e71fed828f4aadc0330d63440a21e17ceee14a5c38d65af6169cf85f983dfd6"
+  },
+  "lookahead_m": 1.0,
+  "maximum_heading_deg": 20.0,
+  "new_controls": 0,
+  "optimizer_steps": 0,
+  "results": {
+    "course": {
+      "foot_dominant_fraction": 1.0,
+      "mean_abs_y_m": 0.07576452195644379,
+      "mean_costs": {
+        "body_only_cost": 0.007726719602942467,
+        "current_heading_cost": 0.002664025407284498,
+        "current_lateral_cost": 0.04899318516254425,
+        "lookahead_heading_cost": 0.00961899384856224
+      },
+      "offroute_rows": 41050,
+      "offroute_velocity_outward_fraction": 0.5461875761266748,
+      "offroute_yaw_outward_fraction": 0.8396345919610232,
+      "rows": 62403
+    },
+    "prefix": {
+      "foot_dominant_fraction": 0.9916906901814482,
+      "mean_abs_y_m": 0.5773690938949585,
+      "mean_costs": {
+        "body_only_cost": 0.338284432888031,
+        "current_heading_cost": 0.030098622664809227,
+        "current_lateral_cost": 0.5531594157218933,
+        "lookahead_heading_cost": 0.12071006745100021
+      },
+      "offroute_rows": 5897,
+      "offroute_velocity_outward_fraction": 0.5806342207902323,
+      "offroute_yaw_outward_fraction": 0.5882652196031881,
+      "rows": 5897
+    }
+  },
+  "scope": "Post-control geometry from existing fresh TRAIN collections; env_id%4==0 withheld. Alternative heading cost is a counterfactual calculation, not a rollout outcome. No reward coefficients or acceptance gates changed here.",
+  "status": "verified",
+  "validation_streams_used": 0
+}

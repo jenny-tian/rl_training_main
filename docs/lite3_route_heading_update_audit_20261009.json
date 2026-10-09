@@ -1,0 +1,115 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/tail_anchor_20261009/train/final.pt": "b714dea5427b7eee88183d17317a562b65d08848058e89ae16509e8a6fac2fdf",
+    "artifacts/route_heading_20261009/smoke/report.json": "280b6903f258d08825e6770790fa287b4d06c0140e67a2fc657130055bf24d02",
+    "artifacts/route_heading_20261009/train/report.json": "f7822a1c217c13b8c6629bdb88f503f40ef92fcc3d6228c6c0ba1fd6a407151c",
+    "artifacts/route_heading_20261009/train/trajectory/chunk-00000.npz": "84b846a2a692cd02db2b1c6118c7ce2a1d1196acbdbcd946453e1fdaa3e106c8",
+    "artifacts/route_heading_20261009/train/updates.jsonl": "11e4b04685c503434f7f01619ba2e9eae798f07ac5d83612472ca55ffae4d70b",
+    "artifacts/tail_anchor_20261009/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "docs/lite3_route_heading_diagnostic_20261009.json": "8bfeadf37c0310bdab0bd231761c3e03846f863a0adf94af732e533be5ad65f5",
+    "docs/lite3_route_heading_geometry_audit_20261009.json": "786bf6c6c193255a6094ebd92227c22f36adb91ec1e21b77fe12770d00175e02",
+    "docs/lite3_route_heading_plan_20261009.json": "c6af4ce6197bfbbb5228cae0b73c1d1c33c57cb4e6883049b5fa025f8a0b4da1",
+    "docs/lite3_route_heading_reward_audit_20261009.json": "4e67da0c95bfa9a339acbe1428a58bb001809ae26a66acb4833aa952c65715d4",
+    "docs/lite3_route_heading_tests_20261009.txt": "f1156157e539b4bee9c2c6ceac8bb899a7a807350614437b5368115b9a8ec309",
+    "docs/lite3_route_heading_train_protocol_20261009.json": "50d68c6f4f655ddb31a7e1e3120700e63bcf8c9c401df81838b4aae6fb7daa0e",
+    "docs/lite3_route_heading_training_audit_20261009.json": "3ac9e071c72a9365f4911882b6489391e994cb21ce765e6e1e865203aab8c4d3"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_heading_20261009/train/final.pt",
+    "sha256": "c7c1d64d723b9bd20097f8176321ce8c531f26ae5ff15d48c2fa7bfb4c53ec25"
+  },
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "first_rollout_reward_difference": {
+    "maximum_absolute_difference": 0.004750489257276058,
+    "maximum_heading_only_residual": 1.4305214790510945e-08
+  },
+  "fixed_target_array_sha256": {
+    "correction": "1849d787dea93dfa615017e2c7a74ddabc2258a73b1f562faa4eb9b3a7951139"
+  },
+  "fixed_target_groups": [
+    "correction"
+  ],
+  "fixed_target_rows": 655360,
+  "fixed_target_sha256": "da4899520b0012e7d95add87fc4dbaa4644b2985b44723f1029d5644b6395edc",
+  "mean_anchor_calls": 5120,
+  "mean_anchor_loss": {
+    "first": 0.0024574874201789497,
+    "last": 0.00150621427455917,
+    "maximum": 0.0026425343239679933,
+    "mean": 0.0018493881244012302
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.21874594688415527,
+      "mean_squared_raw_action_change": 0.0017142421565949917,
+      "p95_absolute_raw_action_change": 0.08433813601732254,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.07291674613952637,
+      "mean_squared_raw_action_change": 0.00011250042007304728,
+      "p95_absolute_raw_action_change": 0.021605955436825752,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.2816712260246277,
+      "mean_squared_raw_action_change": 0.00026940135285258293,
+      "p95_absolute_raw_action_change": 0.025022149085998535,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.07281887531280518,
+      "mean_squared_raw_action_change": 0.00011718118912540376,
+      "p95_absolute_raw_action_change": 0.021609313786029816,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.0728188157081604,
+      "mean_squared_raw_action_change": 0.00011627440835582092,
+      "p95_absolute_raw_action_change": 0.0216105654835701,
+      "rows": 15774
+    }
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.005530609283596277,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.005541190505027771
+    },
+    "validation": {
+      "control": 0.005583871155977249,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.005537519697099924
+    }
+  },
+  "replay_rows": 2621440,
+  "scope": "Only centerline-directed heading reward changed; same physical first rollout across GPU0/GPU1. First reward difference explained by heading alone. Both replay streams and targets unchanged; offline validation is diagnostic only.",
+  "status": "verified",
+  "tail_anchor": {
+    "calls": 5120,
+    "coefficient": 25.0,
+    "draw_sha256": "c459fc87a1d7c9013bb83209c041e7dc212d8845fa68bb8b74325f9328ff96e0",
+    "loss": {
+      "first": 2.198968027045112e-06,
+      "last": 0.00031046029689605346,
+      "maximum": 0.00032493311482539866,
+      "mean": 0.00017827452318398276
+    },
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "replay_rows": 655360,
+    "train_rows": 5681
+  },
+  "total_replay_rows": 3276800,
+  "validation_rows_used_for_updates": 0
+}

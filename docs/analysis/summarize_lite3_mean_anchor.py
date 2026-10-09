@@ -19,6 +19,7 @@ def main():
     for key,value in defaults.items():parser.add_argument('--'+key.replace('_','-'),default=value)
     parser.add_argument('--control-update-audit')
     parser.add_argument('--retry-addendum')
+    parser.add_argument('--engineering-audit')
     args=parser.parse_args()
     evidence={}
     def read(path):
@@ -61,12 +62,23 @@ def main():
         assert tests['failed']==0 and sha256_file(tests['log'])==tests['sha256']
     demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
     tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
+    heading=plan['schema']=='lite3_route_heading_ablation_v1'
     if demo_target:assert args.retry_addendum
-    total=trained['controls']+result['controls']+aborted_controls
+    engineering=0
+    if heading:
+        assert args.engineering_audit
+        engineering_audit=read(args.engineering_audit)
+        assert engineering_audit['status']=='verified'
+        for path,digest in engineering_audit['evidence'].items():assert sha256_file(path)==digest
+        engineering=engineering_audit['controls']
+        assert engineering==plan['max_engineering_controls']
+        assert engineering_audit['evidence'][str(Path(plan['engineering_run'])/'report.json')]==sha256_file(Path(plan['engineering_run'])/'report.json')
+    total=trained['controls']+result['controls']+aborted_controls+engineering
     costs=dict(training=trained['controls'],pilot=result['controls'],replay_new_physics=0,new_uncertain=0,
         stage_through_pilot=total,cumulative_charged_through_pilot=plan['cumulative_before']['charged']+total,
         cumulative_confirmed_through_pilot=plan['cumulative_before']['confirmed']+total,historical_uncertain=64)
     if args.retry_addendum:costs['interrupted_training']=aborted_controls
+    if heading:costs['engineering']=engineering
     out=dict(status='verified',initial=initial['results']['trial'],control=control['results']['trial'],trial=result['results']['trial'],
         gates=result['gates'],pilot_passed=result['pilot_passed'],costs=costs,final_checkpoint=trained['final_checkpoint'],
         failures={key:[e for e in value['episodes'] if not e['success']] for key,value in newrun['phases'].items()},
@@ -77,17 +89,21 @@ def main():
     if demo_target:
         out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
         out['scope']='Correction TRAIN demonstration-target ablation. Same learner2281/eval2251, fixed final256 updates. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication. Interrupted launch charged separately.'
-    if tail_anchor:
+    if tail_anchor or heading:
         out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
         out['tail_anchor']=trained['tail_anchor']
         out['total_replay_rows']=trained['total_replay_rows']
         out['scope']='Additive post-recovery TRAIN mean preservation, same learner2281/eval2251 and final256 updates. Repeated TRAIN source only; original qualification and independent learning replication remain separate.'
+    if heading:
+        out['first_rollout_reward_difference']=trained['first_rollout_reward_difference']
+        out['scope']='Centerline-directed training heading reward. Same learner2281/eval2251 and final256. Physical first rollout paired across identical-model GPUs; same replay losses. TRAIN-source development only, no inference controller.'
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
     labels=['Supervised init','PPO 128 updates','PPO 256 updates'] if length else ['Supervised init','PPO reward anchor','+ Direct mean loss']
     if demo_target:labels=['Supervised init','PPO self-mean targets','PPO demo correction targets']
     if tail_anchor:labels=['Supervised init','PPO demo targets','+ Tail preservation']
+    if heading:labels=['Supervised init','Zero heading target','Centerline heading target']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -107,6 +123,7 @@ def main():
     title='PPO training length' if length else 'Direct mean-action loss'
     if demo_target:title='Correction replay demonstration targets'
     if tail_anchor:title='Additive post-recovery mean preservation'
+    if heading:title='Centerline-directed heading reward'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

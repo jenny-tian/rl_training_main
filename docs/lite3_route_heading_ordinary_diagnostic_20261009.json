@@ -1,0 +1,95 @@
+{
+  "evidence": {
+    "artifacts/demo_target_20261009/pilot-evaluation-retry01/report.json": "5f27d93e05e51256e66f6184817dfc355b3b486c5162129a3a76619ee53ac77b",
+    "artifacts/mean_anchor_long_20261009/pilot-evaluation/report.json": "acf782659d9d3e5971a31bc0c8877d1de0f33daa0e828eca3e3dc953a6edeb35",
+    "artifacts/retention_coverage_20261008/learner2247/train/final.pt": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+    "artifacts/route_heading_20261009/pilot-evaluation/report.json": "93ae6f245b183bbbe1fb40e559e415fe8b60475a5827d23d47945dcf2df8e92f",
+    "artifacts/tail_anchor_20261009/pilot-evaluation/report.json": "4c8a1a0acde38be56cb92abbaa60f1686aaa57cb890e7360504f354ab6700029",
+    "docs/lite3_demo_target_pilot_trajectory_audit_20261009.json": "6a7cda39ae01ea5b907a999146aed2e6d93bc599a1da19adec8c465dcf0d421f",
+    "docs/lite3_mean_anchor_long_pilot_trajectory_audit_20261009.json": "44ddeea8eb4899f40fcd472ddc8ac0f9ef44cdb4aceb1e1f553e95b92fb0a7a6",
+    "docs/lite3_route_heading_pilot_trajectory_audit_20261009.json": "af2f387dc452a3c1b078483c5050f76cd66adb4221159552fa6d0946ffce1aac",
+    "docs/lite3_tail_anchor_pilot_trajectory_audit_20261009.json": "5a0807cd0ee2934b1f7283375430962a61eb9fae7f3850f12902482cae2c943c"
+  },
+  "new_controls": 0,
+  "optimizer_steps": 0,
+  "results": {
+    "demonstration": {
+      "active_rows": 84699,
+      "maximum_pre_action_abs_lateral_m": 0.2216038554906845,
+      "mean_raw_action_mse": 0.0002133576781488955,
+      "p95_per_row_raw_action_mse": 0.0003425342700211329,
+      "rows_outside_old_ordinary_30cm_domain": 0,
+      "worst_rough_episode_before_peak": {
+        "env_id": 46,
+        "initial_lateral_m": 0.008084774017333984,
+        "mean_world_vy_m_s": -0.00919888261705637,
+        "mean_yaw_deg": -3.5315515995025635,
+        "mean_yaw_frame_vy_m_s": 0.01081853173673153,
+        "net_position_change_y_m": -0.2296886444091797,
+        "peak_time_s": 25.02,
+        "signed_peak_lateral_m": -0.2216038703918457,
+        "terrain": "107",
+        "velocity_integral_y_m": -0.2301560401916504
+      }
+    },
+    "route_heading": {
+      "active_rows": 85231,
+      "maximum_pre_action_abs_lateral_m": 0.32502198219299316,
+      "mean_raw_action_mse": 0.00012073549441993237,
+      "p95_per_row_raw_action_mse": 0.00023282987240236253,
+      "rows_outside_old_ordinary_30cm_domain": 82,
+      "worst_rough_episode_before_peak": {
+        "env_id": 29,
+        "initial_lateral_m": 0.0035299062728881836,
+        "mean_world_vy_m_s": -0.01214960403740406,
+        "mean_yaw_deg": -5.202876567840576,
+        "mean_yaw_frame_vy_m_s": 0.01428687758743763,
+        "net_position_change_y_m": -0.32855188846588135,
+        "peak_time_s": 27.18,
+        "signed_peak_lateral_m": -0.32502198219299316,
+        "terrain": "101",
+        "velocity_integral_y_m": -0.3302262496948242
+      }
+    },
+    "self_mean": {
+      "active_rows": 84111,
+      "maximum_pre_action_abs_lateral_m": 0.15940381586551666,
+      "mean_raw_action_mse": 0.00014242141332942992,
+      "p95_per_row_raw_action_mse": 0.0002532247162889689,
+      "rows_outside_old_ordinary_30cm_domain": 0,
+      "worst_rough_episode_before_peak": {
+        "env_id": 39,
+        "initial_lateral_m": -0.004314780235290527,
+        "mean_world_vy_m_s": -0.007127408869564533,
+        "mean_yaw_deg": -3.0537853240966797,
+        "mean_yaw_frame_vy_m_s": 0.008867250755429268,
+        "net_position_change_y_m": -0.15403878688812256,
+        "peak_time_s": 21.740000000000002,
+        "signed_peak_lateral_m": -0.15835356712341309,
+        "terrain": "101",
+        "velocity_integral_y_m": -0.15494986534118652
+      }
+    },
+    "tail": {
+      "active_rows": 84939,
+      "maximum_pre_action_abs_lateral_m": 0.3309974670410156,
+      "mean_raw_action_mse": 0.00017437184578739107,
+      "p95_per_row_raw_action_mse": 0.00031510090047959217,
+      "rows_outside_old_ordinary_30cm_domain": 184,
+      "worst_rough_episode_before_peak": {
+        "env_id": 44,
+        "initial_lateral_m": -0.017950057983398438,
+        "mean_world_vy_m_s": -0.011751516722142696,
+        "mean_yaw_deg": -4.502784252166748,
+        "mean_yaw_frame_vy_m_s": 0.01187103521078825,
+        "net_position_change_y_m": -0.3130474090576172,
+        "peak_time_s": 26.580000000000002,
+        "signed_peak_lateral_m": -0.3309974670410156,
+        "terrain": "107",
+        "velocity_integral_y_m": -0.31235530853271487
+      }
+    }
+  },
+  "scope": "Action MSE uses full active ordinary first episodes, including flat. Kinematics uses each model worst rough episode. Different state distributions and diagnostic slot selection, descriptive only. Pilot observations never become training data.",
+  "status": "verified"
+}

@@ -16,6 +16,9 @@ from rl_training.online_adaptation.provenance import sha256_file, write_json_ato
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True)
+    parser.add_argument('--candidate-run')
+    parser.add_argument('--candidate-audit')
+    parser.add_argument('--candidate-label',default='trial')
     args=parser.parse_args()
     torch.set_num_threads(4)
     checkpoint=Path('artifacts/retention_coverage_20261008/learner2247/train/final.pt')
@@ -24,12 +27,14 @@ def main():
     sources=dict(self_mean=('mean_anchor_long_20261009/pilot-evaluation','mean_anchor_long'),
         demonstration=('demo_target_20261009/pilot-evaluation-retry01','demo_target'),
         tail=('tail_anchor_20261009/pilot-evaluation','tail_anchor'))
+    runs=[(name,Path('artifacts')/folder,Path(f'docs/lite3_{stem}_pilot_trajectory_audit_20261009.json')) for name,(folder,stem) in sources.items()]
+    if args.candidate_run:
+        assert args.candidate_audit and args.candidate_label not in sources
+        runs.append((args.candidate_label,Path(args.candidate_run),Path(args.candidate_audit)))
     evidence={str(checkpoint):sha256_file(checkpoint)}
     results={}
     initial_hashes=[]
-    for name,(folder,stem) in sources.items():
-        root=Path('artifacts')/folder
-        audit_path=Path(f'docs/lite3_{stem}_pilot_trajectory_audit_20261009.json')
+    for name,root,audit_path in runs:
         audit=json.loads(audit_path.read_text())
         report=json.loads((root/'report.json').read_text())
         assert audit['status']=='verified' and report['status']=='complete'

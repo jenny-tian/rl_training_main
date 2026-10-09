@@ -39,6 +39,14 @@ def main():
         if p.get('route_observations'):
             assert sha256_file(p['frozen_smoke_report'])==p['frozen_smoke_sha256']
             assert json.loads(Path(p['frozen_smoke_report']).read_text())['status']=='complete'
+        heading_options=p.get('route_training',{})
+        heading_trace='heading_lookahead_m' in heading_options
+        if heading_trace:
+            proof=p['route_heading_smoke']
+            assert sha256_file(proof['report'])==proof['sha256']
+            checked=json.loads(Path(proof['report']).read_text())
+            assert checked['status']=='complete' and checked['route_heading_options']==heading_options
+            assert checked['base_sha256']==p['base_sha256'] and checked['route_heading_timing_passed']
         if p.get('recovery_resets'):
             assert p['recovery_resets']['split']=='train'
             assert sha256_file(p['recovery_smoke_report'])==p['recovery_smoke_sha256']
@@ -79,7 +87,7 @@ def main():
             configure_forward_command(cfg.commands.base_velocity, p['fixed_forward_command'])
         route=p.get('route_observations')
         if route:
-            from rl_training.policy_route import ROUTE_SCHEMA, configure_route_training, expand_actor_route_inputs
+            from rl_training.policy_route import ROUTE_SCHEMA, configure_route_training, expand_actor_route_inputs, route_heading_trace
             assert route==ROUTE_SCHEMA
             configure_route_training(cfg,p['route_training'])
         if p.get('recovery_resets'):
@@ -115,6 +123,7 @@ def main():
             if stop_requested:raise InterruptedError('stop requested before next physical step')
             if not torch.isfinite(action).all():raise ValueError('nonfinite requested action')
             extra={}
+            if heading_trace:raw._route_heading_snapshot=None
             if p.get('fixed_forward_command') is not None:
                 expected=obs['policy'].new_tensor([p['fixed_forward_command'],0.,0.]).expand(p['num_envs'],3)
                 torch.testing.assert_close(obs['policy'][:,6:9],expected,atol=1e-7,rtol=0)
@@ -159,7 +168,8 @@ def main():
             trace.append(**pre,next_policy_observation=obs['policy'],next_critic_observation=obs['critic'],
                 reward=reward,done=done,returned_root_state=raw.scene['robot'].data.root_state_w,
                 task_success=success,task_failure=failure,task_deadline=deadline,
-                **(dict(recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost,recovery_anchor_reward=anchor_component) if recovery_anchor is not None else {}))
+                **(dict(recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost,recovery_anchor_reward=anchor_component) if recovery_anchor is not None else {}),
+                **(route_heading_trace(raw) if heading_trace else {}))
         counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after,action_transform=clip_lite3_policy_action)
         runner=OnPolicyRunner(counted,agent_cfg.to_dict(),log_dir=str(out/'rsl'),device=args.device)
         obs=counted.get_observations()

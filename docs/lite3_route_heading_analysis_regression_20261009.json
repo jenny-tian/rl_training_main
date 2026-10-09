@@ -1,0 +1,26 @@
+{
+  "checks": [
+    {
+      "json_equal": true,
+      "reference": "docs/lite3_tail_anchor_update_audit_20261009.json",
+      "sha256": "a5d27939d2df3edecfb59fbeec5591789d11a4c3d112451b8f0ea0ede21f057d"
+    },
+    {
+      "json_equal": true,
+      "reference": "docs/lite3_tail_anchor_result_20261009.json",
+      "sha256": "65594200c403b6330633089c5fb7f0eb459fef93949d168ee26ee685772100c4"
+    },
+    {
+      "existing_result_fields_equal": true,
+      "reference": "docs/lite3_tail_anchor_ordinary_diagnostic_20261009.json",
+      "sha256": "5c77669a8118bc03df648fbbe0aa31508a005e57ab6ea395ee9b53ac5b80f2ca"
+    }
+  ],
+  "new_controls": 0,
+  "source_sha256": {
+    "docs/analysis/audit_lite3_mean_anchor.py": "02aea1eb15c72aba0dfa5ccc9c2dc45be70c118a6b144ccf1ee266c89b7afc4c",
+    "docs/analysis/diagnose_lite3_ordinary_mean_drift.py": "6ad98dfd0b8406b4a4dd9e0343906019b73021333a222ae3189b8fde14ff6079",
+    "docs/analysis/summarize_lite3_mean_anchor.py": "a304dba349f89ef31f016ec7dae3fc9b43e18563f90747d9f740df736abea69b"
+  },
+  "status": "verified"
+}

@@ -38,7 +38,7 @@ def main():
         import rl_training.tasks  # noqa: F401
         from isaaclab_tasks.utils import parse_env_cfg
         from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
-        from rl_training.policy_route import configure_route_training
+        from rl_training.policy_route import configure_route_training, route_heading_trace
         from rl_training.recovery_teacher import configure_recovery_resets, check_recovery_event_order
         from rl_training.online_adaptation.runner_contract import configure_forward_command, actuator_delay_metadata
         from rl_training.policy_flat_anchor import FrozenFlatMean, flat_anchor_cost
@@ -72,6 +72,7 @@ def main():
         index = raw.reward_manager.active_terms.index('recovery_policy_anchor')
         expected_age = torch.zeros_like(raw.episode_length_buf)
         observed = dict(ordinary=0, early=0, tail=0, repeated_recovery_resets=0, nonzero_cost_rows=0)
+        heading_trace='heading_lookahead_m' in p['route_training']
         for step in range(p['steps']):
             if stop:
                 raise InterruptedError('stop before next control')
@@ -94,6 +95,7 @@ def main():
                 recovery_anchor_target=target, recovery_anchor_mask=mask, requested_action=requested, emitted_action=emitted,
                 recovery_anchor_cost=cost)
             ledger.reserve()
+            if heading_trace:raw._route_heading_snapshot=None
             observation, reward, done, _ = wrapped.step(emitted)
             ledger.confirm()
             component = raw.reward_manager._step_reward[:, index] * raw.step_dt
@@ -103,7 +105,8 @@ def main():
             history[done.bool()] = 0
             torch.testing.assert_close(observation['policy'][:, -12:], history, atol=1e-6, rtol=0)
             trace.append(**before, next_policy_observation=observation['policy'], done=done,
-                         recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost, recovery_anchor_reward=component, reward=reward)
+                         recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost, recovery_anchor_reward=component, reward=reward,
+                         **(route_heading_trace(raw) if heading_trace else {}))
             expected_age = torch.where(done.bool(), 0, expected_age + 1)
         assert all(value > 0 for value in observed.values()), observed
         assert all(torch.equal(v, teacher.state_dict()[k]) for k, v in initial.items())
@@ -114,6 +117,7 @@ def main():
         ledger.finish()
         report.update(status='complete', ledger=ledger.state, observed=observed, step_dt=raw.step_dt,
                       recovery_anchor_timing_and_mask_passed=True, anchor_model_unchanged=True)
+        if heading_trace:report.update(route_heading_options=p['route_training'],route_heading_timing_passed=True)
         write_json_atomic(output/'report.json', report)
     except BaseException as error:
         if ledger.state['status'] == 'running':

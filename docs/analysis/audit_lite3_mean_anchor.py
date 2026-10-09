@@ -17,6 +17,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     for key in ('plan','protocol','run','training-audit','anchor-audit','output'):
         parser.add_argument('--'+key,required=True)
+    parser.add_argument('--heading-audit')
     args=parser.parse_args()
     torch.set_num_threads(4)
     plan=json.loads(Path(args.plan).read_text())
@@ -34,7 +35,23 @@ def main():
     allowed={'registered_at_utc','arm','scope','selection'}
     demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
     tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
-    fixed_demo=demo_target or tail_anchor
+    heading=plan['schema']=='lite3_route_heading_ablation_v1'
+    has_tail=tail_anchor or heading
+    fixed_demo=demo_target or has_tail
+    if heading:
+        allowed|={'route_training','route_heading_smoke'}
+        assert set(plan['allowed_control_protocol_changes'])==allowed
+        assert set(p)==set(control)|{'route_heading_smoke'}
+        assert p['route_training']==plan['route_training']
+        assert set(p['route_training'])==set(control['route_training'])|{'heading_lookahead_m','heading_maximum_deg'}
+        assert all(p['route_training'][k]==v for k,v in control['route_training'].items())
+        assert args.heading_audit
+        heading_audit=json.loads(Path(args.heading_audit).read_text())
+        assert heading_audit['status']=='verified' and heading_audit['evidence'][str(root/'report.json')]==sha256_file(root/'report.json')
+        evidence[args.heading_audit]=sha256_file(args.heading_audit)
+        proof=p['route_heading_smoke']
+        assert sha256_file(proof['report'])==proof['sha256']
+        evidence[proof['report']]=proof['sha256']
     if tail_anchor:
         allowed.add('tail_anchor')
         assert set(plan['allowed_control_protocol_changes'])==allowed
@@ -118,7 +135,7 @@ def main():
                     targets=torch.from_numpy(dataset['correction_'+split+'_target'])
                     demo_mse[split]=dict(rows=len(states),**{name:float((actor(states)-targets).square().mean())
                         for name,actor in [('initial',teacher),('control',control_actor),('trial',candidate)]})
-        if tail_anchor:
+        if has_tail:
             tail=p['tail_anchor'];seen=r['tail_anchor']
             for key,value in tail.items():assert seen[key]==value
             assert tail['coefficient']==spec['coefficient']/4==25.
@@ -148,6 +165,13 @@ def main():
         for key in ('policy_observation','critic_observation','pre_root_state','requested_action','emitted_action'):
             np.testing.assert_array_equal(before[key],after[key])
             prefix[key]=0.
+        if heading:
+            delta=(after['heading_cost']-after['heading_zero_target_cost'])*p['route_training']['heading_weight']*.02
+            residual=after['reward']-before['reward']-delta
+            np.testing.assert_allclose(after['reward']-before['reward'],delta,atol=3e-6,rtol=1e-4)
+            assert abs(delta).max()>0
+            reward_prefix=dict(maximum_absolute_difference=float(abs(after['reward']-before['reward']).max()),
+                maximum_heading_only_residual=float(abs(residual).max()))
     for path in (first,previous,root/'updates.jsonl'):
         evidence[str(path)]=sha256_file(path)
     result=dict(status='verified',controls=r['ledger']['confirmed'],mean_anchor_calls=calls,
@@ -165,7 +189,7 @@ def main():
             scope='Only correction TRAIN replay labels changed; ordinary frozen means retained. Validation label MSE is post-training diagnostic only. First rollout paired, later updates intentionally differ.')
         control_report=json.loads((control_root/'report.json').read_text())
         assert digest.hexdigest()==control_report['mean_anchor']['draw_sha256']
-    if tail_anchor:
+    if has_tail:
         tail_losses=[u['losses']['tail_anchor'] for u in updates]
         assert np.isfinite(tail_losses).all() and min(tail_losses)>=0 and max(tail_losses)>0
         result.update(tail_anchor=dict(calls=calls,replay_rows=seen['rows'],draw_sha256=tail_digest.hexdigest(),
@@ -175,9 +199,13 @@ def main():
             scope='Only additive25*tail TRAIN preservation changed. Original four-group loss coefficients, data, normalization, draw stream and fixed demo targets unchanged. Offline validation is diagnostic only.')
         assert target_digest.hexdigest()==control_report['mean_anchor']['fixed_target_sha256']
         tests=plan['tests']
-        assert tests['failed']==0 and tests['passed']==42 and sha256_file(tests['log'])==tests['sha256']
+        assert tests['failed']==0 and tests['passed']==(53 if heading else 42) and sha256_file(tests['log'])==tests['sha256']
         assert sha256_file(plan['diagnostic'])==plan['diagnostic_sha256']
         for path in (tests['log'],plan['diagnostic']):evidence[path]=sha256_file(path)
+    if heading:
+        assert tail_digest.hexdigest()==control_report['tail_anchor']['draw_sha256']
+        result.update(first_rollout_reward_difference=reward_prefix,
+            scope='Only centerline-directed heading reward changed; same physical first rollout across GPU0/GPU1. First reward difference explained by heading alone. Both replay streams and targets unchanged; offline validation is diagnostic only.')
     if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
         maxima={key:0. for key in prefix}
         files=sorted((control_root/'trajectory').glob('chunk-*.npz'))

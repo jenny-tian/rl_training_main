@@ -1,0 +1,93 @@
+{
+  "allowed_control_protocol_changes": [
+    "registered_at_utc",
+    "arm",
+    "scope",
+    "selection",
+    "route_training",
+    "route_heading_smoke"
+  ],
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "change": "Only training heading target changes from world+X to atan2(-body_y,1m) clipped to +/-20deg. Same heading weight-1, lateral footprint penalty-8, fixed commands0.3m/s, four-group mean100 and tail25, base6a470cec, learner2281,256 updates. No inference-time controller or new observations. Fresh initialization, no failed-checkpoint continuation.",
+  "conditional_validation": "Only all unchanged pilot gates pass then register original7-source seed2081 candidate evaluation, max256000. Final256 checkpoint only, no replacement seed/checkpoint and no changed70cm threshold.",
+  "control_protocol": "docs/lite3_tail_anchor_train_protocol_20261009.json",
+  "control_protocol_sha256": "bb1a7a6746191dc63d45ff2e0f9bc6faa01e4392a2249078d7640766c76d876b",
+  "control_result": "docs/lite3_tail_anchor_pilot_result_20261009.json",
+  "control_result_sha256": "78fe984973d2bcb900a1b65e46e62ae109ff203a867cedbd787fea37cde98f38",
+  "control_training_run": "artifacts/tail_anchor_20261009/train",
+  "cumulative_before": {
+    "charged": 30420800,
+    "confirmed": 30420736,
+    "uncertain": 64
+  },
+  "device_reason": "GPU0 has another user active job. GPU1 is idle and same RTX3090 model. Require identical first physical rollout and paired initial states against GPU0 control; preserve any mismatch.",
+  "diagnostic": "docs/lite3_route_heading_diagnostic_20261009.json",
+  "diagnostic_sha256": "8bfeadf37c0310bdab0bd231761c3e03846f863a0adf94af732e533be5ad65f5",
+  "engineering_protocol": "docs/lite3_route_heading_smoke_protocol_20261009.json",
+  "engineering_run": "artifacts/route_heading_20261009/smoke",
+  "execution_device": "cuda:1",
+  "iterations": 256,
+  "max_conditional_validation_controls": 256000,
+  "max_engineering_controls": 25600,
+  "max_new_controls": 1061888,
+  "max_pilot_controls": 256000,
+  "mean_anchor": {
+    "batch_groups": {
+      "correction": 128,
+      "flat": 128,
+      "rough101": 128,
+      "rough107": 128
+    },
+    "coefficient": 100.0,
+    "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+    "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+    "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "fixed_target_array_sha256": {
+      "correction": "1849d787dea93dfa615017e2c7a74ddabc2258a73b1f562faa4eb9b3a7951139"
+    },
+    "fixed_target_groups": [
+      "correction"
+    ],
+    "seed": 2293
+  },
+  "original_queries": 2621440,
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-09T08:04:46.111040+00:00",
+  "route_training": {
+    "heading_lookahead_m": 1.0,
+    "heading_maximum_deg": 20.0,
+    "heading_weight": -1.0,
+    "tracking_std": 0.15
+  },
+  "schema": "lite3_route_heading_ablation_v1",
+  "tail_anchor": {
+    "batch_groups": {
+      "post_recovery": 128
+    },
+    "coefficient": 25.0,
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "seed": 2309
+  },
+  "tail_queries": 655360,
+  "tests": {
+    "failed": 0,
+    "log": "docs/lite3_route_heading_tests_20261009.txt",
+    "passed": 53,
+    "sha256": "f1156157e539b4bee9c2c6ceac8bb899a7a807350614437b5368115b9a8ec309"
+  },
+  "total_replay_queries": 3276800,
+  "training_controls": 524288,
+  "training_seed": 2281,
+  "update": "Same combined PPO optimizer and both replay losses as tail control. Only reward heading reference differs. All first-rollout observations/actions should match while rewards intentionally differ.",
+  "vendor_ppo_source_sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+}
