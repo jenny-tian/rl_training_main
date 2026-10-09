@@ -31,8 +31,15 @@ def main():
     control=json.loads(Path(plan['control_protocol']).read_text())
     assert sha256_file(plan['control_protocol'])==plan['control_protocol_sha256']
     assert sha256_file(inspect.getfile(PPO))==plan['vendor_ppo_source_sha256']
+    allowed={'registered_at_utc','arm','scope','selection'}
+    if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
+        allowed|={'iterations','training_control_transitions','save_interval'}
+        assert set(plan['allowed_control_protocol_changes'])==allowed
+        assert p['iterations']==2*control['iterations'] and p['training_control_transitions']==2*control['training_control_transitions']
+        assert p['save_interval']==p['iterations']
+    assert p['iterations']==plan['iterations'] and r['ledger']['confirmed']==plan['training_controls']
     for key,value in control.items():
-        if key not in ('registered_at_utc','arm','scope','selection'):
+        if key not in allowed:
             assert p[key]==value,key
     spec=p['mean_anchor'];observed=r['mean_anchor']
     assert spec==plan['mean_anchor'] and observed['validation_rows_used']==0
@@ -69,7 +76,8 @@ def main():
     assert [u['update'] for u in updates]==list(range(1,p['iterations']+1))
     losses=[u['losses']['mean_anchor'] for u in updates]
     assert np.isfinite(losses).all() and min(losses)>=0 and max(losses)>0
-    previous=Path('artifacts/recovery_return_20261008/trial/train/trajectory/chunk-00000.npz')
+    control_root=Path(plan.get('control_training_run','artifacts/recovery_return_20261008/trial/train'))
+    previous=control_root/'trajectory/chunk-00000.npz'
     first=root/'trajectory/chunk-00000.npz'
     prefix={}
     with np.load(previous,allow_pickle=False) as before,np.load(first,allow_pickle=False) as after:
@@ -78,12 +86,23 @@ def main():
             prefix[key]=0.
     for path in (first,previous,root/'updates.jsonl'):
         evidence[str(path)]=sha256_file(path)
-    write_json_atomic(args.output,dict(status='verified',controls=r['ledger']['confirmed'],mean_anchor_calls=calls,
+    result=dict(status='verified',controls=r['ledger']['confirmed'],mean_anchor_calls=calls,
         replay_rows=observed['rows'],draw_sha256=digest.hexdigest(),validation_rows_used_for_updates=0,
         final_checkpoint=r['final_checkpoint'],first_rollout_max_absolute_difference=prefix,
         mean_anchor_loss=dict(first=losses[0],last=losses[-1],mean=float(np.mean(losses)),maximum=max(losses)),
         offline_action_drift_from_initial_actor=offline,evidence=evidence,
-        scope='One fixed TRAIN replay auxiliary loss ablation; offline validation only used here for diagnostics, not optimizer updates.'))
+        scope=('Fixed TRAIN replay ablation; offline validation only used here for diagnostics, not optimizer updates.'
+            if plan['schema']=='lite3_mean_anchor_length_ablation_v1' else
+            'One fixed TRAIN replay auxiliary loss ablation; offline validation only used here for diagnostics, not optimizer updates.'))
+    if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
+        maxima={key:0. for key in prefix}
+        files=sorted((control_root/'trajectory').glob('chunk-*.npz'))
+        assert len(files)==control['iterations']
+        for file in files:
+            with np.load(file,allow_pickle=False) as before,np.load(root/'trajectory'/file.name,allow_pickle=False) as after:
+                for key in maxima:maxima[key]=max(maxima[key],float(np.max(np.abs(before[key]-after[key]))))
+        result['full_control_prefix']=dict(rollouts=len(files),maximum_absolute_difference=maxima,bitwise_equal=all(v==0 for v in maxima.values()))
+    write_json_atomic(args.output,result)
 
 
 if __name__=='__main__':

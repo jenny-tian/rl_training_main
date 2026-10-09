@@ -1,0 +1,80 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "artifacts/mean_anchor_20261009/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "artifacts/mean_anchor_long_20261009/train/report.json": "997b88ecb51de368f4e826fa14e416a7e8c54f0079a10667651f8d29de531c0e",
+    "artifacts/mean_anchor_long_20261009/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "artifacts/mean_anchor_long_20261009/train/updates.jsonl": "2dccd9f3402debd15eb16500a5b30845a0d116529a49254bf47afde4abaeadb6",
+    "docs/lite3_mean_anchor_long_plan_20261009.json": "15c347e6ca31308645154d37152065b437dc8df2a8cc39a30e0290527256f1bd",
+    "docs/lite3_mean_anchor_long_reward_audit_20261009.json": "a69040a2a251116d9721cc836aaccc43446af9ea42857ed8bd627c8d3599f25d",
+    "docs/lite3_mean_anchor_long_train_protocol_20261009.json": "b5136aabc86415cfb30a6e319b0ca7374595f1811ec6ad8a33cddd655fc4f269",
+    "docs/lite3_mean_anchor_long_training_audit_20261009.json": "ba93e59a81c8f49e0826496bf8409ffe6c72e9a34f4b598757756468d84ded4e"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/mean_anchor_long_20261009/train/final.pt",
+    "sha256": "3893dddf314e14c47639a14f3ccb06538f51ecce348299f9239e342ecbda4c27"
+  },
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "full_control_prefix": {
+    "bitwise_equal": true,
+    "maximum_absolute_difference": {
+      "critic_observation": 0.0,
+      "emitted_action": 0.0,
+      "policy_observation": 0.0,
+      "pre_root_state": 0.0,
+      "requested_action": 0.0
+    },
+    "rollouts": 128
+  },
+  "mean_anchor_calls": 5120,
+  "mean_anchor_loss": {
+    "first": 6.587670063140649e-06,
+    "last": 0.0001206484106660355,
+    "maximum": 0.00015544233247055672,
+    "mean": 8.696843274437205e-05
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.024281740188598633,
+      "mean_squared_raw_action_change": 6.012495214235969e-05,
+      "p95_absolute_raw_action_change": 0.01488477922976017,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.05439770221710205,
+      "mean_squared_raw_action_change": 0.00013867563393432647,
+      "p95_absolute_raw_action_change": 0.023137537762522697,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.07985460758209229,
+      "mean_squared_raw_action_change": 0.00018334892229177058,
+      "p95_absolute_raw_action_change": 0.026766635477542877,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.054390788078308105,
+      "mean_squared_raw_action_change": 0.00013949880667496473,
+      "p95_absolute_raw_action_change": 0.023375824093818665,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.054785341024398804,
+      "mean_squared_raw_action_change": 0.00014046338037587702,
+      "p95_absolute_raw_action_change": 0.023452119901776314,
+      "rows": 15774
+    }
+  },
+  "replay_rows": 2621440,
+  "scope": "Fixed TRAIN replay ablation; offline validation only used here for diagnostics, not optimizer updates.",
+  "status": "verified",
+  "validation_rows_used_for_updates": 0
+}

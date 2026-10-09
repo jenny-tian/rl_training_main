@@ -124,3 +124,5 @@ with torch.inference_mode():
 2026-10-09接续更新：带普通/恢复前段动作奖励保持的PPO配对实验已完成；原横偏惩罚−4与主组−8都未改善，主组普通63/64、RMS13.39cm、峰值35.97cm，case26恢复24/24但峰值75.94cm。未晋升或触发原7来源验证，未进入新FlowDAgger集成，仍保留原监督候选6a470cec…。新增920000步，累计charged27760704/confirmed27760640/历史uncertain64。下一项是直接均值动作保持损失。见[完整PPO配对报告](lite3-recovery-return-ppo-result-2026-10-08.md)。
 
 直接均值保持PPO消融随后完成：普通64/64、RMS8.43cm/峰值19.04cm，恢复24/24但峰值70.62cm仍未通过70cm。它是PPO加监督辅助损失，没有flow反演或噪声策略更新；原7来源验证未触发，新FlowDAgger集成仍未开始。详见[直接均值保持](lite3-mean-anchor-result-2026-10-09.md)。
+
+256轮直接均值保持PPO长度消融已完成：普通64/64、RMS7.04cm/峰值15.84cm，case26恢复24/24但峰值70.46cm仍未过70cm。原7来源资格验证未触发，新FlowDAgger集成继续未启动；该PPO结果不计为flow噪声策略收益。见[长度消融](lite3-mean-anchor-long-result-2026-10-09.md)。
