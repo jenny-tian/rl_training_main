@@ -19,6 +19,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('control-run', 'trial-run', 'control-audit', 'trial-audit', 'output', 'figure'):
         parser.add_argument('--'+key, required=True)
+    parser.add_argument('--control-label',default='PPO self-mean targets')
+    parser.add_argument('--trial-label',default='PPO demo correction targets')
     args = parser.parse_args()
     evidence, results, series = {}, {}, {}
     initial_hashes = []
@@ -68,7 +70,7 @@ def main():
     write_json_atomic(args.output, dict(status='verified', results=results, evidence=evidence,
         scope='Read-only diagnosis of every TRAIN case26 slot. All repetitions share one source. No new physics or training labels; original gates unchanged.'))
     fig, axes = plt.subplots(1, 2, figsize=(12, 4), sharey=True, constrained_layout=True)
-    titles = {'control': 'PPO self-mean targets', 'trial': 'PPO demo correction targets'}
+    titles = {'control': args.control_label, 'trial': args.trial_label}
     for ax, label in zip(axes, ('control', 'trial')):
         y = series[label]
         time = np.arange(1, len(y)+1)*.02

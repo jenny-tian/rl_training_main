@@ -1,0 +1,51 @@
+.........F................................                               [100%]
+=================================== FAILURES ===================================
+_ test_tail_gradient_is_additive_without_diluting_existing_loss_or_changing_draws _
+
+    def test_tail_gradient_is_additive_without_diluting_existing_loss_or_changing_draws():
+        original,old_replay=fixture()
+        extended,replay=fixture()
+        old_replay.coefficient=replay.coefficient=100.
+        # Zero LR isolates the exact per-mini-batch gradients from later weight drift.
+        for algorithm in (original,extended):
+            for group in algorithm.optimizer.param_groups:group['lr']=0.
+        tail_states=torch.ones(7,48)
+        teacher=copy.deepcopy(replay.teacher)
+        with torch.no_grad():
+            [layer for layer in teacher.modules() if isinstance(layer,torch.nn.Linear)][-1].bias.add_(.2)
+        tail=MeanActionReplay(teacher,{'post_recovery':tail_states},{'post_recovery':3},coefficient=25.,seed=109,device='cpu')
+        parameter=next(extended.actor.parameters())
+        predicted=extended.actor(TensorDict({'policy':tail_states},batch_size=[7]))
+>       expected_tail=torch.autograd.grad(25.*(predicted-teacher(tail_states)).square().mean(),parameter)[0]
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/online_adaptation/test_policy_mean_anchor.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/torch/autograd/__init__.py:502: in grad
+    result = _engine_run_backward(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+t_outputs = (tensor(1.0000, grad_fn=<MulBackward0>),)
+args = ((tensor(1.),), False, False, (Parameter containing:
+tensor([-2.9957, -2.9957, -2.9957, -2.9957, -2.9957, -2.9957, -2.9957, -2.9957,
+        -2.9957, -2.9957, -2.9957, -2.9957], requires_grad=True),), False)
+kwargs = {'accumulate_grad': False}, attach_logging_hooks = False
+
+    def _engine_run_backward(
+        t_outputs: Sequence[Union[torch.Tensor, GradientEdge]],
+        *args: Any,
+        **kwargs: Any,
+    ) -> tuple[torch.Tensor, ...]:
+        attach_logging_hooks = log.getEffectiveLevel() <= logging.DEBUG
+        if attach_logging_hooks:
+            unregister_hooks = _register_logging_hooks_on_whole_graph(t_outputs)
+        try:
+>           return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+                t_outputs, *args, **kwargs
+            )  # Calls into the C++ engine to run the backward pass
+E           RuntimeError: One of the differentiated Tensors appears to not have been used in the graph. Set allow_unused=True if this is the desired behavior.
+
+../../../anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/torch/autograd/graph.py:824: RuntimeError
+=========================== short test summary info ============================
+FAILED tests/online_adaptation/test_policy_mean_anchor.py::test_tail_gradient_is_additive_without_diluting_existing_loss_or_changing_draws
+1 failed, 41 passed in 3.02s

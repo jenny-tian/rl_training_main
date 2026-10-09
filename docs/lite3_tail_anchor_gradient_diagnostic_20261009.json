@@ -1,0 +1,144 @@
+{
+  "coverage": {
+    "correction": {
+      "lateral_m": {
+        "max": 0.4319915771484375,
+        "median": 0.3773007392883301,
+        "min": 0.3265237808227539,
+        "p05": 0.3265237808227539,
+        "p95": 0.42943859100341797
+      },
+      "train_rows": 216
+    },
+    "flat": {
+      "lateral_m": {
+        "max": 0.07174110412597656,
+        "median": -0.10054779052734375,
+        "min": -0.18473529815673828,
+        "p05": -0.15560994148254395,
+        "p95": 0.0455580711364746
+      },
+      "train_rows": 31114
+    },
+    "post_recovery": {
+      "lateral_m": {
+        "max": 0.6843414306640625,
+        "median": 0.6002645492553711,
+        "min": 0.4382295608520508,
+        "p05": 0.4596762955188751,
+        "p95": 0.6700401306152344
+      },
+      "train_rows": 5681
+    },
+    "rough101": {
+      "lateral_m": {
+        "max": 0.07956886291503906,
+        "median": -0.07306939363479614,
+        "min": -0.17765474319458008,
+        "p05": -0.13188809156417847,
+        "p95": 0.04462459683418274
+      },
+      "train_rows": 46866
+    },
+    "rough107": {
+      "lateral_m": {
+        "max": 0.23354150354862213,
+        "median": -0.07352448254823685,
+        "min": -0.21234607696533203,
+        "p05": -0.13599777221679688,
+        "p95": 0.046135902404785156
+      },
+      "train_rows": 46631
+    }
+  },
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+    "artifacts/demo_target_20261009/train-retry01/final.pt": "b256c42eea3192b484750b36ccd863cf7cf1782ba0c5e7837bcca1054a341a98",
+    "artifacts/mean_anchor_long_20261009/train/final.pt": "3893dddf314e14c47639a14f3ccb06538f51ecce348299f9239e342ecbda4c27",
+    "docs/lite3_demo_target_plan_20261009.json": "3e963cd0a58e4ef85de584ec0ed892d611aa6eea6eb500a8153ae3c01a328078",
+    "docs/lite3_retention_coverage_dataset_audit_20261008.json": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5"
+  },
+  "models": {
+    "demonstration": {
+      "cosine_with_tail_preservation": {
+        "correction": 0.05500658048955554,
+        "flat": 0.8798447445935786,
+        "old_combined_auxiliary": 0.8165924654071318,
+        "rough101": 0.8827285207855444,
+        "rough107": 0.8841647663071702
+      },
+      "gradient_norm": {
+        "correction": 0.08447349311456134,
+        "flat": 0.07240170776762243,
+        "old_combined_auxiliary": 5.921999511922897,
+        "post_recovery": 0.0853949338046056,
+        "proposed_tail_auxiliary": 2.1348733451151354,
+        "rough101": 0.07064963329358157,
+        "rough107": 0.07093824961690537
+      },
+      "mse": {
+        "correction": 0.00538979098200798,
+        "flat": 0.00019044890154873428,
+        "post_recovery": 0.0005809528629470151,
+        "rough101": 0.0001953313021658687,
+        "rough107": 0.00019919209535146365
+      }
+    },
+    "initial": {
+      "cosine_with_tail_preservation": {
+        "correction": null,
+        "flat": null,
+        "old_combined_auxiliary": null,
+        "rough101": null,
+        "rough107": null
+      },
+      "gradient_norm": {
+        "correction": 0.1624255634170692,
+        "flat": 0.0,
+        "old_combined_auxiliary": 4.060639085424815,
+        "post_recovery": 0.0,
+        "proposed_tail_auxiliary": 0.0,
+        "rough101": 0.0,
+        "rough107": 5.991632133092849e-12
+      },
+      "mse": {
+        "correction": 0.010456018149852753,
+        "flat": 0.0,
+        "post_recovery": 0.0,
+        "rough101": 0.0,
+        "rough107": 2.5395935992302533e-20
+      }
+    },
+    "self_mean": {
+      "cosine_with_tail_preservation": {
+        "correction": -0.004348962691887589,
+        "flat": 0.9145794826607833,
+        "old_combined_auxiliary": 0.6584223704672848,
+        "rough101": 0.9104594966359468,
+        "rough107": 0.9126283683153189
+      },
+      "gradient_norm": {
+        "correction": 0.17148459455933907,
+        "flat": 0.05908618711229462,
+        "old_combined_auxiliary": 6.0595981828980285,
+        "post_recovery": 0.061858665847397826,
+        "proposed_tail_auxiliary": 1.5464666461849423,
+        "rough101": 0.05838181393123006,
+        "rough107": 0.05823124786544836
+      },
+      "mse": {
+        "correction": 0.010451747104525566,
+        "flat": 0.00013813914893034962,
+        "post_recovery": 0.0001868734780146042,
+        "rough101": 0.00013982771406517713,
+        "rough107": 0.00013971432383641513
+      }
+    }
+  },
+  "new_controls": 0,
+  "optimizer_steps": 0,
+  "scope": "Full TRAIN arrays only. Gradients are local auxiliary MSE derivatives, not PPO gradients or proof of closed-loop benefit. Negative cosine indicates local conflict. Frozen checkpoint files unchanged.",
+  "status": "verified",
+  "validation_rows_read": 0
+}

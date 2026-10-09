@@ -182,6 +182,8 @@ def main():
         report['route_observations']=route
         report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'],allow_mean_only=p.get('base_actor_mean_only',False))
         mean_replay=None
+        tail_replay=None
+        assert not p.get('tail_anchor') or p.get('mean_anchor'), 'tail anchor requires the registered mean replay'
         if p.get('mean_anchor'):
             import numpy as np
             from rl_training.online_adaptation.flowdagger import FrozenPPOExpert
@@ -207,16 +209,30 @@ def main():
                 report['mean_anchor']['fixed_target_groups']=list(fixed_targets)
                 report['mean_anchor']['fixed_target_array_sha256']={group:hashlib.sha256(value.cpu().numpy().tobytes()).hexdigest() for group,value in fixed_targets.items()}
                 assert report['mean_anchor']['fixed_target_array_sha256']==spec['fixed_target_array_sha256']
+            if p.get('tail_anchor'):
+                tail=p['tail_anchor']
+                assert set(tail)=={'batch_groups','coefficient','seed','observation_array_sha256'}
+                assert tail['batch_groups']=={'post_recovery':128}
+                assert tail['seed']!=spec['seed']
+                with np.load(spec['dataset'],allow_pickle=False) as data:
+                    tail_states=data['post_recovery_train_obs'].copy()
+                assert hashlib.sha256(tail_states.tobytes()).hexdigest()==tail['observation_array_sha256']
+                tail_replay=MeanActionReplay(reference,{'post_recovery':torch.as_tensor(tail_states,device=args.device)},
+                    tail['batch_groups'],coefficient=tail['coefficient'],seed=tail['seed'],device=args.device)
+                report['tail_anchor']=dict(tail,group_rows={'post_recovery':len(tail_states)},dataset_sha256=spec['dataset_sha256'],
+                    teacher_sha256=p['base_sha256'],validation_rows_used=0,stored_target_rows_used=0,sampling_device='cpu',calls=0,rows=0)
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}
         dump_yaml(str(out/'env.yaml'),cfg);dump_yaml(str(out/'agent.yaml'),agent_cfg)
         report['versions']={name:importlib.metadata.version(name) for name in ('torch','rsl-rl-lib')}
-        update=(lambda:update_with_mean_anchor(runner.alg,mean_replay)) if mean_replay is not None else runner.alg.update
+        update=(lambda:update_with_mean_anchor(runner.alg,mean_replay,tail_replay=tail_replay)) if mean_replay is not None else runner.alg.update
         def checked_update():
             losses=update()
             if mean_replay is not None:
                 report['mean_anchor'].update(calls=mean_replay.calls,rows=mean_replay.rows,draw_sha256=mean_replay.draw_digest.hexdigest())
                 if mean_replay.fixed_targets:
                     report['mean_anchor'].update(fixed_target_rows=mean_replay.fixed_target_rows,fixed_target_sha256=mean_replay.fixed_target_digest.hexdigest())
+            if tail_replay is not None:
+                report['tail_anchor'].update(calls=tail_replay.calls,rows=tail_replay.rows,draw_sha256=tail_replay.draw_digest.hexdigest())
             for model in (runner.alg.actor,runner.alg.critic):
                 if not all(torch.isfinite(v).all() for v in model.state_dict().values()):raise ValueError('nonfinite learned parameters')
             if not all(math.isfinite(float(v)) for v in losses.values()):raise ValueError('nonfinite PPO losses')
@@ -240,6 +256,10 @@ def main():
             assert all(torch.equal(value.cpu(),payload['actor_state_dict'][key]) for key,value in mean_replay.teacher.state_dict().items())
             assert sha256_file(p['mean_anchor']['dataset'])==p['mean_anchor']['dataset_sha256']
             report['mean_anchor']['teacher_unchanged']=True
+        if tail_replay is not None:
+            assert tail_replay.calls==mean_replay.calls
+            assert tail_replay.teacher is mean_replay.teacher
+            report['tail_anchor']['teacher_unchanged']=True
         checkpoint=runner.alg.save();checkpoint.update(iter=runner.current_learning_iteration,
             infos={'protocol_sha256':protocol_hash,'base_sha256':p['base_sha256'],'rng_state':capture_rng_state()})
         torch.save(checkpoint,out/'final.pt')

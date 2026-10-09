@@ -1,0 +1,32 @@
+{
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 256000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/tail_anchor_20261009/train/final.pt",
+      "training_algorithm": "PPO plus direct mean-action TRAIN replay loss and existing soft reward anchor",
+      "training_protocol_sha256": "bb1a7a6746191dc63d45ff2e0f9bc6faa01e4392a2249078d7640766c76d876b",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/tail_anchor_20261009/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-09T06:58:32.305792+00:00",
+  "reused_baseline_report_sha256": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Frozen final256 PPO with additive post-recovery TRAIN mean preservation; no teacher/prefix/time/case at inference. Unchanged pilot gates.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

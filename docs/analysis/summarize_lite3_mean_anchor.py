@@ -60,6 +60,7 @@ def main():
         tests=retry['tests']
         assert tests['failed']==0 and sha256_file(tests['log'])==tests['sha256']
     demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
+    tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
     if demo_target:assert args.retry_addendum
     total=trained['controls']+result['controls']+aborted_controls
     costs=dict(training=trained['controls'],pilot=result['controls'],replay_new_physics=0,new_uncertain=0,
@@ -76,11 +77,17 @@ def main():
     if demo_target:
         out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
         out['scope']='Correction TRAIN demonstration-target ablation. Same learner2281/eval2251, fixed final256 updates. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication. Interrupted launch charged separately.'
+    if tail_anchor:
+        out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
+        out['tail_anchor']=trained['tail_anchor']
+        out['total_replay_rows']=trained['total_replay_rows']
+        out['scope']='Additive post-recovery TRAIN mean preservation, same learner2281/eval2251 and final256 updates. Repeated TRAIN source only; original qualification and independent learning replication remain separate.'
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
     labels=['Supervised init','PPO 128 updates','PPO 256 updates'] if length else ['Supervised init','PPO reward anchor','+ Direct mean loss']
     if demo_target:labels=['Supervised init','PPO self-mean targets','PPO demo correction targets']
+    if tail_anchor:labels=['Supervised init','PPO demo targets','+ Tail preservation']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -99,6 +106,7 @@ def main():
         ax.spines[['top','right']].set_visible(False)
     title='PPO training length' if length else 'Direct mean-action loss'
     if demo_target:title='Correction replay demonstration targets'
+    if tail_anchor:title='Additive post-recovery mean preservation'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

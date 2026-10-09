@@ -1,0 +1,179 @@
+{
+  "control": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7593612670898438,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6244078526894251,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.2216038703918457,
+    "course_rms_m": 0.06318927719257772,
+    "course_total": 64
+  },
+  "costs": {
+    "cumulative_charged_through_pilot": 30420800,
+    "cumulative_confirmed_through_pilot": 30420736,
+    "historical_uncertain": 64,
+    "new_uncertain": 0,
+    "pilot": 183936,
+    "replay_new_physics": 0,
+    "stage_through_pilot": 708224,
+    "training": 524288
+  },
+  "evidence": {
+    "artifacts/demo_target_20261009/pilot-evaluation-retry01/report.json": "5f27d93e05e51256e66f6184817dfc355b3b486c5162129a3a76619ee53ac77b",
+    "artifacts/tail_anchor_20261009/pilot-evaluation/report.json": "4c8a1a0acde38be56cb92abbaa60f1686aaa57cb890e7360504f354ab6700029",
+    "docs/lite3_demo_target_pilot_result_20261009.json": "7d758478e34fedc553dce0a2124aecc591db52d702dfcbe731bb8c71250345cc",
+    "docs/lite3_demo_target_update_audit_20261009.json": "4e706689658f4c1f8d68b08574590a949663b81a0aa0b80ff47296ef9472cd96",
+    "docs/lite3_retention_coverage_pilot_result_20261008.json": "35389432dbd83f027def0cfa6ede6aae15c1355bc1919db86240a4c3e3a71850",
+    "docs/lite3_tail_anchor_pilot_result_20261009.json": "78fe984973d2bcb900a1b65e46e62ae109ff203a867cedbd787fea37cde98f38",
+    "docs/lite3_tail_anchor_plan_20261009.json": "5ddaf4765c0de994b00c1008df6d568b403c15fd9744270da6c91b4bb47a9f3b",
+    "docs/lite3_tail_anchor_update_audit_20261009.json": "a5d27939d2df3edecfb59fbeec5591789d11a4c3d112451b8f0ea0ede21f057d"
+  },
+  "failures": {
+    "course-trial": [],
+    "recovery-trial": []
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/tail_anchor_20261009/train/final.pt",
+    "sha256": "b714dea5427b7eee88183d17317a562b65d08848058e89ae16509e8a6fac2fdf"
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": false,
+    "ordinary_rms": false,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "initial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7161827087402344,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5973440433541933,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.18029356002807617,
+    "course_rms_m": 0.07914901152253151,
+    "course_total": 64
+  },
+  "mean_anchor_loss": {
+    "first": 0.0024573184782639146,
+    "last": 0.0015395289985463024,
+    "maximum": 0.002642653207294643,
+    "mean": 0.0018563526212346914
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.00538979098200798,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.005530609283596277
+    },
+    "validation": {
+      "control": 0.005490067880600691,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.005583871155977249
+    }
+  },
+  "offline_mean_action_mse_ratio_vs_control": {
+    "correction": 0.9065314696160341,
+    "flat": 0.8398695892155124,
+    "post_recovery": 0.5481603636275147,
+    "rough101": 0.8373824618228196,
+    "rough107": 0.844924836408566
+  },
+  "pilot_passed": false,
+  "scope": "Additive post-recovery TRAIN mean preservation, same learner2281/eval2251 and final256 updates. Repeated TRAIN source only; original qualification and independent learning replication remain separate.",
+  "status": "verified",
+  "tail_anchor": {
+    "calls": 5120,
+    "coefficient": 25.0,
+    "draw_sha256": "c459fc87a1d7c9013bb83209c041e7dc212d8845fa68bb8b74325f9328ff96e0",
+    "loss": {
+      "first": 2.2044577576707525e-06,
+      "last": 0.00035443371452856807,
+      "maximum": 0.0003724467627762351,
+      "mean": 0.00016908197175351524
+    },
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "replay_rows": 655360,
+    "train_rows": 5681
+  },
+  "total_replay_rows": 3276800,
+  "trial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.736814022064209,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6153704871733984,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.3309974670410156,
+    "course_rms_m": 0.0989340995438397,
+    "course_total": 64
+  }
+}

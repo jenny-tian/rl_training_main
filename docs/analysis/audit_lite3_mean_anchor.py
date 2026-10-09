@@ -33,6 +33,13 @@ def main():
     assert sha256_file(inspect.getfile(PPO))==plan['vendor_ppo_source_sha256']
     allowed={'registered_at_utc','arm','scope','selection'}
     demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
+    tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
+    fixed_demo=demo_target or tail_anchor
+    if tail_anchor:
+        allowed.add('tail_anchor')
+        assert set(plan['allowed_control_protocol_changes'])==allowed
+        assert set(p)==set(control)|{'tail_anchor'}
+        assert p['tail_anchor']==plan['tail_anchor']
     if demo_target:
         allowed.add('mean_anchor')
         assert set(plan['allowed_control_protocol_changes'])==allowed
@@ -74,7 +81,7 @@ def main():
         for group,targets in fixed_targets.items():
             assert targets.shape==(counts[group],12) and np.isfinite(targets).all()
             assert hashlib.sha256(targets.tobytes()).hexdigest()==spec['fixed_target_array_sha256'][group]
-        if demo_target:
+        if fixed_demo:
             assert counts['correction']==216
             assert observed['fixed_target_groups']==['correction']
             assert observed['fixed_target_array_sha256']==spec['fixed_target_array_sha256']
@@ -86,7 +93,7 @@ def main():
                     target_digest.update(fixed_targets[group][indices].tobytes())
                     fixed_rows+=n
         assert digest.hexdigest()==observed['draw_sha256']
-        if demo_target:
+        if fixed_demo:
             assert fixed_rows==observed['fixed_target_rows']==calls*spec['batch_groups']['correction']
             assert target_digest.hexdigest()==observed['fixed_target_sha256']
         teacher=FrozenPPOExpert(torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False)['actor_state_dict'])
@@ -99,7 +106,7 @@ def main():
                 deltas=torch.cat([candidate(torch.from_numpy(values[i:i+4096]))-teacher(torch.from_numpy(values[i:i+4096])) for i in range(0,len(values),4096)])
                 offline[group]=dict(rows=len(values),mean_squared_raw_action_change=float(deltas.square().mean()),
                     p95_absolute_raw_action_change=float(torch.quantile(deltas.abs().flatten(),.95)),max_absolute_raw_action_change=float(deltas.abs().max()))
-            if demo_target:
+            if fixed_demo:
                 control_report=json.loads((Path(plan['control_training_run'])/'report.json').read_text())
                 control_checkpoint=control_report['final_checkpoint']
                 assert sha256_file(control_checkpoint['path'])==control_checkpoint['sha256']
@@ -111,6 +118,24 @@ def main():
                     targets=torch.from_numpy(dataset['correction_'+split+'_target'])
                     demo_mse[split]=dict(rows=len(states),**{name:float((actor(states)-targets).square().mean())
                         for name,actor in [('initial',teacher),('control',control_actor),('trial',candidate)]})
+        if tail_anchor:
+            tail=p['tail_anchor'];seen=r['tail_anchor']
+            for key,value in tail.items():assert seen[key]==value
+            assert tail['coefficient']==spec['coefficient']/4==25.
+            assert tail['batch_groups']=={'post_recovery':128} and tail['seed']!=spec['seed']
+            assert seen['validation_rows_used']==seen['stored_target_rows_used']==0
+            assert seen['sampling_device']=='cpu' and seen['teacher_unchanged']
+            assert seen['teacher_sha256']==p['base_sha256'] and seen['dataset_sha256']==spec['dataset_sha256']
+            rows=dataset['post_recovery_train_obs']
+            assert len(rows)==5681 and seen['group_rows']=={'post_recovery':len(rows)}
+            assert hashlib.sha256(rows.tobytes()).hexdigest()==tail['observation_array_sha256']
+            tail_generator=torch.Generator(device='cpu').manual_seed(tail['seed'])
+            tail_digest=hashlib.sha256()
+            for _ in range(calls):tail_digest.update(torch.randint(len(rows),(128,),generator=tail_generator).numpy().tobytes())
+            assert tail_digest.hexdigest()==seen['draw_sha256']
+            assert seen['calls']==calls and seen['rows']==calls*128==plan['tail_queries']
+            assert observed['rows']==plan['original_queries']
+            assert observed['rows']+seen['rows']==plan['total_replay_queries']
     updates=[json.loads(line) for line in (root/'updates.jsonl').read_text().splitlines()]
     assert [u['update'] for u in updates]==list(range(1,p['iterations']+1))
     losses=[u['losses']['mean_anchor'] for u in updates]
@@ -133,13 +158,26 @@ def main():
         scope=('Fixed TRAIN replay ablation; offline validation only used here for diagnostics, not optimizer updates.'
             if plan['schema']=='lite3_mean_anchor_length_ablation_v1' else
             'One fixed TRAIN replay auxiliary loss ablation; offline validation only used here for diagnostics, not optimizer updates.'))
-    if demo_target:
+    if fixed_demo:
         result.update(fixed_target_groups=['correction'],fixed_target_rows=fixed_rows,
             fixed_target_sha256=target_digest.hexdigest(),fixed_target_array_sha256=spec['fixed_target_array_sha256'],
             offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
             scope='Only correction TRAIN replay labels changed; ordinary frozen means retained. Validation label MSE is post-training diagnostic only. First rollout paired, later updates intentionally differ.')
         control_report=json.loads((control_root/'report.json').read_text())
         assert digest.hexdigest()==control_report['mean_anchor']['draw_sha256']
+    if tail_anchor:
+        tail_losses=[u['losses']['tail_anchor'] for u in updates]
+        assert np.isfinite(tail_losses).all() and min(tail_losses)>=0 and max(tail_losses)>0
+        result.update(tail_anchor=dict(calls=calls,replay_rows=seen['rows'],draw_sha256=tail_digest.hexdigest(),
+            coefficient=tail['coefficient'],train_rows=len(rows),observation_array_sha256=tail['observation_array_sha256'],
+            loss=dict(first=tail_losses[0],last=tail_losses[-1],mean=float(np.mean(tail_losses)),maximum=max(tail_losses))),
+            total_replay_rows=observed['rows']+seen['rows'],
+            scope='Only additive25*tail TRAIN preservation changed. Original four-group loss coefficients, data, normalization, draw stream and fixed demo targets unchanged. Offline validation is diagnostic only.')
+        assert target_digest.hexdigest()==control_report['mean_anchor']['fixed_target_sha256']
+        tests=plan['tests']
+        assert tests['failed']==0 and tests['passed']==42 and sha256_file(tests['log'])==tests['sha256']
+        assert sha256_file(plan['diagnostic'])==plan['diagnostic_sha256']
+        for path in (tests['log'],plan['diagnostic']):evidence[path]=sha256_file(path)
     if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
         maxima={key:0. for key in prefix}
         files=sorted((control_root/'trajectory').glob('chunk-*.npz'))

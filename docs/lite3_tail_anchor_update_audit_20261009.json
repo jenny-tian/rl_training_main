@@ -1,0 +1,109 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/demo_target_20261009/train-retry01/final.pt": "b256c42eea3192b484750b36ccd863cf7cf1782ba0c5e7837bcca1054a341a98",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "artifacts/demo_target_20261009/train-retry01/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "artifacts/tail_anchor_20261009/train/report.json": "8f639d02d3b2eefed760cfeffc37c94468daee35474aa9dbbec54dfbdaf90b54",
+    "artifacts/tail_anchor_20261009/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "artifacts/tail_anchor_20261009/train/updates.jsonl": "580dc5539ccee05f936df4c67872d5e3616e518948ee5989d2e9775c6fa23fa2",
+    "docs/lite3_tail_anchor_gradient_diagnostic_20261009.json": "d206479e726740a4c5b27b3dcdc55616105b2a22e3a38078fc40b6070cd0c301",
+    "docs/lite3_tail_anchor_plan_20261009.json": "5ddaf4765c0de994b00c1008df6d568b403c15fd9744270da6c91b4bb47a9f3b",
+    "docs/lite3_tail_anchor_reward_audit_20261009.json": "43a9943c404ad194fa1f418ff7ff0b58481cdb87f52ed4b1f4f973f07526220e",
+    "docs/lite3_tail_anchor_tests_20261009.txt": "3c13442cde3f2a632b881e6c20c0145fbe7c434ec21e94bfb7d60fb79e0abc7a",
+    "docs/lite3_tail_anchor_train_protocol_20261009.json": "bb1a7a6746191dc63d45ff2e0f9bc6faa01e4392a2249078d7640766c76d876b",
+    "docs/lite3_tail_anchor_training_audit_20261009.json": "9c1bf8adbfc7f98eae49d629af301976a08083c572ec71b9196ea6201c25dea2"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/tail_anchor_20261009/train/final.pt",
+    "sha256": "b714dea5427b7eee88183d17317a562b65d08848058e89ae16509e8a6fac2fdf"
+  },
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "fixed_target_array_sha256": {
+    "correction": "1849d787dea93dfa615017e2c7a74ddabc2258a73b1f562faa4eb9b3a7951139"
+  },
+  "fixed_target_groups": [
+    "correction"
+  ],
+  "fixed_target_rows": 655360,
+  "fixed_target_sha256": "da4899520b0012e7d95add87fc4dbaa4644b2985b44723f1029d5644b6395edc",
+  "mean_anchor_calls": 5120,
+  "mean_anchor_loss": {
+    "first": 0.0024573184782639146,
+    "last": 0.0015395289985463024,
+    "maximum": 0.002642653207294643,
+    "mean": 0.0018563526212346914
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.23043608665466309,
+      "mean_squared_raw_action_change": 0.001767829293385148,
+      "p95_absolute_raw_action_change": 0.08510121703147888,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.06465256214141846,
+      "mean_squared_raw_action_change": 0.0001598025264684111,
+      "p95_absolute_raw_action_change": 0.026697788387537003,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.30435848236083984,
+      "mean_squared_raw_action_change": 0.00031337523250840604,
+      "p95_absolute_raw_action_change": 0.02774248830974102,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.06464648246765137,
+      "mean_squared_raw_action_change": 0.00016487094399053603,
+      "p95_absolute_raw_action_change": 0.026916420087218285,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.06464838981628418,
+      "mean_squared_raw_action_change": 0.0001644823350943625,
+      "p95_absolute_raw_action_change": 0.026831738650798798,
+      "rows": 15774
+    }
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.00538979098200798,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.005530609283596277
+    },
+    "validation": {
+      "control": 0.005490067880600691,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.005583871155977249
+    }
+  },
+  "replay_rows": 2621440,
+  "scope": "Only additive25*tail TRAIN preservation changed. Original four-group loss coefficients, data, normalization, draw stream and fixed demo targets unchanged. Offline validation is diagnostic only.",
+  "status": "verified",
+  "tail_anchor": {
+    "calls": 5120,
+    "coefficient": 25.0,
+    "draw_sha256": "c459fc87a1d7c9013bb83209c041e7dc212d8845fa68bb8b74325f9328ff96e0",
+    "loss": {
+      "first": 2.2044577576707525e-06,
+      "last": 0.00035443371452856807,
+      "maximum": 0.0003724467627762351,
+      "mean": 0.00016908197175351524
+    },
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "replay_rows": 655360,
+    "train_rows": 5681
+  },
+  "total_replay_rows": 3276800,
+  "validation_rows_used_for_updates": 0
+}

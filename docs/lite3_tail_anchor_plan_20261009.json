@@ -1,0 +1,84 @@
+{
+  "allowed_control_protocol_changes": [
+    "registered_at_utc",
+    "arm",
+    "scope",
+    "selection",
+    "tail_anchor"
+  ],
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "change": "Only add25*MSE(initial actor mean on post_recovery TRAIN states) to the prior demo-target PPO objective. Separate128-row draw stream seed2309; original four groups, coefficient100, normalization and seed2293 unchanged. Same fresh initial actor6a470cec, learner2281,256 updates, reward anchor100 and lateral-8. No continuation of failed model.",
+  "conditional_validation": "Only all unchanged pilot gates pass then register original7-source seed2081 candidate evaluation, max256000. Final256 checkpoint only, no replacement seed/checkpoint and no changed70cm threshold.",
+  "control_protocol": "docs/lite3_demo_target_train_protocol_20261009.json",
+  "control_protocol_sha256": "c73659c98383f3546b118c0af76cdde5e4e2703a7c2da8db9afe5817fcaad271",
+  "control_result": "docs/lite3_demo_target_pilot_result_20261009.json",
+  "control_result_sha256": "7d758478e34fedc553dce0a2124aecc591db52d702dfcbe731bb8c71250345cc",
+  "control_training_run": "artifacts/demo_target_20261009/train-retry01",
+  "cumulative_before": {
+    "charged": 29712576,
+    "confirmed": 29712512,
+    "uncertain": 64
+  },
+  "diagnostic": "docs/lite3_tail_anchor_gradient_diagnostic_20261009.json",
+  "diagnostic_sha256": "d206479e726740a4c5b27b3dcdc55616105b2a22e3a38078fc40b6070cd0c301",
+  "iterations": 256,
+  "max_conditional_validation_controls": 256000,
+  "max_new_controls": 1036288,
+  "max_pilot_controls": 256000,
+  "mean_anchor": {
+    "batch_groups": {
+      "correction": 128,
+      "flat": 128,
+      "rough101": 128,
+      "rough107": 128
+    },
+    "coefficient": 100.0,
+    "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+    "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+    "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "fixed_target_array_sha256": {
+      "correction": "1849d787dea93dfa615017e2c7a74ddabc2258a73b1f562faa4eb9b3a7951139"
+    },
+    "fixed_target_groups": [
+      "correction"
+    ],
+    "seed": 2293
+  },
+  "original_queries": 2621440,
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-09T06:58:32.305792+00:00",
+  "schema": "lite3_tail_anchor_ablation_v1",
+  "tail_anchor": {
+    "batch_groups": {
+      "post_recovery": 128
+    },
+    "coefficient": 25.0,
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "seed": 2309
+  },
+  "tail_queries": 655360,
+  "tests": {
+    "failed": 0,
+    "first_attempt": "41 passed,1 fixture failed because first Actor parameter was log_std; fixed to explicitly use mlp weight, no physical training started.",
+    "first_log": "docs/lite3_tail_anchor_tests_first_20261009.txt",
+    "first_log_sha256": "42a93cace705d9706a1183734fdfc338bed107d6aca7842fea605353c9da48d1",
+    "log": "docs/lite3_tail_anchor_tests_20261009.txt",
+    "passed": 42,
+    "sha256": "3c13442cde3f2a632b881e6c20c0145fbe7c434ec21e94bfb7d60fb79e0abc7a"
+  },
+  "total_replay_queries": 3276800,
+  "training_controls": 524288,
+  "training_seed": 2281,
+  "update": "One combined PPO optimizer step per minibatch, L_PPO+100*old_four_group_mean+25*tail_mean. New tail loss uses frozen initialization means, not stored actions, no denominator changes. Original main RNG and four-group replay draws untouched.",
+  "vendor_ppo_source_sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+}

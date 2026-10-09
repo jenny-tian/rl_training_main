@@ -76,7 +76,7 @@ class MeanActionReplay:
         return (predicted-target).square().mean()
 
 
-def update_with_mean_anchor(algorithm, replay):
+def update_with_mean_anchor(algorithm, replay, *, tail_replay=None):
     """The feedforward, fixed-LR, single-GPU PPO update plus one explicit auxiliary loss.
 
     Unsupported algorithm options fail rather than silently dropping their behavior.
@@ -86,6 +86,8 @@ def update_with_mean_anchor(algorithm, replay):
     if a.actor.is_recurrent or a.critic.is_recurrent or a.rnd or a.symmetry or a.is_multi_gpu or a.schedule != 'fixed':
         raise ValueError('mean anchor supports feedforward fixed-LR PPO without RND, symmetry or multi-GPU')
     means = dict(value=0., surrogate=0., entropy=0., mean_anchor=0.)
+    if tail_replay is not None:
+        means['tail_anchor'] = 0.
     updates = 0
     for batch in a.storage.mini_batch_generator(a.num_mini_batches, a.num_learning_epochs):
         if a.normalize_advantage_per_mini_batch:
@@ -107,6 +109,9 @@ def update_with_mean_anchor(algorithm, replay):
         loss = surrogate_loss+a.value_loss_coef*value_loss-a.entropy_coef*entropy.mean()
         anchor_loss = replay.loss(a.actor) if replay.coefficient else loss.new_zeros(())
         loss = loss+replay.coefficient*anchor_loss
+        if tail_replay is not None:
+            tail_loss = tail_replay.loss(a.actor) if tail_replay.coefficient else loss.new_zeros(())
+            loss = loss+tail_replay.coefficient*tail_loss
         if not torch.isfinite(loss):
             raise ValueError('nonfinite PPO/mean anchor objective')
         a.optimizer.zero_grad()
@@ -116,6 +121,8 @@ def update_with_mean_anchor(algorithm, replay):
         a.optimizer.step()
         for key, value in (('value', value_loss), ('surrogate', surrogate_loss), ('entropy', entropy.mean()), ('mean_anchor', anchor_loss)):
             means[key] += float(value.detach())
+        if tail_replay is not None:
+            means['tail_anchor'] += float(tail_loss.detach())
         updates += 1
     if updates != a.num_learning_epochs*a.num_mini_batches:
         raise RuntimeError('unexpected PPO mini-batch count')

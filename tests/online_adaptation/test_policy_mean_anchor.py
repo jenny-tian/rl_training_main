@@ -111,3 +111,54 @@ def test_invalid_fixed_target_alignment_is_rejected(failure):
     else:targets['correction'][0,0]=float('nan')
     with pytest.raises(ValueError):
         MeanActionReplay(torch.nn.Identity(),observations,{'correction':1},coefficient=1.,seed=1,device='cpu',fixed_targets=targets)
+
+
+def test_zero_tail_preserves_existing_mean_update_rng_draws_and_optimizer():
+    original,old_replay=fixture()
+    extended,replay=fixture()
+    old_replay.coefficient=replay.coefficient=100.
+    tail=MeanActionReplay(copy.deepcopy(replay.teacher),{'post_recovery':torch.ones(7,48)},
+                         {'post_recovery':3},coefficient=0.,seed=109,device='cpu')
+    torch.manual_seed(59)
+    expected=update_with_mean_anchor(original,old_replay)
+    expected_rng=torch.get_rng_state().clone()
+    torch.manual_seed(59)
+    actual=update_with_mean_anchor(extended,replay,tail_replay=tail)
+    assert tail.calls==0 and actual.pop('tail_anchor')==0.
+    assert actual==expected and torch.equal(torch.get_rng_state(),expected_rng)
+    assert old_replay.draw_digest.hexdigest()==replay.draw_digest.hexdigest()
+    for before,after in ((original.actor,extended.actor),(original.critic,extended.critic)):
+        for key,value in before.state_dict().items():torch.testing.assert_close(value,after.state_dict()[key],atol=0,rtol=0)
+    assert [v['step'].item() for v in original.optimizer.state.values()]==[v['step'].item() for v in extended.optimizer.state.values()]
+
+
+def test_tail_gradient_is_additive_without_diluting_existing_loss_or_changing_draws():
+    original,old_replay=fixture()
+    extended,replay=fixture()
+    old_replay.coefficient=replay.coefficient=100.
+    # Zero LR isolates the exact per-mini-batch gradients from later weight drift.
+    for algorithm in (original,extended):
+        for group in algorithm.optimizer.param_groups:group['lr']=0.
+    tail_states=torch.ones(7,48)
+    teacher=copy.deepcopy(replay.teacher)
+    with torch.no_grad():
+        [layer for layer in teacher.modules() if isinstance(layer,torch.nn.Linear)][-1].bias.add_(.2)
+    tail=MeanActionReplay(teacher,{'post_recovery':tail_states},{'post_recovery':3},coefficient=25.,seed=109,device='cpu')
+    parameter=next(extended.actor.mlp.parameters())
+    predicted=extended.actor(TensorDict({'policy':tail_states},batch_size=[7]))
+    expected_tail=torch.autograd.grad(25.*(predicted-teacher(tail_states)).square().mean(),parameter)[0]
+    before,after=[],[]
+    h0=next(original.actor.mlp.parameters()).register_hook(lambda g:before.append(g.detach().clone()))
+    h1=parameter.register_hook(lambda g:after.append(g.detach().clone()))
+    torch.manual_seed(61)
+    old_losses=update_with_mean_anchor(original,old_replay)
+    rng=torch.get_rng_state().clone()
+    torch.manual_seed(61)
+    new_losses=update_with_mean_anchor(extended,replay,tail_replay=tail)
+    h0.remove();h1.remove()
+    assert len(before)==len(after)==4 and tail.calls==4 and tail.rows==12
+    assert torch.equal(rng,torch.get_rng_state())
+    assert old_replay.draw_digest.hexdigest()==replay.draw_digest.hexdigest()
+    for key,value in old_losses.items():assert new_losses[key]==value
+    for old,new in zip(before,after):torch.testing.assert_close(new-old,expected_tail,atol=2e-6,rtol=2e-5)
+    assert all(p.grad is None for p in tail.teacher.parameters())
