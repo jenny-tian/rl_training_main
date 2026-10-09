@@ -1,0 +1,32 @@
+{
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 256000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/self_target_heading_20261009/train/final.pt",
+      "training_algorithm": "PPO plus direct mean-action TRAIN replay loss and existing soft reward anchor",
+      "training_protocol_sha256": "36716c0d0889e13a974a7c7f71159c69295691ed782430d434258773f9f853ba",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/self_target_heading_20261009/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-09T14:20:23.997708+00:00",
+  "reused_baseline_report_sha256": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Final256 self-mean correction target ablation with weight-1 centerline heading, same GPU1/eval2251/original pilot gates. No inference teacher/controller/prefix.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

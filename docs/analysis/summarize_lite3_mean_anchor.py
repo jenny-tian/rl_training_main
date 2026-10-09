@@ -64,6 +64,7 @@ def main():
     tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
     heading_weight=plan['schema']=='lite3_route_heading_weight_ablation_v1'
     heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
+    self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
     if demo_target:assert args.retry_addendum
     engineering=0
     if heading:
@@ -80,6 +81,9 @@ def main():
         cumulative_confirmed_through_pilot=plan['cumulative_before']['confirmed']+total,historical_uncertain=64)
     if args.retry_addendum:costs['interrupted_training']=aborted_controls
     if heading:costs['engineering']=engineering
+    if self_target:
+        assert plan['max_engineering_controls']==0
+        costs['engineering']=0
     out=dict(status='verified',initial=initial['results']['trial'],control=control['results']['trial'],trial=result['results']['trial'],
         gates=result['gates'],pilot_passed=result['pilot_passed'],costs=costs,final_checkpoint=trained['final_checkpoint'],
         failures={key:[e for e in value['episodes'] if not e['success']] for key,value in newrun['phases'].items()},
@@ -90,7 +94,7 @@ def main():
     if demo_target:
         out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
         out['scope']='Correction TRAIN demonstration-target ablation. Same learner2281/eval2251, fixed final256 updates. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication. Interrupted launch charged separately.'
-    if tail_anchor or heading:
+    if tail_anchor or heading or self_target:
         out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
         out['tail_anchor']=trained['tail_anchor']
         out['total_replay_rows']=trained['total_replay_rows']
@@ -100,6 +104,10 @@ def main():
         out['scope']='Centerline-directed training heading reward. Same learner2281/eval2251 and final256. Physical first rollout paired across identical-model GPUs; same replay losses. TRAIN-source development only, no inference controller.'
         if heading_weight:
             out['scope']='Only heading reward weight-1 to-4 changed. Same GPU1, learner2281/eval2251 and final256, same heading geometry and replay losses. TRAIN-source development only, no inference controller.'
+    if self_target:
+        assert trained['stored_action_target_rows_for_updates']==0 and trained['first_rollout_all_recorded_fields_bitwise_equal']
+        out['stored_action_target_rows_for_updates']=0
+        out['scope']='Correction targets only: frozen initialization means replace stored demo labels. Same heading weight-1, tail25, learner2281/eval2251/final256; first rollout including rewards identical. TRAIN-source developer pilot only.'
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
@@ -108,6 +116,7 @@ def main():
     if tail_anchor:labels=['Supervised init','PPO demo targets','+ Tail preservation']
     if heading:labels=['Supervised init','Zero heading target','Centerline heading target']
     if heading_weight:labels=['Supervised init','Heading weight -1','Heading weight -4']
+    if self_target:labels=['Supervised init','Demo correction\ntargets','Self-mean correction\ntargets']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -129,6 +138,7 @@ def main():
     if tail_anchor:title='Additive post-recovery mean preservation'
     if heading:title='Centerline-directed heading reward'
     if heading_weight:title='Centerline heading reward strength'
+    if self_target:title='Correction targets with fixed centerline heading reward'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)
