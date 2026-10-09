@@ -62,7 +62,8 @@ def main():
         assert tests['failed']==0 and sha256_file(tests['log'])==tests['sha256']
     demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
     tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
-    heading=plan['schema']=='lite3_route_heading_ablation_v1'
+    heading_weight=plan['schema']=='lite3_route_heading_weight_ablation_v1'
+    heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
     if demo_target:assert args.retry_addendum
     engineering=0
     if heading:
@@ -97,6 +98,8 @@ def main():
     if heading:
         out['first_rollout_reward_difference']=trained['first_rollout_reward_difference']
         out['scope']='Centerline-directed training heading reward. Same learner2281/eval2251 and final256. Physical first rollout paired across identical-model GPUs; same replay losses. TRAIN-source development only, no inference controller.'
+        if heading_weight:
+            out['scope']='Only heading reward weight-1 to-4 changed. Same GPU1, learner2281/eval2251 and final256, same heading geometry and replay losses. TRAIN-source development only, no inference controller.'
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
@@ -104,6 +107,7 @@ def main():
     if demo_target:labels=['Supervised init','PPO self-mean targets','PPO demo correction targets']
     if tail_anchor:labels=['Supervised init','PPO demo targets','+ Tail preservation']
     if heading:labels=['Supervised init','Zero heading target','Centerline heading target']
+    if heading_weight:labels=['Supervised init','Heading weight -1','Heading weight -4']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -124,6 +128,7 @@ def main():
     if demo_target:title='Correction replay demonstration targets'
     if tail_anchor:title='Additive post-recovery mean preservation'
     if heading:title='Centerline-directed heading reward'
+    if heading_weight:title='Centerline heading reward strength'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

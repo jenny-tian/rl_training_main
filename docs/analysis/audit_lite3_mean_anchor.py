@@ -35,7 +35,8 @@ def main():
     allowed={'registered_at_utc','arm','scope','selection'}
     demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
     tail_anchor=plan['schema']=='lite3_tail_anchor_ablation_v1'
-    heading=plan['schema']=='lite3_route_heading_ablation_v1'
+    heading_weight=plan['schema']=='lite3_route_heading_weight_ablation_v1'
+    heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
     has_tail=tail_anchor or heading
     fixed_demo=demo_target or has_tail
     if heading:
@@ -43,8 +44,13 @@ def main():
         assert set(plan['allowed_control_protocol_changes'])==allowed
         assert set(p)==set(control)|{'route_heading_smoke'}
         assert p['route_training']==plan['route_training']
-        assert set(p['route_training'])==set(control['route_training'])|{'heading_lookahead_m','heading_maximum_deg'}
-        assert all(p['route_training'][k]==v for k,v in control['route_training'].items())
+        if heading_weight:
+            assert set(p)==set(control) and set(p['route_training'])==set(control['route_training'])
+            assert p['route_training']['heading_weight']==4*control['route_training']['heading_weight']==-4.
+            assert all(p['route_training'][k]==v for k,v in control['route_training'].items() if k!='heading_weight')
+        else:
+            assert set(p['route_training'])==set(control['route_training'])|{'heading_lookahead_m','heading_maximum_deg'}
+            assert all(p['route_training'][k]==v for k,v in control['route_training'].items())
         assert args.heading_audit
         heading_audit=json.loads(Path(args.heading_audit).read_text())
         assert heading_audit['status']=='verified' and heading_audit['evidence'][str(root/'report.json')]==sha256_file(root/'report.json')
@@ -166,7 +172,13 @@ def main():
             np.testing.assert_array_equal(before[key],after[key])
             prefix[key]=0.
         if heading:
-            delta=(after['heading_cost']-after['heading_zero_target_cost'])*p['route_training']['heading_weight']*.02
+            if heading_weight:
+                for key in ('heading_root_state','heading_origins','heading_target','heading_cost','heading_zero_target_cost'):
+                    np.testing.assert_array_equal(before[key],after[key])
+                delta=after['heading_cost']*(p['route_training']['heading_weight']-control['route_training']['heading_weight'])*.02
+                np.testing.assert_allclose(after['heading_reward'],4*before['heading_reward'],atol=1e-7,rtol=1e-6)
+            else:
+                delta=(after['heading_cost']-after['heading_zero_target_cost'])*p['route_training']['heading_weight']*.02
             residual=after['reward']-before['reward']-delta
             np.testing.assert_allclose(after['reward']-before['reward'],delta,atol=3e-6,rtol=1e-4)
             assert abs(delta).max()>0
@@ -206,6 +218,8 @@ def main():
         assert tail_digest.hexdigest()==control_report['tail_anchor']['draw_sha256']
         result.update(first_rollout_reward_difference=reward_prefix,
             scope='Only centerline-directed heading reward changed; same physical first rollout across GPU0/GPU1. First reward difference explained by heading alone. Both replay streams and targets unchanged; offline validation is diagnostic only.')
+        if heading_weight:
+            result['scope']='Only heading weight-1 to-4 changed on the same GPU1. First physical rollout and heading geometry identical; reward difference explained by weight scaling. Both replay streams and targets unchanged; offline validation diagnostic only.'
     if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
         maxima={key:0. for key in prefix}
         files=sorted((control_root/'trajectory').glob('chunk-*.npz'))

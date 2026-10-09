@@ -1,0 +1,32 @@
+{
+  "conditions": [
+    "course",
+    "recovery"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 256000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/heading_weight4_20261009/train/final.pt",
+      "training_algorithm": "PPO plus direct mean-action TRAIN replay loss and existing soft reward anchor",
+      "training_protocol_sha256": "1b30b445e3d0ef56f4c080482f7211d083c9d9b1996897c6ec2cbd7516b6bb4d",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/heading_weight4_20261009/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-09T12:50:24.716874+00:00",
+  "reused_baseline_report_sha256": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Fixed final256 heading-weight-4 PPO candidate, GPU1, eval2251. Same original pilot gates and initial-state matching. No inference controller/teacher/prefix.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

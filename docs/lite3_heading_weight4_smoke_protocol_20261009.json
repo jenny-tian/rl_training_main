@@ -1,0 +1,32 @@
+{
+  "anchor_options": {
+    "early_steps": 12,
+    "weight": 100.0
+  },
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "max_controls": 25600,
+  "num_envs": 64,
+  "probe_amplitude": 0.01,
+  "recovery_course_lateral_weight": -8.0,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "fixed_train_case_count": 12,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-09T12:39:32.931700+00:00",
+  "route_training": {
+    "heading_lookahead_m": 1.0,
+    "heading_maximum_deg": 20.0,
+    "heading_weight": -4.0,
+    "tracking_std": 0.15
+  },
+  "schema": "lite3_recovery_anchor_smoke_v1",
+  "scope": "Paired engineering weight scaling only. Same frozen6a actor, seed2311,400 controls,64 envs and probes as paid weight-1 smoke. Physics must match and heading reward scale4x; all controls charged. No learning/acceptance claim.",
+  "seed": 2311,
+  "steps": 400,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

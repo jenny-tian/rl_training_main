@@ -1,0 +1,95 @@
+{
+  "anchor_audit": "docs/lite3_recovery_return_smoke_audit_20261008.json",
+  "anchor_audit_sha256": "8ddc15845ab077677d4a37395246e843df1b22503bf09173e2a276f0e0dda3e8",
+  "arm": "heading-weight4",
+  "base_actor_mean_only": true,
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_observation_schema": "sim-localization-v1",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "fixed_forward_command": 0.3,
+  "frozen_smoke_report": "artifacts/recovery_return_20261008/smoke/report.json",
+  "frozen_smoke_sha256": "9e33a8dad2913e6270ac09734afa85456072365043e2a55bbee9a31c1ba914bc",
+  "initial_std": 0.05,
+  "iterations": 256,
+  "mean_anchor": {
+    "batch_groups": {
+      "correction": 128,
+      "flat": 128,
+      "rough101": 128,
+      "rough107": 128
+    },
+    "coefficient": 100.0,
+    "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+    "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+    "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "fixed_target_array_sha256": {
+      "correction": "1849d787dea93dfa615017e2c7a74ddabc2258a73b1f562faa4eb9b3a7951139"
+    },
+    "fixed_target_groups": [
+      "correction"
+    ],
+    "seed": 2293
+  },
+  "num_envs": 64,
+  "ppo": {
+    "clip_param": 0.2,
+    "entropy_coef": 0.0,
+    "gamma": 0.99,
+    "lam": 0.95,
+    "learning_rate": 3e-06,
+    "max_grad_norm": 1.0,
+    "num_learning_epochs": 5,
+    "num_mini_batches": 4,
+    "schedule": "fixed",
+    "use_clipped_value_loss": true,
+    "value_loss_coef": 1.0
+  },
+  "recovery_anchor": {
+    "early_steps": 12,
+    "smoke_report": "artifacts/recovery_return_20261008/smoke/report.json",
+    "smoke_sha256": "9e33a8dad2913e6270ac09734afa85456072365043e2a55bbee9a31c1ba914bc",
+    "weight": 100.0
+  },
+  "recovery_course_lateral_weight": -8.0,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "fixed_train_case_count": 12,
+    "mixed": false,
+    "split": "train"
+  },
+  "recovery_smoke_report": "artifacts/recovery_return_20261008/smoke/report.json",
+  "recovery_smoke_sha256": "9e33a8dad2913e6270ac09734afa85456072365043e2a55bbee9a31c1ba914bc",
+  "registered_at_utc": "2026-10-09T12:50:24.716874+00:00",
+  "rollout_steps": 32,
+  "route_heading_smoke": {
+    "report": "artifacts/heading_weight4_20261009/smoke/report.json",
+    "sha256": "593cdaf9e6770c52b1143273963bb28422ad3084eeb2028ff64404a9646feacd"
+  },
+  "route_observations": "sim-localization-v1",
+  "route_training": {
+    "heading_lookahead_m": 1.0,
+    "heading_maximum_deg": 20.0,
+    "heading_weight": -4.0,
+    "tracking_std": 0.15
+  },
+  "save_interval": 256,
+  "schema": "lite3_full_policy_pilot_v1",
+  "scope": "Only centerline-heading reward weight changes from-1 to-4. Same1m lookahead/20deg cap, footprint lateral-8, online anchor100, four-group replay100, tail25, base6a470cec, learner2281,256 updates. Fresh initialization, no continuation of control; final checkpoint only.",
+  "seed": 2281,
+  "selection": "Fixed final256 only, same original supervised initialization and learner2281. No continuation, seed or checkpoint replacement.",
+  "smoke_report": "artifacts/recovery_return_20261008/smoke/report.json",
+  "smoke_sha256": "9e33a8dad2913e6270ac09734afa85456072365043e2a55bbee9a31c1ba914bc",
+  "tail_anchor": {
+    "batch_groups": {
+      "post_recovery": 128
+    },
+    "coefficient": 25.0,
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "seed": 2309
+  },
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "training_control_transitions": 524288
+}

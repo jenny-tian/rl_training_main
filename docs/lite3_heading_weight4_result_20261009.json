@@ -1,0 +1,185 @@
+{
+  "control": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7314271926879883,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6125512743989626,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.32502198219299316,
+    "course_rms_m": 0.0715348719774435,
+    "course_total": 64
+  },
+  "costs": {
+    "cumulative_charged_through_pilot": 31884736,
+    "cumulative_confirmed_through_pilot": 31884672,
+    "engineering": 25600,
+    "historical_uncertain": 64,
+    "new_uncertain": 0,
+    "pilot": 180224,
+    "replay_new_physics": 0,
+    "stage_through_pilot": 730112,
+    "training": 524288
+  },
+  "evidence": {
+    "artifacts/heading_weight4_20261009/pilot-evaluation/report.json": "f346d1740799893f5e00475579ff0ac96977b2c9c09658d614b9d0dc55546a62",
+    "artifacts/route_heading_20261009/pilot-evaluation/report.json": "93ae6f245b183bbbe1fb40e559e415fe8b60475a5827d23d47945dcf2df8e92f",
+    "docs/lite3_heading_weight4_pilot_result_20261009.json": "8b0adce0c764cc05b2c6a11d8cedf94f761efe2220ed8f34bf6411f993ffa3b4",
+    "docs/lite3_heading_weight4_plan_20261009.json": "d4a26893dad5a69012cb593f1ff1a1afce5bd7586031d2ee158c71de26d84e67",
+    "docs/lite3_heading_weight4_smoke_audit_20261009.json": "796bc3800607ee0cf31dc08b31ce7b498e5c52a4c0d53ff036ef1e4260bb71e2",
+    "docs/lite3_heading_weight4_update_audit_20261009.json": "e18232594fb8d2a79401e733d17f0a246c749322ad26f557b53c44fdad3f06d8",
+    "docs/lite3_retention_coverage_pilot_result_20261008.json": "35389432dbd83f027def0cfa6ede6aae15c1355bc1919db86240a4c3e3a71850",
+    "docs/lite3_route_heading_pilot_result_20261009.json": "0e1b4e94fb0ff6285b9fa3882b278a4aadc49c05f5fb0175749606dd39a7dec0",
+    "docs/lite3_route_heading_update_audit_20261009.json": "d8701173f968511a7587571e53fb0ca48540fc84c8b2c99240c070aef3fc2e16"
+  },
+  "failures": {
+    "course-trial": [],
+    "recovery-trial": []
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/heading_weight4_20261009/train/final.pt",
+    "sha256": "b0432834856e25bde22191483f635f5a260c69a3a37ef0e4eda0c702abbe8e25"
+  },
+  "first_rollout_reward_difference": {
+    "maximum_absolute_difference": 0.0240175761282444,
+    "maximum_heading_only_residual": 1.4901161193847656e-08
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": false,
+    "ordinary_rms": false,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "initial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7161827087402344,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5973440433541933,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.18029356002807617,
+    "course_rms_m": 0.07914901152253151,
+    "course_total": 64
+  },
+  "mean_anchor_loss": {
+    "first": 0.0024576073978096248,
+    "last": 0.001496142364339903,
+    "maximum": 0.0026438093511387704,
+    "mean": 0.0018529640937003933
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.005541190505027771,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.0054741185158491135
+    },
+    "validation": {
+      "control": 0.005537519697099924,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.005523147527128458
+    }
+  },
+  "offline_mean_action_mse_ratio_vs_control": {
+    "correction": 1.0406851425322583,
+    "flat": 1.0490023244172464,
+    "post_recovery": 1.1340580085906644,
+    "rough101": 1.0757666749869297,
+    "rough107": 1.0798707410401078
+  },
+  "pilot_passed": false,
+  "scope": "Only heading reward weight-1 to-4 changed. Same GPU1, learner2281/eval2251 and final256, same heading geometry and replay losses. TRAIN-source development only, no inference controller.",
+  "status": "verified",
+  "tail_anchor": {
+    "calls": 5120,
+    "coefficient": 25.0,
+    "draw_sha256": "c459fc87a1d7c9013bb83209c041e7dc212d8845fa68bb8b74325f9328ff96e0",
+    "loss": {
+      "first": 2.195275200023161e-06,
+      "last": 0.0003543590006302111,
+      "maximum": 0.0003910357161657885,
+      "mean": 0.0001862489863570488
+    },
+    "observation_array_sha256": "f950c322f1eba84b5b4309dd63a28d03e571a2735f6f013de517e0d51439e07b",
+    "replay_rows": 655360,
+    "train_rows": 5681
+  },
+  "total_replay_rows": 3276800,
+  "trial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7954726219177246,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6253663823008537,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.3370981216430664,
+    "course_rms_m": 0.08721116844875117,
+    "course_total": 64
+  }
+}
