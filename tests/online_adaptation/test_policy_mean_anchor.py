@@ -1,4 +1,5 @@
 import copy
+import hashlib
 
 import pytest
 import torch
@@ -72,3 +73,41 @@ def test_unsupported_ppo_features_fail_instead_of_silently_changing_algorithm():
     algorithm.schedule='adaptive'
     with pytest.raises(ValueError,match='fixed-LR'):
         update_with_mean_anchor(algorithm,replay)
+
+
+def test_demo_targets_follow_sampled_rows_and_override_only_correction():
+    class Teacher(torch.nn.Module):
+        def forward(self,x):return x[:,:12]
+    class Actor(torch.nn.Module):
+        obs_normalization=False
+        obs_groups=['policy']
+        obs_dim=48
+        def __init__(self):
+            super().__init__()
+            self.bias=torch.nn.Parameter(torch.zeros(()))
+        def forward(self,obs):return obs['policy'][:,:12]+self.bias
+    states={'correction':torch.arange(3).float()[:,None].expand(3,48)/10,
+            'flat':torch.arange(5).float()[:,None].expand(5,48)/10}
+    target=(states['correction'][:,:12]+.25).clone().requires_grad_()
+    replay=MeanActionReplay(Teacher(),states,{'correction':17,'flat':19},coefficient=1.,seed=313,device='cpu',fixed_targets={'correction':target})
+    actor=Actor()
+    loss=replay.loss(actor)
+    torch.testing.assert_close(loss,torch.tensor(.25**2*17/36))
+    loss.backward()
+    assert actor.bias.grad<0 and target.grad is None
+    generator=torch.Generator().manual_seed(313)
+    indices=torch.randint(3,(17,),generator=generator)
+    expected=hashlib.sha256(target.detach()[indices].numpy().tobytes()).hexdigest()
+    assert replay.fixed_target_rows==17 and replay.fixed_target_digest.hexdigest()==expected
+    torch.testing.assert_close(target.detach(),states['correction'][:,:12]+.25)
+
+
+@pytest.mark.parametrize('failure',['unknown','rows','nan'])
+def test_invalid_fixed_target_alignment_is_rejected(failure):
+    observations={'correction':torch.zeros(3,48)}
+    targets={'correction':torch.zeros(3,12)}
+    if failure=='unknown':targets={'validation':torch.zeros(3,12)}
+    elif failure=='rows':targets['correction']=torch.zeros(2,12)
+    else:targets['correction'][0,0]=float('nan')
+    with pytest.raises(ValueError):
+        MeanActionReplay(torch.nn.Identity(),observations,{'correction':1},coefficient=1.,seed=1,device='cpu',fixed_targets=targets)

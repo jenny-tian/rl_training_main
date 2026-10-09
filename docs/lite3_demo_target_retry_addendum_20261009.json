@@ -1,0 +1,31 @@
+{
+  "aborted_controls": 104576,
+  "cumulative_before_retry": {
+    "charged": 29009088,
+    "confirmed": 29009024,
+    "uncertain": 64
+  },
+  "interruption_audit": "docs/lite3_demo_target_interruption_audit_20261009.json",
+  "interruption_audit_sha256": "cef5e7812636b32ca9791062a5504999f2fc606602ac2e10eceb87a5273f408d",
+  "original_plan": "docs/lite3_demo_target_plan_20261009.json",
+  "original_plan_sha256": "3e963cd0a58e4ef85de584ec0ed892d611aa6eea6eb500a8153ae3c01a328078",
+  "original_stage_max_controls": 1036288,
+  "reason": "Repeat original immutable protocol after view-alias fix and inspected passing tests; preserve interrupted run and charge all controls.",
+  "registered_at_utc": "2026-10-09T06:22:18.042614+00:00",
+  "retry_training_run": "artifacts/demo_target_20261009/train-retry01",
+  "revised_stage_max_controls": 1140864,
+  "runtime_source_sha256": {
+    "scripts/reinforcement_learning/train_lite3_policy.py": "efa1651e9dd9995bcd53b7f50ece7e815b3757601e5870b74ea9049f5db21749",
+    "source/rl_training/rl_training/policy_mean_anchor.py": "9e0d27e5e56e2ecd6847f3f1072c307d4726ede4fcddf9d389c762cab6b632f3"
+  },
+  "schema": "lite3_demo_target_engineering_retry_v1",
+  "selection": "Same seed, initialization, dataset, hyperparameters and fixed final256. No reuse of interrupted optimizer/checkpoints; no outcome-dependent selection.",
+  "tests": {
+    "failed": 0,
+    "log": "docs/lite3_demo_target_tests_20261009.txt",
+    "passed": 40,
+    "sha256": "319ec7a8a8278961b237ffafdb7bf357d75d77a4cb4fae35d638d0f1fc599945"
+  },
+  "training_protocol": "docs/lite3_demo_target_train_protocol_20261009.json",
+  "training_protocol_sha256": "c73659c98383f3546b118c0af76cdde5e4e2703a7c2da8db9afe5817fcaad271"
+}

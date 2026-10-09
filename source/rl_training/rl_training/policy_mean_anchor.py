@@ -11,9 +11,9 @@ from tensordict import TensorDict
 
 
 class MeanActionReplay:
-    """Sample only registered TRAIN observation arrays; never use stored actions as labels."""
+    """Sample TRAIN states; optional paired targets override selected reference means."""
 
-    def __init__(self, teacher, observations, batch_groups, *, coefficient, seed, device):
+    def __init__(self, teacher, observations, batch_groups, *, coefficient, seed, device, fixed_targets=None):
         if not math.isfinite(coefficient) or coefficient < 0:
             raise ValueError('finite nonnegative mean anchor coefficient required')
         if set(observations) != set(batch_groups) or not observations:
@@ -27,24 +27,49 @@ class MeanActionReplay:
         self.observations = observations
         self.batch_groups = batch_groups
         self.coefficient = coefficient
+        fixed_targets = fixed_targets or {}
+        if not set(fixed_targets) <= set(observations):
+            raise ValueError('fixed target group has no observation group')
+        self.fixed_targets = {}
+        for group, target in fixed_targets.items():
+            if target.shape != (len(observations[group]), 12) or not torch.isfinite(target).all():
+                raise ValueError('fixed targets must be finite paired12D actions')
+            if target.device != observations[group].device or target.dtype != observations[group].dtype:
+                raise ValueError('fixed target dtype/device differs from paired observations')
+            self.fixed_targets[group] = target.detach().clone()
         # Isolated CPU draws can be replayed by the auditor without simulator/GPU RNG.
         self.generator = torch.Generator(device='cpu').manual_seed(seed)
         self.draw_digest = hashlib.sha256()
         self.calls = 0
         self.rows = 0
+        self.fixed_target_digest = hashlib.sha256()
+        self.fixed_target_rows = 0
 
     def loss(self, actor):
         if actor.obs_normalization or actor.obs_groups != ['policy'] or actor.obs_dim != 48:
             raise ValueError('mean replay requires the unnormalized route48 actor')
         pieces = []
+        overrides = []
+        offset = 0
         for group, count in self.batch_groups.items():
             states = self.observations[group]
             indices = torch.randint(len(states), (count,), generator=self.generator)
             self.draw_digest.update(indices.numpy().tobytes())
-            pieces.append(states[indices.to(states.device)])
+            device_indices = indices.to(states.device)
+            pieces.append(states[device_indices])
+            if group in self.fixed_targets:
+                paired = self.fixed_targets[group][device_indices]
+                overrides.append((offset, offset + count, paired))
+                self.fixed_target_digest.update(paired.cpu().numpy().tobytes())
+                self.fixed_target_rows += count
+            offset += count
         states = torch.cat(pieces)
         with torch.no_grad():
             target = self.teacher(states)
+            if overrides:
+                target = target.clone()  # Reference output may be a view of the input.
+            for start, end, paired in overrides:
+                target[start:end] = paired
         predicted = actor(TensorDict({'policy': states}, batch_size=[len(states)]))
         self.calls += 1
         self.rows += len(states)

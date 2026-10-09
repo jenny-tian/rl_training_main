@@ -1,0 +1,167 @@
+{
+  "control": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7046327590942383,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5922233859697977,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.15835356712341309,
+    "course_rms_m": 0.07036956609226763,
+    "course_total": 64
+  },
+  "costs": {
+    "cumulative_charged_through_pilot": 29712576,
+    "cumulative_confirmed_through_pilot": 29712512,
+    "historical_uncertain": 64,
+    "interrupted_training": 104576,
+    "new_uncertain": 0,
+    "pilot": 179200,
+    "replay_new_physics": 0,
+    "stage_through_pilot": 808064,
+    "training": 524288
+  },
+  "evidence": {
+    "artifacts/demo_target_20261009/pilot-evaluation-retry01/report.json": "5f27d93e05e51256e66f6184817dfc355b3b486c5162129a3a76619ee53ac77b",
+    "artifacts/mean_anchor_long_20261009/pilot-evaluation/report.json": "acf782659d9d3e5971a31bc0c8877d1de0f33daa0e828eca3e3dc953a6edeb35",
+    "docs/lite3_demo_target_interruption_audit_20261009.json": "cef5e7812636b32ca9791062a5504999f2fc606602ac2e10eceb87a5273f408d",
+    "docs/lite3_demo_target_pilot_result_20261009.json": "7d758478e34fedc553dce0a2124aecc591db52d702dfcbe731bb8c71250345cc",
+    "docs/lite3_demo_target_plan_20261009.json": "3e963cd0a58e4ef85de584ec0ed892d611aa6eea6eb500a8153ae3c01a328078",
+    "docs/lite3_demo_target_retry_addendum_20261009.json": "a34aa18dc9161cbb573a197034c325bb8365977b13d0172e80d40aea0665efa5",
+    "docs/lite3_demo_target_update_audit_20261009.json": "4e706689658f4c1f8d68b08574590a949663b81a0aa0b80ff47296ef9472cd96",
+    "docs/lite3_mean_anchor_long_pilot_result_20261009.json": "c575628bd9fdd3e3eb004cb5b96b75b4da7196b03cd4719506d84d8698ede322",
+    "docs/lite3_mean_anchor_long_update_audit_20261009.json": "4f5d10aad3a8dbbb2cda0b593cb90402ccfecf82a1ad6d8de7cb34e8e5525035",
+    "docs/lite3_retention_coverage_pilot_result_20261008.json": "35389432dbd83f027def0cfa6ede6aae15c1355bc1919db86240a4c3e3a71850"
+  },
+  "failures": {
+    "course-trial": [],
+    "recovery-trial": []
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/demo_target_20261009/train-retry01/final.pt",
+    "sha256": "b256c42eea3192b484750b36ccd863cf7cf1782ba0c5e7837bcca1054a341a98"
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": false,
+    "ordinary_rms": true,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "initial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7161827087402344,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5973440433541933,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.18029356002807617,
+    "course_rms_m": 0.07914901152253151,
+    "course_total": 64
+  },
+  "mean_anchor_loss": {
+    "first": 0.0024573150207288564,
+    "last": 0.0015331689035519957,
+    "maximum": 0.0026416835258714854,
+    "mean": 0.00185334769128076
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.010451747104525566,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.00538979098200798
+    },
+    "validation": {
+      "control": 0.009175385348498821,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.005490067880600691
+    }
+  },
+  "offline_mean_action_mse_ratio_vs_control": {
+    "correction": 32.434163180406195,
+    "flat": 1.372055329659842,
+    "post_recovery": 3.1180184325872116,
+    "rough101": 1.4113988891421443,
+    "rough107": 1.3859197084299828
+  },
+  "pilot_passed": false,
+  "scope": "Correction TRAIN demonstration-target ablation. Same learner2281/eval2251, fixed final256 updates. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication. Interrupted launch charged separately.",
+  "status": "verified",
+  "trial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7593612670898438,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6244078526894251,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.2216038703918457,
+    "course_rms_m": 0.06318927719257772,
+    "course_total": 64
+  }
+}

@@ -4,6 +4,7 @@ import copy
 import importlib.metadata
 import json
 import math
+import hashlib
 import signal
 from pathlib import Path
 import time
@@ -190,16 +191,22 @@ def main():
             assert sha256_file(spec['dataset_audit'])==spec['dataset_audit_sha256']
             assert json.loads(Path(spec['dataset_audit']).read_text())['status']=='verified'
             assert set(spec['batch_groups'])=={'correction','flat','rough101','rough107'}
+            assert spec.get('fixed_target_groups',[]) in ([],['correction'])
             with np.load(spec['dataset'],allow_pickle=False) as data:
                 states={group:torch.as_tensor(data[group+'_train_obs'].copy(),device=args.device) for group in spec['batch_groups']}
+                fixed_targets={group:torch.as_tensor(data[group+'_train_target'].copy(),device=args.device) for group in spec.get('fixed_target_groups',[])}
             # Constructing Linear layers consumes CPU RNG even when loading frozen weights.
             # Restore it so adding replay does not change the paired PPO sampling stream.
             with torch.random.fork_rng(devices=[]):
                 reference=FrozenPPOExpert(payload['actor_state_dict']).to(args.device)
-            mean_replay=MeanActionReplay(reference,states,spec['batch_groups'],coefficient=spec['coefficient'],seed=spec['seed'],device=args.device)
+            mean_replay=MeanActionReplay(reference,states,spec['batch_groups'],coefficient=spec['coefficient'],seed=spec['seed'],device=args.device,fixed_targets=fixed_targets)
             report['mean_anchor']={'dataset_sha256':spec['dataset_sha256'],'group_rows':{k:len(v) for k,v in states.items()},
                 'coefficient':spec['coefficient'],'seed':spec['seed'],'batch_groups':spec['batch_groups'],'teacher_sha256':p['base_sha256'],
                 'validation_rows_used':0,'sampling_device':'cpu','calls':0,'rows':0}
+            if fixed_targets:
+                report['mean_anchor']['fixed_target_groups']=list(fixed_targets)
+                report['mean_anchor']['fixed_target_array_sha256']={group:hashlib.sha256(value.cpu().numpy().tobytes()).hexdigest() for group,value in fixed_targets.items()}
+                assert report['mean_anchor']['fixed_target_array_sha256']==spec['fixed_target_array_sha256']
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}
         dump_yaml(str(out/'env.yaml'),cfg);dump_yaml(str(out/'agent.yaml'),agent_cfg)
         report['versions']={name:importlib.metadata.version(name) for name in ('torch','rsl-rl-lib')}
@@ -208,6 +215,8 @@ def main():
             losses=update()
             if mean_replay is not None:
                 report['mean_anchor'].update(calls=mean_replay.calls,rows=mean_replay.rows,draw_sha256=mean_replay.draw_digest.hexdigest())
+                if mean_replay.fixed_targets:
+                    report['mean_anchor'].update(fixed_target_rows=mean_replay.fixed_target_rows,fixed_target_sha256=mean_replay.fixed_target_digest.hexdigest())
             for model in (runner.alg.actor,runner.alg.critic):
                 if not all(torch.isfinite(v).all() for v in model.state_dict().values()):raise ValueError('nonfinite learned parameters')
             if not all(math.isfinite(float(v)) for v in losses.values()):raise ValueError('nonfinite PPO losses')

@@ -18,6 +18,7 @@ def main():
         figure='docs/figures/lite3-mean-anchor-20261009')
     for key,value in defaults.items():parser.add_argument('--'+key.replace('_','-'),default=value)
     parser.add_argument('--control-update-audit')
+    parser.add_argument('--retry-addendum')
     args=parser.parse_args()
     evidence={}
     def read(path):
@@ -41,10 +42,30 @@ def main():
     ratios={key:value['mean_squared_raw_action_change']/olddiagnostic[key]['mean_squared_raw_action_change']
             for key,value in trained['offline_action_drift_from_initial_actor'].items()}
     assert trained['controls']==plan['training_controls'] and result['controls']<=plan['max_pilot_controls']
-    total=trained['controls']+result['controls']
+    aborted_controls=0
+    if args.retry_addendum:
+        retry=read(args.retry_addendum)
+        assert retry['original_plan']==args.plan and retry['original_plan_sha256']==sha256_file(args.plan)
+        interrupted=read(retry['interruption_audit'])
+        assert sha256_file(retry['interruption_audit'])==retry['interruption_audit_sha256']
+        assert interrupted['status']=='verified_interrupted_run' and interrupted['uncertain']==0
+        for path,digest in interrupted['evidence'].items():assert sha256_file(path)==digest
+        aborted_controls=interrupted['controls']
+        assert aborted_controls==retry['aborted_controls']
+        assert retry['original_stage_max_controls']==plan['max_new_controls']
+        assert retry['revised_stage_max_controls']==plan['max_new_controls']+aborted_controls
+        assert Path(trained['final_checkpoint']['path']).parent==Path(retry['retry_training_run']).resolve()
+        assert retry['cumulative_before_retry']['charged']==plan['cumulative_before']['charged']+aborted_controls
+        assert retry['cumulative_before_retry']['confirmed']==plan['cumulative_before']['confirmed']+aborted_controls
+        tests=retry['tests']
+        assert tests['failed']==0 and sha256_file(tests['log'])==tests['sha256']
+    demo_target=plan['schema']=='lite3_mean_anchor_demo_target_ablation_v1'
+    if demo_target:assert args.retry_addendum
+    total=trained['controls']+result['controls']+aborted_controls
     costs=dict(training=trained['controls'],pilot=result['controls'],replay_new_physics=0,new_uncertain=0,
         stage_through_pilot=total,cumulative_charged_through_pilot=plan['cumulative_before']['charged']+total,
         cumulative_confirmed_through_pilot=plan['cumulative_before']['confirmed']+total,historical_uncertain=64)
+    if args.retry_addendum:costs['interrupted_training']=aborted_controls
     out=dict(status='verified',initial=initial['results']['trial'],control=control['results']['trial'],trial=result['results']['trial'],
         gates=result['gates'],pilot_passed=result['pilot_passed'],costs=costs,final_checkpoint=trained['final_checkpoint'],
         failures={key:[e for e in value['episodes'] if not e['success']] for key,value in newrun['phases'].items()},
@@ -52,10 +73,14 @@ def main():
         scope=('Fixed TRAIN replay experiment, learner2281 and developer eval2251. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication.'
             if plan['schema']=='lite3_mean_anchor_length_ablation_v1' else
             'One fixed mean-loss ablation, same learner2281 and developer eval2251. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication.'))
+    if demo_target:
+        out['offline_correction_mse_to_demonstrated_emitted_action']=trained['offline_correction_mse_to_demonstrated_emitted_action']
+        out['scope']='Correction TRAIN demonstration-target ablation. Same learner2281/eval2251, fixed final256 updates. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication. Interrupted launch charged separately.'
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
     labels=['Supervised init','PPO 128 updates','PPO 256 updates'] if length else ['Supervised init','PPO reward anchor','+ Direct mean loss']
+    if demo_target:labels=['Supervised init','PPO self-mean targets','PPO demo correction targets']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -73,6 +98,7 @@ def main():
         ax.set_title(title)
         ax.spines[['top','right']].set_visible(False)
     title='PPO training length' if length else 'Direct mean-action loss'
+    if demo_target:title='Correction replay demonstration targets'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

@@ -1,0 +1,92 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/mean_anchor_long_20261009/train/final.pt": "3893dddf314e14c47639a14f3ccb06538f51ecce348299f9239e342ecbda4c27",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "artifacts/demo_target_20261009/train-retry01/report.json": "3acc85f2a8526b6f8a1cd7261568e7fa05142834fc955a89a65ad3fe41817ac7",
+    "artifacts/demo_target_20261009/train-retry01/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "artifacts/demo_target_20261009/train-retry01/updates.jsonl": "017423c78228c935fe85853cf9b81e02a3262f88c255c425e9f46c4cd5d0b0ae",
+    "artifacts/mean_anchor_long_20261009/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "docs/lite3_demo_target_plan_20261009.json": "3e963cd0a58e4ef85de584ec0ed892d611aa6eea6eb500a8153ae3c01a328078",
+    "docs/lite3_demo_target_reward_audit_20261009.json": "b87d49b2f64487e38ace000baf3df6086a4a17028fc3a6ef2d50245146123d3e",
+    "docs/lite3_demo_target_train_protocol_20261009.json": "c73659c98383f3546b118c0af76cdde5e4e2703a7c2da8db9afe5817fcaad271",
+    "docs/lite3_demo_target_training_audit_20261009.json": "3fc5b05dcda5e5396c8749aef6a806588a60a34c036dcaae70218f797567913c"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/demo_target_20261009/train-retry01/final.pt",
+    "sha256": "b256c42eea3192b484750b36ccd863cf7cf1782ba0c5e7837bcca1054a341a98"
+  },
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "fixed_target_array_sha256": {
+    "correction": "1849d787dea93dfa615017e2c7a74ddabc2258a73b1f562faa4eb9b3a7951139"
+  },
+  "fixed_target_groups": [
+    "correction"
+  ],
+  "fixed_target_rows": 655360,
+  "fixed_target_sha256": "da4899520b0012e7d95add87fc4dbaa4644b2985b44723f1029d5644b6395edc",
+  "mean_anchor_calls": 5120,
+  "mean_anchor_loss": {
+    "first": 0.0024573150207288564,
+    "last": 0.0015331689035519957,
+    "maximum": 0.0026416835258714854,
+    "mean": 0.00185334769128076
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.25263047218322754,
+      "mean_squared_raw_action_change": 0.0019501025089994073,
+      "p95_absolute_raw_action_change": 0.08468768745660782,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.07745039463043213,
+      "mean_squared_raw_action_change": 0.00019027064263354987,
+      "p95_absolute_raw_action_change": 0.028682738542556763,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.3588857650756836,
+      "mean_squared_raw_action_change": 0.000571685319300741,
+      "p95_absolute_raw_action_change": 0.0355881042778492,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.08093726634979248,
+      "mean_squared_raw_action_change": 0.00019688846077769995,
+      "p95_absolute_raw_action_change": 0.028481142595410347,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.08040976524353027,
+      "mean_squared_raw_action_change": 0.00019467096717562526,
+      "p95_absolute_raw_action_change": 0.028391098603606224,
+      "rows": 15774
+    }
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.010451747104525566,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.00538979098200798
+    },
+    "validation": {
+      "control": 0.009175385348498821,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.005490067880600691
+    }
+  },
+  "replay_rows": 2621440,
+  "scope": "Only correction TRAIN replay labels changed; ordinary frozen means retained. Validation label MSE is post-training diagnostic only. First rollout paired, later updates intentionally differ.",
+  "status": "verified",
+  "validation_rows_used_for_updates": 0
+}
