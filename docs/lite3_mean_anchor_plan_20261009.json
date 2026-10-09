@@ -1,0 +1,48 @@
+{
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "change": "Add direct raw mean MSE to frozen initialization actor on fixed TRAIN replay. Retain previous primary PPO configuration, on-policy soft reward anchor100 and lateral penalty-8; same original supervised initialization, learner2281, std0.05, lr3e-6,128updates. Not a continuation of the failed PPO weights. Existing ordinary and first12 correction TRAIN observation arrays only; no post_recovery replay group, no validation rows, no pilot labels.",
+  "conditional_validation": "Only all original pilot gates pass then register original7-source seed2081 candidate evaluation. Never relax gates or replace final128 checkpoint/seed.",
+  "control_protocol": "docs/lite3_recovery_return_trial_train_protocol_20261008.json",
+  "control_protocol_sha256": "b12e42e54f24dccb8188f1bf57865b870b033d7aeec4e61f528199504265cd63",
+  "control_result": "docs/lite3_recovery_return_trial_pilot_result_20261008.json",
+  "control_result_sha256": "805502c72ea6d8887b4e1f06dc956b67ad31085cf69df6247875019cb16cedc9",
+  "cumulative_before": {
+    "charged": 27760704,
+    "confirmed": 27760640,
+    "uncertain": 64
+  },
+  "iterations": 128,
+  "max_conditional_validation_controls": 256000,
+  "max_new_controls": 774144,
+  "max_pilot_controls": 256000,
+  "mean_anchor": {
+    "batch_groups": {
+      "correction": 128,
+      "flat": 128,
+      "rough101": 128,
+      "rough107": 128
+    },
+    "coefficient": 100.0,
+    "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+    "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+    "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "seed": 2293
+  },
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-09T01:46:10.143114+00:00",
+  "schema": "lite3_mean_action_anchor_v1",
+  "training_controls": 262144,
+  "training_seed": 2281,
+  "update": "Single PPO optimizer step per mini-batch on L_PPO +100*L_mean. Isolated CPU replay RNG seed2293; preserve main RNG when instantiating frozen reference. Unnormalized48D feedforward, fixed LR, no symmetry/RND/multi-GPU. Zero-coefficient update exactly matches installed PPO on unit fixtures.",
+  "vendor_ppo_source_sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+}

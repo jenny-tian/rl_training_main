@@ -1,0 +1,69 @@
+{
+  "controls": 262144,
+  "draw_sha256": "3cfb6f1a43ac2f45e27559c205fc583701a47b80ed36a70439bb2274fe1af4b8",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "artifacts/mean_anchor_20261009/train/report.json": "ee046e664e616ced9c5db1e39f69c12c2808639046cdb26b92bbb158a005f87a",
+    "artifacts/mean_anchor_20261009/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "artifacts/mean_anchor_20261009/train/updates.jsonl": "da96f69a192391557c7aaa998ca77a7336dbf5242a9262195570aac279d4f006",
+    "artifacts/recovery_return_20261008/trial/train/trajectory/chunk-00000.npz": "4cdf55daf75d6f61ca663b45b755e9bdf005076b9cf4b80e89cf5ac3eb406992",
+    "docs/lite3_mean_anchor_plan_20261009.json": "e0a874c565bc378ac8ef86fedb4d8d4e2c48a637d6da7b3711480f70e2b6798c",
+    "docs/lite3_mean_anchor_reward_audit_20261009.json": "354f234b29e6230b3e9f1abfac01be7bdfdb3ee5ef8f50a921e6ebb33bd6b5f2",
+    "docs/lite3_mean_anchor_train_protocol_20261009.json": "17bbb702df9f7e3b9aadbf2667c057b75eca94c8198b9f65d85d91bee817a6df",
+    "docs/lite3_mean_anchor_training_audit_20261009.json": "daa0921249b2b237d9c7d33edb6d85eadac46478b24b2eca4f1fd0b3e42f2d80"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/mean_anchor_20261009/train/final.pt",
+    "sha256": "88e8b29218a1c8762d0741c545735971e1bf37f719f048e171d725ad05e6cd86"
+  },
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "mean_anchor_calls": 2560,
+  "mean_anchor_loss": {
+    "first": 6.587670063140649e-06,
+    "last": 0.00011132995568914339,
+    "maximum": 0.00012157193341408857,
+    "mean": 6.846068718917574e-05
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.038668930530548096,
+      "mean_squared_raw_action_change": 6.919381849002093e-05,
+      "p95_absolute_raw_action_change": 0.015653209760785103,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.036824487149715424,
+      "mean_squared_raw_action_change": 0.00012598322064150125,
+      "p95_absolute_raw_action_change": 0.021100105717778206,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.07862520217895508,
+      "mean_squared_raw_action_change": 0.00019144265388604254,
+      "p95_absolute_raw_action_change": 0.025818824768066406,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.040189266204833984,
+      "mean_squared_raw_action_change": 0.00012724126281682402,
+      "p95_absolute_raw_action_change": 0.021658144891262054,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.04041740298271179,
+      "mean_squared_raw_action_change": 0.00012667948612943292,
+      "p95_absolute_raw_action_change": 0.021636681631207466,
+      "rows": 15774
+    }
+  },
+  "replay_rows": 1310720,
+  "scope": "One fixed TRAIN replay auxiliary loss ablation; offline validation only used here for diagnostics, not optimizer updates.",
+  "status": "verified",
+  "validation_rows_used_for_updates": 0
+}

@@ -180,12 +180,34 @@ def main():
                 payload=expand_actor_route_inputs(payload)
         report['route_observations']=route
         report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'],allow_mean_only=p.get('base_actor_mean_only',False))
+        mean_replay=None
+        if p.get('mean_anchor'):
+            import numpy as np
+            from rl_training.online_adaptation.flowdagger import FrozenPPOExpert
+            from rl_training.policy_mean_anchor import MeanActionReplay, update_with_mean_anchor
+            spec=p['mean_anchor']
+            assert sha256_file(spec['dataset'])==spec['dataset_sha256']
+            assert sha256_file(spec['dataset_audit'])==spec['dataset_audit_sha256']
+            assert json.loads(Path(spec['dataset_audit']).read_text())['status']=='verified'
+            assert set(spec['batch_groups'])=={'correction','flat','rough101','rough107'}
+            with np.load(spec['dataset'],allow_pickle=False) as data:
+                states={group:torch.as_tensor(data[group+'_train_obs'].copy(),device=args.device) for group in spec['batch_groups']}
+            # Constructing Linear layers consumes CPU RNG even when loading frozen weights.
+            # Restore it so adding replay does not change the paired PPO sampling stream.
+            with torch.random.fork_rng(devices=[]):
+                reference=FrozenPPOExpert(payload['actor_state_dict']).to(args.device)
+            mean_replay=MeanActionReplay(reference,states,spec['batch_groups'],coefficient=spec['coefficient'],seed=spec['seed'],device=args.device)
+            report['mean_anchor']={'dataset_sha256':spec['dataset_sha256'],'group_rows':{k:len(v) for k,v in states.items()},
+                'coefficient':spec['coefficient'],'seed':spec['seed'],'batch_groups':spec['batch_groups'],'teacher_sha256':p['base_sha256'],
+                'validation_rows_used':0,'sampling_device':'cpu','calls':0,'rows':0}
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}
         dump_yaml(str(out/'env.yaml'),cfg);dump_yaml(str(out/'agent.yaml'),agent_cfg)
         report['versions']={name:importlib.metadata.version(name) for name in ('torch','rsl-rl-lib')}
-        update=runner.alg.update
+        update=(lambda:update_with_mean_anchor(runner.alg,mean_replay)) if mean_replay is not None else runner.alg.update
         def checked_update():
             losses=update()
+            if mean_replay is not None:
+                report['mean_anchor'].update(calls=mean_replay.calls,rows=mean_replay.rows,draw_sha256=mean_replay.draw_digest.hexdigest())
             for model in (runner.alg.actor,runner.alg.critic):
                 if not all(torch.isfinite(v).all() for v in model.state_dict().values()):raise ValueError('nonfinite learned parameters')
             if not all(math.isfinite(float(v)) for v in losses.values()):raise ValueError('nonfinite PPO losses')
@@ -204,6 +226,11 @@ def main():
         if teacher is not None:
             assert all(torch.equal(v,teacher.state_dict()[k]) for k,v in teacher_initial.items())
             report['recovery_anchor_model_unchanged' if recovery_anchor is not None else 'flat_anchor_model_unchanged']=True
+        if mean_replay is not None:
+            assert mean_replay.calls==p['iterations']*p['ppo']['num_learning_epochs']*p['ppo']['num_mini_batches']
+            assert all(torch.equal(value.cpu(),payload['actor_state_dict'][key]) for key,value in mean_replay.teacher.state_dict().items())
+            assert sha256_file(p['mean_anchor']['dataset'])==p['mean_anchor']['dataset_sha256']
+            report['mean_anchor']['teacher_unchanged']=True
         checkpoint=runner.alg.save();checkpoint.update(iter=runner.current_learning_iteration,
             infos={'protocol_sha256':protocol_hash,'base_sha256':p['base_sha256'],'rng_state':capture_rng_state()})
         torch.save(checkpoint,out/'final.pt')

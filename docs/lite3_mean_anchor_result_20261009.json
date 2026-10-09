@@ -1,0 +1,150 @@
+{
+  "control": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7593765258789062,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6422103171547254,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 23,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.35972023010253906,
+    "course_rms_m": 0.13389442566161355,
+    "course_total": 63
+  },
+  "costs": {
+    "cumulative_charged_through_pilot": 28201024,
+    "cumulative_confirmed_through_pilot": 28200960,
+    "historical_uncertain": 64,
+    "new_uncertain": 0,
+    "pilot": 178176,
+    "replay_new_physics": 0,
+    "stage_through_pilot": 440320,
+    "training": 262144
+  },
+  "evidence": {
+    "artifacts/mean_anchor_20261009/pilot-evaluation/report.json": "a31c7a3601821763d4b21def17aa45b4fd2f505be25df41cc5180f013c2dcf01",
+    "artifacts/recovery_return_20261008/trial/pilot-evaluation/report.json": "08b64615a5b09c2d26a9399525530d4e1a0723a33022be3b5318034b9aadae79",
+    "docs/lite3_mean_anchor_pilot_result_20261009.json": "bff0c1883ca14207da99dad9f1e5643cef73cf454e7489f4df6829a9ec92ecb2",
+    "docs/lite3_mean_anchor_plan_20261009.json": "e0a874c565bc378ac8ef86fedb4d8d4e2c48a637d6da7b3711480f70e2b6798c",
+    "docs/lite3_mean_anchor_update_audit_20261009.json": "c7f1e3c89f08af7fd76284cb0f34077073015a8797a64ff6cae6f53194a42767",
+    "docs/lite3_recovery_return_result_20261008.json": "5af4dbd710dcea3718f51f1daf9a8ab8f1dd07fe1d56e34f5cf2d603a20e9cb3",
+    "docs/lite3_recovery_return_trial_pilot_result_20261008.json": "805502c72ea6d8887b4e1f06dc956b67ad31085cf69df6247875019cb16cedc9",
+    "docs/lite3_retention_coverage_pilot_result_20261008.json": "35389432dbd83f027def0cfa6ede6aae15c1355bc1919db86240a4c3e3a71850"
+  },
+  "failures": {
+    "course-trial": [],
+    "recovery-trial": []
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/mean_anchor_20261009/train/final.pt",
+    "sha256": "88e8b29218a1c8762d0741c545735971e1bf37f719f048e171d725ad05e6cd86"
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": true,
+    "ordinary_rms": true,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "initial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7161827087402344,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5973440433541933,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.18029356002807617,
+    "course_rms_m": 0.07914901152253151,
+    "course_total": 64
+  },
+  "mean_anchor_loss": {
+    "first": 6.587670063140649e-06,
+    "last": 0.00011132995568914339,
+    "maximum": 0.00012157193341408857,
+    "mean": 6.846068718917574e-05
+  },
+  "offline_mean_action_mse_ratio_vs_control": {
+    "correction": 0.044407225514328394,
+    "flat": 0.1303793072830362,
+    "post_recovery": 0.20056031652451853,
+    "rough101": 0.13315500355152984,
+    "rough107": 0.13339825275348732
+  },
+  "pilot_passed": false,
+  "scope": "One fixed mean-loss ablation, same learner2281 and developer eval2251. Repeated TRAIN case26 slots, not original7-source qualification or independent learning replication.",
+  "status": "verified",
+  "trial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7062053680419922,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5949427783489227,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.1903691291809082,
+    "course_rms_m": 0.0843209548232456,
+    "course_total": 64
+  }
+}
