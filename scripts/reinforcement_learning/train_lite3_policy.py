@@ -228,10 +228,13 @@ def main():
             # Restore it so adding replay does not change the paired PPO sampling stream.
             with torch.random.fork_rng(devices=[]):
                 reference=FrozenPPOExpert(payload['actor_state_dict']).to(args.device)
-            mean_replay=MeanActionReplay(reference,states,spec['batch_groups'],coefficient=spec['coefficient'],seed=spec['seed'],device=args.device,fixed_targets=fixed_targets)
+            mean_replay=MeanActionReplay(reference,states,spec['batch_groups'],coefficient=spec['coefficient'],seed=spec['seed'],device=args.device,fixed_targets=fixed_targets,group_weights=spec.get('group_weights'))
             report['mean_anchor']={'dataset_sha256':spec['dataset_sha256'],'group_rows':{k:len(v) for k,v in states.items()},
                 'coefficient':spec['coefficient'],'seed':spec['seed'],'batch_groups':spec['batch_groups'],'teacher_sha256':p['base_sha256'],
                 'validation_rows_used':0,'sampling_device':'cpu','calls':0,'rows':0}
+            if 'group_weights' in spec:
+                report['mean_anchor']['group_weights']=mean_replay.group_weights
+                report['mean_anchor']['weight_denominator']='all sampled rows times12; not sum of weights'
             if fixed_targets:
                 report['mean_anchor']['fixed_target_groups']=list(fixed_targets)
                 report['mean_anchor']['fixed_target_array_sha256']={group:hashlib.sha256(value.cpu().numpy().tobytes()).hexdigest() for group,value in fixed_targets.items()}
@@ -251,7 +254,16 @@ def main():
         initial={k:v.detach().cpu().clone() for k,v in runner.alg.actor.state_dict().items()}
         dump_yaml(str(out/'env.yaml'),cfg);dump_yaml(str(out/'agent.yaml'),agent_cfg)
         report['versions']={name:importlib.metadata.version(name) for name in ('torch','rsl-rl-lib')}
-        update=(lambda:update_with_mean_anchor(runner.alg,mean_replay,tail_replay=tail_replay)) if mean_replay is not None else runner.alg.update
+        gradient_observer=None
+        if p.get('gradient_diagnostics'):
+            assert p['gradient_diagnostics']=={'minibatch':0,'frequency_updates':1,'parameters':'actor_mean'}
+            assert mean_replay is not None and tail_replay is None
+            report['gradient_diagnostics']=dict(options=p['gradient_diagnostics'],records=0)
+            def gradient_observer(values):
+                event=dict(update=report['ppo_updates']+1,minibatch=0,**values)
+                with (out/'gradient_diagnostics.jsonl').open('a') as stream:stream.write(json.dumps(event,sort_keys=True)+'\n')
+                report['gradient_diagnostics']['records']+=1
+        update=(lambda:update_with_mean_anchor(runner.alg,mean_replay,tail_replay=tail_replay,gradient_observer=gradient_observer)) if mean_replay is not None else runner.alg.update
         def checked_update():
             losses=update()
             if mean_replay is not None:
@@ -272,6 +284,9 @@ def main():
         runner.alg.update=checked_update
         runner.learn(num_learning_iterations=p['iterations'],init_at_random_ep_len=False)
         assert report['ppo_updates']==p['iterations'] and ledger.state['confirmed']==expected
+        if gradient_observer is not None:
+            assert report['gradient_diagnostics']['records']==p['iterations']
+            report['gradient_diagnostics']['sha256']=sha256_file(out/'gradient_diagnostics.jsonl')
         assert any(not torch.equal(v,runner.alg.actor.state_dict()[k].cpu()) for k,v in initial.items() if k.startswith('mlp.'))
         assert sha256_file(p['base_checkpoint'])==p['base_sha256']
         assert sources=={str(x.relative_to(root)):sha256_file(x) for x in paths}

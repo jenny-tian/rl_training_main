@@ -1,0 +1,37 @@
+{
+  "controls": 179392,
+  "evidence": {
+    "artifacts/correction_half_20261010/course-evaluation/course-trial/report.json": "62e10dc90e8582901dc7e77a776b9d1317986214cd20b1cb6b79b6426acae74c",
+    "artifacts/correction_half_20261010/course-evaluation/course-trial/trajectory/manifest.json": "ef9f174b4d7126aa5e05497369c1022dabb61021eec2d875d31c5eb4bf844681",
+    "artifacts/correction_half_20261010/course-evaluation/ledger.json": "6ba8995984a20e9c607aa6e4e43bc7ca7199bac390d2aaeca1330e8d927d58ad",
+    "artifacts/correction_half_20261010/course-evaluation/report.json": "7133d277d17eaa9ab03bf33608913ac489ae4a01cc3cc89c3e85a504bf494449",
+    "artifacts/correction_half_20261010/pilot-combined/report.json": "6a06523c7f82f24a353677d1685e1949d57aaa0b82797fd848312efa9fefbc0a",
+    "artifacts/correction_half_20261010/recovery-evaluation/ledger.json": "bb75ec22ab2a50550f8a22c7d1357ebc8bd3b7ab876a724a04a3a31f13962be2",
+    "artifacts/correction_half_20261010/recovery-evaluation/recovery-trial/report.json": "61d388354f3513bf28b936559e778d0b1be15664b12a345c8b3678c753e5c124",
+    "artifacts/correction_half_20261010/recovery-evaluation/recovery-trial/trajectory/manifest.json": "261e9fee83583273a41fffc8518c142dd107764fbb76401bfac05cc1a9f73bc4",
+    "artifacts/correction_half_20261010/recovery-evaluation/report.json": "7cccb7e34bb9bebf8b271a77b02aba0f92f52399c7275c95d8515e33ba479b17",
+    "docs/lite3_correction_half_course_protocol_20261010.json": "c88b0ef0829662031371e50d2ef99bb019ed4b538937b47be8bae789060ecbf4",
+    "docs/lite3_correction_half_pilot_protocol_20261010.json": "8da8d864887dfe231879c5e176c0beb321f3f0bf1e99f841bafd660fd7a36f74",
+    "docs/lite3_correction_half_recovery_protocol_20261010.json": "7e12fe21d3e0242ebec30a96d57edba890afbab85bf2fc58d5866b2b4ed4e57e"
+  },
+  "execution": {
+    "interrupted_processes": 0,
+    "parts": [
+      {
+        "condition": "course",
+        "confirmed_controls": 89920,
+        "protocol": "docs/lite3_correction_half_course_protocol_20261010.json",
+        "run": "artifacts/correction_half_20261010/course-evaluation"
+      },
+      {
+        "condition": "recovery",
+        "confirmed_controls": 89472,
+        "protocol": "docs/lite3_correction_half_recovery_protocol_20261010.json",
+        "run": "artifacts/correction_half_20261010/recovery-evaluation"
+      }
+    ],
+    "processes": 2,
+    "repeated_or_discarded_controls": 0
+  },
+  "status": "verified"
+}

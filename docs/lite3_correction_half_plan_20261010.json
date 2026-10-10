@@ -1,0 +1,105 @@
+{
+  "allowed_control_protocol_changes": [
+    "registered_at_utc",
+    "arm",
+    "scope",
+    "selection",
+    "mean_anchor",
+    "gradient_diagnostics"
+  ],
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "calibration": "docs/lite3_lateral_velocity_calibration_20261010.json",
+  "calibration_sha256": "6442489b727a31f90fc5d2436058002c53df1fab1888031f099031fb6d1c6a94",
+  "change": "Only halve correction TRAIN self-mean preservation contribution (group multiplier1 to0.5); all ordinary group contributions, total denominator, draws, rewards including world velocity-8, initialization6a, learner2281 and final256 unchanged. Add read-only first-minibatch gradient telemetry, tested not to alter updates.",
+  "conditional_validation": "Only all unchanged pilot gates pass then register original7-source seed2081 candidate evaluation, max256000. Final256 checkpoint only, no replacement seed/checkpoint and no changed70cm threshold.",
+  "control_protocol": "docs/lite3_lateral_velocity_train_protocol_20261010.json",
+  "control_protocol_sha256": "80014a1a3e1612948038ec6970f15af6ffe154c08cba29ed33289cea7f95c705",
+  "control_result": "docs/lite3_lateral_velocity_pilot_result_20261010.json",
+  "control_result_sha256": "31bd2903d84eb90e1943008f1f63b214eb40ac3a41e7469added7612812ffe2d",
+  "control_training_run": "artifacts/lateral_velocity_20261010/train",
+  "cumulative_before": {
+    "charged": 34014336,
+    "confirmed": 34014272,
+    "uncertain": 64
+  },
+  "device_reason": "Same idle GPU1 as control; unchanged environment and reward implementations.",
+  "diagnostic": "docs/lite3_lateral_velocity_result_20261010.json",
+  "diagnostic_sha256": "8c56f9abf61f48dd3299a1ce32583e8471591e46365780ed07903c8bf405a0cf",
+  "evaluation_execution": "One process per pre-registered condition, combine disjoint complete phases with raw provenance; no repeated conditions.",
+  "execution_device": "cuda:1",
+  "gradient_diagnostic": "docs/lite3_anchor_gradient_diagnostic_20261010.json",
+  "gradient_diagnostic_sha256": "85c0012e99b42870f3411d8ca200a04ab263486d6b114d0ac19c1698bf99ab5d",
+  "gradient_diagnostics": {
+    "frequency_updates": 1,
+    "minibatch": 0,
+    "parameters": "actor_mean"
+  },
+  "iterations": 256,
+  "lateral_velocity": {
+    "gain_per_second": 0.5,
+    "maximum_m_s": 0.15,
+    "weight": -8.0
+  },
+  "max_conditional_validation_controls": 256000,
+  "max_engineering_controls": 0,
+  "max_new_controls": 1036288,
+  "max_pilot_controls": 256000,
+  "mean_anchor": {
+    "batch_groups": {
+      "correction": 128,
+      "flat": 128,
+      "rough101": 128,
+      "rough107": 128
+    },
+    "coefficient": 100.0,
+    "dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+    "dataset_audit": "docs/lite3_retention_coverage_dataset_audit_20261008.json",
+    "dataset_audit_sha256": "cfe9898874f0ab97a7aad2ba67931a40c641d1395ceab4e0016a6dffa2be74b5",
+    "dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "group_weights": {
+      "correction": 0.5,
+      "flat": 1.0,
+      "rough101": 1.0,
+      "rough107": 1.0
+    },
+    "seed": 2293
+  },
+  "observation_diagnostic": "docs/lite3_velocity_observation_probe_20261010.json",
+  "observation_diagnostic_sha256": "8c76c3b8654c60c15170bef8fe20e9124dbd710694108d1b38c2af4a91fb5692",
+  "original_queries": 2621440,
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-10T03:09:17.506164+00:00",
+  "reused_engineering_evidence": "Previous reward smoke reused after source hash check; only training optimizer helper and entrypoint change. CPU legacy replay/update parity and non-mutating telemetry tests pass, no new engineering controls.",
+  "route_training": {
+    "heading_lookahead_m": 1.0,
+    "heading_maximum_deg": 20.0,
+    "heading_weight": -1.0,
+    "tracking_std": 0.15
+  },
+  "runtime_regression": "docs/lite3_correction_half_runtime_regression_20261010.json",
+  "runtime_regression_sha256": "b2b37db41e258a0e75f1f9284d8e3a41e4b33ccb0c2e530681b6ada0515c1bd6",
+  "schema": "lite3_correction_group_weight_ablation_v1",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_queries": 0,
+  "tests": {
+    "failed": 0,
+    "log": "docs/lite3_correction_half_tests_20261010.txt",
+    "passed": 47,
+    "plugin_autoload": false,
+    "sha256": "3d56ba16cbf930fbb57cfb787eac073c6e7f1a72349df93b6006efa73ddcba21"
+  },
+  "total_replay_queries": 2621440,
+  "training_controls": 524288,
+  "training_seed": 2281,
+  "update": "All first32 rollout fields including rewards identical; replay draws identical, correction contribution halved with unchanged512x12 denominator. Read-only live gradients cover first minibatch of each update.",
+  "vendor_ppo_source_sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c"
+}

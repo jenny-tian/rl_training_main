@@ -1,0 +1,31 @@
+{
+  "conditions": [
+    "course"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 128000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/correction_half_20261010/train/final.pt",
+      "training_algorithm": "PPO plus direct mean-action TRAIN replay loss and existing soft reward anchor",
+      "training_protocol_sha256": "be490472d7c9323c3ac47abdcac20a6339f8d0d93e695705e9fcfdb8e68767b1",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/correction_half_20261010/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-10T03:09:17.506164+00:00",
+  "reused_baseline_report_sha256": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Final256 correction-only half-weight ablation; same eval2251/GPU1 and original six gates. Execute each condition in its own process and assemble without repeats. Single course condition.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

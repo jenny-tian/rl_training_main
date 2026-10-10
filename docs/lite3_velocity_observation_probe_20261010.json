@@ -1,0 +1,141 @@
+{
+  "evidence": {
+    "artifacts/lateral_velocity_20261010/train/report.json": "34d36889f5a38fae40acef06545b1a72358a8723a7163b7bc76789c7579f55dc",
+    "docs/lite3_lateral_velocity_train_protocol_20261010.json": "80014a1a3e1612948038ec6970f15af6ffe154c08cba29ed33289cea7f95c705",
+    "docs/lite3_lateral_velocity_training_audit_20261010.json": "3c1d4691ba92d7f5d8ae8ee215f238a5b0dcea2b557b8f53d6ce8af1d224c505"
+  },
+  "fit_env_ids": [
+    41,
+    42,
+    43,
+    45,
+    46,
+    47,
+    49,
+    50,
+    51
+  ],
+  "fit_rows": 73455,
+  "new_controls": 0,
+  "policy_optimizer_steps": 0,
+  "policy_training_labels_created": 0,
+  "probe_env_ids": [
+    40,
+    44,
+    48
+  ],
+  "probe_rows": 24484,
+  "results": {
+    "current48": {
+      "by_age": {
+        "1": {
+          "rmse_m_s": 0.04154561092959676,
+          "rows": 1012
+        },
+        "100": {
+          "rmse_m_s": 0.017212084489689857,
+          "rows": 7385
+        },
+        "12": {
+          "rmse_m_s": 0.053296144062421315,
+          "rows": 2898
+        },
+        "200": {
+          "rmse_m_s": 0.024880903185544326,
+          "rows": 9489
+        },
+        "50": {
+          "rmse_m_s": 0.02708568793161801,
+          "rows": 3700
+        }
+      },
+      "mae_m_s": 0.021216533693685532,
+      "r_squared": 0.9443079064422231,
+      "rmse_m_s": 0.029115233859638323
+    },
+    "current48_plus_one_step_delta48": {
+      "by_age": {
+        "1": {
+          "rmse_m_s": 0.005963116107932318,
+          "rows": 1012
+        },
+        "100": {
+          "rmse_m_s": 0.002217504987869018,
+          "rows": 7385
+        },
+        "12": {
+          "rmse_m_s": 0.0052668636948344045,
+          "rows": 2898
+        },
+        "200": {
+          "rmse_m_s": 0.002794933177930686,
+          "rows": 9489
+        },
+        "50": {
+          "rmse_m_s": 0.002264474286533653,
+          "rows": 3700
+        }
+      },
+      "mae_m_s": 0.0022173752172054,
+      "r_squared": 0.9993404754887536,
+      "rmse_m_s": 0.003168392533322113
+    },
+    "fit_mean_constant": {
+      "by_age": {
+        "1": {
+          "rmse_m_s": 0.45494699478149414,
+          "rows": 1012
+        },
+        "100": {
+          "rmse_m_s": 0.03336753323674202,
+          "rows": 7385
+        },
+        "12": {
+          "rmse_m_s": 0.15139545500278473,
+          "rows": 2898
+        },
+        "200": {
+          "rmse_m_s": 0.08592931926250458,
+          "rows": 9489
+        },
+        "50": {
+          "rmse_m_s": 0.07071623206138611,
+          "rows": 3700
+        }
+      },
+      "mae_m_s": 0.07808445394039154,
+      "r_squared": -1.9073486328125e-06,
+      "rmse_m_s": 0.1233740821480751
+    },
+    "route_origin_finite_difference": {
+      "by_age": {
+        "1": {
+          "rmse_m_s": 0.021823732182383537,
+          "rows": 1012
+        },
+        "100": {
+          "rmse_m_s": 0.0043208301067352295,
+          "rows": 7385
+        },
+        "12": {
+          "rmse_m_s": 0.02102663926780224,
+          "rows": 2898
+        },
+        "200": {
+          "rmse_m_s": 0.003765047062188387,
+          "rows": 9489
+        },
+        "50": {
+          "rmse_m_s": 0.0039010082837194204,
+          "rows": 3700
+        }
+      },
+      "mae_m_s": 0.0047698491252958775,
+      "r_squared": 0.9943866631947458,
+      "rmse_m_s": 0.009243449196219444
+    }
+  },
+  "rows": 97939,
+  "scope": "All changing-policy TRAIN case26 controls after reset age0 excluded. Scalar root-link COM world-vy diagnostic, fixed ridge1e-3; no hyperparameter sweep. Split whole TRAIN env streams by env_id%4, not independent source cases or held-out benchmark. One past frame only, no future features; fit-only scaling. Low-capacity prediction probe cannot establish that Actor cannot infer velocity. Origin finite difference is a different point from COM and need not match exactly. No diagnostic regressor exported to policy.",
+  "status": "verified"
+}

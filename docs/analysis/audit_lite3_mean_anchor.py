@@ -41,10 +41,29 @@ def main():
     self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
     no_tail=plan['schema']=='lite3_no_tail_heading_ablation_v1'
     velocity=plan['schema']=='lite3_lateral_velocity_ablation_v1'
-    self_mean=self_target or no_tail or velocity
+    correction_weight=plan['schema']=='lite3_correction_group_weight_ablation_v1'
+    self_mean=self_target or no_tail or velocity or correction_weight
     has_heading=heading or self_mean
-    has_tail=(tail_anchor or has_heading) and not (no_tail or velocity)
+    has_tail=(tail_anchor or has_heading) and not (no_tail or velocity or correction_weight)
     fixed_demo=(demo_target or has_tail) and not self_target
+    if correction_weight:
+        allowed|={'mean_anchor','gradient_diagnostics'}
+        assert set(plan['allowed_control_protocol_changes'])==allowed
+        assert set(p)==set(control)|{'gradient_diagnostics'}
+        assert set(p['mean_anchor'])==set(control['mean_anchor'])|{'group_weights'}
+        assert all(p['mean_anchor'][k]==v for k,v in control['mean_anchor'].items())
+        assert p['mean_anchor']['group_weights']=={'correction':.5,'flat':1.,'rough101':1.,'rough107':1.}
+        assert p['gradient_diagnostics']==plan['gradient_diagnostics']=={'minibatch':0,'frequency_updates':1,'parameters':'actor_mean'}
+        assert args.velocity_audit
+        v=json.loads(Path(args.velocity_audit).read_text())
+        assert v['status']=='verified' and v['evidence'][str(root/'report.json')]==sha256_file(root/'report.json')
+        evidence[args.velocity_audit]=sha256_file(args.velocity_audit)
+        assert plan['tests']['passed']==47 and plan['tests']['failed']==0
+        for key in ('runtime_regression','gradient_diagnostic','observation_diagnostic'):
+            assert sha256_file(plan[key])==plan[key+'_sha256']
+            evidence[plan[key]]=plan[key+'_sha256']
+        assert sha256_file(plan['tests']['log'])==plan['tests']['sha256']
+        evidence[plan['tests']['log']]=plan['tests']['sha256']
     if velocity:
         allowed|={'lateral_velocity','lateral_velocity_smoke'}
         assert set(plan['allowed_control_protocol_changes'])==allowed
@@ -126,6 +145,9 @@ def main():
         if key not in allowed:
             assert p[key]==value,key
     spec=p['mean_anchor'];observed=r['mean_anchor']
+    if correction_weight:
+        assert observed['group_weights']==spec['group_weights']
+        assert observed['weight_denominator']=='all sampled rows times12; not sum of weights'
     if self_mean:
         assert not any(k.startswith('fixed_target') for k in spec)
         assert not any(k.startswith('fixed_target') for k in observed)
@@ -318,6 +340,31 @@ def main():
             runtime_changed_files=sorted(changed),
             offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
             scope='Only world lateral return velocity reward added. First common rollout fields except total reward bitwise equal; reward delta explained by new component. Same TRAIN self-mean replay/draw stream, no tail or stored action labels in updates. Offline validation diagnostics only.')
+    if correction_weight:
+        assert fixed_rows==0 and not fixed_targets and 'tail_anchor' not in r
+        assert observed['rows']==plan['original_queries']==plan['total_replay_queries']
+        assert all('tail_anchor' not in u['losses'] for u in updates)
+        changed={k for k,v in r['source_files'].items() if v!=control_report['source_files'][k]}
+        assert changed=={'source/rl_training/rl_training/policy_mean_anchor.py','scripts/reinforcement_learning/train_lite3_policy.py'}
+        for path,digest_value in r['source_files'].items():assert sha256_file(path)==digest_value
+        gradient_path=root/'gradient_diagnostics.jsonl'
+        assert sha256_file(gradient_path)==r['gradient_diagnostics']['sha256']
+        records=[json.loads(line) for line in gradient_path.read_text().splitlines()]
+        assert len(records)==r['gradient_diagnostics']['records']==p['iterations']
+        assert [v['update'] for v in records]==list(range(1,p['iterations']+1))
+        for record in records:
+            assert record['minibatch']==0 and record['mean_parameter_count']>0
+            assert set(record['norms'])=={'ppo','anchor','correction','ordinary'}
+            assert all(np.isfinite(v) and v>=0 for v in record['norms'].values())
+            assert all(v is None or np.isfinite(v) and -1.000001<=v<=1.000001 for v in record['cosine'].values())
+            assert set(record['weighted_group_losses'])==set(spec['batch_groups'])
+            assert all(np.isfinite(v) and v>=0 for v in record['weighted_group_losses'].values())
+        evidence[str(gradient_path)]=sha256_file(gradient_path)
+        result.update(stored_action_target_rows_for_updates=0,tail_replay_rows=0,total_replay_rows=observed['rows'],
+            group_weights=observed['group_weights'],first_rollout_all_recorded_fields_bitwise_equal=True,
+            first_rollout_reward_maximum_difference=0.,gradient_records=len(records),runtime_changed_files=sorted(changed),
+            offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
+            scope='Only correction self-mean group contribution halved; all first-rollout fields/rewards and main replay draws unchanged. Same total denominator and ordinary weights. First-minibatch live mean gradients are diagnostic, not extra optimizer updates or action labels.')
     if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
         maxima={key:0. for key in prefix}
         files=sorted((control_root/'trajectory').glob('chunk-*.npz'))

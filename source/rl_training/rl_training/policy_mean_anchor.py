@@ -13,7 +13,7 @@ from tensordict import TensorDict
 class MeanActionReplay:
     """Sample TRAIN states; optional paired targets override selected reference means."""
 
-    def __init__(self, teacher, observations, batch_groups, *, coefficient, seed, device, fixed_targets=None):
+    def __init__(self, teacher, observations, batch_groups, *, coefficient, seed, device, fixed_targets=None, group_weights=None):
         if not math.isfinite(coefficient) or coefficient < 0:
             raise ValueError('finite nonnegative mean anchor coefficient required')
         if set(observations) != set(batch_groups) or not observations:
@@ -27,6 +27,12 @@ class MeanActionReplay:
         self.observations = observations
         self.batch_groups = batch_groups
         self.coefficient = coefficient
+        if group_weights is not None and set(group_weights) != set(observations):
+            raise ValueError('group weights must name every replay group exactly')
+        self.group_weights = {k: float(group_weights[k]) if group_weights is not None else 1. for k in observations}
+        if not all(math.isfinite(w) and w >= 0 for w in self.group_weights.values()):
+            raise ValueError('finite nonnegative replay group weights required')
+        self.last_group_losses = None
         fixed_targets = fixed_targets or {}
         if not set(fixed_targets) <= set(observations):
             raise ValueError('fixed target group has no observation group')
@@ -45,7 +51,7 @@ class MeanActionReplay:
         self.fixed_target_digest = hashlib.sha256()
         self.fixed_target_rows = 0
 
-    def loss(self, actor):
+    def loss(self, actor, *, record_groups=False):
         if actor.obs_normalization or actor.obs_groups != ['policy'] or actor.obs_dim != 48:
             raise ValueError('mean replay requires the unnormalized route48 actor')
         pieces = []
@@ -73,10 +79,43 @@ class MeanActionReplay:
         predicted = actor(TensorDict({'policy': states}, batch_size=[len(states)]))
         self.calls += 1
         self.rows += len(states)
-        return (predicted-target).square().mean()
+        errors = (predicted-target).square()
+        self.last_group_losses = None
+        if record_groups:
+            self.last_group_losses = {}
+            start = 0
+            for group, count in self.batch_groups.items():
+                self.last_group_losses[group] = self.group_weights[group]*errors[start:start+count].sum()/errors.numel()
+                start += count
+        if all(w == 1. for w in self.group_weights.values()):
+            return errors.mean()  # Preserve the exact original reduction and optimizer path.
+        weights = errors.new_tensor([self.group_weights[k] for k,n in self.batch_groups.items() for _ in range(n)])
+        # Keep the original total-row/action denominator; never renormalize weights.
+        return (errors*weights[:,None]).mean()
 
 
-def update_with_mean_anchor(algorithm, replay, *, tail_replay=None):
+def mean_gradient_geometry(actor, ppo_loss, replay, anchor_loss):
+    """Read mean-network gradients without changing .grad, RNG or the optimizer."""
+    losses = dict(ppo=ppo_loss, anchor=replay.coefficient*anchor_loss)
+    if 'correction' in replay.last_group_losses:
+        losses['correction'] = replay.coefficient*replay.last_group_losses['correction']
+        ordinary = [v for k,v in replay.last_group_losses.items() if k != 'correction']
+        if ordinary:losses['ordinary'] = replay.coefficient*sum(ordinary)
+    parameters = list(actor.mlp.parameters())
+    gradients = {k: torch.cat([g.detach().flatten() for g in torch.autograd.grad(v, parameters, retain_graph=True)])
+                 for k,v in losses.items()}
+    norms = {k:float(v.double().norm()) for k,v in gradients.items()}
+    cosine = {}
+    for k in gradients:
+        if k != 'ppo':
+            denominator = norms['ppo']*norms[k]
+            cosine[k+'_vs_ppo'] = float(torch.dot(gradients[k].double(),gradients['ppo'].double())/denominator) if denominator else None
+    return dict(mean_parameter_count=sum(v.numel() for v in parameters), norms=norms, cosine=cosine,
+                weighted_group_losses={k:float((replay.coefficient*v).detach()) for k,v in replay.last_group_losses.items()},
+                scope='Actual first minibatch, actor mean MLP only, before clipping and Adam; cosine does not describe the preconditioned optimizer step.')
+
+
+def update_with_mean_anchor(algorithm, replay, *, tail_replay=None, gradient_observer=None):
     """The feedforward, fixed-LR, single-GPU PPO update plus one explicit auxiliary loss.
 
     Unsupported algorithm options fail rather than silently dropping their behavior.
@@ -107,13 +146,20 @@ def update_with_mean_anchor(algorithm, replay, *, tail_replay=None):
         else:
             value_loss = (batch.returns-values).pow(2).mean()
         loss = surrogate_loss+a.value_loss_coef*value_loss-a.entropy_coef*entropy.mean()
-        anchor_loss = replay.loss(a.actor) if replay.coefficient else loss.new_zeros(())
+        ppo_loss = loss
+        record_gradients = gradient_observer is not None and updates == 0
+        if record_gradients and (not replay.coefficient or tail_replay is not None):
+            raise ValueError('gradient diagnostics require nonzero main replay and no tail replay')
+        anchor_loss = replay.loss(a.actor, record_groups=record_gradients) if replay.coefficient else loss.new_zeros(())
         loss = loss+replay.coefficient*anchor_loss
         if tail_replay is not None:
             tail_loss = tail_replay.loss(a.actor) if tail_replay.coefficient else loss.new_zeros(())
             loss = loss+tail_replay.coefficient*tail_loss
         if not torch.isfinite(loss):
             raise ValueError('nonfinite PPO/mean anchor objective')
+        if record_gradients:
+            gradient_observer(mean_gradient_geometry(a.actor, ppo_loss, replay, anchor_loss))
+        replay.last_group_losses = None
         a.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(a.actor.parameters(), a.max_grad_norm)

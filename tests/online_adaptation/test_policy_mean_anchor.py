@@ -162,3 +162,64 @@ def test_tail_gradient_is_additive_without_diluting_existing_loss_or_changing_dr
     for key,value in old_losses.items():assert new_losses[key]==value
     for old,new in zip(before,after):torch.testing.assert_close(new-old,expected_tail,atol=2e-6,rtol=2e-5)
     assert all(p.grad is None for p in tail.teacher.parameters())
+
+
+def test_group_weights_change_only_selected_gradient_without_renormalizing():
+    class Teacher(torch.nn.Module):
+        def forward(self,x):return torch.zeros(len(x),12)
+    class Actor(torch.nn.Module):
+        obs_normalization=False
+        obs_groups=['policy']
+        obs_dim=48
+        def __init__(self):
+            super().__init__()
+            self.bias=torch.nn.Parameter(torch.tensor([.2,.1]))
+        def forward(self,obs):return self.bias[obs['policy'][:,0].long(),None].expand(-1,12)
+    states={'correction':torch.zeros(3,48),'flat':torch.ones(4,48)}
+    full=MeanActionReplay(Teacher(),states,{'correction':7,'flat':9},coefficient=100.,seed=17,device='cpu')
+    half=MeanActionReplay(Teacher(),states,{'correction':7,'flat':9},coefficient=100.,seed=17,device='cpu',group_weights={'correction':.5,'flat':1.})
+    actor=Actor()
+    a=full.loss(actor);ga=torch.autograd.grad(a,actor.bias)[0]
+    b=half.loss(actor,record_groups=True);gb=torch.autograd.grad(b,actor.bias)[0]
+    torch.testing.assert_close(b,torch.tensor((7*.5*.2**2+9*.1**2)/16))
+    torch.testing.assert_close(gb,ga*torch.tensor([.5,1.]))
+    torch.testing.assert_close(sum(half.last_group_losses.values()),b)
+    assert full.draw_digest.hexdigest()==half.draw_digest.hexdigest()
+    assert full.rows==half.rows==16
+
+
+@pytest.mark.parametrize('weights',[{}, {'unknown':1.}, {'flat':float('nan')}, {'flat':-1.}, {'flat':float('inf')}])
+def test_invalid_group_weights_are_rejected(weights):
+    with pytest.raises(ValueError):
+        MeanActionReplay(torch.nn.Identity(),{'flat':torch.zeros(3,48)},{'flat':2},coefficient=1.,seed=1,device='cpu',group_weights=weights)
+
+
+def test_gradient_recording_preserves_rng_parameters_losses_and_full_adam_state():
+    original,old=fixture()
+    observed,replay=fixture()
+    for r in (old,replay):
+        r.coefficient=100.
+        states=r.observations['flat']
+        r.observations={'correction':states[:3],'flat':states[3:]}
+        r.batch_groups={'correction':5,'flat':7}
+        r.group_weights={'correction':.5,'flat':1.}
+        with torch.no_grad():
+            [layer for layer in r.teacher.modules() if isinstance(layer,torch.nn.Linear)][-1].bias.add_(.1)
+    torch.manual_seed(71)
+    expected=update_with_mean_anchor(original,old)
+    expected_rng=torch.get_rng_state().clone()
+    records=[]
+    torch.manual_seed(71)
+    actual=update_with_mean_anchor(observed,replay,gradient_observer=records.append)
+    assert actual==expected and torch.equal(expected_rng,torch.get_rng_state())
+    assert old.draw_digest.hexdigest()==replay.draw_digest.hexdigest()
+    assert len(records)==1 and set(records[0]['norms'])=={'ppo','anchor','correction','ordinary'}
+    assert all(v>=0 for v in records[0]['norms'].values())
+    assert all(v is None or -1.000001<=v<=1.000001 for v in records[0]['cosine'].values())
+    for a,b in [(original.actor,observed.actor),(original.critic,observed.critic)]:
+        for key,value in a.state_dict().items():torch.testing.assert_close(value,b.state_dict()[key],atol=0,rtol=0)
+    expected_optimizer=original.optimizer.state_dict();actual_optimizer=observed.optimizer.state_dict()
+    assert expected_optimizer['param_groups']==actual_optimizer['param_groups']
+    for key,state in expected_optimizer['state'].items():
+        for name,value in state.items():torch.testing.assert_close(value,actual_optimizer['state'][key][name],atol=0,rtol=0)
+    assert all(p.grad is None for p in replay.teacher.parameters())

@@ -67,6 +67,7 @@ def main():
     self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
     no_tail=plan['schema']=='lite3_no_tail_heading_ablation_v1'
     velocity=plan['schema']=='lite3_lateral_velocity_ablation_v1'
+    correction_weight=plan['schema']=='lite3_correction_group_weight_ablation_v1'
     if demo_target:assert args.retry_addendum
     engineering=0
     if heading or velocity:
@@ -84,7 +85,7 @@ def main():
         cumulative_confirmed_through_pilot=plan['cumulative_before']['confirmed']+total,historical_uncertain=64)
     if args.retry_addendum:costs['interrupted_training']=aborted_controls
     if heading or velocity:costs['engineering']=engineering
-    if self_target or no_tail:
+    if self_target or no_tail or correction_weight:
         assert plan['max_engineering_controls']==0
         costs['engineering']=0
     out=dict(status='verified',initial=initial['results']['trial'],control=control['results']['trial'],trial=result['results']['trial'],
@@ -124,6 +125,13 @@ def main():
             total_replay_rows=trained['total_replay_rows'],lateral_velocity=plan['lateral_velocity'],
             first_rollout_velocity_difference=trained['first_rollout_velocity_difference'],
             scope='Only world lateral return velocity reward added, same no-tail/self-mean/heading configuration, learner2281/eval2251/final256. Repeated TRAIN-source pilot only; no inference controller.')
+    if correction_weight:
+        assert trained['stored_action_target_rows_for_updates']==trained['tail_replay_rows']==0
+        assert trained['first_rollout_all_recorded_fields_bitwise_equal']
+        out.update(stored_action_target_rows_for_updates=0,tail_replay_rows=0,
+            total_replay_rows=trained['total_replay_rows'],group_weights=trained['group_weights'],gradient_records=trained['gradient_records'],
+            evaluation_execution=newrun.get('execution'),
+            scope='Only correction TRAIN mean preservation halved; ordinary weights, denominator, draws, rewards and final256/learner2281 unchanged. Read-only first-minibatch gradients. Per-condition process evaluation; repeated TRAIN case26 only.')
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
@@ -135,6 +143,7 @@ def main():
     if self_target:labels=['Supervised init','Demo correction\ntargets','Self-mean correction\ntargets']
     if no_tail:labels=['Supervised init','Self-mean targets\nwith tail25','Self-mean targets\nwithout tail']
     if velocity:labels=['Supervised init','No-tail heading\ncontrol','+ World lateral\nvelocity reward']
+    if correction_weight:labels=['Supervised init','Correction group\nweight 1.0','Correction group\nweight 0.5']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -159,6 +168,7 @@ def main():
     if self_target:title='Correction targets with fixed centerline heading reward'
     if no_tail:title='Tail preservation with fixed self-mean targets and heading reward'
     if velocity:title='World lateral return velocity reward'
+    if correction_weight:title='Correction-only mean preservation strength'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

@@ -1,0 +1,101 @@
+{
+  "checkpoints": {
+    "after_update1": {
+      "cosine": {
+        "anchor_sum / correction": 0.9168215805883917,
+        "anchor_sum / flat": 0.4884334587479492,
+        "anchor_sum / ordinary_sum": 0.49419937292689536,
+        "anchor_sum / ppo_full_rollout": -0.14322725681886786,
+        "anchor_sum / rough101": 0.49239859643765727,
+        "anchor_sum / rough107": 0.48969832129228236,
+        "correction / flat": 0.10487538434397076,
+        "correction / ordinary_sum": 0.10596426064651657,
+        "correction / ppo_full_rollout": -0.07715217750605437,
+        "correction / rough101": 0.10846848834009577,
+        "correction / rough107": 0.10199719662311836,
+        "flat / ordinary_sum": 0.9880118377845014,
+        "flat / ppo_full_rollout": -0.2170998337743604,
+        "flat / rough101": 0.9582654532610356,
+        "flat / rough107": 0.9783271289968719,
+        "ordinary_sum / ppo_full_rollout": -0.1887034447665699,
+        "ordinary_sum / rough101": 0.9900633271814305,
+        "ordinary_sum / rough107": 0.99742810836987,
+        "ppo_full_rollout / rough101": -0.14924691674175344,
+        "ppo_full_rollout / rough107": -0.1907517962091805,
+        "rough101 / rough107": 0.9904380356606499
+      },
+      "norms": {
+        "anchor_sum": 1.7772532515976787,
+        "correction": 1.5538006091578553,
+        "flat": 0.25994415099421314,
+        "ordinary_sum": 0.7136701110427094,
+        "ppo_full_rollout": 20.902015917033474,
+        "rough101": 0.2277011372189192,
+        "rough107": 0.2320003449120246
+      },
+      "weighted_group_losses": {
+        "correction": 0.0009762134286575019,
+        "flat": 8.813801105134189e-05,
+        "rough101": 8.272516424767673e-05,
+        "rough107": 8.528220496373251e-05
+      }
+    },
+    "final256": {
+      "cosine": {
+        "anchor_sum / correction": 0.41011836183942124,
+        "anchor_sum / flat": 0.9142152155644482,
+        "anchor_sum / ordinary_sum": 0.930032941593543,
+        "anchor_sum / rough101": 0.9194413598017374,
+        "anchor_sum / rough107": 0.9270100154972797,
+        "correction / flat": 0.042770347853913676,
+        "correction / ordinary_sum": 0.046273457202537095,
+        "correction / rough101": 0.04526923828533583,
+        "correction / rough107": 0.04977558459604223,
+        "flat / ordinary_sum": 0.9840866677147848,
+        "flat / rough101": 0.9492913186754309,
+        "flat / rough107": 0.9671017781733278,
+        "ordinary_sum / rough101": 0.9888038948768606,
+        "ordinary_sum / rough107": 0.995277978365972,
+        "rough101 / rough107": 0.9889474467059639
+      },
+      "norms": {
+        "anchor_sum": 3.85164849519018,
+        "correction": 1.4169067684095389,
+        "flat": 1.2970411537448299,
+        "ordinary_sum": 3.51659479693084,
+        "rough101": 1.1442500837214573,
+        "rough107": 1.1140153638343433
+      },
+      "weighted_group_losses": {
+        "correction": 0.0013914128066971898,
+        "flat": 0.002407493768259883,
+        "rough101": 0.0023665742482990026,
+        "rough107": 0.0024253823794424534
+      }
+    }
+  },
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+    "artifacts/lateral_velocity_20261010/train/final.pt": "0b0001537da29fe8a5e119ab8bb591363b426dd99f12d74396d5509efe1e2d97",
+    "artifacts/lateral_velocity_20261010/train/report.json": "34d36889f5a38fae40acef06545b1a72358a8723a7163b7bc76789c7579f55dc",
+    "artifacts/lateral_velocity_20261010/train/rsl/model_0.pt": "6805eb8e9dd951fec059d1c762ebb622ab248aaa4661f89e16ba3ab17575a274",
+    "artifacts/lateral_velocity_20261010/train/trajectory/chunk-00001.npz": "252f1296446648f8fade7ed45e55a2f1f1c104876da32dd24c2c3ffad424d595",
+    "docs/lite3_lateral_velocity_train_protocol_20261010.json": "80014a1a3e1612948038ec6970f15af6ffe154c08cba29ed33289cea7f95c705",
+    "docs/lite3_lateral_velocity_training_audit_20261010.json": "3c1d4691ba92d7f5d8ae8ee215f238a5b0dcea2b557b8f53d6ce8af1d224c505"
+  },
+  "new_controls": 0,
+  "policy_optimizer_steps": 0,
+  "recovery_controls": 384,
+  "rollout_controls": 2048,
+  "sampled_rows": {
+    "correction": 128,
+    "flat": 128,
+    "rough101": 128,
+    "rough107": 128
+  },
+  "scope": "CPU local Euclidean gradients on actor mean parameters only, before clipping/Adam. model_0 is after20 optimizer steps; next TRAIN rollout uses that behavior checkpoint. Full-rollout normalized GAE surrogate at ratio1, NOT the unavailable actual historical minibatch order. Replay uses update2 first draw, four groups128. Final checkpoint evaluates the SAME TRAIN replay sample, with no claim about final PPO gradient. No pilot or held-out observations.",
+  "standardized_action_mean": 0.003565191989764571,
+  "standardized_action_std": 0.9996506571769714,
+  "status": "verified"
+}
