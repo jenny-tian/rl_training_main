@@ -27,13 +27,19 @@ class FrozenPPOExpert(nn.Module):
 
     def __init__(self, state):
         super().__init__()
-        self.mlp = _mlp((48, 512, 256, 128, 12))
+        width = state['mlp.0.weight'].shape[1]
+        if width not in (48, 49):
+            raise ValueError('expected route48 or route-history49 expert')
+        self.mlp = _mlp((width, 512, 256, 128, 12))
         self.mlp.load_state_dict({k[4:]: v for k, v in state.items() if k.startswith("mlp.")}, strict=True)
         if not all(torch.isfinite(v).all() for v in self.parameters()):
             raise ValueError("nonfinite expert")
         self.requires_grad_(False).eval()
 
     def forward(self, obs):
+        if obs.shape[-1] == 49 and self.mlp[0].in_features == 48:
+            from rl_training.policy_route_history import strip_route_history
+            obs = strip_route_history(obs)
         return self.mlp(obs)
 
 

@@ -1,0 +1,54 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/dataset/dataset.npz": "cf3d13ccf369d56ace9595142e8b9f704a4e5a981cf1ec8f7348a07dcb6ddc8a",
+    "artifacts/route_history_20261010/zero/train/gradient_diagnostics.jsonl": "fd3e7e3bf78ef1fad0077f8b7f8cb0d4a7a4a8f8448b7dde746100d9baa59563",
+    "artifacts/route_history_20261010/zero/train/report.json": "89483c43a69768f0085967761969c78d844b2a002b1284f484e4e9f065319ca7",
+    "docs/lite3_correction_half_train_protocol_20261010.json": "be490472d7c9323c3ac47abdcac20a6339f8d0d93e695705e9fcfdb8e68767b1",
+    "docs/lite3_route_history_dataset_audit_20261010.json": "871b4ce20d3847abc8da2f540eaded7366dc26831257358aff629a57e9611e80",
+    "docs/lite3_route_history_plan_20261010.json": "e800e6b3c3885c1e6b75fe030acb07be914274dd343d8d96f09d9efcf11258cf",
+    "docs/lite3_route_history_zero_anchor_audit_20261010.json": "ae3b83380dbcc998651394c21035c3e09dddad5f49cf2b99390cc87f12801079",
+    "docs/lite3_route_history_zero_heading_audit_20261010.json": "49f135fa29621f06b0f5a62529265590cc32f1e27a9a30495fe187737c20390f",
+    "docs/lite3_route_history_zero_history_audit_20261010.json": "1d93bdd856bb8ac71570c84f08c9374804e23fd238f402ba2dea6a6f7f386251",
+    "docs/lite3_route_history_zero_train_protocol_20261010.json": "5a0c7c48bca912c196819e9fe53e786670e314d58703278cdfbd81600c77895b",
+    "docs/lite3_route_history_zero_training_audit_20261010.json": "ca12f69c27ad7c8fa5f1b8faa0bbe983e7522761c72b24e1255fb1ac7bca0ead",
+    "docs/lite3_route_history_zero_velocity_audit_20261010.json": "49b26eb82fe3521eed8f3dcaa244a36323287dc565ea15d8dddea58f647a796a"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/zero/train/final.pt",
+    "sha256": "6f8cce14010d7a41e85457e6c21f6bd58f2d00b52357d4b96e9dc43087538a54"
+  },
+  "gradient_records": 256,
+  "history_column_norm": 0.0,
+  "history_enabled": false,
+  "mean_anchor_calls": 5120,
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "mean_squared_raw_action_change": 0.00016936376050580293,
+      "rows": 72
+    },
+    "flat": {
+      "mean_squared_raw_action_change": 0.00011631243251031265,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "mean_squared_raw_action_change": 0.00016911634884309024,
+      "rows": 1885
+    },
+    "rough101": {
+      "mean_squared_raw_action_change": 0.00011513892241055146,
+      "rows": 15617
+    },
+    "rough107": {
+      "mean_squared_raw_action_change": 0.00011567438195925206,
+      "rows": 15774
+    }
+  },
+  "replay_rows": 2621440,
+  "scope": "Fixed49D pair with original48D frozen targets. Main draws, row counts, correction0.5 weights and old denominator preserved. Zero arm masks only inserted column in both online and replay observations. Offline validation diagnostic only.",
+  "status": "verified",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_replay_rows": 0,
+  "validation_rows_used_for_updates": 0
+}

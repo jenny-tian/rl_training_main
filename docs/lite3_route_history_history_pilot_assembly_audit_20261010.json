@@ -1,0 +1,37 @@
+{
+  "controls": 182784,
+  "evidence": {
+    "artifacts/route_history_20261010/history/course-evaluation/course-trial/report.json": "9229c589995308857d8cf68617a1d3fdc2f73cccb9b3801f3cdd94deb05b0139",
+    "artifacts/route_history_20261010/history/course-evaluation/course-trial/trajectory/manifest.json": "b193f861bc4ed05291c19a22942925ca81318f394dea55b85617330bcef6212f",
+    "artifacts/route_history_20261010/history/course-evaluation/ledger.json": "24cc0de039f5ed68e12c280b16c0d5b11067f9d5554589d8f0e979ec4ccf57e3",
+    "artifacts/route_history_20261010/history/course-evaluation/report.json": "0c6c1f17d085e947d9a50dd61625c437a3173bb23fe5aba2198c5e06816f2cb7",
+    "artifacts/route_history_20261010/history/pilot-combined/report.json": "9fa0397474446918970dcf6410346d339a18bb6273d4687b43df7f0f422e9604",
+    "artifacts/route_history_20261010/history/recovery-evaluation/ledger.json": "034c00466aba2ad4ad0e1b126eff8924ed89450ccaf8dba2c214aae0d186f608",
+    "artifacts/route_history_20261010/history/recovery-evaluation/recovery-trial/report.json": "cb306d6f95017d372423ae43590be4a0dd2588653d101e9d28b283b04314cd02",
+    "artifacts/route_history_20261010/history/recovery-evaluation/recovery-trial/trajectory/manifest.json": "d3fc1694513161917377449e4da8ed5068383ed91ae78a3316b1682d0c5e17f4",
+    "artifacts/route_history_20261010/history/recovery-evaluation/report.json": "89775862423b14b60dc8499f8af830747c908f82424f3082625762b779ac8894",
+    "docs/lite3_route_history_history_course_protocol_20261010.json": "dca6af488ad02773bd9832f4b553dbc7627cdada99b40e002559f4ee698b1be9",
+    "docs/lite3_route_history_history_pilot_protocol_20261010.json": "0837fc46c06987bce3d6e925d65c974244e2e84d2d8ab61624e1220cd5b6a064",
+    "docs/lite3_route_history_history_recovery_protocol_20261010.json": "6c405139e0fc54949cf8c9262da7a6689a4104f456274b0e319b77774a3e1101"
+  },
+  "execution": {
+    "interrupted_processes": 0,
+    "parts": [
+      {
+        "condition": "course",
+        "confirmed_controls": 91392,
+        "protocol": "docs/lite3_route_history_history_course_protocol_20261010.json",
+        "run": "artifacts/route_history_20261010/history/course-evaluation"
+      },
+      {
+        "condition": "recovery",
+        "confirmed_controls": 91392,
+        "protocol": "docs/lite3_route_history_history_recovery_protocol_20261010.json",
+        "run": "artifacts/route_history_20261010/history/recovery-evaluation"
+      }
+    ],
+    "processes": 2,
+    "repeated_or_discarded_controls": 0
+  },
+  "status": "verified"
+}

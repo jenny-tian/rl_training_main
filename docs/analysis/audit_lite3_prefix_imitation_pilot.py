@@ -53,7 +53,8 @@ def main():
     assert r['ledger']['charged']==r['ledger']['confirmed'] and r['ledger']['confirmed']<=min(p['max_pilot_controls'],child['max_controls'])
     write_json_atomic(args.output,dict(status='verified',results=results,gates=gates,pilot_passed=all(gates.values()),controls=r['ledger']['confirmed'],uncertain=0,
         evidence={str(x):sha256_file(x) for x in evidence_paths},
-        scope='Autonomous48D mean actor, no prefix/time/case flag/teacher takeover. TRAIN case26 pilot is not original7-source recovery qualification or independent learning replication.'))
+        scope=(f"Autonomous49D mean actor; route history enabled={child['route_history']['enabled']}, no prefix/time/case flag/teacher takeover. TRAIN case26 pilot is not original7-source recovery qualification or independent learning replication." if child.get('route_history') is not None else
+            'Autonomous48D mean actor, no prefix/time/case flag/teacher takeover. TRAIN case26 pilot is not original7-source recovery qualification or independent learning replication.')))
 
 
 if __name__=='__main__':main()

@@ -1,0 +1,60 @@
+{
+  "arms": [
+    "zero",
+    "history"
+  ],
+  "base_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/learner2247/train/final.pt",
+  "base_sha256": "6a470cec8c1f1b1ad6f237c1ecc6401367528715ccca0f44b4f02b4860fa2ead",
+  "change": "49D actor pair: zero history input versus one causal route-difference scalar at index12. Same49D network/RNG dimensions, critic51, expanded6a mean with zero new column, fresh critic/Adam, all previous correction-half rewards/replay settings. Only information enabled differs across matched arms.",
+  "cumulative_before": {
+    "charged": 34718016,
+    "confirmed": 34717952,
+    "uncertain": 64
+  },
+  "dataset": "artifacts/route_history_20261010/dataset/dataset.npz",
+  "dataset_audit": "docs/lite3_route_history_dataset_audit_20261010.json",
+  "dataset_audit_sha256": "871b4ce20d3847abc8da2f540eaded7366dc26831257358aff629a57e9611e80",
+  "dataset_sha256": "cf3d13ccf369d56ace9595142e8b9f704a4e5a981cf1ec8f7348a07dcb6ddc8a",
+  "evaluation_execution": "Every course/recovery condition runs once in a separate process. Canonical48D initial hashes retained; actual49D initial input stored in separate initial_history.npz.",
+  "execution_device": "cuda:1",
+  "historical_protocol": "docs/lite3_correction_half_train_protocol_20261010.json",
+  "historical_protocol_sha256": "be490472d7c9323c3ac47abdcac20a6339f8d0d93e695705e9fcfdb8e68767b1",
+  "historical_training_run": "artifacts/correction_half_20261010/train",
+  "history_options": {
+    "clip_m_s": 1.0,
+    "dt": 0.02,
+    "lateral_scale_m": 1.65,
+    "speed_scale_m_s": 0.3
+  },
+  "iterations": 256,
+  "max_conditional_validation_controls": 256000,
+  "max_engineering_controls": 51200,
+  "max_new_controls": 1867776,
+  "max_pilot_controls": 512000,
+  "max_pilot_controls_per_arm": 256000,
+  "max_training_controls": 1048576,
+  "original_dataset": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz",
+  "original_dataset_sha256": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+  "paired_preflight": "Both engineering runs must match common physical/action fields. Both training runs first32 common fields including rewards must match; only inserted history column and its telemetry may differ. All original replay rows, splits, labels, draws unchanged.",
+  "pilot_acceptance": {
+    "case26_maximum_lateral_m": 0.7,
+    "case26_minimum_completed_recoveries": 20,
+    "minimum_delay_stratum_fraction": 0.8,
+    "ordinary_completion_noninferior_per_terrain": true,
+    "ordinary_peak_noninferior": true,
+    "ordinary_rms_ratio_maximum": 1.05
+  },
+  "pilot_seed": 2251,
+  "registered_at_utc": "2026-10-10T05:50:53.139399+00:00",
+  "replay_queries_per_arm": 2621440,
+  "schema": "lite3_route_history_pair_v1",
+  "selection": "Each arm fixed final256 only, no replacement checkpoint/seed. Assess paired effects and all original six gates. Only history arm passing all original gates triggers original7-source2081 candidate evaluation; independent learning replication still required.",
+  "tests": {
+    "failed": 0,
+    "log": "docs/lite3_route_history_tests_20261010.txt",
+    "passed": 55,
+    "sha256": "ea218d71e0e5b51772bdc9da75baf3c2590cc9afe17e5be7ffdf0cc07cfcdd13"
+  },
+  "training_controls_per_arm": 524288,
+  "training_seed": 2281
+}

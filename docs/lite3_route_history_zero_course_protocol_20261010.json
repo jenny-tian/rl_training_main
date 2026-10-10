@@ -1,0 +1,38 @@
+{
+  "conditions": [
+    "course"
+  ],
+  "contact_diagnostics": true,
+  "evaluation_seed": 2251,
+  "max_controls": 128000,
+  "models": {
+    "trial": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/zero/train/final.pt",
+      "training_algorithm": "PPO plus direct mean-action TRAIN replay loss and existing soft reward anchor",
+      "training_protocol_sha256": "5a0c7c48bca912c196819e9fe53e786670e314d58703278cdfbd81600c77895b",
+      "training_report": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/zero/train/report.json"
+    }
+  },
+  "num_envs": 64,
+  "recovery_resets": {
+    "bank_path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/recovery_teacher_20261005/bank-v1-attempt02/bank.npz",
+    "bank_sha256": "f06613c97113ad49a0fa832e02ae5432bd252c22e4b9e90cd2ebfcff82d19710",
+    "fixed_train_case": 26,
+    "mixed": false,
+    "split": "train"
+  },
+  "registered_at_utc": "2026-10-10T06:00:09.523658+00:00",
+  "reused_baseline_report_sha256": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+  "route_history": {
+    "clip_m_s": 1.0,
+    "dt": 0.02,
+    "enabled": false,
+    "lateral_scale_m": 1.65,
+    "speed_scale_m_s": 0.3
+  },
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "scope": "Fixed final256 zero49D arm; each condition one process, original2251/six gates. Canonical48D initial hash and separate49D actual input. Single course condition.",
+  "steps": 2000,
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0"
+}

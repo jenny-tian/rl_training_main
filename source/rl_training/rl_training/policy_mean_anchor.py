@@ -19,7 +19,7 @@ class MeanActionReplay:
         if set(observations) != set(batch_groups) or not observations:
             raise ValueError('replay groups differ from the registered batch')
         for group, values in observations.items():
-            if values.ndim != 2 or values.shape[1] != 48 or len(values) == 0 or not torch.isfinite(values).all():
+            if values.ndim != 2 or values.shape[1] not in (48, 49) or len(values) == 0 or not torch.isfinite(values).all():
                 raise ValueError('nonempty finite route48 TRAIN observations required')
             if type(batch_groups[group]) is not int or batch_groups[group] < 1:
                 raise ValueError('positive group batch sizes required')
@@ -52,8 +52,10 @@ class MeanActionReplay:
         self.fixed_target_rows = 0
 
     def loss(self, actor, *, record_groups=False):
-        if actor.obs_normalization or actor.obs_groups != ['policy'] or actor.obs_dim != 48:
+        if actor.obs_normalization or actor.obs_groups != ['policy'] or actor.obs_dim not in (48, 49):
             raise ValueError('mean replay requires the unnormalized route48 actor')
+        if any(v.shape[1] != actor.obs_dim for v in self.observations.values()):
+            raise ValueError('replay width differs from actor observation width')
         pieces = []
         overrides = []
         offset = 0

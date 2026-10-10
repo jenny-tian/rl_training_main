@@ -1,0 +1,134 @@
+{
+  "arms": {
+    "history": {
+      "final_checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/history/train/final.pt",
+        "sha256": "d7263ed28ab9b35b9f4ec49992d93303d58c24ceebbfd845a08c5414ba2cdb69"
+      },
+      "gates": {
+        "delay_strata": true,
+        "ordinary_completion": true,
+        "ordinary_peak": false,
+        "ordinary_rms": true,
+        "recovery": true,
+        "recovery_lateral": false
+      },
+      "history_column_norm": 0.0056013199500739574,
+      "metrics": {
+        "case26_groups": {
+          "0/0": {
+            "success": 7,
+            "total": 7
+          },
+          "0/1": {
+            "success": 7,
+            "total": 7
+          },
+          "1/0": {
+            "success": 7,
+            "total": 7
+          },
+          "1/1": {
+            "success": 3,
+            "total": 3
+          }
+        },
+        "case26_peak_m": 0.7440094947814941,
+        "case26_recovery": 24,
+        "case26_rms_m": 0.6143977145353953,
+        "case26_total": 24,
+        "course_by_terrain": {
+          "101": 24,
+          "107": 24,
+          "flat": 16
+        },
+        "course_peak_m": 0.2407073974609375,
+        "course_rms_m": 0.07387286447919905,
+        "course_total": 64
+      },
+      "pilot_passed": false
+    },
+    "zero": {
+      "final_checkpoint": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/zero/train/final.pt",
+        "sha256": "6f8cce14010d7a41e85457e6c21f6bd58f2d00b52357d4b96e9dc43087538a54"
+      },
+      "gates": {
+        "delay_strata": true,
+        "ordinary_completion": true,
+        "ordinary_peak": true,
+        "ordinary_rms": true,
+        "recovery": true,
+        "recovery_lateral": false
+      },
+      "history_column_norm": 0.0,
+      "metrics": {
+        "case26_groups": {
+          "0/0": {
+            "success": 7,
+            "total": 7
+          },
+          "0/1": {
+            "success": 7,
+            "total": 7
+          },
+          "1/0": {
+            "success": 7,
+            "total": 7
+          },
+          "1/1": {
+            "success": 3,
+            "total": 3
+          }
+        },
+        "case26_peak_m": 0.7110519409179688,
+        "case26_recovery": 24,
+        "case26_rms_m": 0.6107464457551638,
+        "case26_total": 24,
+        "course_by_terrain": {
+          "101": 24,
+          "107": 24,
+          "flat": 16
+        },
+        "course_peak_m": 0.16698360443115234,
+        "course_rms_m": 0.07444119585367541,
+        "course_total": 64
+      },
+      "pilot_passed": false
+    }
+  },
+  "costs": {
+    "cumulative_charged": 36179648,
+    "cumulative_confirmed": 36179584,
+    "historical_uncertain": 64,
+    "history": {
+      "engineering": 25600,
+      "pilot": 182784,
+      "training": 524288
+    },
+    "new_uncertain": 0,
+    "stage_through_pilot": 1461632,
+    "zero": {
+      "engineering": 25600,
+      "pilot": 179072,
+      "training": 524288
+    }
+  },
+  "evidence": {
+    "artifacts/route_history_20261010/history-smoke/report.json": "05475044b7ce95a7a5bcc6e203165f684355d5d1fa480b862e41a755c066a2a8",
+    "artifacts/route_history_20261010/history/pilot-combined/report.json": "9fa0397474446918970dcf6410346d339a18bb6273d4687b43df7f0f422e9604",
+    "artifacts/route_history_20261010/zero-smoke/report.json": "861aa8a035e2711d51efd14de8fe8fd1b050d85539cb47180d156dd1f88ce6fd",
+    "artifacts/route_history_20261010/zero/pilot-combined/report.json": "1282a39b5b10d9fdfbaa688e4653274cbb517476151cd1dc347f671be76ef4a6",
+    "docs/lite3_route_history_history_pilot_history_audit_20261010.json": "d817046ef6e86e0d9dd4c9287f36806df67de638fd080771cbf1f8bb0f111579",
+    "docs/lite3_route_history_history_pilot_result_20261010.json": "4c6784362b0783f2c8062f67f8b3a446e05b998b2842974bd2efb71973b3570d",
+    "docs/lite3_route_history_history_update_audit_20261010.json": "4eb37422b48c6bb7f787f6471d08d9a5306a464b286c51e31d9b00a6e7dfdeaf",
+    "docs/lite3_route_history_plan_20261010.json": "e800e6b3c3885c1e6b75fe030acb07be914274dd343d8d96f09d9efcf11258cf",
+    "docs/lite3_route_history_training_pair_audit_20261010.json": "f87a2785c33975ee58978e5551036449c45abf5cd7ed92b7419215340630f57e",
+    "docs/lite3_route_history_zero_pilot_history_audit_20261010.json": "1c0f9cdf1c0be0b424458a9bbe91e0ce8cac2325c35d74a4a0257f600c8c5dad",
+    "docs/lite3_route_history_zero_pilot_result_20261010.json": "a0a0fcdc38720c74fa37428d05945ad33357444eaa4a837f09f2fad3420da40a",
+    "docs/lite3_route_history_zero_update_audit_20261010.json": "261a3613473517ad326c6595d8a08d16617270fd2cf8e15bccdddb007eafc58d"
+  },
+  "history_pilot_passed": false,
+  "scope": "Same49D networks/initialization dimensions; only causal history input enabled differs. Original six gates unchanged, TRAIN case26 repetitions only. Earlier48D run is not this paired causal control. Physical cost includes both arms and both engineering runs.",
+  "status": "verified"
+}

@@ -42,6 +42,17 @@ def main():
         heading_options=p.get('route_training',{})
         heading_trace='heading_lookahead_m' in heading_options
         velocity_options=p.get('lateral_velocity')
+        history_options=p.get('route_history')
+        if history_options is not None:
+            from rl_training.policy_route_history import validate_history_options, RouteHistoryVecEnv, expand_actor_history_inputs
+            validate_history_options(history_options)
+            proof=p['route_history_smoke']
+            assert sha256_file(proof['report'])==proof['sha256']
+            checked=json.loads(Path(proof['report']).read_text())
+            assert checked['status']=='complete' and checked['route_history_options']==history_options
+            assert sha256_file(proof['audit'])==proof['audit_sha256']
+            checked_audit=json.loads(Path(proof['audit']).read_text())
+            assert checked_audit['status']=='verified' and checked_audit['evidence'][proof['report']]==proof['sha256']
         if velocity_options:
             proof=p['lateral_velocity_smoke']
             assert sha256_file(proof['report'])==proof['sha256']
@@ -131,6 +142,9 @@ def main():
         if p.get('recovery_resets'):
             check_recovery_event_order(raw)
         wrapped=RslRlVecEnvWrapper(env,clip_actions=agent_cfg.clip_actions)
+        if history_options is not None:
+            wrapped=RouteHistoryVecEnv(wrapped,history_options)
+            report['route_history_options']=history_options
         trace=StepTrajectory(out/'trajectory',metadata={'kind':'vector_training','num_envs':p['num_envs'],
             'observation':'pre-action','next_observation_and_root':'step return; reset rows already reset',
             'action':'requested for PPO likelihood; emitted clipped command drives physical action history'},chunk_steps=p['rollout_steps'],vector_dtype='float32')
@@ -138,6 +152,7 @@ def main():
             if stop_requested:raise InterruptedError('stop requested before next physical step')
             if not torch.isfinite(action).all():raise ValueError('nonfinite requested action')
             extra={}
+            if history_options is not None:extra.update(wrapped.history_snapshot())
             if heading_trace:raw._route_heading_snapshot=None
             if velocity_options:raw._route_velocity_snapshot=None
             if p.get('fixed_forward_command') is not None:
@@ -190,7 +205,7 @@ def main():
         counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after,action_transform=clip_lite3_policy_action)
         runner=OnPolicyRunner(counted,agent_cfg.to_dict(),log_dir=str(out/'rsl'),device=args.device)
         obs=counted.get_observations()
-        assert obs['policy'].shape==(p['num_envs'],48 if route else 45) and obs['critic'].shape==(p['num_envs'],51 if route else 48)
+        assert obs['policy'].shape==(p['num_envs'],49 if history_options is not None else (48 if route else 45)) and obs['critic'].shape==(p['num_envs'],51 if route else 48)
         payload=torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False)
         if anchor_weight is not None or recovery_anchor is not None:
             teacher=FrozenFlatMean(payload).to(args.device).eval()
@@ -207,7 +222,8 @@ def main():
             else:
                 payload=expand_actor_route_inputs(payload)
         report['route_observations']=route
-        report['warmstart']=warmstart_actor_only(runner,payload,initial_std=p['initial_std'],allow_mean_only=p.get('base_actor_mean_only',False))
+        warm_payload=expand_actor_history_inputs(payload) if history_options is not None else payload
+        report['warmstart']=warmstart_actor_only(runner,warm_payload,initial_std=p['initial_std'],allow_mean_only=p.get('base_actor_mean_only',False))
         mean_replay=None
         tail_replay=None
         assert not p.get('tail_anchor') or p.get('mean_anchor'), 'tail anchor requires the registered mean replay'
@@ -224,6 +240,10 @@ def main():
             with np.load(spec['dataset'],allow_pickle=False) as data:
                 states={group:torch.as_tensor(data[group+'_train_obs'].copy(),device=args.device) for group in spec['batch_groups']}
                 fixed_targets={group:torch.as_tensor(data[group+'_train_target'].copy(),device=args.device) for group in spec.get('fixed_target_groups',[])}
+            if history_options is not None:
+                assert all(value.shape[1]==49 for value in states.values())
+                if not history_options['enabled']:
+                    for value in states.values():value[:,12]=0
             # Constructing Linear layers consumes CPU RNG even when loading frozen weights.
             # Restore it so adding replay does not change the paired PPO sampling stream.
             with torch.random.fork_rng(devices=[]):

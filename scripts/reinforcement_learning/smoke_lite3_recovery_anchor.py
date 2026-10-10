@@ -64,10 +64,17 @@ def main():
         raw = env.unwrapped
         check_recovery_event_order(raw)
         wrapped = RslRlVecEnvWrapper(env, clip_actions=None)
+        history_options=p.get('route_history')
+        if history_options is not None:
+            from rl_training.policy_route_history import RouteHistoryVecEnv, expand_actor_history_inputs
+            wrapped=RouteHistoryVecEnv(wrapped,history_options)
         observation = wrapped.get_observations()
-        assert observation['policy'].shape == (p['num_envs'], 48)
+        assert observation['policy'].shape == (p['num_envs'], 49 if history_options is not None else 48)
         assert observation['critic'].shape == (p['num_envs'], 51)
         teacher = FrozenFlatMean(torch.load(p['base_checkpoint'], map_location='cpu', weights_only=False)).to(args.device)
+        requested_teacher=teacher
+        if history_options is not None:
+            requested_teacher=FrozenFlatMean(expand_actor_history_inputs(torch.load(p['base_checkpoint'],map_location='cpu',weights_only=False))).to(args.device)
         initial = {k: v.clone() for k, v in teacher.state_dict().items()}
         write_json_atomic(output/'delays.json', actuator_delay_metadata(raw.scene['robot']))
         np.savez_compressed(output/'initial.npz', terrain=raw.scene.terrain.terrain_types.cpu().numpy(), case=raw._recovery_case.cpu().numpy(),
@@ -84,7 +91,7 @@ def main():
             torch.testing.assert_close(raw.episode_length_buf, expected_age)
             target, mask = prepare_recovery_anchor(raw, teacher, obs, p['anchor_options']['early_steps'])
             offset = p['probe_amplitude'] * (1 if step % 2 else -1)
-            requested = teacher(obs) + offset
+            requested = requested_teacher(obs) + offset
             emitted = clip_lite3_policy_action(requested)
             cost = flat_anchor_cost(emitted, target, mask)
             ordinary = raw._recovery_case < 0
@@ -97,7 +104,7 @@ def main():
             observed['repeated_recovery_resets'] += int(((expected_age == 0) & ~ordinary).sum()) if step else 0
             before = trace.snapshot(policy_observation=obs, recovery_case=raw._recovery_case, episode_steps=expected_age,
                 recovery_anchor_target=target, recovery_anchor_mask=mask, requested_action=requested, emitted_action=emitted,
-                recovery_anchor_cost=cost)
+                recovery_anchor_cost=cost, **(wrapped.history_snapshot() if history_options is not None else {}))
             ledger.reserve()
             if heading_trace:raw._route_heading_snapshot=None
             if velocity_options:raw._route_velocity_snapshot=None
@@ -125,6 +132,7 @@ def main():
                       recovery_anchor_timing_and_mask_passed=True, anchor_model_unchanged=True)
         if heading_trace:report.update(route_heading_options=p['route_training'],route_heading_timing_passed=True)
         if velocity_options:report.update(lateral_velocity_options=velocity_options,lateral_velocity_timing_passed=True)
+        if history_options is not None:report.update(route_history_options=history_options,route_history_timing_passed=True)
         write_json_atomic(output/'report.json', report)
     except BaseException as error:
         if ledger.state['status'] == 'running':

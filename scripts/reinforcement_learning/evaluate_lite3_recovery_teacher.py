@@ -46,6 +46,7 @@ def main():
         from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
         import rl_training.tasks  # noqa
         from rl_training.policy_route import configure_route_observations
+        from rl_training.policy_route_history import RouteHistoryVecEnv, strip_route_history
         from rl_training.recovery_teacher import configure_recovery_resets, check_recovery_event_order
         from rl_training.online_adaptation.runner_contract import configure_forward_command, actuator_delay_metadata
         from rl_training.online_adaptation.flowdagger import FrozenPPOExpert, ConditionalFlow, NoisePolicy
@@ -103,6 +104,10 @@ def main():
                 if condition != "course":
                     check_recovery_event_order(raw)
                 wrapped = RslRlVecEnvWrapper(env,clip_actions=None)
+                history_options=p.get('route_history')
+                if history_options is not None:
+                    assert all(s['kind']=='ppo' for s in p['models'].values())
+                    wrapped=RouteHistoryVecEnv(wrapped,history_options)
                 obs = wrapped.get_observations()["policy"]
                 robot = raw.scene["robot"]; origins = raw.scene.env_origins.clone()
                 folder = out/f"{condition}-{name}"; folder.mkdir()
@@ -124,9 +129,12 @@ def main():
                         fps=1/(raw.step_dt*video_options["stride"]))
                 cases = raw._recovery_case.clone() if condition != "course" else torch.full((p["num_envs"],),-1,device=args.device)
                 initial = dict(root=robot.data.root_state_w.cpu().numpy().copy(), origins=origins.cpu().numpy(),
-                    observation=obs.cpu().numpy(),joint_pos=robot.data.joint_pos.cpu().numpy(),
+                    observation=strip_route_history(obs).cpu().numpy(),joint_pos=robot.data.joint_pos.cpu().numpy(),
                     joint_vel=robot.data.joint_vel.cpu().numpy(),terrain=raw.scene.terrain.terrain_types.cpu().numpy(),case=cases.cpu().numpy())
                 np.savez_compressed(folder/"initial.npz",**initial)
+                if history_options is not None:
+                    np.savez_compressed(folder/'initial_history.npz',policy_observation=obs.cpu().numpy(),
+                        **{k:v.cpu().numpy() for k,v in wrapped.history_snapshot().items()})
                 delays=actuator_delay_metadata(robot); write_json_atomic(folder/"delays.json",delays)
                 initial_hash=hashlib.sha256(b"".join(v.tobytes() for v in initial.values())+json.dumps(delays,sort_keys=True).encode()).hexdigest()
                 if condition != "course":
@@ -178,6 +186,7 @@ def main():
                             requested=base_requested+offset
                         emitted=clip_lite3_policy_action(requested)
                     before=obs.clone(); before_active=active.clone()
+                    before_history=wrapped.history_snapshot() if history_options is not None else {}
                     if video is not None and bool(active[video_options["env_id"]]) and step%video_options["stride"]==0:
                         i=video_options["env_id"];t=int(initial["terrain"][i])
                         video.append(raw.render(),step=step,time_s=step*raw.step_dt,
@@ -201,6 +210,7 @@ def main():
                         active=before_active,done=done,success=success,failure=failure,deadline=deadline,post_root_state=state,
                         **{f"failure_{k}":v for k,v in terms.items()},
                         **(captured["diagnostics"] if diagnostic else {}),
+                        **before_history,
                         **(dict(base_requested_action=base_requested,search_offset=offset) if prefix is not None else {})))
                     for i in torch.where(active&done.bool())[0].tolist():
                         t=int(initial["terrain"][i]);episodes[i]=dict(env_id=i,terrain="flat" if t<2 else str(101 if t<5 else 107),

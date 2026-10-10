@@ -26,6 +26,9 @@ def audit_training(root, protocol):
         hashes[file.name]=sha256_file(file)
         with np.load(file,allow_pickle=False) as d:
             obs=d["policy_observation"];case=d["recovery_case"];valid=case>=0
+            if obs.shape[-1]==49:
+                assert protocol.get('route_history') is not None
+                obs=np.concatenate((obs[...,:12],obs[...,13:]),axis=-1)
             if protocol["recovery_resets"].get("dedicated_per_terrain") is not None:
                 # This registered128-slot layout has32flat,48rough101,48rough107.
                 assert protocol['num_envs']==128 and protocol['recovery_resets']['dedicated_per_terrain']==16
@@ -164,7 +167,7 @@ def audit_evaluation(root,protocol):
                     np.testing.assert_array_equal(d["search_offset"],expected_offset)
                     np.testing.assert_allclose(d["requested_action"],d["base_requested_action"]+expected_offset,atol=1e-6,rtol=0)
                     replay_key="base_requested_action"
-                sampled=obs.reshape(-1,48)[d["active"].reshape(-1)][::128][:8]
+                sampled=obs.reshape(-1,obs.shape[-1])[d["active"].reshape(-1)][::128][:8]
                 actions=d[replay_key].reshape(-1,12)[d["active"].reshape(-1)][::128][:8]
                 with torch.no_grad():
                     o=torch.from_numpy(sampled);model=models[name]

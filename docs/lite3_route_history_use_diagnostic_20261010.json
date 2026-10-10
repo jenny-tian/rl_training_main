@@ -1,0 +1,104 @@
+{
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/history/train/final.pt": "d7263ed28ab9b35b9f4ec49992d93303d58c24ceebbfd845a08c5414ba2cdb69",
+    "artifacts/route_history_20261010/dataset/dataset.npz": "cf3d13ccf369d56ace9595142e8b9f704a4e5a981cf1ec8f7348a07dcb6ddc8a",
+    "docs/lite3_route_history_history_update_audit_20261010.json": "4eb37422b48c6bb7f787f6471d08d9a5306a464b286c51e31d9b00a6e7dfdeaf",
+    "docs/lite3_route_history_plan_20261010.json": "e800e6b3c3885c1e6b75fe030acb07be914274dd343d8d96f09d9efcf11258cf"
+  },
+  "groups": {
+    "correction_train": {
+      "history_absolute_mean": 1.439911127090454,
+      "history_nonzero_rows": 198,
+      "per_row_raw_action_rms_median": 0.0019781554583460093,
+      "per_row_raw_action_rms_p95": 0.003030947467777878,
+      "raw_action_maximum_absolute_change": 0.007142186164855957,
+      "raw_action_rms_change": 0.002045036293566227,
+      "rows": 216
+    },
+    "correction_validation": {
+      "history_absolute_mean": 1.4414047002792358,
+      "history_nonzero_rows": 66,
+      "per_row_raw_action_rms_median": 0.001945679308846593,
+      "per_row_raw_action_rms_p95": 0.0030680391821078963,
+      "raw_action_maximum_absolute_change": 0.007142186164855957,
+      "raw_action_rms_change": 0.0020376970060169697,
+      "rows": 72
+    },
+    "flat_train": {
+      "history_absolute_mean": 0.06070137396454811,
+      "history_nonzero_rows": 31065,
+      "per_row_raw_action_rms_median": 5.854157643625513e-05,
+      "per_row_raw_action_rms_p95": 0.00021140019380254664,
+      "raw_action_maximum_absolute_change": 0.0008609294891357422,
+      "raw_action_rms_change": 9.979801689041778e-05,
+      "rows": 31114
+    },
+    "flat_validation": {
+      "history_absolute_mean": 0.05887916311621666,
+      "history_nonzero_rows": 10404,
+      "per_row_raw_action_rms_median": 5.687119119102135e-05,
+      "per_row_raw_action_rms_p95": 0.0002056244484265335,
+      "raw_action_maximum_absolute_change": 0.0007261037826538086,
+      "raw_action_rms_change": 9.744759881868958e-05,
+      "rows": 10426
+    },
+    "post_recovery_train": {
+      "history_absolute_mean": 0.16440188884735107,
+      "history_nonzero_rows": 5681,
+      "per_row_raw_action_rms_median": 0.0001420864718966186,
+      "per_row_raw_action_rms_p95": 0.0005236674332991242,
+      "raw_action_maximum_absolute_change": 0.005485355854034424,
+      "raw_action_rms_change": 0.00031361824949271977,
+      "rows": 5681
+    },
+    "post_recovery_validation": {
+      "history_absolute_mean": 0.172695592045784,
+      "history_nonzero_rows": 1885,
+      "per_row_raw_action_rms_median": 0.0001558054209453985,
+      "per_row_raw_action_rms_p95": 0.0005274493130855262,
+      "raw_action_maximum_absolute_change": 0.005485355854034424,
+      "raw_action_rms_change": 0.00032393087167292833,
+      "rows": 1885
+    },
+    "rough101_train": {
+      "history_absolute_mean": 0.06968014687299728,
+      "history_nonzero_rows": 46820,
+      "per_row_raw_action_rms_median": 6.909506919328123e-05,
+      "per_row_raw_action_rms_p95": 0.00022851846370031126,
+      "raw_action_maximum_absolute_change": 0.0009973645210266113,
+      "raw_action_rms_change": 0.00011300957703497261,
+      "rows": 46866
+    },
+    "rough101_validation": {
+      "history_absolute_mean": 0.0698443204164505,
+      "history_nonzero_rows": 15604,
+      "per_row_raw_action_rms_median": 6.958605808904395e-05,
+      "per_row_raw_action_rms_p95": 0.00023109624744392914,
+      "raw_action_maximum_absolute_change": 0.0009109973907470703,
+      "raw_action_rms_change": 0.0001134916310547851,
+      "rows": 15617
+    },
+    "rough107_train": {
+      "history_absolute_mean": 0.0718148946762085,
+      "history_nonzero_rows": 46568,
+      "per_row_raw_action_rms_median": 7.09893211023882e-05,
+      "per_row_raw_action_rms_p95": 0.00023627682821825147,
+      "raw_action_maximum_absolute_change": 0.0016254186630249023,
+      "raw_action_rms_change": 0.00011794232705142349,
+      "rows": 46631
+    },
+    "rough107_validation": {
+      "history_absolute_mean": 0.07067633420228958,
+      "history_nonzero_rows": 15749,
+      "per_row_raw_action_rms_median": 7.017586176516488e-05,
+      "per_row_raw_action_rms_p95": 0.00023406277832691537,
+      "raw_action_maximum_absolute_change": 0.0012040138244628906,
+      "raw_action_rms_change": 0.00011544750304892659,
+      "rows": 15774
+    }
+  },
+  "new_controls": 0,
+  "optimizer_steps": 0,
+  "scope": "Final history actor on unchanged TRAIN-source replay states, with its inserted input retained versus zeroed. Includes original whole-stream offline validation partition; no pilot or original seven-source states. Raw mean-action sensitivity before clipping, not behavior quality, retraining, or a closed-loop counterfactual.",
+  "status": "verified"
+}

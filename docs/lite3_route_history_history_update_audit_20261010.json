@@ -1,0 +1,54 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/dataset/dataset.npz": "cf3d13ccf369d56ace9595142e8b9f704a4e5a981cf1ec8f7348a07dcb6ddc8a",
+    "artifacts/route_history_20261010/history/train/gradient_diagnostics.jsonl": "e33f809beb7398320e16b5d466d2707e55c7890afd61ccbb623ed16ae136f74b",
+    "artifacts/route_history_20261010/history/train/report.json": "f9aa00009af7053b6516bf498caf710fca17b601bbf5185b4db538f56acf0f16",
+    "docs/lite3_correction_half_train_protocol_20261010.json": "be490472d7c9323c3ac47abdcac20a6339f8d0d93e695705e9fcfdb8e68767b1",
+    "docs/lite3_route_history_dataset_audit_20261010.json": "871b4ce20d3847abc8da2f540eaded7366dc26831257358aff629a57e9611e80",
+    "docs/lite3_route_history_history_anchor_audit_20261010.json": "b40d7ca3c47fbeea430984c88b6ca37a89568cf4f8b990b1f5bbc4baa6fd749c",
+    "docs/lite3_route_history_history_heading_audit_20261010.json": "1ad444e2f9ef3a6e714a3622c42165db90120216a04cbeabe14eeb5a22f33096",
+    "docs/lite3_route_history_history_history_audit_20261010.json": "52acb53d714b90a7cb00f759419bee7f2dbad55a5bdefa692efcb09511f1c6fd",
+    "docs/lite3_route_history_history_train_protocol_20261010.json": "b05303991ff2ce59740aaf1f34b27eb4a97c9362fd0317cce1a273e417a4ade0",
+    "docs/lite3_route_history_history_training_audit_20261010.json": "03a62e68dc01b6670d5eff3066e7846376b8ec5d53622304e99f08dcd6339c83",
+    "docs/lite3_route_history_history_velocity_audit_20261010.json": "c7a59757e9540fd7865ddce6f790d34b37a0eb7be3c80626b4df2cd4c62bdbef",
+    "docs/lite3_route_history_plan_20261010.json": "e800e6b3c3885c1e6b75fe030acb07be914274dd343d8d96f09d9efcf11258cf"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/route_history_20261010/history/train/final.pt",
+    "sha256": "d7263ed28ab9b35b9f4ec49992d93303d58c24ceebbfd845a08c5414ba2cdb69"
+  },
+  "gradient_records": 256,
+  "history_column_norm": 0.0056013199500739574,
+  "history_enabled": true,
+  "mean_anchor_calls": 5120,
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "mean_squared_raw_action_change": 9.409987251274288e-05,
+      "rows": 72
+    },
+    "flat": {
+      "mean_squared_raw_action_change": 0.00016387550567742437,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "mean_squared_raw_action_change": 0.0002072393399430439,
+      "rows": 1885
+    },
+    "rough101": {
+      "mean_squared_raw_action_change": 0.0001655983942328021,
+      "rows": 15617
+    },
+    "rough107": {
+      "mean_squared_raw_action_change": 0.0001652791688684374,
+      "rows": 15774
+    }
+  },
+  "replay_rows": 2621440,
+  "scope": "Fixed49D pair with original48D frozen targets. Main draws, row counts, correction0.5 weights and old denominator preserved. Zero arm masks only inserted column in both online and replay observations. Offline validation diagnostic only.",
+  "status": "verified",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_replay_rows": 0,
+  "validation_rows_used_for_updates": 0
+}

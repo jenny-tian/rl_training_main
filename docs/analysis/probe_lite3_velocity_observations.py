@@ -12,6 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('run','protocol','training-audit','output'):
         parser.add_argument('--'+name,required=True)
+    parser.add_argument('--route-feature',action='store_true')
     args = parser.parse_args()
     root = Path(args.run)
     p = json.loads(Path(args.protocol).read_text())
@@ -36,6 +37,9 @@ def main():
     fit=slots%4!=0;probe=~fit
     assert fit.any() and probe.any() and len(target)==audit['recovery_controls']-audit['recovery_resets']
     predictors={'current48':obs,'current48_plus_one_step_delta48':np.concatenate([obs,delta],-1)}
+    if args.route_feature:
+        feature=np.clip(delta[:,9:10]*1.65,-1.,1.)/.3
+        predictors['current48_plus_clipped_route_difference']=np.concatenate([obs,feature],-1)
     predictions={'fit_mean_constant':np.full(probe.sum(),target[fit].mean()),
                  'route_origin_finite_difference':delta[probe,9]*1.65}
     for name,x in predictors.items():
