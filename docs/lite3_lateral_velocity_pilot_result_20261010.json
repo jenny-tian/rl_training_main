@@ -1,0 +1,90 @@
+{
+  "controls": 174464,
+  "evidence": {
+    "artifacts/lateral_velocity_20261010/pilot-combined/report.json": "d1ad30ad4596763ad5c87ac2683a293ddfd5390e01677f0a5cb8dd5b213bb316",
+    "artifacts/prefix_imitation_20261008/learner2247/pilot-evaluation/report.json": "334f0754f373a1c6a2634acc513c8e86ec47ac8c986ca6ac4f6c7ae818267575",
+    "docs/lite3_lateral_velocity_pilot_protocol_20261010.json": "521062e25443fa957ef517353dc2095103b2dbaa74ec0e8940fbd9238cac02ad",
+    "docs/lite3_lateral_velocity_pilot_trajectory_audit_20261010.json": "22a25d7eae1d8f38a7b4352e32fb2f9f1eaf40ba04ae66941a761efc710249ae",
+    "docs/lite3_lateral_velocity_update_audit_20261010.json": "8d9fe89339bff188c8c00578907f9d8d85a652c95f85c92bb6b7178be3e57528",
+    "docs/lite3_prefix_imitation_pilot_trajectory_audit_20261008.json": "fa3fcc7b3b227373ec3cd9b6e8da3bcd60a258585120883d8f9f4f371ae4586a",
+    "docs/lite3_prefix_imitation_plan_20261008.json": "4e71fed828f4aadc0330d63440a21e17ceee14a5c38d65af6169cf85f983dfd6"
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": true,
+    "ordinary_rms": true,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "pilot_passed": false,
+  "results": {
+    "base": {
+      "case26_groups": {
+        "0/0": {
+          "success": 0,
+          "total": 7
+        },
+        "0/1": {
+          "success": 0,
+          "total": 7
+        },
+        "1/0": {
+          "success": 0,
+          "total": 7
+        },
+        "1/1": {
+          "success": 0,
+          "total": 3
+        }
+      },
+      "case26_peak_m": 0.4621601104736328,
+      "case26_recovery": 0,
+      "case26_rms_m": 0.38399362936615944,
+      "case26_total": 24,
+      "course_by_terrain": {
+        "101": 24,
+        "107": 24,
+        "flat": 16
+      },
+      "course_peak_m": 0.19274425506591797,
+      "course_rms_m": 0.08065161256430049,
+      "course_total": 64
+    },
+    "trial": {
+      "case26_groups": {
+        "0/0": {
+          "success": 7,
+          "total": 7
+        },
+        "0/1": {
+          "success": 7,
+          "total": 7
+        },
+        "1/0": {
+          "success": 7,
+          "total": 7
+        },
+        "1/1": {
+          "success": 3,
+          "total": 3
+        }
+      },
+      "case26_peak_m": 0.7166910171508789,
+      "case26_recovery": 24,
+      "case26_rms_m": 0.6023772259553274,
+      "case26_total": 24,
+      "course_by_terrain": {
+        "101": 24,
+        "107": 24,
+        "flat": 16
+      },
+      "course_peak_m": 0.16485595703125,
+      "course_rms_m": 0.07673655760784943,
+      "course_total": 64
+    }
+  },
+  "scope": "Autonomous48D mean actor, no prefix/time/case flag/teacher takeover. TRAIN case26 pilot is not original7-source recovery qualification or independent learning replication.",
+  "status": "verified",
+  "uncertain": 0
+}

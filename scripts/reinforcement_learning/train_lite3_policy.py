@@ -41,6 +41,17 @@ def main():
             assert json.loads(Path(p['frozen_smoke_report']).read_text())['status']=='complete'
         heading_options=p.get('route_training',{})
         heading_trace='heading_lookahead_m' in heading_options
+        velocity_options=p.get('lateral_velocity')
+        if velocity_options:
+            proof=p['lateral_velocity_smoke']
+            assert sha256_file(proof['report'])==proof['sha256']
+            checked=json.loads(Path(proof['report']).read_text())
+            assert checked['status']=='complete' and checked['lateral_velocity_options']==velocity_options
+            assert checked['base_sha256']==p['base_sha256'] and checked['lateral_velocity_timing_passed']
+            assert sha256_file(proof['audit'])==proof['audit_sha256']
+            checked_audit=json.loads(Path(proof['audit']).read_text())
+            assert checked_audit['status']=='verified'
+            assert checked_audit['evidence'][proof['report']]==proof['sha256']
         if heading_trace:
             proof=p['route_heading_smoke']
             assert sha256_file(proof['report'])==proof['sha256']
@@ -90,6 +101,10 @@ def main():
             from rl_training.policy_route import ROUTE_SCHEMA, configure_route_training, expand_actor_route_inputs, route_heading_trace
             assert route==ROUTE_SCHEMA
             configure_route_training(cfg,p['route_training'])
+        if velocity_options:
+            assert route
+            from rl_training.policy_route import configure_lateral_velocity_training, route_lateral_velocity_trace
+            configure_lateral_velocity_training(cfg,velocity_options)
         if p.get('recovery_resets'):
             from rl_training.recovery_teacher import configure_recovery_resets, check_recovery_event_order
             configure_recovery_resets(cfg,p['recovery_resets'])
@@ -124,6 +139,7 @@ def main():
             if not torch.isfinite(action).all():raise ValueError('nonfinite requested action')
             extra={}
             if heading_trace:raw._route_heading_snapshot=None
+            if velocity_options:raw._route_velocity_snapshot=None
             if p.get('fixed_forward_command') is not None:
                 expected=obs['policy'].new_tensor([p['fixed_forward_command'],0.,0.]).expand(p['num_envs'],3)
                 torch.testing.assert_close(obs['policy'][:,6:9],expected,atol=1e-7,rtol=0)
@@ -169,7 +185,8 @@ def main():
                 reward=reward,done=done,returned_root_state=raw.scene['robot'].data.root_state_w,
                 task_success=success,task_failure=failure,task_deadline=deadline,
                 **(dict(recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost,recovery_anchor_reward=anchor_component) if recovery_anchor is not None else {}),
-                **(route_heading_trace(raw) if heading_trace else {}))
+                **(route_heading_trace(raw) if heading_trace else {}),
+                **(route_lateral_velocity_trace(raw) if velocity_options else {}))
         counted=ChargedVecEnv(wrapped,ledger,before_step=before,after_step=after,action_transform=clip_lite3_policy_action)
         runner=OnPolicyRunner(counted,agent_cfg.to_dict(),log_dir=str(out/'rsl'),device=args.device)
         obs=counted.get_observations()

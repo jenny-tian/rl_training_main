@@ -1,0 +1,104 @@
+{
+  "controls": 524288,
+  "draw_sha256": "f23e011a25c5f5632ba43a646011b8989df4bed8512bc5af129fe0279b45605e",
+  "evidence": {
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/no_tail_heading_20261010/train/final.pt": "f9cb2e415fae056af538201b3fb77efe650d5054d1b1351d591e646b2c7111a9",
+    "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/retention_coverage_20261008/dataset/dataset.npz": "b3bf2c637e2938d4fa27bda7dc17f6c7d3696d15fa30bdf3d1aca3f9b3cc6963",
+    "artifacts/lateral_velocity_20261010/smoke/report.json": "5aa6d15f0e084415d400991b06066cb365f5435d47de8e2a468be940fc306b01",
+    "artifacts/lateral_velocity_20261010/train/report.json": "34d36889f5a38fae40acef06545b1a72358a8723a7163b7bc76789c7579f55dc",
+    "artifacts/lateral_velocity_20261010/train/trajectory/chunk-00000.npz": "b23e13346d59e31f8c4bc2fb9eda6d18531643860a482616d829c9983be77867",
+    "artifacts/lateral_velocity_20261010/train/updates.jsonl": "354ada0e5c535bc65a7d5777265e2b324c76fd92f3020d44efed8bd01b158a10",
+    "artifacts/no_tail_heading_20261010/train/trajectory/chunk-00000.npz": "84b846a2a692cd02db2b1c6118c7ce2a1d1196acbdbcd946453e1fdaa3e106c8",
+    "artifacts/route_heading_20261009/smoke/report.json": "280b6903f258d08825e6770790fa287b4d06c0140e67a2fc657130055bf24d02",
+    "docs/lite3_lateral_velocity_anchor_audit_20261010.json": "5bf48d73ba6d1c61384604a17235c2a8f3a7354d58525004ac51c30d655e900b",
+    "docs/lite3_lateral_velocity_calibration_20261010.json": "6442489b727a31f90fc5d2436058002c53df1fab1888031f099031fb6d1c6a94",
+    "docs/lite3_lateral_velocity_heading_audit_20261010.json": "5a89b1662c8e4649602f98e1a9307826b99037e23621cd8cbfe493304d60262f",
+    "docs/lite3_lateral_velocity_plan_20261010.json": "73f05160b8ecd1cb0529b7c0bbed01385b7a702c48562459f64af830cebe1d9f",
+    "docs/lite3_lateral_velocity_reward_audit_20261010.json": "3b504f9ad7df3df582a7ad6d047ffbc3c97e06399db0937d03b7eb60c5316943",
+    "docs/lite3_lateral_velocity_smoke_audit_20261010.json": "04f5bb7a123429a5f0fe9901b620e89a2970cffabb1dee20fb7780b3c1eb9d96",
+    "docs/lite3_lateral_velocity_tests_20261010.txt": "24906b7222573d85cdd4622554906f5dcdff57a29281ac0257d8621234d785d2",
+    "docs/lite3_lateral_velocity_train_protocol_20261010.json": "80014a1a3e1612948038ec6970f15af6ffe154c08cba29ed33289cea7f95c705",
+    "docs/lite3_lateral_velocity_training_audit_20261010.json": "3c1d4691ba92d7f5d8ae8ee215f238a5b0dcea2b557b8f53d6ce8af1d224c505"
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/lateral_velocity_20261010/train/final.pt",
+    "sha256": "0b0001537da29fe8a5e119ab8bb591363b426dd99f12d74396d5509efe1e2d97"
+  },
+  "first_rollout_max_absolute_difference": {
+    "critic_observation": 0.0,
+    "emitted_action": 0.0,
+    "policy_observation": 0.0,
+    "pre_root_state": 0.0,
+    "requested_action": 0.0
+  },
+  "first_rollout_velocity_difference": {
+    "common_fields_except_total_reward_bitwise_equal": true,
+    "maximum_total_reward_difference": 0.07799133658409119,
+    "maximum_velocity_only_residual": 1.4901161193847656e-08
+  },
+  "mean_anchor_calls": 5120,
+  "mean_anchor_loss": {
+    "first": 6.7704179286920406e-06,
+    "last": 7.935469802760054e-05,
+    "maximum": 0.00011789057243731804,
+    "mean": 7.571814684008693e-05
+  },
+  "offline_action_drift_from_initial_actor": {
+    "correction": {
+      "max_absolute_raw_action_change": 0.02151113748550415,
+      "mean_squared_raw_action_change": 6.208521517692134e-05,
+      "p95_absolute_raw_action_change": 0.01573791168630123,
+      "rows": 72
+    },
+    "flat": {
+      "max_absolute_raw_action_change": 0.07776233553886414,
+      "mean_squared_raw_action_change": 9.371489431941882e-05,
+      "p95_absolute_raw_action_change": 0.01913987472653389,
+      "rows": 10426
+    },
+    "post_recovery": {
+      "max_absolute_raw_action_change": 0.07577431201934814,
+      "mean_squared_raw_action_change": 0.00015767883451189846,
+      "p95_absolute_raw_action_change": 0.02552008628845215,
+      "rows": 1885
+    },
+    "rough101": {
+      "max_absolute_raw_action_change": 0.07796181738376617,
+      "mean_squared_raw_action_change": 9.392487118020654e-05,
+      "p95_absolute_raw_action_change": 0.01891259476542473,
+      "rows": 15617
+    },
+    "rough107": {
+      "max_absolute_raw_action_change": 0.07801325619220734,
+      "mean_squared_raw_action_change": 9.416128159500659e-05,
+      "p95_absolute_raw_action_change": 0.018916640430688858,
+      "rows": 15774
+    }
+  },
+  "offline_correction_mse_to_demonstrated_emitted_action": {
+    "train": {
+      "control": 0.01049189455807209,
+      "initial": 0.010456018149852753,
+      "rows": 216,
+      "trial": 0.010555113665759563
+    },
+    "validation": {
+      "control": 0.009181438013911247,
+      "initial": 0.009129767306149006,
+      "rows": 72,
+      "trial": 0.009138212539255619
+    }
+  },
+  "replay_rows": 2621440,
+  "runtime_changed_files": [
+    "scripts/reinforcement_learning/smoke_lite3_recovery_anchor.py",
+    "scripts/reinforcement_learning/train_lite3_policy.py",
+    "source/rl_training/rl_training/policy_route.py"
+  ],
+  "scope": "Only world lateral return velocity reward added. First common rollout fields except total reward bitwise equal; reward delta explained by new component. Same TRAIN self-mean replay/draw stream, no tail or stored action labels in updates. Offline validation diagnostics only.",
+  "status": "verified",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_replay_rows": 0,
+  "total_replay_rows": 2621440,
+  "validation_rows_used_for_updates": 0
+}

@@ -65,6 +65,48 @@ def route_heading_trace(env):
     return dict(snapshot, heading_reward=component.detach().clone())
 
 
+def lateral_velocity_values(root_position, root_linear_velocity, origins, *, gain_per_second, maximum_m_s):
+    """World-Y velocity towards the world-X centerline, independent of body yaw."""
+    if not math.isfinite(gain_per_second) or gain_per_second <= 0:
+        raise ValueError('positive finite lateral return gain required')
+    if not math.isfinite(maximum_m_s) or maximum_m_s <= 0:
+        raise ValueError('positive finite lateral speed limit required')
+    lateral = root_position[..., 1] - origins[..., 1]
+    target = (-gain_per_second*lateral).clamp(-maximum_m_s, maximum_m_s)
+    return target, (root_linear_velocity[..., 1]-target).square()
+
+
+def route_lateral_velocity_cost(env, gain_per_second, maximum_m_s):
+    robot = env.scene['robot']
+    state = robot.data.root_state_w
+    target, cost = lateral_velocity_values(state[..., :3], state[..., 7:10], env.scene.env_origins,
+        gain_per_second=gain_per_second, maximum_m_s=maximum_m_s)
+    env._route_velocity_snapshot = dict(velocity_root_state=state.detach().clone(),
+        velocity_origins=env.scene.env_origins.detach().clone(), velocity_target=target.detach().clone(),
+        velocity_cost=cost.detach().clone())
+    return cost
+
+
+def route_lateral_velocity_trace(env):
+    snapshot = env._route_velocity_snapshot
+    if snapshot is None:
+        raise RuntimeError('lateral velocity reward did not record this control')
+    index = env.reward_manager.active_terms.index('course_lateral_velocity')
+    component = env.reward_manager._step_reward[:, index] * env.step_dt
+    weight = env.reward_manager.get_term_cfg('course_lateral_velocity').weight
+    torch.testing.assert_close(component, weight*snapshot['velocity_cost']*env.step_dt, atol=1e-6, rtol=1e-5)
+    return dict(snapshot, velocity_reward=component.detach().clone())
+
+
+def configure_lateral_velocity_training(cfg, options):
+    from isaaclab.managers import RewardTermCfg
+    gain, maximum, weight = (options[key] for key in ('gain_per_second', 'maximum_m_s', 'weight'))
+    if not all(math.isfinite(v) for v in (gain, maximum, weight)) or gain <= 0 or maximum <= 0 or weight >= 0:
+        raise ValueError('finite positive gain/speed and negative velocity weight required')
+    cfg.rewards.course_lateral_velocity = RewardTermCfg(func=route_lateral_velocity_cost, weight=weight,
+        params=dict(gain_per_second=gain, maximum_m_s=maximum))
+
+
 def expand_actor_route_inputs(payload):
     """Insert zero route columns after the original command; never mutate the source."""
     source = payload.get('actor_state_dict', {})

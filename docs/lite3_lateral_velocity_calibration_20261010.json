@@ -1,0 +1,49 @@
+{
+  "calibration_source_sha256": "d69a048522a6cd63cd3a626fda6a2c33206ebf5d8bfcf8e8dcbe7529f18819a2",
+  "evidence": {
+    "artifacts/no_tail_heading_20261010/train/report.json": "29963df008c1b08a6c37e66424d39a5a79b394db2d38afd06c676d0a9be81ed8",
+    "docs/lite3_no_tail_heading_geometry_audit_20261010.json": "14f1562807328a4373258929268390f8b454ed5a1da0df9760890e8aafa17d11",
+    "docs/lite3_no_tail_heading_train_protocol_20261010.json": "3e2697ada321b44d02713e73cad12caa6f67272a264aa58e4a380810265f838e",
+    "docs/lite3_no_tail_heading_training_audit_20261010.json": "65bb37b398eb3ddf79900a600efcd29ed2eaf3a39b8546f2e204527052f1efc5"
+  },
+  "gain_per_second": 0.5,
+  "groups": {
+    "early": {
+      "fraction_target_saturated": 1.0,
+      "mean_abs_y_m": 0.38820382952690125,
+      "mean_cost": 0.4254177212715149,
+      "mean_new_penalty_per_second": 3.403341770172119,
+      "mean_outward_world_velocity_m_s": 0.501221776008606,
+      "mean_root_lateral_penalty_proxy": 1.2150239944458008,
+      "p95_cost": 0.49915904104709624,
+      "rows": 4464
+    },
+    "ordinary": {
+      "fraction_target_saturated": 0.0006878192608173077,
+      "mean_abs_y_m": 0.06202264130115509,
+      "mean_cost": 0.0024289428256452084,
+      "mean_new_penalty_per_second": 0.019431542605161667,
+      "mean_outward_world_velocity_m_s": 0.0032160207629203796,
+      "mean_root_lateral_penalty_proxy": 0.047280166298151016,
+      "p95_cost": 0.008682169485837216,
+      "rows": 425984
+    },
+    "tail": {
+      "fraction_target_saturated": 1.0,
+      "mean_abs_y_m": 0.6066111326217651,
+      "mean_cost": 0.03424282744526863,
+      "mean_new_penalty_per_second": 0.27394261956214905,
+      "mean_outward_world_velocity_m_s": 0.019057082012295723,
+      "mean_root_lateral_penalty_proxy": 2.980916738510132,
+      "p95_cost": 0.08204045630991459,
+      "rows": 93840
+    }
+  },
+  "maximum_m_s": 0.15,
+  "new_controls": 0,
+  "rule": "gain0.5/s; cap=forward_command/2; abs(weight)=nearest power of2 to 0.1*mean(8*y^2)/mean((vy-target)^2) on all TRAIN recovery age>=12, clipped[0.5,8]. Root-only lateral proxy, not reconstruction of body/foot max penalty.",
+  "scope": "All changing-policy TRAIN controls including failures. No pilot/held-out input, no optimization labels, no hyperparameter sweep.",
+  "status": "verified",
+  "unrounded_weight_magnitude": 8.705229564569757,
+  "weight": -8.0
+}

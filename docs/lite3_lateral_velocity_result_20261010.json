@@ -1,0 +1,165 @@
+{
+  "control": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7070779800415039,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5934914996226629,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.1887989044189453,
+    "course_rms_m": 0.07152970810420811,
+    "course_total": 64
+  },
+  "costs": {
+    "cumulative_charged_through_pilot": 34014336,
+    "cumulative_confirmed_through_pilot": 34014272,
+    "engineering": 25600,
+    "historical_uncertain": 64,
+    "new_uncertain": 0,
+    "pilot": 174464,
+    "replay_new_physics": 0,
+    "stage_through_pilot": 724352,
+    "training": 524288
+  },
+  "evidence": {
+    "artifacts/lateral_velocity_20261010/pilot-combined/report.json": "d1ad30ad4596763ad5c87ac2683a293ddfd5390e01677f0a5cb8dd5b213bb316",
+    "artifacts/no_tail_heading_20261010/pilot-evaluation/report.json": "7bf1d50290f79985ee0d374e31f903aa46b40a402727f2af439c5883f98d961d",
+    "docs/lite3_lateral_velocity_pilot_result_20261010.json": "31bd2903d84eb90e1943008f1f63b214eb40ac3a41e7469added7612812ffe2d",
+    "docs/lite3_lateral_velocity_plan_20261010.json": "73f05160b8ecd1cb0529b7c0bbed01385b7a702c48562459f64af830cebe1d9f",
+    "docs/lite3_lateral_velocity_smoke_audit_20261010.json": "04f5bb7a123429a5f0fe9901b620e89a2970cffabb1dee20fb7780b3c1eb9d96",
+    "docs/lite3_lateral_velocity_update_audit_20261010.json": "8d9fe89339bff188c8c00578907f9d8d85a652c95f85c92bb6b7178be3e57528",
+    "docs/lite3_no_tail_heading_pilot_result_20261010.json": "706d8661956092e9794755c3d949205e58738da0a5ccfb11ec8babcdd131cc17",
+    "docs/lite3_no_tail_heading_update_audit_20261010.json": "39c5fbb56dee084a13df1638a25acc6b74958cfb40260df34cc90e0352fb3d0d",
+    "docs/lite3_retention_coverage_pilot_result_20261008.json": "35389432dbd83f027def0cfa6ede6aae15c1355bc1919db86240a4c3e3a71850"
+  },
+  "failures": {
+    "course-trial": [],
+    "recovery-trial": []
+  },
+  "final_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/lateral_velocity_20261010/train/final.pt",
+    "sha256": "0b0001537da29fe8a5e119ab8bb591363b426dd99f12d74396d5509efe1e2d97"
+  },
+  "first_rollout_velocity_difference": {
+    "common_fields_except_total_reward_bitwise_equal": true,
+    "maximum_total_reward_difference": 0.07799133658409119,
+    "maximum_velocity_only_residual": 1.4901161193847656e-08
+  },
+  "gates": {
+    "delay_strata": true,
+    "ordinary_completion": true,
+    "ordinary_peak": true,
+    "ordinary_rms": true,
+    "recovery": true,
+    "recovery_lateral": false
+  },
+  "initial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7161827087402344,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.5973440433541933,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.18029356002807617,
+    "course_rms_m": 0.07914901152253151,
+    "course_total": 64
+  },
+  "lateral_velocity": {
+    "gain_per_second": 0.5,
+    "maximum_m_s": 0.15,
+    "weight": -8.0
+  },
+  "mean_anchor_loss": {
+    "first": 6.7704179286920406e-06,
+    "last": 7.935469802760054e-05,
+    "maximum": 0.00011789057243731804,
+    "mean": 7.571814684008693e-05
+  },
+  "offline_mean_action_mse_ratio_vs_control": {
+    "correction": 1.130810278282691,
+    "flat": 0.6647355560484846,
+    "post_recovery": 0.6781088437962556,
+    "rough101": 0.6422105085840922,
+    "rough107": 0.6519648525941156
+  },
+  "pilot_passed": false,
+  "scope": "Only world lateral return velocity reward added, same no-tail/self-mean/heading configuration, learner2281/eval2251/final256. Repeated TRAIN-source pilot only; no inference controller.",
+  "status": "verified",
+  "stored_action_target_rows_for_updates": 0,
+  "tail_replay_rows": 0,
+  "total_replay_rows": 2621440,
+  "trial": {
+    "case26_groups": {
+      "0/0": {
+        "success": 7,
+        "total": 7
+      },
+      "0/1": {
+        "success": 7,
+        "total": 7
+      },
+      "1/0": {
+        "success": 7,
+        "total": 7
+      },
+      "1/1": {
+        "success": 3,
+        "total": 3
+      }
+    },
+    "case26_peak_m": 0.7166910171508789,
+    "case26_recovery": 24,
+    "case26_rms_m": 0.6023772259553274,
+    "case26_total": 24,
+    "course_by_terrain": {
+      "101": 24,
+      "107": 24,
+      "flat": 16
+    },
+    "course_peak_m": 0.16485595703125,
+    "course_rms_m": 0.07673655760784943,
+    "course_total": 64
+  }
+}

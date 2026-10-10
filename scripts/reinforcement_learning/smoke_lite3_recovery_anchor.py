@@ -52,6 +52,10 @@ def main():
         cfg = parse_env_cfg(p['task'], device=args.device, num_envs=p['num_envs'])
         cfg.seed = p['seed']
         configure_route_training(cfg, p['route_training'])
+        velocity_options=p.get('lateral_velocity')
+        if velocity_options:
+            from rl_training.policy_route import configure_lateral_velocity_training, route_lateral_velocity_trace
+            configure_lateral_velocity_training(cfg,velocity_options)
         configure_forward_command(cfg.commands.base_velocity, .3)
         configure_recovery_resets(cfg, p['recovery_resets'])
         configure_recovery_anchor(cfg, p['anchor_options'])
@@ -96,6 +100,7 @@ def main():
                 recovery_anchor_cost=cost)
             ledger.reserve()
             if heading_trace:raw._route_heading_snapshot=None
+            if velocity_options:raw._route_velocity_snapshot=None
             observation, reward, done, _ = wrapped.step(emitted)
             ledger.confirm()
             component = raw.reward_manager._step_reward[:, index] * raw.step_dt
@@ -106,7 +111,8 @@ def main():
             torch.testing.assert_close(observation['policy'][:, -12:], history, atol=1e-6, rtol=0)
             trace.append(**before, next_policy_observation=observation['policy'], done=done,
                          recovery_anchor_applied_cost=raw._recovery_anchor_applied_cost, recovery_anchor_reward=component, reward=reward,
-                         **(route_heading_trace(raw) if heading_trace else {}))
+                         **(route_heading_trace(raw) if heading_trace else {}),
+                         **(route_lateral_velocity_trace(raw) if velocity_options else {}))
             expected_age = torch.where(done.bool(), 0, expected_age + 1)
         assert all(value > 0 for value in observed.values()), observed
         assert all(torch.equal(v, teacher.state_dict()[k]) for k, v in initial.items())
@@ -118,6 +124,7 @@ def main():
         report.update(status='complete', ledger=ledger.state, observed=observed, step_dt=raw.step_dt,
                       recovery_anchor_timing_and_mask_passed=True, anchor_model_unchanged=True)
         if heading_trace:report.update(route_heading_options=p['route_training'],route_heading_timing_passed=True)
+        if velocity_options:report.update(lateral_velocity_options=velocity_options,lateral_velocity_timing_passed=True)
         write_json_atomic(output/'report.json', report)
     except BaseException as error:
         if ledger.state['status'] == 'running':

@@ -66,22 +66,24 @@ def main():
     heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
     self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
     no_tail=plan['schema']=='lite3_no_tail_heading_ablation_v1'
+    velocity=plan['schema']=='lite3_lateral_velocity_ablation_v1'
     if demo_target:assert args.retry_addendum
     engineering=0
-    if heading:
+    if heading or velocity:
         assert args.engineering_audit
         engineering_audit=read(args.engineering_audit)
         assert engineering_audit['status']=='verified'
         for path,digest in engineering_audit['evidence'].items():assert sha256_file(path)==digest
         engineering=engineering_audit['controls']
         assert engineering==plan['max_engineering_controls']
-        assert engineering_audit['evidence'][str(Path(plan['engineering_run'])/'report.json')]==sha256_file(Path(plan['engineering_run'])/'report.json')
+        engineering_run=plan.get('engineering_run','artifacts/lateral_velocity_20261010/smoke')
+        assert engineering_audit['evidence'][str(Path(engineering_run)/'report.json')]==sha256_file(Path(engineering_run)/'report.json')
     total=trained['controls']+result['controls']+aborted_controls+engineering
     costs=dict(training=trained['controls'],pilot=result['controls'],replay_new_physics=0,new_uncertain=0,
         stage_through_pilot=total,cumulative_charged_through_pilot=plan['cumulative_before']['charged']+total,
         cumulative_confirmed_through_pilot=plan['cumulative_before']['confirmed']+total,historical_uncertain=64)
     if args.retry_addendum:costs['interrupted_training']=aborted_controls
-    if heading:costs['engineering']=engineering
+    if heading or velocity:costs['engineering']=engineering
     if self_target or no_tail:
         assert plan['max_engineering_controls']==0
         costs['engineering']=0
@@ -116,6 +118,12 @@ def main():
             total_replay_rows=trained['total_replay_rows'],removed_tail_coefficient=25.,
             offline_correction_mse_to_demonstrated_emitted_action=trained['offline_correction_mse_to_demonstrated_emitted_action'],
             scope='Only separate tail preservation removed; same four-group self-mean targets, heading weight-1, learner2281/eval2251/final256. Main draws and first full rollout identical. Repeated TRAIN-source pilot only.')
+    if velocity:
+        assert trained['stored_action_target_rows_for_updates']==trained['tail_replay_rows']==0
+        out.update(stored_action_target_rows_for_updates=0,tail_replay_rows=0,
+            total_replay_rows=trained['total_replay_rows'],lateral_velocity=plan['lateral_velocity'],
+            first_rollout_velocity_difference=trained['first_rollout_velocity_difference'],
+            scope='Only world lateral return velocity reward added, same no-tail/self-mean/heading configuration, learner2281/eval2251/final256. Repeated TRAIN-source pilot only; no inference controller.')
     write_json_atomic(args.output,out)
     metrics=[out['initial'],out['control'],out['trial']]
     length=plan['schema']=='lite3_mean_anchor_length_ablation_v1'
@@ -126,6 +134,7 @@ def main():
     if heading_weight:labels=['Supervised init','Heading weight -1','Heading weight -4']
     if self_target:labels=['Supervised init','Demo correction\ntargets','Self-mean correction\ntargets']
     if no_tail:labels=['Supervised init','Self-mean targets\nwith tail25','Self-mean targets\nwithout tail']
+    if velocity:labels=['Supervised init','No-tail heading\ncontrol','+ World lateral\nvelocity reward']
     base=result['results']['base']
     plots=[('course_total',1,'Ordinary completion (of 64)',None),
         ('course_peak_m',100,'Ordinary rough peak lateral error (cm)',base['course_peak_m']*100),
@@ -149,6 +158,7 @@ def main():
     if heading_weight:title='Centerline heading reward strength'
     if self_target:title='Correction targets with fixed centerline heading reward'
     if no_tail:title='Tail preservation with fixed self-mean targets and heading reward'
+    if velocity:title='World lateral return velocity reward'
     fig.suptitle(f"{title}: pilot {'PASSED' if out['pilot_passed'] else 'FAILED'}\nFixed final{plan['iterations']} PPO updates, same evaluation2251, no teacher/prefix at inference",fontsize=14)
     target=Path(args.figure)
     for suffix in ('.png','.svg'):fig.savefig(target.with_suffix(suffix),dpi=160)

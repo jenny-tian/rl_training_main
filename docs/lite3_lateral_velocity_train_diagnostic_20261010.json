@@ -1,0 +1,79 @@
+{
+  "evidence": {
+    "artifacts/lateral_velocity_20261010/train/report.json": "34d36889f5a38fae40acef06545b1a72358a8723a7163b7bc76789c7579f55dc",
+    "docs/lite3_lateral_velocity_heading_audit_20261010.json": "5a89b1662c8e4649602f98e1a9307826b99037e23621cd8cbfe493304d60262f",
+    "docs/lite3_lateral_velocity_train_protocol_20261010.json": "80014a1a3e1612948038ec6970f15af6ffe154c08cba29ed33289cea7f95c705",
+    "docs/lite3_lateral_velocity_training_audit_20261010.json": "3c1d4691ba92d7f5d8ae8ee215f238a5b0dcea2b557b8f53d6ce8af1d224c505"
+  },
+  "groups": {
+    "0": {
+      "fraction_heading_inward": 0.0,
+      "fraction_world_outward_given_inward_heading": null,
+      "fraction_world_velocity_outward": 1.0,
+      "mean_abs_lateral_m": 0.3881922960281372,
+      "mean_outward_world_velocity_m_s": 0.5013014078140259,
+      "mean_outward_yaw_frame_velocity_m_s": 0.4450540244579315,
+      "pre_control_age_steps": [
+        0,
+        12
+      ],
+      "rows": 4380
+    },
+    "100": {
+      "fraction_heading_inward": 0.07429752906484087,
+      "fraction_world_outward_given_inward_heading": 0.479470802919708,
+      "fraction_world_velocity_outward": 0.8156119716638985,
+      "mean_abs_lateral_m": 0.6581785678863525,
+      "mean_outward_world_velocity_m_s": 0.026982272043824196,
+      "mean_outward_yaw_frame_velocity_m_s": -0.011473708786070347,
+      "pre_control_age_steps": [
+        100,
+        200
+      ],
+      "rows": 29503
+    },
+    "12": {
+      "fraction_heading_inward": 0.0,
+      "fraction_world_outward_given_inward_heading": null,
+      "fraction_world_velocity_outward": 0.9028817204301075,
+      "mean_abs_lateral_m": 0.4905301630496979,
+      "mean_outward_world_velocity_m_s": 0.0963936299085617,
+      "mean_outward_yaw_frame_velocity_m_s": -0.046319346874952316,
+      "pre_control_age_steps": [
+        12,
+        50
+      ],
+      "rows": 11625
+    },
+    "200": {
+      "fraction_heading_inward": 0.9729109516775691,
+      "fraction_world_outward_given_inward_heading": 0.08363833536668022,
+      "fraction_world_velocity_outward": 0.09384891327284237,
+      "mean_abs_lateral_m": 0.6345188617706299,
+      "mean_outward_world_velocity_m_s": -0.03725161403417587,
+      "mean_outward_yaw_frame_velocity_m_s": 0.010359138250350952,
+      "pre_control_age_steps": [
+        200,
+        null
+      ],
+      "rows": 37912
+    },
+    "50": {
+      "fraction_heading_inward": 0.0,
+      "fraction_world_outward_given_inward_heading": null,
+      "fraction_world_velocity_outward": 0.9987906476753561,
+      "mean_abs_lateral_m": 0.5747562646865845,
+      "mean_outward_world_velocity_m_s": 0.10450754314661026,
+      "mean_outward_yaw_frame_velocity_m_s": -0.005680409260094166,
+      "pre_control_age_steps": [
+        50,
+        100
+      ],
+      "rows": 14884
+    }
+  },
+  "new_controls": 0,
+  "optimization_labels_created": 0,
+  "scope": "All recorded TRAIN case26 controls across changing policies, including failures and terminal steps. Age groups have survival bias; yaw frame is horizontal, not full body frame. Descriptive kinematics only, not a reward reconstruction or causal test. No pilot or held-out data used.",
+  "status": "verified"
+}

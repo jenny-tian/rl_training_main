@@ -18,6 +18,7 @@ def main():
     for key in ('plan','protocol','run','training-audit','anchor-audit','output'):
         parser.add_argument('--'+key,required=True)
     parser.add_argument('--heading-audit')
+    parser.add_argument('--velocity-audit')
     args=parser.parse_args()
     torch.set_num_threads(4)
     plan=json.loads(Path(args.plan).read_text())
@@ -39,10 +40,33 @@ def main():
     heading=plan['schema']=='lite3_route_heading_ablation_v1' or heading_weight
     self_target=plan['schema']=='lite3_self_target_heading_ablation_v1'
     no_tail=plan['schema']=='lite3_no_tail_heading_ablation_v1'
-    self_mean=self_target or no_tail
+    velocity=plan['schema']=='lite3_lateral_velocity_ablation_v1'
+    self_mean=self_target or no_tail or velocity
     has_heading=heading or self_mean
-    has_tail=(tail_anchor or has_heading) and not no_tail
+    has_tail=(tail_anchor or has_heading) and not (no_tail or velocity)
     fixed_demo=(demo_target or has_tail) and not self_target
+    if velocity:
+        allowed|={'lateral_velocity','lateral_velocity_smoke'}
+        assert set(plan['allowed_control_protocol_changes'])==allowed
+        assert set(p)==set(control)|{'lateral_velocity','lateral_velocity_smoke'}
+        assert p['lateral_velocity']==plan['lateral_velocity']
+        assert 'tail_anchor' not in p and 'tail_anchor' not in r
+        assert args.velocity_audit
+        v=json.loads(Path(args.velocity_audit).read_text())
+        assert v['status']=='verified' and v['evidence'][str(root/'report.json')]==sha256_file(root/'report.json')
+        evidence[args.velocity_audit]=sha256_file(args.velocity_audit)
+        proof=p['lateral_velocity_smoke']
+        for key in ('report','audit'):
+            digest_key='sha256' if key=='report' else 'audit_sha256'
+            assert sha256_file(proof[key])==proof[digest_key]
+            evidence[proof[key]]=proof[digest_key]
+        assert sha256_file(plan['calibration'])==plan['calibration_sha256']
+        calibration=json.loads(Path(plan['calibration']).read_text())
+        assert {k:calibration[k] for k in p['lateral_velocity']}==p['lateral_velocity']
+        evidence[plan['calibration']]=plan['calibration_sha256']
+        tests=plan['tests']
+        assert tests['failed']==0 and tests['passed']>=40 and sha256_file(tests['log'])==tests['sha256']
+        evidence[tests['log']]=tests['sha256']
     if no_tail:
         allowed.add('tail_anchor')
         assert set(plan['allowed_control_protocol_changes'])==allowed
@@ -195,9 +219,20 @@ def main():
         for key in ('policy_observation','critic_observation','pre_root_state','requested_action','emitted_action'):
             np.testing.assert_array_equal(before[key],after[key])
             prefix[key]=0.
-        if self_mean:
+        if self_mean and not velocity:
             assert set(before.files)==set(after.files)
             for key in before.files:np.testing.assert_array_equal(before[key],after[key])
+        if velocity:
+            assert set(after.files)==set(before.files)|{'velocity_root_state','velocity_origins','velocity_target','velocity_cost','velocity_reward'}
+            for key in set(before.files)-{'reward'}:
+                np.testing.assert_array_equal(before[key],after[key])
+            delta=after['velocity_reward']
+            residual=after['reward']-before['reward']-delta
+            np.testing.assert_allclose(after['reward']-before['reward'],delta,atol=3e-6,rtol=1e-4)
+            assert abs(delta).max()>0
+            velocity_prefix=dict(common_fields_except_total_reward_bitwise_equal=True,
+                maximum_total_reward_difference=float(abs(after['reward']-before['reward']).max()),
+                maximum_velocity_only_residual=float(abs(residual).max()))
         if heading:
             if heading_weight:
                 for key in ('heading_root_state','heading_origins','heading_target','heading_cost','heading_zero_target_cost'):
@@ -268,6 +303,21 @@ def main():
             first_rollout_all_recorded_fields_bitwise_equal=True,first_rollout_reward_maximum_difference=0.,
             runtime_sources_equal_to_control=True,
             scope='Only the separate25*tail preservation term removed. Main replay configuration and draw stream, self-mean targets, heading reward and first full rollout unchanged. Stored labels used only in post-training diagnostics; no validation updates.')
+    if velocity:
+        assert fixed_rows==0 and not fixed_targets
+        assert observed['rows']==plan['original_queries']==plan['total_replay_queries']
+        assert all('tail_anchor' not in u['losses'] for u in updates)
+        allowed_sources={'source/rl_training/rl_training/policy_route.py',
+            'scripts/reinforcement_learning/train_lite3_policy.py','scripts/reinforcement_learning/smoke_lite3_recovery_anchor.py'}
+        assert set(r['source_files'])==set(control_report['source_files'])
+        changed={k for k,v in r['source_files'].items() if v!=control_report['source_files'][k]}
+        assert changed==allowed_sources
+        for path,digest_value in r['source_files'].items():assert sha256_file(path)==digest_value
+        result.update(stored_action_target_rows_for_updates=0,tail_replay_rows=0,
+            total_replay_rows=observed['rows'],first_rollout_velocity_difference=velocity_prefix,
+            runtime_changed_files=sorted(changed),
+            offline_correction_mse_to_demonstrated_emitted_action=demo_mse,
+            scope='Only world lateral return velocity reward added. First common rollout fields except total reward bitwise equal; reward delta explained by new component. Same TRAIN self-mean replay/draw stream, no tail or stored action labels in updates. Offline validation diagnostics only.')
     if plan['schema']=='lite3_mean_anchor_length_ablation_v1':
         maxima={key:0. for key in prefix}
         files=sorted((control_root/'trajectory').glob('chunk-*.npz'))
