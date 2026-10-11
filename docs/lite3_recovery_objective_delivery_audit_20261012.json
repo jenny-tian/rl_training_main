@@ -1,0 +1,45 @@
+{
+  "all_failures_and_right_censored_episodes_retained": true,
+  "controls_read": 1048576,
+  "diagnostic_input_hashes_rechecked": 542,
+  "evidence": {
+    "docs/analysis/diagnose_lite3_recovery_objective.py": "58e2b4d63b1e31a6fad250fb89f4e038b11c11a5e55dbfb937ccd1f94fe15908",
+    "docs/figures/lite3-recovery-objective-20261012.png": "5c97385a2705f21adfc855a4d74a3ac65aa29296a1e7c8eca6295343a0d93ce1",
+    "docs/figures/lite3-recovery-objective-20261012.svg": "7dd9bf2249cf0f65b2aa60079fdcc29fd394da5d072b1935f64b68dad19e8586",
+    "docs/lite3-next-experiments-plan-2026-10-06.md": "17781dbff9bffd790a60ea9aa5bb9741d00a69a43e3413f8f1efcf5ae1b09758",
+    "docs/lite3-project-summary-2026-10-08.md": "050e2aaafc9f75fc0f523e842eb1d2e017d9fbfb2398e9f437ecf940394c98e7",
+    "docs/lite3-recovery-objective-result-2026-10-12.md": "f4aa7555a33afd8f78f6e1151b836e44a41ac31b6f373a63ad2573bd16497210",
+    "docs/lite3_experiment_registry.md": "eec0f68df33ec5c735cbd7bb59a5e616f283fa53fbdb81f0bff9a28af69c0e48",
+    "docs/lite3_recovery_objective_diagnostic_20261012.json": "e6e131f99eb5edada13f3305af9f34dad6a1533ba045b2b4ada3a796ac0ebb8e",
+    "tests/online_adaptation/test_policy_lateral_velocity.py": "1f4890cf137018344ca88cb23b894116f83d04108946fdef4c83f5a6523117bb",
+    "tests/online_adaptation/test_policy_recovery_anchor.py": "7554a247344848680f0259c1d95d5bf832b63cb6d74bbde86b31ea98860ffd69",
+    "tests/online_adaptation/test_recovery_objective_diagnostic.py": "6f6a62c4303f872a3b2665cfe64006cefded424201389302ef49471c0fff458d"
+  },
+  "figures_reviewed": true,
+  "limitations": [
+    "Incomplete per-term reward logging; foot-aware lateral penalty cannot be reconstructed.",
+    "Successful and failed trajectories are observational and may cross training updates.",
+    "No saved historic critic/TD/advantage streams; no claim of critic failure.",
+    "Minus5 terminal rescore is arithmetic on unchanged trajectories; no new training or evaluation."
+  ],
+  "new_controls": 0,
+  "optimizer_steps": 0,
+  "paired_training_chunks": 512,
+  "report_local_links": [
+    "docs/figures/lite3-recovery-objective-20261012.png",
+    "docs/analysis/diagnose_lite3_recovery_objective.py",
+    "docs/lite3_recovery_objective_diagnostic_20261012.json",
+    "docs/lite3_recovery_objective_delivery_audit_20261012.json",
+    "docs/lite3-route-history-result-2026-10-10.md"
+  ],
+  "status": "verified",
+  "tests": {
+    "command": "env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=.:source/rl_training /home/tjx/anaconda3/envs/env_isaaclab/bin/python -m pytest -q tests/online_adaptation/test_recovery_objective_diagnostic.py tests/online_adaptation/test_policy_recovery_anchor.py tests/online_adaptation/test_policy_lateral_velocity.py",
+    "existing_reward_tests": 14,
+    "failed": 0,
+    "initial_collection_issue": "Automatic third-party typeguard plugin failed to import NoExtraItems from installed typing_extensions. No tests collected in that attempt. Disabled automatic plugin loading; environment dependencies unchanged.",
+    "new_diagnostic_tests": 8,
+    "observed_stdout": "...................... [100%]\n22 passed in 1.58s",
+    "passed": 22
+  }
+}
