@@ -1,0 +1,58 @@
+{
+  "schema": "lite3_full_ppo_video_extension_v1",
+  "created_at": "2026-10-14T01:47:34.950905+00:00",
+  "scope": "User authorized additional segments and concatenation. Keep existing runs/protocol unchanged. Six preselected first episodes: three models on rough101 and rough107; same seed314159 and8 environment layout. Failures retained, no retry/replacement seed based on outcome. All footage is new Oct14 frozen simulation, separate from original59/60 acceptance.",
+  "evaluation_seed": 314159,
+  "num_envs": 8,
+  "max_controls_all_runs": 96000,
+  "existing_runs": [
+    {
+      "name": "base",
+      "protocol": "docs/lite3_full_ppo_video_base_protocol_20261014.json",
+      "output": "artifacts/full_ppo_video_20261014/base-attempt01",
+      "max_controls": 16000
+    },
+    {
+      "name": "ppo283",
+      "protocol": "docs/lite3_full_ppo_video_ppo283_protocol_20261014.json",
+      "output": "artifacts/full_ppo_video_20261014/ppo283-attempt01",
+      "max_controls": 16000
+    }
+  ],
+  "additional_runs": [
+    {
+      "name": "base",
+      "terrain": 101,
+      "protocol": "docs/lite3_full_ppo_video_base_101_protocol_20261014.json",
+      "output": "artifacts/full_ppo_video_20261014/base-101-attempt01",
+      "max_controls": 16000
+    },
+    {
+      "name": "ppo283",
+      "terrain": 101,
+      "protocol": "docs/lite3_full_ppo_video_ppo283_101_protocol_20261014.json",
+      "output": "artifacts/full_ppo_video_20261014/ppo283-101-attempt01",
+      "max_controls": 16000
+    },
+    {
+      "name": "ppo307",
+      "terrain": 101,
+      "protocol": "docs/lite3_full_ppo_video_ppo307_101_protocol_20261014.json",
+      "output": "artifacts/full_ppo_video_20261014/ppo307-101-attempt01",
+      "max_controls": 16000
+    },
+    {
+      "name": "ppo307",
+      "terrain": 107,
+      "protocol": "docs/lite3_full_ppo_video_ppo307_107_protocol_20261014.json",
+      "output": "artifacts/full_ppo_video_20261014/ppo307-107-attempt01",
+      "max_controls": 16000
+    }
+  ],
+  "montage": {
+    "playback_rate": 2,
+    "panels": "Same terrain base vs PPO283; independent PPO307 on101/107",
+    "shorter_panel": "Hold final pre-termination frame and show result; never display reset frame",
+    "include_full_segments": true
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 8,
+  "steps": 2000,
+  "max_controls": 16000,
+  "evaluation_seed": 314159,
+  "conditions": [
+    "course"
+  ],
+  "models": {
+    "ppo283": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+      "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+    }
+  },
+  "scope": "User authorized additional segments and concatenation. Keep existing runs/protocol unchanged. Six preselected first episodes: three models on rough101 and rough107; same seed314159 and8 environment layout. Failures retained, no retry/replacement seed based on outcome. All footage is new Oct14 frozen simulation, separate from original59/60 acceptance.",
+  "acceptance": "Visualization only, no retraining/qualification",
+  "video": {
+    "env_id": 2,
+    "width": 960,
+    "height": 540,
+    "stride": 2,
+    "eye": [
+      -1.6,
+      -1.6,
+      1.05
+    ],
+    "lookat": [
+      0.3,
+      0,
+      0
+    ],
+    "label": "FULL PPO FINETUNE | learning seed283"
+  }
+}
