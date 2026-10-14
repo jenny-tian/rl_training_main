@@ -1,0 +1,863 @@
+{
+  "schema": "template_fill_pptx_library.v1",
+  "source_pptx": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/projects/lite3_weekly_1001_1007_ppt43_20261014/sources/田家鑫_9.24-9.30_工作汇报_4页_20261008_092148.pptx",
+  "slide_count": 4,
+  "canvas_px": {
+    "width": 960,
+    "height": 720
+  },
+  "slides": [
+    {
+      "slide_index": 1,
+      "page_type": "cover_candidate",
+      "text_summary": "机器人组 田家鑫组会汇报\n2026.9.24—9.30",
+      "slots": [
+        {
+          "slot_id": "s01_sh105",
+          "role": "title_candidate",
+          "text": "机器人组 田家鑫组会汇报\n2026.9.24—9.30",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 47,
+            "y": 480,
+            "width": 866,
+            "height": 136
+          },
+          "text_metrics": {
+            "font_size_px": 37.33,
+            "paragraph_count": 2
+          }
+        }
+      ],
+      "tables": [],
+      "charts": [],
+      "diagrams": []
+    },
+    {
+      "slide_index": 2,
+      "page_type": "content_candidate",
+      "text_summary": "本周完成的修改与验证\n2\n修正扫描方向\n9/24\n统一基础策略\n9/28\n修复学习与部署\n9/29—30\n减少控制开销\n9/29—30\n扫描修复：把读反的前后、左右方向改为横向 15 行 × 前向 23 列。通过基础检查；旧教师尚未合格，暂停长训练，未把修复等同于行走提升。\n统一基线：排查网络初始化影响执行器延迟、动作舍入两类差异。修复后，LoRA / SAC 两入口在 5 个地形的观测、动作和物理轨迹逐步一致；同时统一奖励、终止、预算和恢复规则。\nSAC 修复：冻结测试真正执行已学残差；预热目标增益固定 0.5，恢复不重复预热；加入 Huber 损失候选，处理合法成功奖励触发守卫的问题。\n控制开销：缓存固定动作边界、合并 GPU 标量回传。9/30 对照共 30,509 控制步无超时；9/29 曾出现 1 次超时，仍需持续检查。这些修复保证比较可靠，尚不代表学习收益。",
+      "slots": [
+        {
+          "slot_id": "s02_sh112",
+          "role": "title_candidate",
+          "text": "本周完成的修改与验证",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh114",
+          "role": "label_candidate",
+          "text": "2",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh115",
+          "role": "label_candidate",
+          "text": "修正扫描方向\n9/24",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 62,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh117",
+          "role": "label_candidate",
+          "text": "统一基础策略\n9/28",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 278,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh119",
+          "role": "label_candidate",
+          "text": "修复学习与部署\n9/29—30",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 494,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh121",
+          "role": "label_candidate",
+          "text": "减少控制开销\n9/29—30",
+          "paragraph_count": 2,
+          "geometry": {
+            "x": 710,
+            "y": 185,
+            "width": 187,
+            "height": 79
+          },
+          "text_metrics": {
+            "font_size_px": 22.0,
+            "paragraph_count": 2
+          }
+        },
+        {
+          "slot_id": "s02_sh122",
+          "role": "label_candidate",
+          "text": "扫描修复：把读反的前后、左右方向改为横向 15 行 × 前向 23 列。通过基础检查；旧教师尚未合格，暂停长训练，未把修复等同于行走提升。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 292,
+            "width": 835,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh123",
+          "role": "label_candidate",
+          "text": "统一基线：排查网络初始化影响执行器延迟、动作舍入两类差异。修复后，LoRA / SAC 两入口在 5 个地形的观测、动作和物理轨迹逐步一致；同时统一奖励、终止、预算和恢复规则。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 361,
+            "width": 835,
+            "height": 85
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh124",
+          "role": "label_candidate",
+          "text": "SAC 修复：冻结测试真正执行已学残差；预热目标增益固定 0.5，恢复不重复预热；加入 Huber 损失候选，处理合法成功奖励触发守卫的问题。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 457,
+            "width": 835,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s02_sh125",
+          "role": "label_candidate",
+          "text": "控制开销：缓存固定动作边界、合并 GPU 标量回传。9/30 对照共 30,509 控制步无超时；9/29 曾出现 1 次超时，仍需持续检查。这些修复保证比较可靠，尚不代表学习收益。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 526,
+            "width": 835,
+            "height": 85
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        }
+      ],
+      "tables": [],
+      "charts": [],
+      "diagrams": []
+    },
+    {
+      "slide_index": 3,
+      "page_type": "content_candidate",
+      "text_summary": "检验速度历史能否改善价值预测\n3\n9/29 做法：将完整回合分为训练与验证，发现训练拟合好、换起点仍不稳。随后增加过去的速度信息，用 4 个全新回合检验。下表为预测误差（RMSE），越低越好。\n9/29 独立确认：每地形 2 个新回合；模型与参数提前固定，未按结果追加调参。\n地形\n原模型 → 加入速度历史\n独立确认结果\n101\n80.386 → 79.709\n仅小幅降低\n107\n38.789 → 39.248\n误差增加；时间基线 27.535\n结论\n两种地形未同时改善\n不采用该候选；继续查泛化",
+      "slots": [
+        {
+          "slot_id": "s03_sh112",
+          "role": "title_candidate",
+          "text": "检验速度历史能否改善价值预测",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh114",
+          "role": "label_candidate",
+          "text": "3",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh115",
+          "role": "label_candidate",
+          "text": "9/29 做法：将完整回合分为训练与验证，发现训练拟合好、换起点仍不稳。随后增加过去的速度信息，用 4 个全新回合检验。下表为预测误差（RMSE），越低越好。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 187,
+            "width": 835,
+            "height": 87
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh117",
+          "role": "label_candidate",
+          "text": "9/29 独立确认：每地形 2 个新回合；模型与参数提前固定，未按结果追加调参。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 616,
+            "width": 835,
+            "height": 44
+          },
+          "text_metrics": {
+            "font_size_px": 17.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s03_sh116",
+          "role": "body_candidate",
+          "text": "地形\n原模型 → 加入速度历史\n独立确认结果\n101\n80.386 → 79.709\n仅小幅降低\n107\n38.789 → 39.248\n误差增加；时间基线 27.535\n结论\n两种地形未同时改善\n不采用该候选；继续查泛化",
+          "paragraph_count": 12,
+          "geometry": {
+            "x": 62,
+            "y": 311,
+            "width": 835,
+            "height": 253
+          },
+          "text_metrics": {
+            "font_size_px": 20.67,
+            "paragraph_count": 12
+          }
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "s03_tbl116",
+          "row_count": 4,
+          "column_count": 3,
+          "rows": [
+            {
+              "row": 0,
+              "cells": [
+                {
+                  "row": 0,
+                  "col": 0,
+                  "text": "地形",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 0,
+                  "col": 1,
+                  "text": "原模型 → 加入速度历史",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 0,
+                  "col": 2,
+                  "text": "独立确认结果",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 2
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "cells": [
+                {
+                  "row": 1,
+                  "col": 0,
+                  "text": "101",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 1,
+                  "col": 1,
+                  "text": "80.386 → 79.709",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 1,
+                  "col": 2,
+                  "text": "仅小幅降低",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 2
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "cells": [
+                {
+                  "row": 2,
+                  "col": 0,
+                  "text": "107",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 2,
+                  "col": 1,
+                  "text": "38.789 → 39.248",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 2,
+                  "col": 2,
+                  "text": "误差增加；时间基线 27.535",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 2
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "cells": [
+                {
+                  "row": 3,
+                  "col": 0,
+                  "text": "结论",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 3,
+                  "col": 1,
+                  "text": "两种地形未同时改善",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 1
+                },
+                {
+                  "row": 3,
+                  "col": 2,
+                  "text": "不采用该候选；继续查泛化",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 2
+                }
+              ]
+            }
+          ],
+          "merge_topology": {
+            "has_merges": false,
+            "anchors": [],
+            "slave_cells": []
+          }
+        }
+      ],
+      "charts": [],
+      "diagrams": [],
+      "fill_risk": {
+        "has_non_text_content": true,
+        "kinds": [
+          "table"
+        ],
+        "reason": "has non-text content (table) that text-fill does not replace automatically; cover tables/charts with explicit edits"
+      }
+    },
+    {
+      "slide_index": 4,
+      "page_type": "ending_candidate",
+      "text_summary": "对比策略更新次数与冻结行走效果\n4\n9/30 · 4 cm 粗糙地形 101 / 107 · 冻结前进距离（m）\n单因素对照：只把 actor 更新额度从 0.005 提高到 0.25。地形 101 / 107 的实际更新从 3 / 2 次增至 176 / 182 次，critic 额度和其他主要条件保持一致。\n实际结果：低额度参考配置都完成约 8 m；高额度配置分别在 6.87 m 横向越界、5.90 m 跌倒。更新更多没有带来任务收益，保留原默认额度。\n结果边界：每地形仅 1 个学习种子、1 个评估起点。本轮未另采冻结 base 对照，参考配置完成任务不能直接解释为相对 base 的适应提升。\n高额度配置\n冻结结果\n101：176 次更新\n横向越界\n107：182 次更新\n跌倒\n本轮决定\n保留原额度",
+      "slots": [
+        {
+          "slot_id": "s04_sh112",
+          "role": "title_candidate",
+          "text": "对比策略更新次数与冻结行走效果",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 58,
+            "y": 103,
+            "width": 845,
+            "height": 57
+          },
+          "text_metrics": {
+            "font_size_px": 38.67,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh114",
+          "role": "label_candidate",
+          "text": "4",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 876,
+            "y": 681,
+            "width": 33,
+            "height": 19
+          },
+          "text_metrics": {
+            "font_size_px": 13.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh115",
+          "role": "label_candidate",
+          "text": "9/30 · 4 cm 粗糙地形 101 / 107 · 冻结前进距离（m）",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 63,
+            "y": 179,
+            "width": 835,
+            "height": 31
+          },
+          "text_metrics": {
+            "font_size_px": 21.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh118",
+          "role": "label_candidate",
+          "text": "单因素对照：只把 actor 更新额度从 0.005 提高到 0.25。地形 101 / 107 的实际更新从 3 / 2 次增至 176 / 182 次，critic 额度和其他主要条件保持一致。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 409,
+            "width": 835,
+            "height": 82
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh119",
+          "role": "label_candidate",
+          "text": "实际结果：低额度参考配置都完成约 8 m；高额度配置分别在 6.87 m 横向越界、5.90 m 跌倒。更新更多没有带来任务收益，保留原默认额度。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 502,
+            "width": 835,
+            "height": 56
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh120",
+          "role": "label_candidate",
+          "text": "结果边界：每地形仅 1 个学习种子、1 个评估起点。本轮未另采冻结 base 对照，参考配置完成任务不能直接解释为相对 base 的适应提升。",
+          "paragraph_count": 1,
+          "geometry": {
+            "x": 62,
+            "y": 568,
+            "width": 835,
+            "height": 56
+          },
+          "text_metrics": {
+            "font_size_px": 23.33,
+            "paragraph_count": 1
+          }
+        },
+        {
+          "slot_id": "s04_sh117",
+          "role": "body_candidate",
+          "text": "高额度配置\n冻结结果\n101：176 次更新\n横向越界\n107：182 次更新\n跌倒\n本轮决定\n保留原额度",
+          "paragraph_count": 8,
+          "geometry": {
+            "x": 552,
+            "y": 214,
+            "width": 346,
+            "height": 166
+          },
+          "text_metrics": {
+            "font_size_px": 20.0,
+            "paragraph_count": 8
+          }
+        }
+      ],
+      "tables": [
+        {
+          "table_id": "s04_tbl117",
+          "row_count": 4,
+          "column_count": 2,
+          "rows": [
+            {
+              "row": 0,
+              "cells": [
+                {
+                  "row": 0,
+                  "col": 0,
+                  "text": "高额度配置",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 0,
+                  "col": 1,
+                  "text": "冻结结果",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 0,
+                  "anchor_col": 1
+                }
+              ]
+            },
+            {
+              "row": 1,
+              "cells": [
+                {
+                  "row": 1,
+                  "col": 0,
+                  "text": "101：176 次更新",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 1,
+                  "col": 1,
+                  "text": "横向越界",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 1,
+                  "anchor_col": 1
+                }
+              ]
+            },
+            {
+              "row": 2,
+              "cells": [
+                {
+                  "row": 2,
+                  "col": 0,
+                  "text": "107：182 次更新",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 2,
+                  "col": 1,
+                  "text": "跌倒",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 2,
+                  "anchor_col": 1
+                }
+              ]
+            },
+            {
+              "row": 3,
+              "cells": [
+                {
+                  "row": 3,
+                  "col": 0,
+                  "text": "本轮决定",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 0
+                },
+                {
+                  "row": 3,
+                  "col": 1,
+                  "text": "保留原额度",
+                  "merge_role": "none",
+                  "is_merge_anchor": false,
+                  "is_merge_slave": false,
+                  "row_span": 1,
+                  "col_span": 1,
+                  "h_merge": false,
+                  "v_merge": false,
+                  "anchor_row": 3,
+                  "anchor_col": 1
+                }
+              ]
+            }
+          ],
+          "merge_topology": {
+            "has_merges": false,
+            "anchors": [],
+            "slave_cells": []
+          }
+        }
+      ],
+      "charts": [
+        {
+          "chart_id": "s04_ch116",
+          "chart_type": "barChart",
+          "category_count": 4,
+          "series_count": 1,
+          "categories": [
+            "101 参考",
+            "101 高额度",
+            "107 参考",
+            "107 高额度"
+          ],
+          "series": [
+            {
+              "name": "冻结前进距离（m）",
+              "values": [
+                8.00099,
+                6.87035,
+                8.00088,
+                5.89782
+              ],
+              "chart_type": "barChart"
+            }
+          ],
+          "chart_kind": "classic",
+          "plot_types": [
+            "barChart"
+          ],
+          "edit_capability": {
+            "supported": true,
+            "code": "chart_edit_category_single_plot",
+            "message": "single classic plot uses c:cat/c:val series",
+            "plot_type": "barChart",
+            "plot_count": 1,
+            "data_model": "category",
+            "warnings": []
+          }
+        }
+      ],
+      "diagrams": [],
+      "fill_risk": {
+        "has_non_text_content": true,
+        "kinds": [
+          "table",
+          "chart"
+        ],
+        "reason": "has non-text content (table/chart) that text-fill does not replace automatically; cover tables/charts with explicit edits"
+      }
+    }
+  ],
+  "plan_contract": {
+    "schema": "template_fill_pptx_plan.v1",
+    "slides": [
+      {
+        "source_slide": 1,
+        "purpose": "封面 / 章节 / 内容 / 结尾",
+        "replacements": [
+          {
+            "slot_id": "s01_sh2",
+            "text": "替换后的文字"
+          }
+        ],
+        "table_edits": [
+          {
+            "table_id": "s01_tbl3",
+            "cells": [
+              {
+                "row": 0,
+                "col": 0,
+                "text": "替换后的单元格"
+              }
+            ]
+          }
+        ],
+        "chart_edits": [
+          {
+            "chart_id": "s01_ch4",
+            "categories": [
+              "A",
+              "B"
+            ],
+            "series": [
+              {
+                "name": "系列1",
+                "values": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
