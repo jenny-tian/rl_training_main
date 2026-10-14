@@ -7,3 +7,7 @@
 `sources/`保存模板与依据；`analysis/`保存布局分析和填充计划；`exports/`仅保存最终PPTX；`validation/`保存读回、PDF预览与检查记录。
 
 计划由`analysis/create_fill_plan.py`生成，使用ppt-master的`template_fill_pptx.py`检查、填充和验证。原模板只读，生成新文件。
+
+10/14视频版新增第3页，合计5页：封面、工作概览、完整PPO视频、原完整PPO结果表、恢复采样实验。六段新冻结演示以3章并排拼接，2倍速、52.2秒；包含模型283在rough101的失败。补录与原59/60验收分开，未添加10/8之后的训练成果。
+
+新版导出文件带`5页_含完整PPO视频`。媒体位于`media/`，原速分段在`media/原速分段/`（本地保留），放映时点击第3页画面播放；PDF只有poster。`analysis/build_video_montage.py`与`embed_montage_in_ppt.py`记录拼接和原生媒体页生成。旧4页版保持。

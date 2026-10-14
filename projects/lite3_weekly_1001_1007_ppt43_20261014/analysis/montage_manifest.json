@@ -1,0 +1,192 @@
+{
+  "output": "media/完整PPO微调_六段拼接对比_2倍速_20261014.mp4",
+  "sha256": "1c58cace777c9e931f4c738f2290de9441dcae22705772cafdba865997ac6514",
+  "poster": "media/完整PPO微调_演示封面.png",
+  "probe": {
+    "width": 1440,
+    "height": 720,
+    "avg_frame_rate": "25/1",
+    "duration": "52.200000",
+    "nb_frames": "1305"
+  },
+  "timeline": [
+    {
+      "chapter": 1,
+      "title": "01 · rough101：原平地 PPO / 完整 PPO 微调",
+      "start_s": 0,
+      "duration_s": 18.92,
+      "left": {
+        "run": "base-101-attempt01",
+        "model": "base"
+      },
+      "right": {
+        "run": "ppo283-101-attempt01",
+        "model": "ppo283"
+      }
+    },
+    {
+      "chapter": 2,
+      "title": "02 · rough107：原平地 PPO / 完整 PPO 微调",
+      "start_s": 18.92,
+      "duration_s": 17.04,
+      "left": {
+        "run": "base-attempt01",
+        "model": "base"
+      },
+      "right": {
+        "run": "ppo283-attempt01",
+        "model": "ppo283"
+      }
+    },
+    {
+      "chapter": 3,
+      "title": "03 · 独立微调模型307：两种崎岖地形",
+      "start_s": 35.96,
+      "duration_s": 16.24,
+      "left": {
+        "run": "ppo307-101-attempt01",
+        "model": "ppo307"
+      },
+      "right": {
+        "run": "ppo307-107-attempt01",
+        "model": "ppo307"
+      }
+    }
+  ],
+  "original_segments": [
+    {
+      "key": "base101",
+      "file": "media/原速分段/base101_原速.mp4",
+      "sha256": "cc760698f7fda437fabb7791d207a07473ff5371e3d6128f6d310e4f5bccc487",
+      "episode": {
+        "body_lateral_rms_m": 0.16546301543712616,
+        "case": -1,
+        "deadline": false,
+        "env_id": 2,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.4089927673339844,
+        "recovery_success": true,
+        "steps": 1739,
+        "success": true,
+        "terrain": "101"
+      },
+      "duration_s": 34.8
+    },
+    {
+      "key": "base107",
+      "file": "media/原速分段/base107_原速.mp4",
+      "sha256": "1f5347a6494e0aebabfce08c3611710a3442cb87133fdd96ef6a12c942d24687",
+      "episode": {
+        "body_lateral_rms_m": 0.3263362944126129,
+        "case": -1,
+        "deadline": false,
+        "env_id": 5,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.6280021667480469,
+        "recovery_success": true,
+        "steps": 1554,
+        "success": true,
+        "terrain": "107"
+      },
+      "duration_s": 31.08
+    },
+    {
+      "key": "ppo283101",
+      "file": "media/原速分段/ppo283101_原速.mp4",
+      "sha256": "ca9a8bc8b75f970165319e392092dcfb88012f6fe59100bbed0c049df6ae6bb8",
+      "episode": {
+        "body_lateral_rms_m": 0.09924157708883286,
+        "case": -1,
+        "deadline": false,
+        "env_id": 2,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": true
+        },
+        "max_body_lateral_m": 0.3809475898742676,
+        "recovery_success": false,
+        "steps": 1079,
+        "success": false,
+        "terrain": "101"
+      },
+      "duration_s": 21.6
+    },
+    {
+      "key": "ppo283107",
+      "file": "media/原速分段/ppo283107_原速.mp4",
+      "sha256": "bda01b55f2f98413cba738d4ce6d4a7be78d2cce7998c095797720d0b873b4d9",
+      "episode": {
+        "body_lateral_rms_m": 0.12968596816062927,
+        "case": -1,
+        "deadline": false,
+        "env_id": 5,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.20174598693847656,
+        "recovery_success": true,
+        "steps": 1367,
+        "success": true,
+        "terrain": "107"
+      },
+      "duration_s": 27.36
+    },
+    {
+      "key": "ppo307101",
+      "file": "media/原速分段/ppo307101_原速.mp4",
+      "sha256": "ccdaf833f78b70c5414b4eb2b34917749599f32c7a2970616b7fe35bc9c86bea",
+      "episode": {
+        "body_lateral_rms_m": 0.09996781498193741,
+        "case": -1,
+        "deadline": false,
+        "env_id": 2,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.1730823516845703,
+        "recovery_success": true,
+        "steps": 1356,
+        "success": true,
+        "terrain": "101"
+      },
+      "duration_s": 27.12
+    },
+    {
+      "key": "ppo307107",
+      "file": "media/原速分段/ppo307107_原速.mp4",
+      "sha256": "b204ff5b0744680c910ba0aded8915f30f785c5a249c283da574b638a724e535",
+      "episode": {
+        "body_lateral_rms_m": 0.23767991364002228,
+        "case": -1,
+        "deadline": false,
+        "env_id": 5,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.4771084785461426,
+        "recovery_success": true,
+        "steps": 1473,
+        "success": true,
+        "terrain": "107"
+      },
+      "duration_s": 29.48
+    }
+  ],
+  "playback_rate": 2,
+  "footage": "New Oct14 frozen-model runs; original acceptance remains59/60. No seed or model replacement."
+}

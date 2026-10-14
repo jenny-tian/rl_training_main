@@ -1,0 +1,218 @@
+{
+  "schema": "lite3_full_ppo_video_audit_v1",
+  "runs": [
+    {
+      "name": "base",
+      "terrain": "107",
+      "output": "artifacts/full_ppo_video_20261014/base-attempt01",
+      "episode": {
+        "body_lateral_rms_m": 0.3263362944126129,
+        "case": -1,
+        "deadline": false,
+        "env_id": 5,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.6280021667480469,
+        "recovery_success": true,
+        "steps": 1554,
+        "success": true,
+        "terrain": "107"
+      },
+      "initial_sha256": "39d48d2e892491b1b9ad9abda8747f0c22d9596ed9f70c4d8159491564c10779",
+      "model_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "video": {
+        "env_id": 5,
+        "frames": 777,
+        "path": "artifacts/full_ppo_video_20261014/base-attempt01/course-base/demo.mp4",
+        "scope": "New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.",
+        "sha256": "1f5347a6494e0aebabfce08c3611710a3442cb87133fdd96ef6a12c942d24687"
+      },
+      "cpu_action_samples": 80,
+      "cpu_actions_verified": true,
+      "metrics_recomputed": true,
+      "action_history_verified": true
+    },
+    {
+      "name": "ppo283",
+      "terrain": "107",
+      "output": "artifacts/full_ppo_video_20261014/ppo283-attempt01",
+      "episode": {
+        "body_lateral_rms_m": 0.12968596816062927,
+        "case": -1,
+        "deadline": false,
+        "env_id": 5,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.20174598693847656,
+        "recovery_success": true,
+        "steps": 1367,
+        "success": true,
+        "terrain": "107"
+      },
+      "initial_sha256": "39d48d2e892491b1b9ad9abda8747f0c22d9596ed9f70c4d8159491564c10779",
+      "model_sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894",
+      "video": {
+        "env_id": 5,
+        "frames": 684,
+        "path": "artifacts/full_ppo_video_20261014/ppo283-attempt01/course-ppo283/demo.mp4",
+        "scope": "New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.",
+        "sha256": "bda01b55f2f98413cba738d4ce6d4a7be78d2cce7998c095797720d0b873b4d9"
+      },
+      "cpu_action_samples": 80,
+      "cpu_actions_verified": true,
+      "metrics_recomputed": true,
+      "action_history_verified": true
+    },
+    {
+      "name": "base",
+      "terrain": "101",
+      "output": "artifacts/full_ppo_video_20261014/base-101-attempt01",
+      "episode": {
+        "body_lateral_rms_m": 0.16546301543712616,
+        "case": -1,
+        "deadline": false,
+        "env_id": 2,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.4089927673339844,
+        "recovery_success": true,
+        "steps": 1739,
+        "success": true,
+        "terrain": "101"
+      },
+      "initial_sha256": "39d48d2e892491b1b9ad9abda8747f0c22d9596ed9f70c4d8159491564c10779",
+      "model_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "video": {
+        "env_id": 2,
+        "frames": 870,
+        "path": "artifacts/full_ppo_video_20261014/base-101-attempt01/course-base/demo.mp4",
+        "scope": "New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.",
+        "sha256": "cc760698f7fda437fabb7791d207a07473ff5371e3d6128f6d310e4f5bccc487"
+      },
+      "cpu_action_samples": 80,
+      "cpu_actions_verified": true,
+      "metrics_recomputed": true,
+      "action_history_verified": true
+    },
+    {
+      "name": "ppo283",
+      "terrain": "101",
+      "output": "artifacts/full_ppo_video_20261014/ppo283-101-attempt01",
+      "episode": {
+        "body_lateral_rms_m": 0.09924157708883286,
+        "case": -1,
+        "deadline": false,
+        "env_id": 2,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": true
+        },
+        "max_body_lateral_m": 0.3809475898742676,
+        "recovery_success": false,
+        "steps": 1079,
+        "success": false,
+        "terrain": "101"
+      },
+      "initial_sha256": "39d48d2e892491b1b9ad9abda8747f0c22d9596ed9f70c4d8159491564c10779",
+      "model_sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894",
+      "video": {
+        "env_id": 2,
+        "frames": 540,
+        "path": "artifacts/full_ppo_video_20261014/ppo283-101-attempt01/course-ppo283/demo.mp4",
+        "scope": "New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.",
+        "sha256": "ca9a8bc8b75f970165319e392092dcfb88012f6fe59100bbed0c049df6ae6bb8"
+      },
+      "cpu_action_samples": 80,
+      "cpu_actions_verified": true,
+      "metrics_recomputed": true,
+      "action_history_verified": true
+    },
+    {
+      "name": "ppo307",
+      "terrain": "101",
+      "output": "artifacts/full_ppo_video_20261014/ppo307-101-attempt01",
+      "episode": {
+        "body_lateral_rms_m": 0.09996781498193741,
+        "case": -1,
+        "deadline": false,
+        "env_id": 2,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.1730823516845703,
+        "recovery_success": true,
+        "steps": 1356,
+        "success": true,
+        "terrain": "101"
+      },
+      "initial_sha256": "39d48d2e892491b1b9ad9abda8747f0c22d9596ed9f70c4d8159491564c10779",
+      "model_sha256": "05f5fd60e291aae2d919c5f5836c040af6a60292e700c390f9bf867781ce020d",
+      "video": {
+        "env_id": 2,
+        "frames": 678,
+        "path": "artifacts/full_ppo_video_20261014/ppo307-101-attempt01/course-ppo307/demo.mp4",
+        "scope": "New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.",
+        "sha256": "ccdaf833f78b70c5414b4eb2b34917749599f32c7a2970616b7fe35bc9c86bea"
+      },
+      "cpu_action_samples": 80,
+      "cpu_actions_verified": true,
+      "metrics_recomputed": true,
+      "action_history_verified": true
+    },
+    {
+      "name": "ppo307",
+      "terrain": "107",
+      "output": "artifacts/full_ppo_video_20261014/ppo307-107-attempt01",
+      "episode": {
+        "body_lateral_rms_m": 0.23767991364002228,
+        "case": -1,
+        "deadline": false,
+        "env_id": 5,
+        "failure_terms": {
+          "contact": false,
+          "lateral": false,
+          "orientation": false
+        },
+        "max_body_lateral_m": 0.4771084785461426,
+        "recovery_success": true,
+        "steps": 1473,
+        "success": true,
+        "terrain": "107"
+      },
+      "initial_sha256": "39d48d2e892491b1b9ad9abda8747f0c22d9596ed9f70c4d8159491564c10779",
+      "model_sha256": "05f5fd60e291aae2d919c5f5836c040af6a60292e700c390f9bf867781ce020d",
+      "video": {
+        "env_id": 5,
+        "frames": 737,
+        "path": "artifacts/full_ppo_video_20261014/ppo307-107-attempt01/course-ppo307/demo.mp4",
+        "scope": "New frozen-policy simulation run; not footage of the original evaluation. Pre-action frames, first episode only.",
+        "sha256": "b204ff5b0744680c910ba0aded8915f30f785c5a249c283da574b638a724e535"
+      },
+      "cpu_action_samples": 80,
+      "cpu_actions_verified": true,
+      "metrics_recomputed": true,
+      "action_history_verified": true
+    }
+  ],
+  "charged": 73936,
+  "confirmed": 73936,
+  "uncertain": 0,
+  "training_updates": 0,
+  "scope": "Preselected new demonstration episodes; not original59/60 footage or new qualification trials.",
+  "status": "verified",
+  "initial_states_and_actuator_delays_matched": true,
+  "run_count": 6,
+  "maximum_controls": 96000
+}
