@@ -1,0 +1,37 @@
+{
+  "schema": "lite3_recovery_teacher_evaluation_v1",
+  "task": "PolicyLearning-Deeprobotics-Lite3-v0",
+  "num_envs": 8,
+  "steps": 2000,
+  "max_controls": 16000,
+  "evaluation_seed": 314159,
+  "conditions": [
+    "course"
+  ],
+  "models": {
+    "ppo283": {
+      "kind": "ppo",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-policy-learning/artifacts/full_policy_flat_anchor_20261002/train/final.pt",
+      "sha256": "5f75f26340f6c98002bb105cd62932c0e6e0542fe12ff936a43cac365867d894"
+    }
+  },
+  "scope": "New visualization only. Same simulator initial state, material, actuator delays and commands required. Same terrain is within original development distribution. Preserve filmed first episode regardless of result. No replacement seeds, re-training or candidate checkpoint selection. Eight physical slots charged per control including padding. Not a replication of original59/60 protocol.",
+  "acceptance": "Visualization and trace audit only; not additional original acceptance trials.",
+  "video": {
+    "env_id": 5,
+    "width": 960,
+    "height": 540,
+    "stride": 2,
+    "eye": [
+      -1.6,
+      -1.6,
+      1.05
+    ],
+    "lookat": [
+      0.3,
+      0,
+      0
+    ],
+    "label": "FULL PPO FINETUNE | learning seed283"
+  }
+}
