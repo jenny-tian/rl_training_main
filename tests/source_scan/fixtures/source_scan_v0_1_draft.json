@@ -1,0 +1,1370 @@
+{
+  "schema_version": "source_qualification_scan_manifest_v0.1",
+  "manifest_id": "lite3_source_qualification_scan_20261021_draft",
+  "status": "draft_not_for_run",
+  "execution_authorized": false,
+  "created_date": "2026-10-21",
+  "timezone": "Asia/Shanghai",
+  "plan_document": "/home/tjx/rl_training_main/Lite3_v2.3_Fresh_C1a_20261021.md",
+  "purpose": "冻结 model_1998.pt 的 Source Terrain 能力边界候选扫描；结果只用于 source 范围资格化，不进入 PPO 更新。",
+  "research_boundary": {
+    "policy": "model_1998.pt frozen inference only",
+    "observation_contract": "45D proprioceptive policy observation; no height scan or privileged terrain observation",
+    "action_contract": "existing 12D joint action and deployment-matched action scaling; no online adapter/residual update",
+    "target_speed_mps": 0.3,
+    "control_frequency_hz": 50,
+    "control_period_s": 0.02,
+    "max_steps_per_episode": 2000,
+    "max_duration_s": 40.0,
+    "command": {
+      "lin_vel_x_mps": 0.3,
+      "lin_vel_y_mps": 0.0,
+      "ang_vel_z_rps": 0.0
+    },
+    "dynamics_profile": "deployment_matched_frozen; exact config hash must be locked before execution",
+    "online_update": false,
+    "checkpoint_selection": "none; scan is read-only"
+  },
+  "base_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+    "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "expected_policy_family": "Lite3 flat PPO",
+    "verification_required_at_runtime": true
+  },
+  "terrain_families": [
+    {
+      "name": "flat",
+      "pilot_training_share": 0.1,
+      "source_boundary": "plane; variation axes must remain registered separately"
+    },
+    {
+      "name": "multi_scale_rough",
+      "pilot_training_share": 0.2,
+      "source_boundary": "correlated continuous multi-band height field; not discrete rocky blocks"
+    },
+    {
+      "name": "slope",
+      "pilot_training_share": 0.2,
+      "source_boundary": "continuous uphill/downhill/cross-slope track"
+    },
+    {
+      "name": "multi_step_stairs",
+      "pilot_training_share": 0.25,
+      "source_boundary": "straight continuous ascending/descending stairs; stairs family is Source, not sealed-unseen"
+    },
+    {
+      "name": "slope_plus_rough",
+      "pilot_training_share": 0.15,
+      "source_boundary": "audited continuous slope with bounded roughness"
+    },
+    {
+      "name": "friction_variation",
+      "pilot_training_share": 0.1,
+      "source_boundary": "spatial material regions; distinguish from whole-episode friction randomization"
+    }
+  ],
+  "difficulty_levels": {
+    "interpretation": "all numeric values are candidate scan values, not approved training limits",
+    "multi_scale_rough": {
+      "L1": "local peak-valley about 2 cm",
+      "L2": "about 3 cm",
+      "L3": "about 4 cm"
+    },
+    "slope": {
+      "L1": "5 deg",
+      "L2": "8 deg",
+      "L3": "12 deg"
+    },
+    "multi_step_stairs": {
+      "L1": "3 steps at about 2 cm",
+      "L2": "4-6 steps at about 3-4 cm",
+      "L3": "4-6 steps up to about 5 cm"
+    },
+    "slope_plus_rough": {
+      "L1": "5 deg + about 1 cm",
+      "L2": "8 deg + about 1.5 cm",
+      "L3": "10 deg + about 2 cm"
+    },
+    "friction_variation": {
+      "L1": "0.7-1.0",
+      "L2": "0.5-1.0",
+      "L3": "0.3-1.0"
+    },
+    "flat": {
+      "L1": "nominal plane",
+      "L2": "registered reset variation",
+      "L3": "registered mild dynamics variation"
+    }
+  },
+  "episode_protocol": {
+    "episodes_per_cell": 5,
+    "fixed_before_first_run": [
+      "terrain generator code and geometry audit version",
+      "dynamics config and material model hash",
+      "checkpoint SHA-256 and normalizer/action-scale hashes",
+      "reset pose, command, safety configuration, and termination contract",
+      "seed assignment and output path"
+    ],
+    "early_stop": "no result-driven early stopping; every registered episode is attempted unless a safety stop occurs",
+    "additional_samples": "forbidden in the first pass; any extension requires a new manifest revision and disjoint seeds",
+    "partial_progress_is_success": false
+  },
+  "seed_plan": {
+    "allocation": "each cell has five geometry seeds and five independently paired dynamics seeds; ranges are disjoint",
+    "geometry_partition": [
+      10000,
+      19999
+    ],
+    "dynamics_partition": [
+      20000,
+      29999
+    ],
+    "source_train_reserved_partition": {
+      "geometry": [
+        30000,
+        39999
+      ],
+      "dynamics": [
+        40000,
+        49999
+      ]
+    },
+    "development_reserved_partition": {
+      "geometry": [
+        50000,
+        59999
+      ],
+      "dynamics": [
+        60000,
+        69999
+      ]
+    },
+    "sealed_reserved_partition": {
+      "geometry": [
+        90000,
+        99999
+      ],
+      "dynamics": [
+        100000,
+        109999
+      ]
+    },
+    "reuse_policy": "scan seeds cannot be reused for source train/validation, development headroom, independent probes, C1 online curves, or sealed evaluation",
+    "cell_count": 45,
+    "cells": [
+      {
+        "cell_id": "flat_L1_forward_flat",
+        "terrain_family": "flat",
+        "level": 1,
+        "direction_or_layout": "forward_flat",
+        "candidate_parameters": {
+          "geometry": "plane",
+          "forward_speed_mps": 0.3,
+          "reset_profile": "deployment_matched_nominal",
+          "candidate_status": "baseline_reference"
+        },
+        "geometry_seed_range": [
+          10000,
+          10004
+        ],
+        "dynamics_seed_range": [
+          20000,
+          20004
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "flat_L2_forward_flat",
+        "terrain_family": "flat",
+        "level": 2,
+        "direction_or_layout": "forward_flat",
+        "candidate_parameters": {
+          "geometry": "plane",
+          "forward_speed_mps": 0.3,
+          "reset_profile": "registered_mild_initial_state_variation",
+          "candidate_reset_bounds": "to be filled from the locked deployment reset contract",
+          "candidate_status": "requires_lock_before_run"
+        },
+        "geometry_seed_range": [
+          10010,
+          10014
+        ],
+        "dynamics_seed_range": [
+          20010,
+          20014
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "flat_L3_forward_flat",
+        "terrain_family": "flat",
+        "level": 3,
+        "direction_or_layout": "forward_flat",
+        "candidate_parameters": {
+          "geometry": "plane",
+          "forward_speed_mps": 0.3,
+          "reset_profile": "level_2_reset_plus_registered_mild_dynamics",
+          "candidate_dynamics_bounds": "to be filled from the locked dynamics contract",
+          "candidate_status": "requires_lock_before_run"
+        },
+        "geometry_seed_range": [
+          10020,
+          10024
+        ],
+        "dynamics_seed_range": [
+          20020,
+          20024
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_scale_rough_L1_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 1,
+        "direction_or_layout": "forward_lane",
+        "candidate_parameters": {
+          "local_peak_valley_difference_m": 0.02,
+          "spatial_scales": "at least two audited wavelength bands",
+          "candidate_wavelength_bands_m": [
+            0.2,
+            0.4
+          ],
+          "generator_amplitude_conversion": "must be derived by geometry audit; do not equate amplitude field with peak-valley difference"
+        },
+        "geometry_seed_range": [
+          10030,
+          10034
+        ],
+        "dynamics_seed_range": [
+          20030,
+          20034
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_scale_rough_L2_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 2,
+        "direction_or_layout": "forward_lane",
+        "candidate_parameters": {
+          "local_peak_valley_difference_m": 0.03,
+          "spatial_scales": "at least two audited wavelength bands",
+          "candidate_wavelength_bands_m": [
+            0.2,
+            0.4
+          ],
+          "generator_amplitude_conversion": "must be derived by geometry audit; do not equate amplitude field with peak-valley difference"
+        },
+        "geometry_seed_range": [
+          10040,
+          10044
+        ],
+        "dynamics_seed_range": [
+          20040,
+          20044
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_scale_rough_L3_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 3,
+        "direction_or_layout": "forward_lane",
+        "candidate_parameters": {
+          "local_peak_valley_difference_m": 0.04,
+          "spatial_scales": "at least two audited wavelength bands",
+          "candidate_wavelength_bands_m": [
+            0.2,
+            0.4
+          ],
+          "generator_amplitude_conversion": "must be derived by geometry audit; do not equate amplitude field with peak-valley difference"
+        },
+        "geometry_seed_range": [
+          10050,
+          10054
+        ],
+        "dynamics_seed_range": [
+          20050,
+          20054
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L1_uphill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "uphill",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10060,
+          10064
+        ],
+        "dynamics_seed_range": [
+          20060,
+          20064
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L1_downhill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10070,
+          10074
+        ],
+        "dynamics_seed_range": [
+          20070,
+          20074
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L1_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "cross_slope_left",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10080,
+          10084
+        ],
+        "dynamics_seed_range": [
+          20080,
+          20084
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L1_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "cross_slope_right",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10090,
+          10094
+        ],
+        "dynamics_seed_range": [
+          20090,
+          20094
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L2_uphill",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "uphill",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10100,
+          10104
+        ],
+        "dynamics_seed_range": [
+          20100,
+          20104
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L2_downhill",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "downhill",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10110,
+          10114
+        ],
+        "dynamics_seed_range": [
+          20110,
+          20114
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L2_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "cross_slope_left",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10120,
+          10124
+        ],
+        "dynamics_seed_range": [
+          20120,
+          20124
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L2_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "cross_slope_right",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10130,
+          10134
+        ],
+        "dynamics_seed_range": [
+          20130,
+          20134
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L3_uphill",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "uphill",
+        "candidate_parameters": {
+          "slope_angle_deg": 12,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10140,
+          10144
+        ],
+        "dynamics_seed_range": [
+          20140,
+          20144
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L3_downhill",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "downhill",
+        "candidate_parameters": {
+          "slope_angle_deg": 12,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10150,
+          10154
+        ],
+        "dynamics_seed_range": [
+          20150,
+          20154
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L3_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "cross_slope_left",
+        "candidate_parameters": {
+          "slope_angle_deg": 12,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10160,
+          10164
+        ],
+        "dynamics_seed_range": [
+          20160,
+          20164
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_L3_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "cross_slope_right",
+        "candidate_parameters": {
+          "slope_angle_deg": 12,
+          "slope_segment": "continuous linear segment with flat-to-slope and slope-to-flat transitions",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10170,
+          10174
+        ],
+        "dynamics_seed_range": [
+          20170,
+          20174
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_step_stairs_L1_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "ascending",
+        "candidate_parameters": {
+          "step_count": 3,
+          "step_height_m": [
+            0.02,
+            0.02
+          ],
+          "tread_depth": "pending Lite3 stance/stride calibration",
+          "layout": "straight-line stairs; not pyramid/radial stairs",
+          "entry_exit_flat_length_m": "pending track calibration",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10180,
+          10184
+        ],
+        "dynamics_seed_range": [
+          20180,
+          20184
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_step_stairs_L1_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "descending",
+        "candidate_parameters": {
+          "step_count": 3,
+          "step_height_m": [
+            0.02,
+            0.02
+          ],
+          "tread_depth": "pending Lite3 stance/stride calibration",
+          "layout": "straight-line stairs; not pyramid/radial stairs",
+          "entry_exit_flat_length_m": "pending track calibration",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10190,
+          10194
+        ],
+        "dynamics_seed_range": [
+          20190,
+          20194
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 2,
+        "direction_or_layout": "ascending",
+        "candidate_parameters": {
+          "step_count": [
+            4,
+            6
+          ],
+          "step_height_m": [
+            0.03,
+            0.04
+          ],
+          "tread_depth": "pending Lite3 stance/stride calibration",
+          "layout": "straight-line stairs; not pyramid/radial stairs",
+          "entry_exit_flat_length_m": "pending track calibration",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10200,
+          10204
+        ],
+        "dynamics_seed_range": [
+          20200,
+          20204
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_step_stairs_L2_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 2,
+        "direction_or_layout": "descending",
+        "candidate_parameters": {
+          "step_count": [
+            4,
+            6
+          ],
+          "step_height_m": [
+            0.03,
+            0.04
+          ],
+          "tread_depth": "pending Lite3 stance/stride calibration",
+          "layout": "straight-line stairs; not pyramid/radial stairs",
+          "entry_exit_flat_length_m": "pending track calibration",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10210,
+          10214
+        ],
+        "dynamics_seed_range": [
+          20210,
+          20214
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_step_stairs_L3_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 3,
+        "direction_or_layout": "ascending",
+        "candidate_parameters": {
+          "step_count": [
+            4,
+            6
+          ],
+          "step_height_m": [
+            0.04,
+            0.05
+          ],
+          "tread_depth": "pending Lite3 stance/stride calibration",
+          "layout": "straight-line stairs; not pyramid/radial stairs",
+          "entry_exit_flat_length_m": "pending track calibration",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10220,
+          10224
+        ],
+        "dynamics_seed_range": [
+          20220,
+          20224
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "multi_step_stairs_L3_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 3,
+        "direction_or_layout": "descending",
+        "candidate_parameters": {
+          "step_count": [
+            4,
+            6
+          ],
+          "step_height_m": [
+            0.04,
+            0.05
+          ],
+          "tread_depth": "pending Lite3 stance/stride calibration",
+          "layout": "straight-line stairs; not pyramid/radial stairs",
+          "entry_exit_flat_length_m": "pending track calibration",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10230,
+          10234
+        ],
+        "dynamics_seed_range": [
+          20230,
+          20234
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "uphill",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "local_peak_valley_difference_m": 0.01,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10240,
+          10244
+        ],
+        "dynamics_seed_range": [
+          20240,
+          20244
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "local_peak_valley_difference_m": 0.01,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10250,
+          10254
+        ],
+        "dynamics_seed_range": [
+          20250,
+          20254
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "cross_slope_left",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "local_peak_valley_difference_m": 0.01,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10260,
+          10264
+        ],
+        "dynamics_seed_range": [
+          20260,
+          20264
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "cross_slope_right",
+        "candidate_parameters": {
+          "slope_angle_deg": 5,
+          "local_peak_valley_difference_m": 0.01,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10270,
+          10274
+        ],
+        "dynamics_seed_range": [
+          20270,
+          20274
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "uphill",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "local_peak_valley_difference_m": 0.015,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10280,
+          10284
+        ],
+        "dynamics_seed_range": [
+          20280,
+          20284
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "downhill",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "local_peak_valley_difference_m": 0.015,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10290,
+          10294
+        ],
+        "dynamics_seed_range": [
+          20290,
+          20294
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "cross_slope_left",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "local_peak_valley_difference_m": 0.015,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10300,
+          10304
+        ],
+        "dynamics_seed_range": [
+          20300,
+          20304
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "cross_slope_right",
+        "candidate_parameters": {
+          "slope_angle_deg": 8,
+          "local_peak_valley_difference_m": 0.015,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10310,
+          10314
+        ],
+        "dynamics_seed_range": [
+          20310,
+          20314
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "uphill",
+        "candidate_parameters": {
+          "slope_angle_deg": 10,
+          "local_peak_valley_difference_m": 0.02,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10320,
+          10324
+        ],
+        "dynamics_seed_range": [
+          20320,
+          20324
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "downhill",
+        "candidate_parameters": {
+          "slope_angle_deg": 10,
+          "local_peak_valley_difference_m": 0.02,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10330,
+          10334
+        ],
+        "dynamics_seed_range": [
+          20330,
+          20334
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "cross_slope_left",
+        "candidate_parameters": {
+          "slope_angle_deg": 10,
+          "local_peak_valley_difference_m": 0.02,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10340,
+          10344
+        ],
+        "dynamics_seed_range": [
+          20340,
+          20344
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "cross_slope_right",
+        "candidate_parameters": {
+          "slope_angle_deg": 10,
+          "local_peak_valley_difference_m": 0.02,
+          "rough_spatial_scales": "must use the audited multi-scale generator",
+          "interaction_scan_rule": "do not run if the corresponding single-factor level has unrecoverable failure",
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10350,
+          10354
+        ],
+        "dynamics_seed_range": [
+          20350,
+          20354
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells"
+      },
+      {
+        "cell_id": "friction_variation_L1_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "left_right_bands",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.7,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10360,
+          10364
+        ],
+        "dynamics_seed_range": [
+          20360,
+          20364
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "alternating left/right longitudinal bands"
+      },
+      {
+        "cell_id": "friction_variation_L1_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "front_back_bands",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.7,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10370,
+          10374
+        ],
+        "dynamics_seed_range": [
+          20370,
+          20374
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "successive front/back longitudinal regions"
+      },
+      {
+        "cell_id": "friction_variation_L1_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "alternating_regions",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.7,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10380,
+          10384
+        ],
+        "dynamics_seed_range": [
+          20380,
+          20384
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "seeded regions with balanced contact-area coverage"
+      },
+      {
+        "cell_id": "friction_variation_L2_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 2,
+        "direction_or_layout": "left_right_bands",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.5,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10390,
+          10394
+        ],
+        "dynamics_seed_range": [
+          20390,
+          20394
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "alternating left/right longitudinal bands"
+      },
+      {
+        "cell_id": "friction_variation_L2_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 2,
+        "direction_or_layout": "front_back_bands",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.5,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10400,
+          10404
+        ],
+        "dynamics_seed_range": [
+          20400,
+          20404
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "successive front/back longitudinal regions"
+      },
+      {
+        "cell_id": "friction_variation_L2_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 2,
+        "direction_or_layout": "alternating_regions",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.5,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10410,
+          10414
+        ],
+        "dynamics_seed_range": [
+          20410,
+          20414
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "seeded regions with balanced contact-area coverage"
+      },
+      {
+        "cell_id": "friction_variation_L3_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 3,
+        "direction_or_layout": "left_right_bands",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.3,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10420,
+          10424
+        ],
+        "dynamics_seed_range": [
+          20420,
+          20424
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "alternating left/right longitudinal bands"
+      },
+      {
+        "cell_id": "friction_variation_L3_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 3,
+        "direction_or_layout": "front_back_bands",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.3,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10430,
+          10434
+        ],
+        "dynamics_seed_range": [
+          20430,
+          20434
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "successive front/back longitudinal regions"
+      },
+      {
+        "cell_id": "friction_variation_L3_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 3,
+        "direction_or_layout": "alternating_regions",
+        "candidate_parameters": {
+          "effective_friction_coefficient_range": [
+            0.3,
+            1.0
+          ],
+          "region_size_and_boundary": "pending geometry/material audit",
+          "actual_contact_friction_logging": true,
+          "forward_speed_mps": 0.3
+        },
+        "geometry_seed_range": [
+          10440,
+          10444
+        ],
+        "dynamics_seed_range": [
+          20440,
+          20444
+        ],
+        "episodes": 5,
+        "seed_pairing": "pair the nth geometry seed with the nth dynamics seed; no seed reuse across cells",
+        "layout": "seeded regions with balanced contact-area coverage"
+      }
+    ]
+  },
+  "completion_and_termination": {
+    "complete": "robot reaches the registered full-track endpoint, has no safety violation, and remains stable for the registered completion hold; crossing part of the terrain is insufficient",
+    "stable_completion_hold_steps": 50,
+    "fall": "environment fall/orientation termination or registered unsafe body state",
+    "body_contact": "any non-foot contact; record separately even when it does not terminate the episode",
+    "lateral_out_of_bounds": "root lateral position exceeds the audited lane boundary minus the registered margin",
+    "safety_termination": "SafetyFilter emergency stop, safety guard termination, or invalid/non-finite action/state",
+    "timeout": "2000 control steps without completion; report as truncated, never as success",
+    "termination_reason_priority": [
+      "safety_termination",
+      "fall",
+      "body_contact_termination",
+      "lateral_out_of_bounds",
+      "completion",
+      "timeout"
+    ],
+    "threshold_status": "exact orientation, contact, lateral margin, and filter thresholds must be copied from the locked deployment safety contract before run"
+  },
+  "metrics": {
+    "per_episode_required": [
+      "completed",
+      "termination_reason",
+      "steps",
+      "forward_progress_m",
+      "max_forward_progress_m",
+      "mean_and_rms_velocity_error_mps",
+      "roll_mean_rms_peak_rad",
+      "pitch_mean_rms_peak_rad",
+      "lateral_offset_mean_peak_m",
+      "nonfoot_contact_count_and_duration",
+      "foot_slip_contact_fraction_and_tangential_speed",
+      "safety_filter_projection_fraction",
+      "safety_filter_projection_reasons",
+      "safety_filter_rejection_or_emergency_count",
+      "action_compute_and_execute_latency_ms",
+      "invalid_state_count"
+    ],
+    "slope_specific": [
+      "direction",
+      "slope_angle_deg",
+      "pitch_response",
+      "roll_response",
+      "transition_progress"
+    ],
+    "stairs_specific": [
+      "direction",
+      "step_count",
+      "completed_step_index",
+      "front_foot_collision_count",
+      "stuck_or_catch_step_count",
+      "swing_foot_clearance_m",
+      "per_step_progress"
+    ],
+    "friction_specific": [
+      "region_layout",
+      "material_parameters",
+      "actual_contact_friction",
+      "slip_by_foot_and_region"
+    ],
+    "rough_specific": [
+      "audited_local_peak_valley_m",
+      "spatial_scale_statistics",
+      "adjacent_footfall_height_difference_m"
+    ],
+    "aggregation": "report each cell and each terrain family; do not hide a failed direction or level inside an overall mean"
+  },
+  "classification_before_results": {
+    "retain_or_low_share": "stable across most registered instances with acceptable motion-quality metrics",
+    "source_candidate": "recoverable failures or clear velocity/attitude/slip/filter degradation with safe execution",
+    "not_source_main_domain": "frequent unrecoverable failure, near-zero progress, or safety qualification failure",
+    "thresholds": "numeric pass/qualification thresholds are intentionally blank until the execution contract is locked; do not infer them from one episode"
+  },
+  "data_isolation_and_execution_guards": {
+    "read_only_checkpoint": true,
+    "allow_actor_update": false,
+    "allow_online_adaptation": false,
+    "allow_sealed_access": false,
+    "allow_development_selection_from_results": false,
+    "scan_output_may_select_source_range_only": true,
+    "runner_must_refuse_status": [
+      "draft_not_for_run"
+    ],
+    "required_status_for_execution": "locked_for_run_after_user_approval_and_bridge_qualification",
+    "output_directory_policy": "new non-overwriting run directory; metrics only; no policy checkpoint"
+  },
+  "current_implementation_blockers": [
+    {
+      "component": "terrain_protocol",
+      "finding": "current geometry protocol exposes only step_height, rough_amplitude, and seed and accepts a single legacy subterrain; it cannot express family, slope direction, stair layout, or spatial friction regions",
+      "impact": "cannot execute this manifest through the existing online runner"
+    },
+    {
+      "component": "terrain_generators",
+      "finding": "continuous rough exists but is single-correlation/noise-band; straight multi-step stairs, slope-plus-rough composition, and spatial friction-region generation are not available as a common scan interface",
+      "impact": "new audited generators and geometry tests are required"
+    },
+    {
+      "component": "existing slope/stairs configs",
+      "finding": "legacy rough configuration references pyramid slopes/stairs, while stairs are disabled and pyramid geometry is not the requested straight-line track",
+      "impact": "cannot treat those configs as the six-family scan implementation"
+    },
+    {
+      "component": "scan runner and logging",
+      "finding": "existing play/qualification entry points are organized around flat/continuous-rough legacy stages and do not consume this manifest or emit all required metrics",
+      "impact": "a manifest-driven frozen evaluator and metric schema are required"
+    },
+    {
+      "component": "runtime",
+      "finding": "Isaac Lab execution must use the repository AppLauncher/runtime; direct standalone imports are not a valid proof of a runnable simulation",
+      "impact": "runtime launch and one-cell smoke test remain prerequisites"
+    }
+  ],
+  "pre_run_gate": [
+    "implement or adapt six-family geometry generators and audit actual geometry statistics",
+    "implement manifest-driven runner with read-only model loading and full metric logging",
+    "lock stair tread depth, track lengths, transitions, friction region geometry, safety thresholds, and all hashes",
+    "run offline config/parity and geometry-generation tests only",
+    "obtain explicit approval to change status from draft_not_for_run to locked_for_run"
+  ],
+  "background_only_evidence": [
+    {
+      "description": "old 4 cm rough record: 3/5 completed, 1 fall, 1 lateral exit; manifest marked complete_with_baseline_mismatch",
+      "eligibility": "background clue only; not pooled with this scan"
+    },
+    {
+      "description": "old single 2 cm step pass and 300-step continuous-rough run",
+      "eligibility": "insufficient for frozen baseline qualification; not pooled with this scan"
+    }
+  ],
+  "notes": [
+    "This file is a checklist/manifest draft, not a command line and not permission to start simulation.",
+    "All numeric difficulty values are candidates from the revised plan. They become training or source limits only after frozen scan, geometry audit, and source qualification.",
+    "Because multi-step stairs and slopes are Source families, later stairs/slope tests must be labeled same-family strength/layout extrapolation unless a genuinely different geometry family is registered."
+  ]
+}
