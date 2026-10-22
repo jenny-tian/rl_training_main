@@ -664,6 +664,96 @@ def audit_manifest(manifest: object) -> ManifestValidation:
     return v.report()
 
 
+def audit_preparation_manifest(manifest: object) -> ManifestValidation:
+    """Audit a complete v0.2 proposal without authorizing or preparing a run.
+
+    Unlike :func:`audit_manifest`, this mode accepts the explicit draft state
+    and reports absent runtime qualifications as blockers. It never reads the
+    referenced files, changes authorization, or treats proposed cutoffs as
+    user-approved values.
+    """
+
+    v = _Validator()
+    m = v.obj(manifest, "$")
+    try:
+        json.dumps(m, allow_nan=False)
+    except (ValueError, TypeError, OverflowError):
+        v.issue("$", "json_values", "must contain only finite JSON data")
+        return v.report()
+
+    if m.get("schema_version") != EXECUTION_SCHEMA:
+        v.issue("schema_version", "execution_schema_required", "preparation audit requires a v0.2 Source scan manifest")
+    if not isinstance(m.get("manifest_id"), str) or not m.get("manifest_id", "").strip():
+        v.issue("manifest_id", "manifest_id", "must be a nonempty string")
+    v.exact(m.get("status"), DRAFT_STATUS, "status")
+    v.exact(m.get("execution_authorized"), False, "execution_authorized")
+    v.exact(m.get("split"), SCAN_SPLIT, "split")
+    v.file_record(m.get("base_checkpoint"), "base_checkpoint")
+    _check_boundary(v, m)
+
+    families = v.array(m.get("terrain_families"), "terrain_families")
+    names = [x.get("name") for x in families if isinstance(x, dict)]
+    if len(names) != len(DIRECTIONS) or any(not isinstance(n, str) for n in names) or set(names) != set(DIRECTIONS):
+        v.issue("terrain_families", "six_source_families", "must list each of the six Source families once")
+    shares = [x.get("pilot_training_share") for x in families if isinstance(x, dict)]
+    if len(shares) == len(DIRECTIONS):
+        if not all(_finite_number(x) and 0 <= x <= 1 for x in shares) or not math.isclose(sum(shares), 1.0, abs_tol=1e-9):
+            v.issue("terrain_families", "training_share", "six registered pilot shares must sum to 1")
+    _check_seeds_and_cells(v, m)
+
+    contract = v.obj(m.get("execution_contract_draft"), "execution_contract_draft")
+    artifacts = v.obj(contract.get("artifacts"), "execution_contract_draft.artifacts")
+    if set(artifacts) != set(ARTIFACT_ROLES):
+        v.issue("execution_contract_draft.artifacts", "artifact_roles", f"exact artifact roles required: {list(ARTIFACT_ROLES)}")
+    for role in ARTIFACT_ROLES:
+        path = f"execution_contract_draft.artifacts.{role}"
+        record = artifacts.get(role)
+        if isinstance(record, dict) and record.get("available") is False:
+            if not isinstance(record.get("reason"), str) or not record["reason"].strip():
+                v.issue(path + ".reason", "artifact_missing_reason", "unavailable artifacts require a concrete reason")
+            else:
+                v.issue(path, "artifact_unavailable", record["reason"], "blocker")
+        else:
+            v.file_record(record, path)
+
+    qualifications = v.obj(contract.get("qualifications"), "execution_contract_draft.qualifications")
+    qualification_keys = {
+        "geometry_audit_passed", "checkpoint_parity_passed", "policy_safety_bridge_passed",
+        "region_material_binding_verified",
+    }
+    if set(qualifications) != qualification_keys:
+        v.issue("execution_contract_draft.qualifications", "qualification_fields", f"exact keys required: {sorted(qualification_keys)}")
+    for name in sorted(qualification_keys):
+        value = qualifications.get(name)
+        if type(value) is not bool:
+            v.issue(f"execution_contract_draft.qualifications.{name}", "boolean_required", "must be a JSON boolean")
+        elif value is False:
+            v.issue(f"execution_contract_draft.qualifications.{name}", "qualification_missing", "runtime qualification has not passed", "blocker")
+    v.exact(contract.get("output_directory_policy"), "new_non_overwriting_metrics_only", "execution_contract_draft.output_directory_policy")
+    v.exact(contract.get("classification_thresholds_locked"), False, "execution_contract_draft.classification_thresholds_locked")
+    thresholds = v.obj(contract.get("proposed_classification_thresholds"), "execution_contract_draft.proposed_classification_thresholds")
+    required_thresholds = {"retain_or_low_share", "source_candidate", "not_source_main_domain", "sample_count_and_uncertainty"}
+    if set(thresholds) != required_thresholds:
+        v.issue("execution_contract_draft.proposed_classification_thresholds", "classification_thresholds", f"exact rule keys required: {sorted(required_thresholds)}")
+    else:
+        _check_classification_thresholds(v, thresholds, m)
+        v.issue("execution_contract_draft.proposed_classification_thresholds", "thresholds_need_user_review", "numeric cutoffs are proposals and are not locked", "blocker")
+
+    approval = contract.get("user_approval")
+    if approval is not None:
+        v.issue("execution_contract_draft.user_approval", "draft_has_approval", "preparation manifest must not contain an execution approval")
+    else:
+        v.issue("execution_contract_draft.user_approval", "execution_approval_missing", "a separate frozen-scan approval is required after runtime qualification", "blocker")
+    blockers = v.array(m.get("current_implementation_blockers"), "current_implementation_blockers")
+    if not blockers:
+        v.issue("current_implementation_blockers", "missing_preparation_blockers", "draft must state outstanding implementation and qualification work")
+    for index, item in enumerate(blockers):
+        if not isinstance(item, dict) or not isinstance(item.get("component"), str) or not isinstance(item.get("finding"), str):
+            v.issue(f"current_implementation_blockers[{index}]", "preparation_blocker_shape", "each blocker requires component and finding")
+
+    return v.report()
+
+
 def validate_execution_contract(manifest: object) -> ManifestValidation:
     """Reject incomplete manifests before file access, then verify artifact bytes.
 

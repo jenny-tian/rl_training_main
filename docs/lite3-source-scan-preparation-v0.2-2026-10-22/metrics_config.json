@@ -1,0 +1,50 @@
+{
+  "aggregation": "per_cell_and_per_family_no_direction_or_level_hidden",
+  "friction_specific": [
+    "region_layout",
+    "material_parameters",
+    "actual_contact_friction",
+    "slip_by_foot_and_region"
+  ],
+  "per_episode_required": [
+    "completed",
+    "termination_reason",
+    "steps",
+    "forward_progress_m",
+    "max_forward_progress_m",
+    "mean_and_rms_velocity_error_mps",
+    "roll_mean_rms_peak_rad",
+    "pitch_mean_rms_peak_rad",
+    "lateral_offset_mean_peak_m",
+    "nonfoot_contact_count_and_duration",
+    "foot_slip_contact_fraction_and_tangential_speed",
+    "safety_filter_projection_fraction",
+    "safety_filter_projection_reasons",
+    "safety_filter_rejection_or_emergency_count",
+    "action_compute_and_execute_latency_ms",
+    "invalid_state_count"
+  ],
+  "qualification_note": "Metrics schema is registered; complete episode collection has not passed runtime qualification.",
+  "rough_specific": [
+    "audited_local_peak_valley_m",
+    "spatial_scale_statistics",
+    "adjacent_footfall_height_difference_m"
+  ],
+  "schema": "lite3_source_scan_metrics_contract_v0.2",
+  "slope_specific": [
+    "direction",
+    "slope_angle_deg",
+    "pitch_response",
+    "roll_response",
+    "transition_progress"
+  ],
+  "stairs_specific": [
+    "direction",
+    "step_count",
+    "completed_step_index",
+    "front_foot_collision_count",
+    "stuck_or_catch_step_count",
+    "swing_foot_clearance_m",
+    "per_step_progress"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "candidate_scope": "Numeric values mirror existing adaptation-filter defaults only; they are not approved for the frozen-base policy scan until the scan-specific bridge is qualified.",
+  "filter_state": "pre-execution temporal state must be snapshotted for shadow evaluation",
+  "limits": {
+    "max_joint_velocity_rad_s": 30.0,
+    "max_projected_gravity_xy": 0.65,
+    "min_base_height_m": 0.2,
+    "nonfoot_contact_grace_steps": 10,
+    "residual_rate_limit": 0.02
+  },
+  "policy_safety_bridge_status": "not_qualified",
+  "qualification_note": "full episode safety bridge and policy action wiring are not yet qualified",
+  "required_logging": [
+    "a_base",
+    "requested_delta",
+    "a_requested",
+    "a_executed_command",
+    "projection_reasons",
+    "projection_fraction",
+    "emergency_count"
+  ],
+  "safety_filter": "rl_training.online_adaptation.safety.SafetyFilter",
+  "schema": "lite3_source_scan_safety_contract_v0.2"
+}

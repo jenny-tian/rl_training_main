@@ -1,0 +1,19 @@
+{
+  "body_contact": "non-foot contact is recorded separately; configured termination requires the registered consecutive contact condition",
+  "completion": "root reaches completion_x_m and remains safe and stable for the hold window",
+  "control_frequency_hz": 50,
+  "max_duration_s": 40.0,
+  "max_steps": 2000,
+  "qualification_note": "runtime termination trace and safety bridge have not yet been qualified",
+  "schema": "lite3_source_scan_termination_contract_v0.2",
+  "stable_completion_hold_steps": 50,
+  "termination_reason_priority": [
+    "safety_termination",
+    "fall",
+    "body_contact_termination",
+    "lateral_out_of_bounds",
+    "completion",
+    "timeout"
+  ],
+  "timeout": "2000 control steps without completion is truncated and never success"
+}

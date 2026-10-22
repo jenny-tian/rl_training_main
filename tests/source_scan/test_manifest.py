@@ -3,6 +3,7 @@
 import copy
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -13,6 +14,7 @@ from rl_training.source_scan import manifest as api
 
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = Path(__file__).parent / "fixtures/source_scan_v0_1_draft.json"
+PREPARATION = ROOT / "docs/lite3-source-scan-preparation-v0.2-2026-10-22/source_qualification_scan_manifest_v0.2_preparation.json"
 CLI = ROOT / "scripts/reinforcement_learning/online_adaptation/audit_source_scan_manifest.py"
 
 
@@ -156,6 +158,76 @@ def test_original_draft_audits_counts_and_blockers_without_mutation(draft):
     assert (report.cell_count, report.episode_count) == (45, 225)
     assert {"ambiguous_seed_role", "missing_reserved_partition", "unlocked_cell", "missing_execution_contract"} <= _codes(draft)
     assert draft == before
+
+
+def test_v02_preparation_audits_as_structural_but_never_runnable():
+    manifest = api.load_manifest(PREPARATION)
+    before = copy.deepcopy(manifest)
+
+    report = api.audit_preparation_manifest(manifest)
+
+    assert report.schema_valid
+    assert not report.lock_fields_complete
+    assert not report.files_verified
+    assert not report.execution_ready
+    assert (report.cell_count, report.episode_count) == (45, 225)
+    codes = {issue.code for issue in report.issues}
+    assert {
+        "artifact_unavailable",
+        "qualification_missing",
+        "thresholds_need_user_review",
+        "execution_approval_missing",
+    } <= codes
+    assert manifest == before
+
+
+def test_preparation_audit_does_not_read_referenced_artifacts(monkeypatch):
+    manifest = api.load_manifest(PREPARATION)
+    manifest["execution_contract_draft"]["artifacts"]["geometry_audit"] = {
+        "path": "/does/not/exist/geometry-audit.json",
+        "sha256": "0" * 64,
+    }
+
+    def fail_open(*args, **kwargs):
+        pytest.fail("preparation audit must not read referenced artifact files")
+
+    monkeypatch.setattr(Path, "open", fail_open)
+    report = api.audit_preparation_manifest(manifest)
+
+    assert report.schema_valid
+    assert not report.files_verified
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("status", api.LOCKED_STATUS), ("execution_authorized", True)],
+)
+def test_preparation_audit_rejects_execution_state(field, value):
+    manifest = api.load_manifest(PREPARATION)
+    manifest[field] = value
+
+    report = api.audit_preparation_manifest(manifest)
+
+    assert not report.schema_valid
+    assert "fixed_contract" in {issue.code for issue in report.issues}
+
+
+def test_preparation_cli_reports_non_runnable_draft():
+    result = subprocess.run(
+        [sys.executable, str(CLI), str(PREPARATION), "--preparation-audit"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "source/rl_training")},
+    )
+
+    assert result.returncode == 0, result.stderr + result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["schema_valid"] is True
+    assert payload["execution_ready"] is False
+    assert payload["cell_count"] == 45
+    assert payload["episode_count"] == 225
 
 
 def test_draft_rejection_precedes_checkpoint_and_artifact_access(draft, monkeypatch):

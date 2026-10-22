@@ -1,0 +1,2345 @@
+{
+  "schema_version": "source_qualification_scan_manifest_v0.2",
+  "manifest_id": "lite3_source_qualification_scan_20261022_preparation_v0_2",
+  "status": "draft_not_for_run",
+  "execution_authorized": false,
+  "created_date": "2026-10-22",
+  "timezone": "Asia/Shanghai",
+  "plan_document": "/home/tjx/rl_training_main/Lite3_v2.3_Fresh_C1a_20261021.md",
+  "purpose": "Preparation contract for a read-only model_1998.pt Source Terrain qualification scan; no PPO update or checkpoint selection.",
+  "split": "source_qualification_scan",
+  "research_boundary": {
+    "policy": "model_1998.pt frozen inference only",
+    "observation_contract": "45D proprioceptive policy observation; no height scan or privileged terrain observation",
+    "action_contract": "existing 12D joint action and deployment-matched action scaling; no online adapter/residual update",
+    "observation_dim": 45,
+    "action_dim": 12,
+    "height_scan": false,
+    "privileged_observations": false,
+    "target_speed_mps": 0.3,
+    "control_frequency_hz": 50,
+    "control_period_s": 0.02,
+    "max_steps_per_episode": 2000,
+    "max_duration_s": 40.0,
+    "command": {
+      "lin_vel_x_mps": 0.3,
+      "lin_vel_y_mps": 0.0,
+      "ang_vel_z_rps": 0.0
+    },
+    "dynamics_profile": "deployment_matched_frozen",
+    "online_update": false,
+    "checkpoint_selection": "none"
+  },
+  "base_checkpoint": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+    "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "expected_policy_family": "Lite3 flat PPO",
+    "verification_required_at_runtime": true
+  },
+  "terrain_families": [
+    {
+      "name": "flat",
+      "pilot_training_share": 0.1,
+      "source_boundary": "nominal plane; level differences are reset or qualification labels, not different geometry"
+    },
+    {
+      "name": "multi_scale_rough",
+      "pilot_training_share": 0.2,
+      "source_boundary": "correlated continuous multi-band height field; not discrete rocky blocks"
+    },
+    {
+      "name": "slope",
+      "pilot_training_share": 0.2,
+      "source_boundary": "continuous uphill/downhill/cross-slope track with transitions"
+    },
+    {
+      "name": "multi_step_stairs",
+      "pilot_training_share": 0.25,
+      "source_boundary": "straight continuous ascending/descending stairs; stairs remain a Source family"
+    },
+    {
+      "name": "slope_plus_rough",
+      "pilot_training_share": 0.15,
+      "source_boundary": "audited continuous slope plus bounded multi-scale roughness"
+    },
+    {
+      "name": "friction_variation",
+      "pilot_training_share": 0.1,
+      "source_boundary": "four spatial material regions; separate from whole-episode friction randomization"
+    }
+  ],
+  "difficulty_levels": {
+    "interpretation": "all numeric values are explicit scan candidates, not approved Source training limits",
+    "multi_scale_rough": {
+      "L1": {
+        "rough_peak_valley_m": 0.02,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ]
+      },
+      "L2": {
+        "rough_peak_valley_m": 0.03,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ]
+      },
+      "L3": {
+        "rough_peak_valley_m": 0.04,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ]
+      }
+    },
+    "slope": {
+      "L1": 5.0,
+      "L2": 8.0,
+      "L3": 12.0
+    },
+    "multi_step_stairs": {
+      "L1": {
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5
+      },
+      "L2": {
+        "step_count": 5,
+        "step_height_m": 0.035,
+        "tread_depth_m": 0.5
+      },
+      "L3": {
+        "step_count": 5,
+        "step_height_m": 0.05,
+        "tread_depth_m": 0.4
+      }
+    },
+    "slope_plus_rough": {
+      "L1": {
+        "slope_angle_deg": 5.0,
+        "rough_peak_valley_m": 0.01
+      },
+      "L2": {
+        "slope_angle_deg": 8.0,
+        "rough_peak_valley_m": 0.015
+      },
+      "L3": {
+        "slope_angle_deg": 10.0,
+        "rough_peak_valley_m": 0.02
+      }
+    },
+    "friction_variation": {
+      "L1": [
+        0.7,
+        1.0
+      ],
+      "L2": [
+        0.5,
+        1.0
+      ],
+      "L3": [
+        0.3,
+        1.0
+      ]
+    },
+    "flat": {
+      "L1": "nominal plane",
+      "L2": "same plane with the same deterministic reset profile",
+      "L3": "same plane; no unqualified dynamics perturbation"
+    }
+  },
+  "episode_protocol": {
+    "episodes_per_cell": 5,
+    "fixed_before_first_run": [
+      "terrain generator code and geometry audit version",
+      "deployment-matched frozen dynamics contract",
+      "checkpoint SHA-256 and normalizer/action-scale hashes",
+      "reset pose, command, safety configuration, termination contract, and track endpoint",
+      "seed assignment and output path"
+    ],
+    "early_stop": "registered_safety_stop_only",
+    "additional_samples": "forbidden",
+    "partial_progress_is_success": false
+  },
+  "completion_and_termination": {
+    "complete": "robot reaches the registered full-track endpoint, has no safety violation, and remains stable for the registered completion hold; partial progress is insufficient",
+    "stable_completion_hold_steps": 50,
+    "fall": "environment fall/orientation termination or registered unsafe body state",
+    "body_contact": "any non-foot contact is recorded separately and termination follows the registered contact rule",
+    "lateral_out_of_bounds": "root lateral position exceeds the audited lane boundary minus the registered margin",
+    "safety_termination": "SafetyFilter emergency stop, safety guard termination, or invalid/non-finite action/state",
+    "timeout": "2000 control steps without completion; report as truncated, never as success",
+    "termination_reason_priority": [
+      "safety_termination",
+      "fall",
+      "body_contact_termination",
+      "lateral_out_of_bounds",
+      "completion",
+      "timeout"
+    ],
+    "threshold_status": "runtime thresholds are copied into the independent termination contract; bridge qualification is still outstanding"
+  },
+  "metrics": {
+    "per_episode_required": [
+      "completed",
+      "termination_reason",
+      "steps",
+      "forward_progress_m",
+      "max_forward_progress_m",
+      "mean_and_rms_velocity_error_mps",
+      "roll_mean_rms_peak_rad",
+      "pitch_mean_rms_peak_rad",
+      "lateral_offset_mean_peak_m",
+      "nonfoot_contact_count_and_duration",
+      "foot_slip_contact_fraction_and_tangential_speed",
+      "safety_filter_projection_fraction",
+      "safety_filter_projection_reasons",
+      "safety_filter_rejection_or_emergency_count",
+      "action_compute_and_execute_latency_ms",
+      "invalid_state_count"
+    ],
+    "slope_specific": [
+      "direction",
+      "slope_angle_deg",
+      "pitch_response",
+      "roll_response",
+      "transition_progress"
+    ],
+    "stairs_specific": [
+      "direction",
+      "step_count",
+      "completed_step_index",
+      "front_foot_collision_count",
+      "stuck_or_catch_step_count",
+      "swing_foot_clearance_m",
+      "per_step_progress"
+    ],
+    "friction_specific": [
+      "region_layout",
+      "material_parameters",
+      "actual_contact_friction",
+      "slip_by_foot_and_region"
+    ],
+    "rough_specific": [
+      "audited_local_peak_valley_m",
+      "spatial_scale_statistics",
+      "adjacent_footfall_height_difference_m"
+    ],
+    "aggregation": "per_cell_and_per_family_no_direction_or_level_hidden"
+  },
+  "seed_plan": {
+    "allocation": "Each cell pairs five distinct geometry seed IDs with five distinct initial_state seed IDs; the current reset is deterministic, so initial_state seeds are bookkeeping keys, not a claim of randomized initial states.",
+    "geometry_partition": [
+      10000,
+      19999
+    ],
+    "initial_state_partition": [
+      20000,
+      29999
+    ],
+    "source_train_reserved_partition": {
+      "geometry": [
+        30000,
+        39999
+      ],
+      "initial_state": [
+        40000,
+        49999
+      ]
+    },
+    "source_validation_reserved_partition": {
+      "geometry": [
+        50000,
+        59999
+      ],
+      "initial_state": [
+        60000,
+        69999
+      ]
+    },
+    "development_reserved_partition": {
+      "geometry": [
+        70000,
+        79999
+      ],
+      "initial_state": [
+        80000,
+        89999
+      ]
+    },
+    "sealed_reserved_partition": {
+      "geometry": [
+        90000,
+        99999
+      ],
+      "initial_state": [
+        100000,
+        109999
+      ]
+    },
+    "probe_reserved_partition": {
+      "geometry": [
+        110000,
+        119999
+      ],
+      "initial_state": [
+        120000,
+        129999
+      ]
+    },
+    "reuse_policy": "scan seeds cannot be reused for source train/validation, development headroom, independent probes, C1 online curves, or sealed evaluation",
+    "seed_semantics": "Flat and fixed-parameter regular slope/stairs cells intentionally repeat geometry across distinct seeds; seeds identify independent reset/episode trials, not fabricated geometry variation. Rough, slope-plus-rough, and friction cells retain generator variation.",
+    "cell_count": 45,
+    "total_episodes": 225,
+    "cells": [
+      {
+        "cell_id": "flat_L1_forward_flat",
+        "terrain_family": "flat",
+        "level": 1,
+        "direction_or_layout": "forward_flat",
+        "geometry_seed_range": [
+          10000,
+          10004
+        ],
+        "initial_state_seed_range": [
+          20000,
+          20004
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "flat_L2_forward_flat",
+        "terrain_family": "flat",
+        "level": 2,
+        "direction_or_layout": "forward_flat",
+        "geometry_seed_range": [
+          10010,
+          10014
+        ],
+        "initial_state_seed_range": [
+          20010,
+          20014
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "flat_L3_forward_flat",
+        "terrain_family": "flat",
+        "level": 3,
+        "direction_or_layout": "forward_flat",
+        "geometry_seed_range": [
+          10020,
+          10024
+        ],
+        "initial_state_seed_range": [
+          20020,
+          20024
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_scale_rough_L1_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 1,
+        "direction_or_layout": "forward_lane",
+        "geometry_seed_range": [
+          10030,
+          10034
+        ],
+        "initial_state_seed_range": [
+          20030,
+          20034
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.02,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ]
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_scale_rough_L2_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 2,
+        "direction_or_layout": "forward_lane",
+        "geometry_seed_range": [
+          10040,
+          10044
+        ],
+        "initial_state_seed_range": [
+          20040,
+          20044
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.03,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ]
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_scale_rough_L3_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 3,
+        "direction_or_layout": "forward_lane",
+        "geometry_seed_range": [
+          10050,
+          10054
+        ],
+        "initial_state_seed_range": [
+          20050,
+          20054
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.04,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ]
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L1_uphill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10060,
+          10064
+        ],
+        "initial_state_seed_range": [
+          20060,
+          20064
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "uphill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L1_downhill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10070,
+          10074
+        ],
+        "initial_state_seed_range": [
+          20070,
+          20074
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "downhill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L1_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10080,
+          10084
+        ],
+        "initial_state_seed_range": [
+          20080,
+          20084
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_left"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L1_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10090,
+          10094
+        ],
+        "initial_state_seed_range": [
+          20090,
+          20094
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_right"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L2_uphill",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10100,
+          10104
+        ],
+        "initial_state_seed_range": [
+          20100,
+          20104
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "uphill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L2_downhill",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10110,
+          10114
+        ],
+        "initial_state_seed_range": [
+          20110,
+          20114
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "downhill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L2_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10120,
+          10124
+        ],
+        "initial_state_seed_range": [
+          20120,
+          20124
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "cross_slope_left"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L2_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 2,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10130,
+          10134
+        ],
+        "initial_state_seed_range": [
+          20130,
+          20134
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "cross_slope_right"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L3_uphill",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10140,
+          10144
+        ],
+        "initial_state_seed_range": [
+          20140,
+          20144
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 12.0,
+            "direction_or_layout": "uphill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L3_downhill",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10150,
+          10154
+        ],
+        "initial_state_seed_range": [
+          20150,
+          20154
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 12.0,
+            "direction_or_layout": "downhill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L3_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10160,
+          10164
+        ],
+        "initial_state_seed_range": [
+          20160,
+          20164
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 12.0,
+            "direction_or_layout": "cross_slope_left"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_L3_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 3,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10170,
+          10174
+        ],
+        "initial_state_seed_range": [
+          20170,
+          20174
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 12.0,
+            "direction_or_layout": "cross_slope_right"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_step_stairs_L1_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "ascending",
+        "geometry_seed_range": [
+          10180,
+          10184
+        ],
+        "initial_state_seed_range": [
+          20180,
+          20184
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 3,
+            "step_height_m": 0.02,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "ascending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_step_stairs_L1_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "descending",
+        "geometry_seed_range": [
+          10190,
+          10194
+        ],
+        "initial_state_seed_range": [
+          20190,
+          20194
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 3,
+            "step_height_m": 0.02,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "descending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 2,
+        "direction_or_layout": "ascending",
+        "geometry_seed_range": [
+          10200,
+          10204
+        ],
+        "initial_state_seed_range": [
+          20200,
+          20204
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 5,
+            "step_height_m": 0.035,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "ascending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_step_stairs_L2_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 2,
+        "direction_or_layout": "descending",
+        "geometry_seed_range": [
+          10210,
+          10214
+        ],
+        "initial_state_seed_range": [
+          20210,
+          20214
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 5,
+            "step_height_m": 0.035,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "descending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_step_stairs_L3_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 3,
+        "direction_or_layout": "ascending",
+        "geometry_seed_range": [
+          10220,
+          10224
+        ],
+        "initial_state_seed_range": [
+          20220,
+          20224
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 5,
+            "step_height_m": 0.05,
+            "tread_depth_m": 0.4,
+            "direction_or_layout": "ascending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "multi_step_stairs_L3_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 3,
+        "direction_or_layout": "descending",
+        "geometry_seed_range": [
+          10230,
+          10234
+        ],
+        "initial_state_seed_range": [
+          20230,
+          20234
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 5,
+            "step_height_m": 0.05,
+            "tread_depth_m": 0.4,
+            "direction_or_layout": "descending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10240,
+          10244
+        ],
+        "initial_state_seed_range": [
+          20240,
+          20244
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "uphill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10250,
+          10254
+        ],
+        "initial_state_seed_range": [
+          20250,
+          20254
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "downhill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10260,
+          10264
+        ],
+        "initial_state_seed_range": [
+          20260,
+          20264
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_left"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L1_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10270,
+          10274
+        ],
+        "initial_state_seed_range": [
+          20270,
+          20274
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_right"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10280,
+          10284
+        ],
+        "initial_state_seed_range": [
+          20280,
+          20284
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.015,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "uphill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10290,
+          10294
+        ],
+        "initial_state_seed_range": [
+          20290,
+          20294
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.015,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "downhill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10300,
+          10304
+        ],
+        "initial_state_seed_range": [
+          20300,
+          20304
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.015,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "cross_slope_left"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L2_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 2,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10310,
+          10314
+        ],
+        "initial_state_seed_range": [
+          20310,
+          20314
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.015,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 8.0,
+            "direction_or_layout": "cross_slope_right"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10320,
+          10324
+        ],
+        "initial_state_seed_range": [
+          20320,
+          20324
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.02,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 10.0,
+            "direction_or_layout": "uphill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10330,
+          10334
+        ],
+        "initial_state_seed_range": [
+          20330,
+          20334
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.02,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 10.0,
+            "direction_or_layout": "downhill"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10340,
+          10344
+        ],
+        "initial_state_seed_range": [
+          20340,
+          20344
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.02,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 10.0,
+            "direction_or_layout": "cross_slope_left"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "slope_plus_rough_L3_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 3,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10350,
+          10354
+        ],
+        "initial_state_seed_range": [
+          20350,
+          20354
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.02,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 10.0,
+            "direction_or_layout": "cross_slope_right"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L1_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "left_right_bands",
+        "geometry_seed_range": [
+          10360,
+          10364
+        ],
+        "initial_state_seed_range": [
+          20360,
+          20364
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.7,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "left_right_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L1_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "front_back_bands",
+        "geometry_seed_range": [
+          10370,
+          10374
+        ],
+        "initial_state_seed_range": [
+          20370,
+          20374
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.7,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "front_back_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L1_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "alternating_regions",
+        "geometry_seed_range": [
+          10380,
+          10384
+        ],
+        "initial_state_seed_range": [
+          20380,
+          20384
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.7,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "alternating_regions"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L2_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 2,
+        "direction_or_layout": "left_right_bands",
+        "geometry_seed_range": [
+          10390,
+          10394
+        ],
+        "initial_state_seed_range": [
+          20390,
+          20394
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.5,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "left_right_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L2_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 2,
+        "direction_or_layout": "front_back_bands",
+        "geometry_seed_range": [
+          10400,
+          10404
+        ],
+        "initial_state_seed_range": [
+          20400,
+          20404
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.5,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "front_back_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L2_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 2,
+        "direction_or_layout": "alternating_regions",
+        "geometry_seed_range": [
+          10410,
+          10414
+        ],
+        "initial_state_seed_range": [
+          20410,
+          20414
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.5,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "alternating_regions"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L3_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 3,
+        "direction_or_layout": "left_right_bands",
+        "geometry_seed_range": [
+          10420,
+          10424
+        ],
+        "initial_state_seed_range": [
+          20420,
+          20424
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.3,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "left_right_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L3_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 3,
+        "direction_or_layout": "front_back_bands",
+        "geometry_seed_range": [
+          10430,
+          10434
+        ],
+        "initial_state_seed_range": [
+          20430,
+          20434
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.3,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "front_back_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      {
+        "cell_id": "friction_variation_L3_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 3,
+        "direction_or_layout": "alternating_regions",
+        "geometry_seed_range": [
+          10440,
+          10444
+        ],
+        "initial_state_seed_range": [
+          20440,
+          20444
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              10.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.3,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "alternating_regions"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 9.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      }
+    ]
+  },
+  "data_isolation_and_execution_guards": {
+    "read_only_checkpoint": true,
+    "allow_actor_update": false,
+    "allow_online_adaptation": false,
+    "allow_sealed_access": false,
+    "allow_development_selection_from_results": false,
+    "scan_output_may_select_source_range_only": true,
+    "runner_must_refuse_status": [
+      "draft_not_for_run"
+    ],
+    "required_status_for_execution": "locked_for_run_after_user_approval_and_bridge_qualification",
+    "output_directory_policy": "new non-overwriting run directory; metrics only; no policy checkpoint"
+  },
+  "execution_contract_draft": {
+    "artifacts": {
+      "environment_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py",
+        "sha256": "7de8f403227b9f1c09846312b090d6d335b639c206eddd1017a02f239ac711da"
+      },
+      "geometry_generator": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py",
+        "sha256": "58305a01d16c39e6dc531ace03ba4bad42a1413b098989da8cf6946dcb7dd1d4"
+      },
+      "manifest_validator": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/source_scan/manifest.py",
+        "sha256": "d977a5e6155210d90842ee78a2e3a35cd4ad3aef35692862ff29ef4b24d6939a"
+      },
+      "scan_runner": {
+        "available": false,
+        "reason": "No manifest-driven Isaac Sim episode runner with complete metrics and safety bridge exists yet."
+      },
+      "safety_filter": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/online_adaptation/safety.py",
+        "sha256": "67de8e87baf7e010519b56cb633cc3464727b14431f03ac123130523623cd7b9"
+      },
+      "safety_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/safety_config.json",
+        "sha256": "edbf7d66faffa55e59dffed7a188d1b2a254898dae679e949be03a120027a949"
+      },
+      "observation_contract": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/observation_contract.json",
+        "sha256": "28535101c86b69dcb9b85ce665b5054d7a19be6f7ad418ebcc0ccf73ba279a2e"
+      },
+      "action_scale": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/lite3_joint_conventions.py",
+        "sha256": "3667327f613d7e9f059c1b433859f0889e116454f3d61ecfc6ce63169a56e60e"
+      },
+      "normalizer": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/normalizer_contract.json",
+        "sha256": "40b321a0d7e9fca305d7459c26c1dab90858a92e628842b4f4ca536f9f5240d8"
+      },
+      "dynamics_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/dynamics_config.json",
+        "sha256": "1fffb680a4a8719a8822c5916c4f71d0441d968b286cdfc05c6674245cec9d19"
+      },
+      "material_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/material_config.json",
+        "sha256": "0e6fb5d50a9d6bc80a19f984fecf35e3a75bba08b0153d0f460bb4b59a198618"
+      },
+      "reset_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/reset_config.json",
+        "sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+      },
+      "termination_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/termination_config.json",
+        "sha256": "6ade2ea7249ab5a3ba97feb52656a3f7937808660b1709344c58803e0b41ef13"
+      },
+      "metrics_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/metrics_config.json",
+        "sha256": "6b4061fa3711e293bd5c1c52534a34deb5861e537b16093b3537097b8fe92944"
+      },
+      "classification_config": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/classification_proposal.json",
+        "sha256": "aff6a307c6da313d59de75a25a49be9a3e838e89a3959dee33c01273d677a84c"
+      },
+      "geometry_audit": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/source-terrain-geometry-step4-2026-10-22.md",
+        "sha256": "9c49787d6377f8c6b8e92673fc23938ec6aea2f1ab8d4ce4af5b5261b755a95a"
+      },
+      "checkpoint_parity_report": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-checkpoint-parity-2026-10-22.json",
+        "sha256": "8a585ea8a3fd1897f0ec2094fd9645c2f92c490e52e0cfbd0375b31fda0895dd"
+      },
+      "bridge_smoke_report": {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-terrain-isaac-bridge-step6-2026-10-22.md",
+        "sha256": "d7af5c258746d3b2734665041d3798a675c6643086ac659fe0c039ad7ceb1681"
+      },
+      "user_approval_record": {
+        "available": false,
+        "reason": "Execution approval must be a separate later user action after all runtime qualifications."
+      }
+    },
+    "qualifications": {
+      "geometry_audit_passed": true,
+      "checkpoint_parity_passed": true,
+      "policy_safety_bridge_passed": false,
+      "region_material_binding_verified": true
+    },
+    "output_directory_policy": "new_non_overwriting_metrics_only",
+    "classification_thresholds_locked": false,
+    "proposed_classification_thresholds": {
+      "retain_or_low_share": {
+        "minimum_stable_instance_fraction": 0.75,
+        "motion_quality_maxima": {
+          "foot_slip_contact_fraction": 0.1,
+          "lateral_offset_peak_m": 0.3,
+          "mean_velocity_error_mps": 0.2,
+          "pitch_peak_rad": 0.4,
+          "rms_velocity_error_mps": 0.25,
+          "roll_peak_rad": 0.4,
+          "safety_filter_projection_fraction": 0.1
+        }
+      },
+      "source_candidate": {
+        "minimum_recoverable_failure_fraction": 0.1,
+        "motion_quality_degradation_cutoffs": {
+          "foot_slip_contact_fraction": 0.05,
+          "lateral_offset_peak_m": 0.05,
+          "mean_velocity_error_mps": 0.05,
+          "pitch_peak_rad": 0.1,
+          "rms_velocity_error_mps": 0.05,
+          "roll_peak_rad": 0.1,
+          "safety_filter_projection_fraction": 0.05
+        },
+        "safe_execution_required": true
+      },
+      "not_source_main_domain": {
+        "minimum_unrecoverable_failure_fraction": 0.5,
+        "near_zero_forward_progress_m_max": 0.2,
+        "safety_qualification_failure_excludes": true
+      },
+      "sample_count_and_uncertainty": {
+        "confidence_level": 0.95,
+        "episodes_per_cell": 5,
+        "interval_method": "Wilson score interval for binary completion outcomes; bootstrap percentile summaries only for variable-geometry conditions; fixed-geometry repeats are reported as repeated trials without instance-generalization claims"
+      }
+    }
+  },
+  "current_implementation_blockers": [
+    {
+      "component": "policy_safety_bridge",
+      "finding": "SafetyFilter has unit-level implementation, but end-to-end frozen policy action wiring, shadow evaluation, and episode safety traces have not passed qualification."
+    },
+    {
+      "component": "scan_runner",
+      "finding": "No manifest-driven Isaac Sim runner currently enforces the v0.2 cells, seed pairing, complete metrics, and non-overwriting output policy."
+    },
+    {
+      "component": "episode_metrics",
+      "finding": "Complete reset-to-completion episode collection for all 45 cells is not yet available; the existing smoke only steps once."
+    },
+    {
+      "component": "stairs_calibration",
+      "finding": "Straight-stair tread candidates are explicit and generated, but Lite3 stance, foot clearance, and stride calibration remains a qualification task."
+    },
+    {
+      "component": "classification_cutoffs",
+      "finding": "Numeric classification values remain a proposal and must be reviewed before any execution lock."
+    }
+  ],
+  "preparation_notes": [
+    "This preparation manifest is intentionally draft_not_for_run and execution_authorized=false.",
+    "The Isaac bridge smoke verified geometry loading, height-scan mesh coverage, and friction-region material binding; it did not load model_1998.pt or run a policy episode.",
+    "No PPO update, source training, development selection, or sealed access is authorized by this file.",
+    "For fixed-parameter Flat, regular Slope, and regular Stairs, seed IDs do not create new geometry; their episodes are repeated trials, not independent terrain instances."
+  ]
+}
