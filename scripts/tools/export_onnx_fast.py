@@ -51,8 +51,8 @@ _LITE3_LINK_NAMES = [
 # HipX: stiffness=30, damping=1 | HipY: stiffness=30, damping=1 | Knee: stiffness=30, damping=1
 _LITE3_STIFFNESS  = [30.0, 30.0, 30.0] * 4
 _LITE3_DAMPING    = [1.0,  1.0,  1.0 ] * 4
-# Default init pose from DEEPROBOTICS_LITE3_CFG
-_LITE3_DEFAULT_POS = [0.0, -0.8, 1.6] * 4
+# Default init pose from DEEPROBOTICS_LITE3_CFG and the Lite3 training config.
+_LITE3_DEFAULT_POS = [0.0, -0.65, 1.3] * 4
 # Action scale: HipX=0.125, HipY=0.25, Knee=0.25
 _LITE3_ACTION_SCALE = [0.125, 0.25, 0.25] * 4
 

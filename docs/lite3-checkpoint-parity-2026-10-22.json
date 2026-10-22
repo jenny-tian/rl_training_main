@@ -1,0 +1,109 @@
+{
+  "actor": {
+    "activation": "ELU between linear layers",
+    "distribution_log_std_shape": [
+      12
+    ],
+    "layer_dimensions": [
+      45,
+      512,
+      256,
+      128,
+      12
+    ],
+    "output_max": 11.282474517822266,
+    "output_min": -10.268110275268555,
+    "output_shape": [
+      351,
+      12
+    ]
+  },
+  "atol": 1e-05,
+  "audit": "lite3_checkpoint_export_parity_cpu",
+  "checkpoint_iteration": 1998,
+  "device": "cpu",
+  "exports": {
+    "onnx": {
+      "error_vs_checkpoint": {
+        "max_abs": 1.9073486328125e-06,
+        "mean_abs": 1.8918373712040193e-07
+      },
+      "error_vs_torchscript": {
+        "max_abs": 1.9073486328125e-06,
+        "mean_abs": 1.8918373712040193e-07
+      },
+      "input_name": "obs",
+      "input_shape": [
+        1,
+        45
+      ],
+      "output_name": "actions",
+      "output_shape": [
+        1,
+        12
+      ],
+      "passed": true,
+      "providers": [
+        "CPUExecutionProvider"
+      ]
+    },
+    "torchscript": {
+      "error_vs_checkpoint": {
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      "passed": true
+    }
+  },
+  "files": {
+    "checkpoint": {
+      "bytes": 4566005,
+      "path": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+      "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c"
+    },
+    "context": [
+      {
+        "bytes": 1250,
+        "path": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/params/agent.yaml",
+        "sha256": "2f03eb05e5a291bd36e50c9b5d6900153820d33b32df2b5499d34105474a4564"
+      },
+      {
+        "bytes": 40228,
+        "path": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/params/env.yaml",
+        "sha256": "860a7cb7f8c0949cc431b1f8738960b1849a5970aa2b906aac6d953de9902a31"
+      },
+      {
+        "bytes": 2475,
+        "path": "source/rl_training/rl_training/lite3_joint_conventions.py",
+        "sha256": "3667327f613d7e9f059c1b433859f0889e116454f3d61ecfc6ce63169a56e60e"
+      },
+      {
+        "bytes": 8373,
+        "path": "scripts/tools/export_onnx_fast.py",
+        "sha256": "45b6d6fc8b774e4d9e9817efbd97d3d3856f6c6e5af514c94771feac9f53fdc4"
+      }
+    ],
+    "onnx": {
+      "bytes": 758441,
+      "path": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/exported/policy.onnx",
+      "sha256": "8183587c6c3cb547c10b5c344202ebd2ba77c5a77d46ade9d95d2568267cfe6e"
+    },
+    "torchscript": {
+      "bytes": 770454,
+      "path": "logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/exported/policy.pt",
+      "sha256": "74f08685c28403ccab917e9e0b9837446fb7e1d42985deb86f9b7c1429c9eb85"
+    }
+  },
+  "inputs": {
+    "construction": "zeros, +/- ones, +/- 0.5, 256 uniform[-1,1], +/- identity basis",
+    "count": 351,
+    "sha256_float32_c_order": "4a4cd2ee7dde8eeb222067eea856a9df2563ddd673d12104616818a7ca901077",
+    "shape": [
+      351,
+      45
+    ]
+  },
+  "passed": true,
+  "schema_version": 1,
+  "seed": 1998
+}
