@@ -78,10 +78,10 @@ def _mark_friction_regions(
         mesh.visual.face_colors = np.tile(colour, (len(mesh.faces), 1))
 
 
-def source_terrain_track(
+def generate_source_terrain_geometry(
     difficulty: float, cfg: "SourceTerrainTrackCfg"
-) -> tuple[list[trimesh.Trimesh], np.ndarray]:
-    """Generate one Source track using the standard Isaac Lab callback shape.
+):
+    """Generate the auditable geometry for one Isaac Lab Source track.
 
     ``TerrainGenerator`` supplies the common seed to every sub-terrain before
     calling this function.  A deterministic child seed derived from that seed,
@@ -121,7 +121,19 @@ def source_terrain_track(
         friction_region_count=int(cfg.friction_region_count),
         grid_spacing_m=float(cfg.grid_spacing_m),
     )
-    geometry = generate_source_terrain(geometry_cfg)
+    return generate_source_terrain(geometry_cfg)
+
+
+def source_terrain_track(
+    difficulty: float, cfg: "SourceTerrainTrackCfg"
+) -> tuple[list[trimesh.Trimesh], np.ndarray]:
+    """Generate one Source track using the standard Isaac Lab callback shape.
+
+    The geometry helper is kept separate so the scan runner can use the same
+    deterministic instance metadata for its offline geometry metrics.
+    """
+
+    geometry = generate_source_terrain_geometry(difficulty, cfg)
     meshes = [mesh.copy() for mesh in geometry.meshes]
     if geometry.requires_region_material_binding:
         _mark_friction_regions(meshes, geometry)
@@ -161,6 +173,7 @@ __all__ = [
     "FRICTION_REGION_MARKER_ALPHA",
     "SourceTerrainTrackCfg",
     "decode_friction_region_colour",
+    "generate_source_terrain_geometry",
     "encode_friction_region_colour",
     "source_terrain_track",
 ]

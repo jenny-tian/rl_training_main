@@ -92,6 +92,7 @@ class Lite3IsaacLabAdapter:
         self.contact_sensor = env.scene.sensors[contact_sensor_name]
         self.foot_ids, sensor_foot_names = self.contact_sensor.find_bodies(foot_body_pattern)
         self.robot_foot_ids, robot_foot_names = self.robot.find_bodies(foot_body_pattern)
+        self.robot_foot_names = tuple(str(name) for name in robot_foot_names)
         sensor_foot_id_by_name = dict(zip(sensor_foot_names, self.foot_ids, strict=True))
         if set(sensor_foot_names) != set(robot_foot_names):
             raise ValueError(

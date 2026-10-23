@@ -32,6 +32,11 @@ TASK = "SourceTerrain-Deeprobotics-Lite3-v0"
 CONTROL_DT = 0.02
 MAX_STEPS = 2000
 STABLE_HOLD_STEPS = 50
+FOOT_SLIP_SPEED_THRESHOLD_MPS = 0.35
+STAIR_FRONT_COLLISION_FORCE_THRESHOLD_N = 20.0
+STAIR_RISER_PROXIMITY_M = 0.08
+STAIR_STUCK_DWELL_STEPS = 25
+STAIR_STUCK_PROGRESS_TOLERANCE_M = 0.05
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -58,7 +63,14 @@ def _tensor_sha256(module: Any) -> str:
     return digest.hexdigest()
 
 
-def _build_env_cfg(cell: dict, geometry_seed: int, initial_state_seed: int, *, device: str):
+def _build_env_cfg(
+    cell: dict,
+    geometry_seed: int,
+    initial_state_seed: int,
+    *,
+    device: str,
+    termination_probe_steps: int | None = None,
+):
     import gymnasium as gym
     from isaaclab_tasks.utils import parse_env_cfg
 
@@ -83,6 +95,19 @@ def _build_env_cfg(cell: dict, geometry_seed: int, initial_state_seed: int, *, d
     env_cfg.terminations.time_out = None
     env_cfg.terminations.terrain_out_of_bounds = None
     _configure_forward_command(env_cfg.commands.base_velocity, 0.3)
+    if termination_probe_steps is not None:
+        if type(termination_probe_steps) is not int or not 1 <= termination_probe_steps <= 100:
+            raise ValueError("termination_probe_steps must be an integer in [1, 100]")
+        # The probe deliberately replaces the normal Source termination set
+        # with a short manager timeout. It is a wiring test only and must not
+        # be interpreted as a policy failure or qualification result.
+        from isaaclab.managers import TerminationTermCfg as DoneTerm
+        from rl_training.tasks.manager_based.locomotion.velocity import mdp
+
+        env_cfg.episode_length_s = termination_probe_steps * CONTROL_DT
+        env_cfg.terminations.time_out = DoneTerm(func=mdp.time_out, time_out=True)
+        env_cfg.terminations.illegal_contact = None
+        env_cfg.terminations.bad_orientation_2 = None
     return env_cfg
 
 
@@ -108,14 +133,27 @@ def _seeded_wrapper_reset(wrapped_env: Any, seed: int):
     return wrapped_env.reset()
 
 
-def _make_wrapped_env(cell: dict, geometry_seed: int, initial_state_seed: int, *, device: str):
+def _make_wrapped_env(
+    cell: dict,
+    geometry_seed: int,
+    initial_state_seed: int,
+    *,
+    device: str,
+    termination_probe_steps: int | None = None,
+):
     import gymnasium as gym
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
 
     from isaaclab_tasks.utils import load_cfg_from_registry
     from rl_training.online_adaptation.rsl_rl_compat import prepare_rsl_rl_agent_cfg
 
-    env_cfg = _build_env_cfg(cell, geometry_seed, initial_state_seed, device=device)
+    env_cfg = _build_env_cfg(
+        cell,
+        geometry_seed,
+        initial_state_seed,
+        device=device,
+        termination_probe_steps=termination_probe_steps,
+    )
     agent_cfg = prepare_rsl_rl_agent_cfg(
         load_cfg_from_registry(TASK, "rsl_rl_cfg_entry_point")
     )
@@ -132,7 +170,13 @@ def _new_safety_filter(device: Any):
     return SafetyFilter(SafetyLimits(residual_limits=action_limits))
 
 
-def _runtime_sample(adapter: Any, unwrapped: Any, origins: Any) -> dict[str, Any]:
+def _runtime_sample(
+    adapter: Any,
+    unwrapped: Any,
+    origins: Any,
+    *,
+    foot_slip_threshold_mps: float = FOOT_SLIP_SPEED_THRESHOLD_MPS,
+) -> dict[str, Any]:
     """Copy metrics while the requested (possibly terminal) state is current."""
     import torch
 
@@ -144,12 +188,29 @@ def _runtime_sample(adapter: Any, unwrapped: Any, origins: Any) -> dict[str, Any
     root_quat = unwrapped.scene["robot"].data.root_quat_w
     gravity = unwrapped.scene["robot"].data.projected_gravity_b
     foot_velocity_xy = adapter.robot.data.body_lin_vel_w[:, adapter.robot_foot_ids, :2]
-    foot_tangential_speed = torch.linalg.vector_norm(foot_velocity_xy, dim=-1)
+    foot_horizontal_speed = torch.linalg.vector_norm(foot_velocity_xy, dim=-1)
     contacting_feet = signals.foot_contact > 0.0
     contacting_foot_count = int(contacting_feet[0].sum().item())
-    contact_tangential_speed_sum = float(
-        (foot_tangential_speed * contacting_feet.float()).sum().item()
+    slipping_contacting_feet = contacting_feet & (foot_horizontal_speed > foot_slip_threshold_mps)
+    slipping_contact_count = int(slipping_contacting_feet[0].sum().item())
+    contact_horizontal_speed_sum = float(
+        (foot_horizontal_speed * contacting_feet.float()).sum().item()
     )
+    foot_heights = signals.foot_height[0]
+    foot_positions_w = getattr(adapter.robot.data, "body_pos_w", None)
+    if isinstance(foot_positions_w, torch.Tensor):
+        foot_positions_w = foot_positions_w[0, adapter.robot_foot_ids]
+    else:
+        foot_positions_w = None
+    contact_sensor = getattr(adapter, "contact_sensor", None)
+    foot_force_n = None
+    foot_horizontal_force_n = None
+    if contact_sensor is not None:
+        net_forces = getattr(contact_sensor.data, "net_forces_w", None)
+        if isinstance(net_forces, torch.Tensor):
+            selected_foot_forces = net_forces[0, adapter.reward_foot_ids]
+            foot_force_n = torch.linalg.vector_norm(selected_foot_forces, dim=-1)
+            foot_horizontal_force_n = torch.linalg.vector_norm(selected_foot_forces[:, :2], dim=-1)
     adapter.observe_nonfoot_contact()
     diagnostics = adapter.contact_diagnostics()
     tensors = (
@@ -160,12 +221,19 @@ def _runtime_sample(adapter: Any, unwrapped: Any, origins: Any) -> dict[str, Any
         signals.command_lin_vel_xy,
         signals.foot_slip,
         signals.foot_contact,
-        foot_tangential_speed,
+        foot_horizontal_speed,
+        foot_heights,
         signals.nonfoot_contact,
         state.projected_gravity_xy,
         state.base_height,
         state.joint_vel,
     )
+    optional_tensors = tuple(
+        value for value in (foot_positions_w, foot_force_n, foot_horizontal_force_n)
+        if isinstance(value, torch.Tensor)
+    )
+    if any(not bool(torch.isfinite(value).all().item()) for value in optional_tensors):
+        return {"invalid": True}
     if any(not bool(torch.isfinite(value).all().item()) for value in tensors):
         return {"invalid": True}
     qw, qx, qy, qz = root_quat[0].unbind()
@@ -189,8 +257,26 @@ def _runtime_sample(adapter: Any, unwrapped: Any, origins: Any) -> dict[str, Any
         "roll_rad": float(torch.asin(gravity[0, 1].clamp(-1.0, 1.0)).item()),
         "pitch_rad": float(torch.asin(gravity[0, 0].clamp(-1.0, 1.0)).item()),
         "foot_slip_mps": float(signals.foot_slip[0].item()),
+        "foot_slip_speed_threshold_mps": foot_slip_threshold_mps,
         "foot_contact_count": contacting_foot_count,
-        "foot_contact_tangential_speed_sum_mps": contact_tangential_speed_sum,
+        "foot_slipping_contact_count": slipping_contact_count,
+        "foot_contact_horizontal_speed_sum_mps": contact_horizontal_speed_sum,
+        "foot_horizontal_speed_mps": [float(value) for value in foot_horizontal_speed[0].tolist()],
+        "foot_contact": [bool(value) for value in contacting_feet[0].tolist()],
+        "foot_heights_m": [float(value) for value in foot_heights.tolist()],
+        "foot_positions_w_m": (
+            [[float(value) for value in row.tolist()] for row in foot_positions_w]
+            if isinstance(foot_positions_w, torch.Tensor) else None
+        ),
+        "foot_force_n": (
+            [float(value) for value in foot_force_n.tolist()]
+            if isinstance(foot_force_n, torch.Tensor) else None
+        ),
+        "foot_horizontal_force_n": (
+            [float(value) for value in foot_horizontal_force_n.tolist()]
+            if isinstance(foot_horizontal_force_n, torch.Tensor) else None
+        ),
+        "foot_body_names": list(getattr(adapter, "robot_foot_names", ())) or None,
         "nonfoot_contact": bool(signals.nonfoot_contact[0].item() > 0.0),
         "max_nonfoot_contact_force_n": float(
             diagnostics["episode_max_nonfoot_contact_force_n"]
@@ -223,9 +309,325 @@ def _termination_reason_before_reset(unwrapped: Any) -> tuple[str, list[str]]:
     return "environment_termination", active
 
 
+def _geometry_audit_for_cell(cell: dict, geometry_seed: int) -> dict[str, Any] | None:
+    """Recreate the exact seeded geometry metadata used by the importer.
+
+    The importer intentionally returns only meshes to Isaac Lab.  This helper
+    calls the same deterministic geometry path before the episode loop so the
+    report can distinguish audited mesh facts from candidate manifest values.
+    """
+
+    try:
+        from rl_training.source_scan.terrain_config import source_subterrain_from_cell
+        from rl_training.tasks.manager_based.locomotion.velocity.terrains.source_terrain_isaac import (
+            generate_source_terrain_geometry,
+        )
+
+        cfg = source_subterrain_from_cell(cell, seed=geometry_seed)
+        geometry = generate_source_terrain_geometry(0.0, cfg)
+    except (ImportError, KeyError, TypeError, ValueError, RuntimeError):
+        return None
+    regions = [
+        {
+            "region_id": region.region_id,
+            "friction_coefficient_candidate": region.friction_coefficient_candidate,
+            "bounds_xy_m": list(region.bounds_xy_m),
+        }
+        for region in geometry.friction_regions
+    ]
+    return {
+        "metadata": dict(geometry.metadata),
+        "friction_regions": regions,
+        "geometry_object": geometry,
+    }
+
+
+def _summary(values: list[float], unit: str) -> dict[str, Any] | None:
+    if not values:
+        return None
+    mean = sum(values) / len(values)
+    return {
+        "mean": mean,
+        "rms": (sum(value * value for value in values) / len(values)) ** 0.5,
+        "peak": max(abs(value) for value in values),
+        "minimum": min(values),
+        "maximum": max(values),
+        "sample_count": len(values),
+        "unit": unit,
+    }
+
+
+def _stair_step_intervals(geometry: dict[str, Any]) -> list[tuple[float, float]]:
+    """Return each tread interval in reset-relative progress coordinates."""
+
+    origin_x = float(geometry["flat_length_m"]) / 2.0
+    entry = float(geometry["flat_length_m"]) + float(geometry["transition_length_m"])
+    depth = float(geometry["tread_depth_m"])
+    count = int(geometry["step_count"])
+    return [
+        (entry + index * depth - origin_x, entry + (index + 1) * depth - origin_x)
+        for index in range(count)
+    ]
+
+
+def _stair_riser_progresses(
+    geometry: dict[str, Any], geometry_audit: dict[str, Any] | None
+) -> list[float]:
+    origin_x = float(geometry["flat_length_m"]) / 2.0
+    metadata = geometry_audit.get("metadata", {}) if geometry_audit else {}
+    steps = metadata.get("steps") if isinstance(metadata, dict) else None
+    if isinstance(steps, list) and all(isinstance(item, dict) for item in steps):
+        return [float(item["riser_x_m"]) - origin_x for item in steps]
+    entry = float(geometry["flat_length_m"]) + float(geometry["transition_length_m"])
+    depth = float(geometry["tread_depth_m"])
+    return [entry + index * depth - origin_x for index in range(int(geometry["step_count"]))]
+
+
+def _stair_progress_metrics(
+    progress: list[float], geometry: dict[str, Any]
+) -> tuple[int, list[float]]:
+    intervals = _stair_step_intervals(geometry)
+    max_progress = max(progress, default=0.0)
+    completed = sum(1 for _start, end in intervals if max_progress >= end)
+    per_step = [
+        max(0.0, min(max_progress, end) - start) if max_progress >= start else 0.0
+        for start, end in intervals
+    ]
+    return completed, per_step
+
+
+def _stair_stuck_count(
+    progress: list[float], base_velocity_x: list[float], geometry: dict[str, Any]
+) -> int:
+    intervals = _stair_step_intervals(geometry)
+    count = 0
+    paired = list(zip(progress, base_velocity_x, strict=False))
+    for start, end in intervals:
+        stuck = False
+        for offset in range(max(0, len(paired) - STAIR_STUCK_DWELL_STEPS + 1)):
+            window = paired[offset : offset + STAIR_STUCK_DWELL_STEPS]
+            positions = [value for value, _velocity in window]
+            velocities = [velocity for _value, velocity in window]
+            if (
+                all(start <= value <= end for value in positions)
+                and all(abs(velocity) <= 0.05 for velocity in velocities)
+                and max(positions) - min(positions) <= STAIR_STUCK_PROGRESS_TOLERANCE_M
+            ):
+                stuck = True
+                break
+        count += int(stuck)
+    return count
+
+
+def _stair_front_collision_flags(
+    sample: dict[str, Any], origins: Any, geometry: dict[str, Any],
+    geometry_audit: dict[str, Any] | None,
+) -> list[bool] | None:
+    positions = sample.get("foot_positions_w_m")
+    forces = sample.get("foot_horizontal_force_n")
+    names = sample.get("foot_body_names")
+    if (
+        not isinstance(positions, list)
+        or not isinstance(forces, list)
+        or not isinstance(names, list)
+        or len(positions) != len(forces)
+        or len(positions) != len(names)
+    ):
+        return None
+    front_names = {"FL_FOOT", "FR_FOOT"}
+    front = [index for index, name in enumerate(names) if str(name) in front_names]
+    if len(front) != 2:
+        return None
+    risers = _stair_riser_progresses(geometry, geometry_audit)
+    origin_x = float(origins[0, 0].item())
+    flags = [False] * len(positions)
+    for index in front:
+        foot_progress = float(positions[index][0]) - origin_x
+        near_riser = any(abs(foot_progress - riser) <= STAIR_RISER_PROXIMITY_M for riser in risers)
+        flags[index] = near_riser and float(forces[index]) >= STAIR_FRONT_COLLISION_FORCE_THRESHOLD_N
+    return flags
+
+
+def _terrain_height_at_local_xy(
+    x_m: float, y_m: float, geometry: dict[str, Any],
+    geometry_audit: dict[str, Any] | None,
+) -> float | None:
+    import numpy as np
+
+    if geometry_audit is None:
+        return None
+    metadata = geometry_audit.get("metadata", {})
+    family = geometry.get("family")
+    if family in {"flat", "friction_variation"}:
+        return 0.0
+    if family == "multi_step_stairs":
+        steps = metadata.get("steps") if isinstance(metadata, dict) else None
+        if not isinstance(steps, list):
+            return None
+        level = float(metadata.get("initial_surface_height_m", 0.0))
+        for step in steps:
+            if x_m < float(step["riser_x_m"]):
+                return level
+            level = float(step["height_after_m"])
+            if x_m < float(step["tread_end_x_m"]):
+                return level
+        return level
+
+    geometry_object = geometry_audit.get("geometry_object")
+    meshes = getattr(geometry_object, "meshes", None)
+    if not meshes:
+        return None
+    vertices = np.asarray(meshes[0].vertices, dtype=np.float64)
+    mesh_x = np.unique(vertices[:, 0])
+    mesh_y = np.unique(vertices[:, 1])
+    rows, columns = len(mesh_y), len(mesh_x)
+    if rows < 2 or columns < 2 or rows * columns > len(vertices):
+        return None
+    top = vertices[: rows * columns]
+    # The source heightfield builder emits top vertices in [y, x] order,
+    # followed by the bottom prism. Guard the assumption before interpolation.
+    if not np.allclose(top[:, 0], np.tile(mesh_x, rows)) or not np.allclose(
+        top[:, 1], np.repeat(mesh_y, columns)
+    ):
+        return None
+    heights = top[:, 2].reshape(rows, columns)
+    if not (mesh_x[0] <= x_m <= mesh_x[-1] and mesh_y[0] <= y_m <= mesh_y[-1]):
+        return None
+    ix = min(max(int(np.searchsorted(mesh_x, x_m, side="right") - 1), 0), columns - 2)
+    iy = min(max(int(np.searchsorted(mesh_y, y_m, side="right") - 1), 0), rows - 2)
+    dx = (x_m - mesh_x[ix]) / (mesh_x[ix + 1] - mesh_x[ix])
+    dy = (y_m - mesh_y[iy]) / (mesh_y[iy + 1] - mesh_y[iy])
+    z00, z10 = heights[iy, ix], heights[iy, ix + 1]
+    z01, z11 = heights[iy + 1, ix], heights[iy + 1, ix + 1]
+    if dx + dy <= 1.0:
+        return float(z00 + dx * (z10 - z00) + dy * (z01 - z00))
+    return float((1.0 - dy) * z10 + (dx + dy - 1.0) * z11 + (1.0 - dx) * z01)
+
+
+def _foot_ground_heights(
+    sample: dict[str, Any], origins: Any, geometry: dict[str, Any],
+    geometry_audit: dict[str, Any] | None,
+) -> list[float | None] | None:
+    positions = sample.get("foot_positions_w_m")
+    if not isinstance(positions, list):
+        return None
+    flat_center = float(geometry["flat_length_m"]) / 2.0
+    track_width = float(geometry["size"][1])
+    result = []
+    for position in positions:
+        local_x = float(position[0]) - float(origins[0, 0].item()) + flat_center
+        local_y = float(position[1]) - float(origins[0, 1].item()) + track_width / 2.0
+        result.append(_terrain_height_at_local_xy(local_x, local_y, geometry, geometry_audit))
+    return result
+
+
+def _friction_region_for_foot(
+    position_w: list[float], origins: Any, geometry: dict[str, Any],
+    regions: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    if len(position_w) < 2:
+        return None
+    local_x = float(position_w[0]) - float(origins[0, 0].item()) + float(geometry["flat_length_m"]) / 2.0
+    local_y = float(position_w[1]) - float(origins[0, 1].item()) + float(geometry["size"][1]) / 2.0
+    for region in regions:
+        x0, x1, y0, y1 = (float(value) for value in region["bounds_xy_m"])
+        if x0 <= local_x <= x1 and y0 <= local_y <= y1:
+            return region
+    return None
+
+
+def _update_friction_observations(
+    observations: dict[str, dict[str, Any]], sample: dict[str, Any], origins: Any,
+    geometry: dict[str, Any], geometry_audit: dict[str, Any] | None,
+) -> bool:
+    regions = geometry_audit.get("friction_regions", []) if geometry_audit else []
+    positions = sample.get("foot_positions_w_m")
+    contacts = sample.get("foot_contact")
+    speeds = sample.get("foot_horizontal_speed_mps")
+    if not regions or not isinstance(positions, list) or not isinstance(contacts, list) or not isinstance(speeds, list):
+        return False
+    for index, (position, contact, speed) in enumerate(zip(positions, contacts, speeds, strict=False)):
+        if not contact:
+            continue
+        region = _friction_region_for_foot(position, origins, geometry, regions)
+        if region is None:
+            continue
+        key = str(region["region_id"])
+        foot_names = sample.get("foot_body_names")
+        foot_name = (
+            str(foot_names[index])
+            if isinstance(foot_names, list) and index < len(foot_names)
+            else f"foot_{index}"
+        )
+        entry = observations.setdefault(
+            key,
+            {
+                "region_id": int(region["region_id"]),
+                "candidate_friction_coefficient": float(region["friction_coefficient_candidate"]),
+                "contact_samples": 0,
+                "slipping_contact_samples": 0,
+                "horizontal_speed_sum_mps": 0.0,
+                "feet": {},
+            },
+        )
+        entry["contact_samples"] += 1
+        entry["slipping_contact_samples"] += int(float(speed) > FOOT_SLIP_SPEED_THRESHOLD_MPS)
+        entry["horizontal_speed_sum_mps"] += float(speed)
+        foot_entry = entry["feet"].setdefault(
+            foot_name,
+            {"foot_index": index, "contact_samples": 0, "slipping_contact_samples": 0,
+             "horizontal_speed_sum_mps": 0.0},
+        )
+        foot_entry["contact_samples"] += 1
+        foot_entry["slipping_contact_samples"] += int(float(speed) > FOOT_SLIP_SPEED_THRESHOLD_MPS)
+        foot_entry["horizontal_speed_sum_mps"] += float(speed)
+    return True
+
+
+def _finalize_friction_observations(observations: dict[str, dict[str, Any]]) -> dict[str, Any] | None:
+    if not observations:
+        return None
+    result: dict[str, Any] = {}
+    for key in sorted(observations, key=int):
+        entry = observations[key]
+        contacts = entry["contact_samples"]
+        result[key] = {
+            "region_id": entry["region_id"],
+            "candidate_friction_coefficient": entry["candidate_friction_coefficient"],
+            "contact_samples": contacts,
+            "slipping_contact_samples": entry["slipping_contact_samples"],
+            "slip_contact_fraction": (
+                entry["slipping_contact_samples"] / contacts if contacts else None
+            ),
+            "mean_horizontal_speed_mps": entry["horizontal_speed_sum_mps"] / max(contacts, 1),
+            "by_foot": {
+                foot_name: {
+                    "foot_index": foot["foot_index"],
+                    "contact_samples": foot["contact_samples"],
+                    "slipping_contact_samples": foot["slipping_contact_samples"],
+                    "slip_contact_fraction": (
+                        foot["slipping_contact_samples"] / foot["contact_samples"]
+                        if foot["contact_samples"] else None
+                    ),
+                    "mean_horizontal_speed_mps": (
+                        foot["horizontal_speed_sum_mps"] / max(foot["contact_samples"], 1)
+                    ),
+                }
+                for foot_name, foot in sorted(entry["feet"].items())
+            },
+            "slip_threshold_mps": FOOT_SLIP_SPEED_THRESHOLD_MPS,
+        }
+    return {
+        "regions": result,
+        "region_assignment": "foot_world_xy mapped to generated region bounds",
+        "effective_contact_friction_measured": False,
+    }
+
+
 def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
                  initial_state_seed: int, episode_index: int, *,
-                 max_steps: int = MAX_STEPS, bounded_smoke: bool = False) -> dict[str, Any]:
+                 max_steps: int = MAX_STEPS, bounded_smoke: bool = False,
+                 termination_capture_test: bool = False) -> dict[str, Any]:
     import torch
 
     from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
@@ -244,11 +646,16 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         raise RuntimeError("Source Terrain importer did not expose one terrain origin")
     terrain_size = cell["resolved_parameters"]["geometry"]["size"]
     track = cell["resolved_parameters"]["track"]
+    geometry = cell["resolved_parameters"]["geometry"]
+    geometry_for_metrics = {**geometry, "family": cell["terrain_family"]}
+    geometry_audit = _geometry_audit_for_cell(cell, geometry_seed)
     goal_progress = track["completion_x_m"] - track["start_x_m"]
     lateral_limit = terrain_size[1] / 2.0 - track["lateral_margin_m"]
     control_dt = CONTROL_DT
     if type(max_steps) is not int or not 1 <= max_steps <= MAX_STEPS:
         raise ValueError(f"max_steps must be an integer in [1, {MAX_STEPS}]")
+    if termination_capture_test and not bounded_smoke:
+        raise ValueError("termination_capture_test is available only in a bounded smoke")
     stable_hold_steps = STABLE_HOLD_STEPS
     hold_count = 0
     completed = False
@@ -263,6 +670,11 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
     foot_contact_steps = 0
     foot_contact_count = 0
     foot_contact_speed_sum = 0.0
+    foot_slipping_contact_count = 0
+    previous_foot_contact: list[bool] | None = None
+    footfall_ground_heights: list[float] = []
+    swing_clearances: list[float] = []
+    contact_sole_offsets: list[list[float]] = [[] for _ in range(4)]
     nonfoot_contact_threshold_n = float(adapter.contact_threshold)
     nonfoot_contact_steps = 0
     nonfoot_contact_count = 0
@@ -281,9 +693,15 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
     min_base_height = float("inf")
     max_tilt = 0.0
     max_joint_speed = 0.0
+    stair_front_collision_count: int | None = 0 if cell["terrain_family"] == "multi_step_stairs" else None
+    stair_collision_measurement_available = cell["terrain_family"] != "multi_step_stairs"
+    previous_stair_collision_flags: list[bool] | None = None
+    friction_observations: dict[str, dict[str, Any]] = {}
+    friction_measurement_available = cell["terrain_family"] != "friction_variation"
     steps = 0
     active_step = False
     terminal_snapshot: dict[str, Any] = {}
+    post_reset_root_position: list[float] | None = None
 
     def capture_terminal_state(env_ids) -> None:
         if not active_step:
@@ -379,6 +797,14 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         if done_bool:
             if "sample" not in terminal_snapshot:
                 raise RuntimeError("environment ended without a pre-reset terminal snapshot")
+            post_reset_root_position = [
+                float(value)
+                for value in unwrapped.scene["robot"].data.root_pos_w[0].tolist()
+            ]
+            if termination_capture_test and "time_out" not in terminal_snapshot.get(
+                "active_termination_terms", []
+            ):
+                raise RuntimeError("termination capture test ended without its injected manager timeout")
             sample = terminal_snapshot["sample"]
             termination_reason = terminal_snapshot["termination_reason"]
         else:
@@ -401,7 +827,65 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         pitch.append(sample["pitch_rad"])
         foot_contact_steps += int(sample["foot_contact_count"] > 0)
         foot_contact_count += sample["foot_contact_count"]
-        foot_contact_speed_sum += sample["foot_contact_tangential_speed_sum_mps"]
+        foot_slipping_contact_count += sample["foot_slipping_contact_count"]
+        foot_contact_speed_sum += sample["foot_contact_horizontal_speed_sum_mps"]
+        current_foot_contact = sample.get("foot_contact")
+        current_foot_heights = sample.get("foot_heights_m")
+        new_contact_indices: list[int] = []
+        if isinstance(current_foot_contact, list) and isinstance(current_foot_heights, list):
+            if previous_foot_contact is None:
+                previous_foot_contact = [False] * len(current_foot_contact)
+            new_contact_indices = [
+                index for index, contact in enumerate(current_foot_contact)
+                if contact and not previous_foot_contact[index]
+            ]
+            previous_foot_contact = [bool(value) for value in current_foot_contact]
+        ground_heights = _foot_ground_heights(
+            sample, origins, geometry_for_metrics, geometry_audit
+        )
+        if (
+            isinstance(current_foot_contact, list)
+            and isinstance(current_foot_heights, list)
+            and isinstance(ground_heights, list)
+            and len(current_foot_contact) == len(current_foot_heights) == len(ground_heights)
+            and all(value is not None for value in ground_heights)
+        ):
+            for index in new_contact_indices:
+                ground_height = ground_heights[index]
+                if ground_height is not None:
+                    footfall_ground_heights.append(float(ground_height))
+            for index, (contact, foot_height, ground_height) in enumerate(
+                zip(current_foot_contact, current_foot_heights, ground_heights, strict=True)
+            ):
+                if index >= len(contact_sole_offsets) or ground_height is None:
+                    continue
+                height_above_surface = float(foot_height) - float(ground_height)
+                if contact:
+                    contact_sole_offsets[index].append(height_above_surface)
+                elif contact_sole_offsets[index]:
+                    offsets = sorted(contact_sole_offsets[index])
+                    sole_offset = offsets[len(offsets) // 2]
+                    swing_clearances.append(height_above_surface - sole_offset)
+        if cell["terrain_family"] == "multi_step_stairs":
+            collision_flags = _stair_front_collision_flags(
+                sample, origins, geometry, geometry_audit
+            )
+            if collision_flags is None:
+                stair_collision_measurement_available = False
+            else:
+                stair_collision_measurement_available = True
+                if previous_stair_collision_flags is not None:
+                    stair_front_collision_count += sum(
+                        int(current and not previous)
+                        for current, previous in zip(
+                            collision_flags, previous_stair_collision_flags, strict=False
+                        )
+                    )
+                previous_stair_collision_flags = collision_flags
+        if cell["terrain_family"] == "friction_variation":
+            friction_measurement_available = _update_friction_observations(
+                friction_observations, sample, origins, geometry, geometry_audit
+            )
         nonfoot_contact_threshold_n = sample["nonfoot_contact_threshold_n"]
         nonfoot = sample["nonfoot_contact"]
         nonfoot_contact_count += int(nonfoot and not previous_nonfoot_contact)
@@ -456,6 +940,15 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
 
     final_progress = float(progress[-1]) if progress else float(current_progress[0].item())
     max_progress = max(progress, default=0.0)
+    adjacent_footfall_differences = [
+        abs(current - previous)
+        for previous, current in zip(footfall_ground_heights, footfall_ground_heights[1:], strict=False)
+    ]
+    foot_slip_fraction = (
+        foot_slipping_contact_count / foot_contact_count if foot_contact_count else None
+    )
+    foot_slip_status = "measured" if foot_contact_count else "unavailable_no_contact_samples"
+    finalized_friction_observations = _finalize_friction_observations(friction_observations)
     return {
         "cell_id": cell["cell_id"],
         "terrain_family": cell["terrain_family"],
@@ -466,12 +959,32 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         "episode_index": episode_index,
         "completed": completed,
         "termination_reason": termination_reason,
+        "episode_type": (
+            "termination_capture_test"
+            if termination_capture_test
+            else "bounded_policy_smoke" if bounded_smoke else "source_qualification_scan"
+        ),
+        "termination_capture_test_injected": termination_capture_test,
         "steps": steps,
         "forward_progress_m": final_progress,
         "max_forward_progress_m": max_progress,
         "terrain_origin_w_m": [float(value) for value in origins[0].tolist()],
         "root_position_w_start_m": root_position_history[0] if root_position_history else None,
         "root_position_w_end_m": root_position_history[-1] if root_position_history else None,
+        "post_reset_root_position_w_m": post_reset_root_position,
+        "pre_reset_capture_observed": "sample" in terminal_snapshot,
+        "pre_reset_state_differs_from_post_reset": (
+            max(
+                abs(float(pre) - float(post))
+                for pre, post in zip(
+                    terminal_snapshot["sample"]["root_position_w_m"],
+                    post_reset_root_position,
+                    strict=True,
+                )
+            ) > 1.0e-6
+            if post_reset_root_position is not None and "sample" in terminal_snapshot
+            else None
+        ),
         "root_yaw_start_rad": root_yaw_history[0] if root_yaw_history else None,
         "root_yaw_end_rad": root_yaw_history[-1] if root_yaw_history else None,
         "mean_velocity_error_mps": sum(velocity_error) / max(len(velocity_error), 1),
@@ -493,8 +1006,15 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         "nonfoot_contact_max_force_n": max_nonfoot_contact_force_n,
         "nonfoot_contact_max_force_body": max_nonfoot_contact_body,
         "foot_slip_mean_mps": foot_contact_speed_sum / max(foot_contact_count, 1),
-        "foot_slip_contact_fraction": None,
-        "foot_slip_contact_fraction_status": "unavailable_without_registered_slip_speed_threshold",
+        "foot_slip_contact_fraction": foot_slip_fraction,
+        "foot_slip_contact_fraction_status": foot_slip_status,
+        "foot_slip_speed_threshold_mps": FOOT_SLIP_SPEED_THRESHOLD_MPS,
+        "foot_slip_contact_fraction_numerator": foot_slipping_contact_count,
+        "foot_slip_contact_fraction_denominator": foot_contact_count,
+        "foot_slip_contact_fraction_semantics": (
+            "contacting-foot samples whose world-horizontal foot-speed proxy exceeds "
+            f"{FOOT_SLIP_SPEED_THRESHOLD_MPS:.2f} m/s divided by all contacting-foot samples"
+        ),
         "foot_contact_step_fraction": foot_contact_steps / max(steps, 1),
         "foot_contact_steps": foot_contact_steps,
         "contacting_foot_samples": foot_contact_count,
@@ -513,63 +1033,147 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         "max_joint_speed_rad_s": max_joint_speed,
         "termination_terms": terminal_snapshot.get("active_termination_terms", []),
         "action_trace": action_trace,
-        "family_metrics": _family_metrics(cell, progress),
+        "family_metrics": _family_metrics(
+            cell,
+            progress,
+            base_velocity_x=base_velocity_x,
+            roll=roll,
+            pitch=pitch,
+            geometry_audit=geometry_audit,
+            adjacent_footfall_differences=adjacent_footfall_differences,
+            swing_clearances=swing_clearances,
+            stair_front_collision_count=(
+                stair_front_collision_count if stair_collision_measurement_available else None
+            ),
+            friction_observations=(
+                finalized_friction_observations if friction_measurement_available else None
+            ),
+        ),
     }
 
 
-def _family_metrics(cell: dict, progress: list[float]) -> dict[str, Any]:
-    """Report terrain descriptors and identify unmeasured contract fields."""
+def _family_metrics(
+    cell: dict,
+    progress: list[float],
+    *,
+    base_velocity_x: list[float] | None = None,
+    roll: list[float] | None = None,
+    pitch: list[float] | None = None,
+    geometry_audit: dict[str, Any] | None = None,
+    adjacent_footfall_differences: list[float] | None = None,
+    swing_clearances: list[float] | None = None,
+    stair_front_collision_count: int | None = None,
+    friction_observations: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Report family metrics with explicit measurement and unavailable states."""
+
     family = cell["terrain_family"]
     geometry = cell["resolved_parameters"]["geometry"]
     result: dict[str, Any] = {}
+    unavailable: list[str] = []
     if family in {"slope", "slope_plus_rough"}:
+        transition_start = float(geometry["flat_length_m"]) / 2.0
+        transition_length = float(geometry["transition_length_m"])
         result.update(
             direction=cell["direction_or_layout"],
             slope_angle_deg=geometry["slope_angle_deg"],
+            pitch_response=_summary(pitch or [], "rad"),
+            roll_response=_summary(roll or [], "rad"),
             transition_progress_m=[
-                max(0.0, min(float(value) - geometry["flat_length_m"], geometry["transition_length_m"]))
+                max(0.0, min(float(value) - transition_start, transition_length))
                 for value in progress
             ],
-            pitch_response_available=True,
-            roll_response_available=True,
+            transition_progress_semantics="reset-relative root progress clipped to the entry transition window",
         )
+        if result["pitch_response"] is None:
+            unavailable.append("pitch_response")
+        if result["roll_response"] is None:
+            unavailable.append("roll_response")
+
     if family == "multi_step_stairs":
+        completed_index, per_step_progress = _stair_progress_metrics(progress, geometry)
+        velocity = base_velocity_x or []
+        swing = _summary(swing_clearances or [], "m")
         result.update(
             direction=cell["direction_or_layout"],
             step_count=geometry["step_count"],
-            completed_step_index=None,
-            per_step_progress_m=None,
-            front_foot_collision_count=None,
-            stuck_or_catch_step_count=None,
-            swing_foot_clearance_m=None,
-            unavailable_metrics=[
-                "completed_step_index", "per_step_progress_m", "front_foot_collision_count",
-                "stuck_or_catch_step_count", "swing_foot_clearance_m",
-            ],
+            completed_step_index=completed_index,
+            completed_step_index_semantics="number of registered treads whose exit boundary was crossed; 0 means none",
+            per_step_progress_m=per_step_progress,
+            per_step_progress_semantics="maximum reset-relative progress inside each registered tread interval, clipped to tread length",
+            front_foot_collision_count=stair_front_collision_count,
+            front_foot_collision_threshold_n=STAIR_FRONT_COLLISION_FORCE_THRESHOLD_N,
+            front_foot_collision_semantics="rising edge of horizontal front-foot contact force near a registered riser",
+            stuck_or_catch_step_count=_stair_stuck_count(progress, velocity, geometry),
+            stuck_or_catch_semantics=(
+                f"step interval with at least {STAIR_STUCK_DWELL_STEPS} low-speed samples "
+                f"within {STAIR_STUCK_PROGRESS_TOLERANCE_M:.2f} m"
+            ),
+            swing_foot_clearance_m=swing,
+            swing_foot_clearance_semantics="minimum/summary foot height above the generated surface for non-contact samples",
         )
+        if stair_front_collision_count is None:
+            unavailable.append("front_foot_collision_count")
+        if swing is None:
+            unavailable.append("swing_foot_clearance_m")
+
     if family == "friction_variation":
+        geometry_audit_metadata = geometry_audit.get("metadata", {}) if geometry_audit else {}
         result.update(
             region_layout=cell["direction_or_layout"],
             material_parameters={
                 "candidate_coefficient_range": geometry["friction_range"],
                 "region_count": geometry["friction_region_count"],
+                "effective_contact_friction_readback": False,
+                "effective_contact_friction_status": "unavailable_without_contact_material_readback",
+                "importer_material_binding_status": geometry_audit_metadata.get(
+                    "material_binding_status", "unknown"
+                ),
             },
             actual_contact_friction=None,
-            slip_by_foot_and_region=None,
-            unavailable_metrics=["actual_contact_friction", "slip_by_foot_and_region"],
+            slip_by_foot_and_region=friction_observations,
+            slip_by_foot_and_region_semantics=(
+                "contacting-foot samples assigned by generated region bounds; candidate coefficient is not treated as measured contact friction"
+            ),
         )
+        unavailable.append("actual_contact_friction")
+        if friction_observations is None:
+            unavailable.append("slip_by_foot_and_region")
+
     if family in {"multi_scale_rough", "slope_plus_rough"}:
+        metadata = geometry_audit.get("metadata", {}) if geometry_audit else {}
+        audited = None
+        scales = None
+        if metadata:
+            audited = {
+                "window_m": metadata.get("rough_audit_window_m"),
+                "max_m": metadata.get("sampled_local_peak_valley_max_m"),
+                "p50_m": metadata.get("sampled_local_peak_valley_p50_m"),
+                "p95_m": metadata.get("sampled_local_peak_valley_p95_m"),
+                "semantics": metadata.get("local_audit_semantics"),
+            }
+            scales = {
+                "registered_scales_m": metadata.get("rough_spatial_scales_m"),
+                "band_rms_before_scaling": metadata.get("rough_band_rms_before_scaling"),
+                "semantics": "seeded geometry bands before requested peak-valley scaling",
+            }
+        adjacent = _summary(adjacent_footfall_differences or [], "m")
         result.update(
-            audited_local_peak_valley_m=None,
-            spatial_scale_statistics=None,
-            adjacent_footfall_height_difference_m=None,
+            audited_local_peak_valley_m=audited,
+            spatial_scale_statistics=scales,
+            adjacent_footfall_height_difference_m=adjacent,
             geometry_candidate_peak_valley_m=geometry["rough_peak_valley_m"],
             geometry_candidate_spatial_scales_m=geometry["spatial_scales_m"],
-            unavailable_metrics=[
-                "audited_local_peak_valley_m", "spatial_scale_statistics",
-                "adjacent_footfall_height_difference_m",
-            ],
         )
+        if audited is None:
+            unavailable.append("audited_local_peak_valley_m")
+        if scales is None:
+            unavailable.append("spatial_scale_statistics")
+        if adjacent is None:
+            unavailable.append("adjacent_footfall_height_difference_m")
+
+    if unavailable:
+        result["unavailable_metrics"] = unavailable
     return result
 
 
@@ -673,6 +1277,11 @@ def main(argv: list[str] | None = None) -> int:
             for record in records
             if record["family_metrics"].get("unavailable_metrics")
         }
+        unavailable_common_metrics = sorted({
+            "foot_slip_contact_fraction"
+            for record in records
+            if record.get("foot_slip_contact_fraction_status") != "measured"
+        })
         report = {
             "schema_version": "lite3_source_scan_results_v1",
             "manifest_id": manifest["manifest_id"],
@@ -688,9 +1297,8 @@ def main(argv: list[str] | None = None) -> int:
             "sealed_accessed": False,
             "metric_completeness": {
                 "complete": False,
-                "missing_common_metrics": [
-                    "foot_slip_contact_fraction_requires_a_registered_slip_speed_threshold",
-                ],
+                "missing_common_metrics": [],
+                "unavailable_common_metrics": unavailable_common_metrics,
                 "unavailable_family_metrics": unavailable_family_metrics,
                 "qualification_claim": False,
             },

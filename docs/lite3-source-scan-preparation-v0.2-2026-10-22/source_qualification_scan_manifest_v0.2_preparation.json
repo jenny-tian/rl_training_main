@@ -2204,8 +2204,8 @@
         "sha256": "d977a5e6155210d90842ee78a2e3a35cd4ad3aef35692862ff29ef4b24d6939a"
       },
       "scan_runner": {
-        "available": false,
-        "reason": "No manifest-driven Isaac Sim episode runner with complete metrics and safety bridge exists yet."
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/scripts/reinforcement_learning/online_adaptation/run_source_qualification_scan.py",
+        "sha256": "c4df6ddb05d1a1334a13a5719bdd4c35147342fd92123fa03d8f497cb95532a0"
       },
       "safety_filter": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/online_adaptation/safety.py",
@@ -2241,11 +2241,11 @@
       },
       "termination_config": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/termination_config.json",
-        "sha256": "6ade2ea7249ab5a3ba97feb52656a3f7937808660b1709344c58803e0b41ef13"
+        "sha256": "e20fc1bda0b29381ff895a429daa988e5527455d02ab0852f6f3121d2729eb17"
       },
       "metrics_config": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/metrics_config.json",
-        "sha256": "6b4061fa3711e293bd5c1c52534a34deb5861e537b16093b3537097b8fe92944"
+        "sha256": "cf1ce551691b069161eaedba38739ec40d8ea5db613aaead1dced8bd48c7b286"
       },
       "classification_config": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/classification_proposal.json",
@@ -2317,15 +2317,15 @@
   "current_implementation_blockers": [
     {
       "component": "policy_safety_bridge",
-      "finding": "SafetyFilter has unit-level implementation, but end-to-end frozen policy action wiring, shadow evaluation, and episode safety traces have not passed qualification."
+      "finding": "A bounded 200-step Flat L1 frozen-policy/SafetyFilter smoke passed with no policy update or safety pause. Full shadow evaluation and ordinary runtime termination/safety qualification remain outstanding; the four-step injected-timeout probe validates pre-reset capture only."
     },
     {
       "component": "scan_runner",
-      "finding": "No manifest-driven Isaac Sim runner currently enforces the v0.2 cells, seed pairing, complete metrics, and non-overwriting output policy."
+      "finding": "The manifest-driven scan runner is implemented and registered by hash. Full runtime qualification across the registered terrain conditions and metric availability review remain outstanding."
     },
     {
       "component": "episode_metrics",
-      "finding": "Complete reset-to-completion episode collection for all 45 cells is not yet available; the existing smoke only steps once."
+      "finding": "Metric collectors now include contact-conditioned horizontal foot-speed proxies, geometry audits, stair proxies, and friction-region observations. The 200-step Flat smoke and four-step injected-timeout probe do not qualify full episodes or family-specific metrics. Effective contact friction remains unavailable and must not be inferred from candidate material coefficients."
     },
     {
       "component": "stairs_calibration",
@@ -2336,9 +2336,31 @@
       "finding": "Numeric classification values remain a proposal and must be reviewed before any execution lock."
     }
   ],
+  "bounded_smoke_evidence": {
+    "previous_manifest_sha256": "c46de9251d8a5d39516c7468bdb17c873dc37bd844ca317125331e2b1e92e109",
+    "provenance_note": "These immutable reports reference the previous preparation manifest bytes. They are historical bounded diagnostics, not execution qualification reports bound to this revised draft or proof that every current code/configuration byte was tested.",
+    "policy_safety_flat_l1": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/policy_safety_smoke_20261023_flat_l1.json",
+      "sha256": "3231447f3cdec2544b1623b15595db0bc351565b72127de8b2debc4004c4f650",
+      "steps_executed": 200,
+      "complete_episode": false,
+      "qualification_claim": false
+    },
+    "termination_capture_flat_l1": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/termination_capture_smoke_20261023.json",
+      "sha256": "2512b1c0cd2842312daa78148e1c7267697336b3d569139ca3a3019cfc0e3412",
+      "steps_executed": 4,
+      "headless": true,
+      "injected_timeout": true,
+      "pre_reset_capture_observed": true,
+      "pre_reset_state_differs_from_post_reset": true,
+      "qualification_claim": false
+    }
+  },
   "preparation_notes": [
     "This preparation manifest is intentionally draft_not_for_run and execution_authorized=false.",
     "The Isaac bridge smoke verified geometry loading, height-scan mesh coverage, and friction-region material binding; it did not load model_1998.pt or run a policy episode.",
+    "Later bounded Flat policy and injected-timeout smokes are registered separately in bounded_smoke_evidence; they do not promote policy_safety_bridge_passed or authorize the 225-episode scan.",
     "No PPO update, source training, development selection, or sealed access is authorized by this file.",
     "For fixed-parameter Flat, regular Slope, and regular Stairs, seed IDs do not create new geometry; their episodes are repeated trials, not independent terrain instances."
   ]

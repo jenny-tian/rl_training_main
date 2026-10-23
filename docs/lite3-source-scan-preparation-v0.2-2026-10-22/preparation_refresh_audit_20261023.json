@@ -1,0 +1,67 @@
+{
+  "manifest_sha256": "dba281ad8a2fe31adae410c4df65947b51886ceb597c5472f3ca38bcfbaa6c54",
+  "preparation_audit": {
+    "schema_valid": true,
+    "lock_fields_complete": false,
+    "files_verified": false,
+    "execution_ready": false,
+    "cell_count": 45,
+    "episode_count": 225,
+    "issues": [
+      {
+        "severity": "blocker",
+        "code": "artifact_unavailable",
+        "path": "execution_contract_draft.artifacts.user_approval_record",
+        "message": "Execution approval must be a separate later user action after all runtime qualifications."
+      },
+      {
+        "severity": "blocker",
+        "code": "qualification_missing",
+        "path": "execution_contract_draft.qualifications.policy_safety_bridge_passed",
+        "message": "runtime qualification has not passed"
+      },
+      {
+        "severity": "blocker",
+        "code": "thresholds_need_user_review",
+        "path": "execution_contract_draft.proposed_classification_thresholds",
+        "message": "numeric cutoffs are proposals and are not locked"
+      },
+      {
+        "severity": "blocker",
+        "code": "execution_approval_missing",
+        "path": "execution_contract_draft.user_approval",
+        "message": "a separate frozen-scan approval is required after runtime qualification"
+      }
+    ]
+  },
+  "independent_hash_verification": {
+    "verified_file_count": 21,
+    "roles": [
+      "base_checkpoint",
+      "environment_config",
+      "geometry_generator",
+      "manifest_validator",
+      "scan_runner",
+      "safety_filter",
+      "safety_config",
+      "observation_contract",
+      "action_scale",
+      "normalizer",
+      "dynamics_config",
+      "material_config",
+      "reset_config",
+      "termination_config",
+      "metrics_config",
+      "classification_config",
+      "geometry_audit",
+      "checkpoint_parity_report",
+      "bridge_smoke_report",
+      "policy_safety_flat_l1",
+      "termination_capture_flat_l1"
+    ]
+  },
+  "historical_smoke_provenance_verified": true,
+  "smoke_manifest_pin_matches": true,
+  "metrics_schema_matches": true,
+  "execution_preflight_rejects_draft": true
+}

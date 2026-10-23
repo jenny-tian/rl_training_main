@@ -1,0 +1,521 @@
+{
+  "schema_version": "lite3_source_termination_capture_smoke_v1",
+  "status": "termination_capture_test_only",
+  "started_at_utc": "2026-10-23T02:24:34Z",
+  "finished_at_utc": "2026-10-23T02:24:39Z",
+  "manifest_id": "lite3_source_qualification_scan_20261022_preparation_v0_2",
+  "manifest_sha256": "c46de9251d8a5d39516c7468bdb17c873dc37bd844ca317125331e2b1e92e109",
+  "cell_id": "flat_L1_forward_flat",
+  "geometry_seed": 10000,
+  "initial_state_seed": 20000,
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "actor_state_sha256_before": "d2ac33caaf129abb9c7946a7da170ed703c97df5b7dcd48241ee393ae4f72789",
+  "actor_state_sha256_after": "d2ac33caaf129abb9c7946a7da170ed703c97df5b7dcd48241ee393ae4f72789",
+  "policy_updated": false,
+  "sealed_accessed": false,
+  "injected_termination": {
+    "term": "time_out",
+    "steps": 4,
+    "normal_failure_terms_disabled": [
+      "illegal_contact",
+      "bad_orientation_2",
+      "terrain_out_of_bounds"
+    ]
+  },
+  "qualification_claim": false,
+  "record": {
+    "cell_id": "flat_L1_forward_flat",
+    "terrain_family": "flat",
+    "level": 1,
+    "direction_or_layout": "forward_flat",
+    "geometry_seed": 10000,
+    "initial_state_seed": 20000,
+    "episode_index": 1,
+    "completed": false,
+    "termination_reason": "timeout",
+    "episode_type": "termination_capture_test",
+    "termination_capture_test_injected": true,
+    "steps": 4,
+    "forward_progress_m": 0.005328655242919922,
+    "max_forward_progress_m": 0.005328655242919922,
+    "terrain_origin_w_m": [
+      -3.5,
+      0.0,
+      0.0
+    ],
+    "root_position_w_start_m": [
+      -3.5002615451812744,
+      3.495328928693198e-05,
+      0.3729332685470581
+    ],
+    "root_position_w_end_m": [
+      -3.49467134475708,
+      -0.0005048561142757535,
+      0.3574216067790985
+    ],
+    "post_reset_root_position_w_m": [
+      -3.5,
+      0.0,
+      0.375
+    ],
+    "pre_reset_capture_observed": true,
+    "pre_reset_state_differs_from_post_reset": true,
+    "root_yaw_start_rad": 0.00021524318435695022,
+    "root_yaw_end_rad": -0.0027928168419748545,
+    "mean_velocity_error_mps": 0.20099935680627823,
+    "rms_velocity_error_mps": 0.2050175823860291,
+    "mean_base_velocity_x_mps": 0.09948423318564892,
+    "mean_command_velocity_x_mps": 0.30000001192092896,
+    "roll_mean_rad": 0.00037254003109410405,
+    "roll_rms_rad": 0.002484023708379975,
+    "roll_peak_rad": 0.003720217850059271,
+    "pitch_mean_rad": 0.0029485487611964345,
+    "pitch_rms_rad": 0.0052334462119801705,
+    "pitch_peak_rad": 0.0071226912550628185,
+    "lateral_offset_mean_m": 0.00018247695652462426,
+    "lateral_offset_peak_m": 0.0005048561142757535,
+    "nonfoot_contact_count": 0,
+    "nonfoot_contact_duration_s": 0.0,
+    "nonfoot_contact_max_force_n": 0.0,
+    "nonfoot_contact_max_force_body": null,
+    "foot_slip_mean_mps": 0.039792087860405445,
+    "foot_slip_contact_fraction": 0.0,
+    "foot_slip_contact_fraction_status": "measured",
+    "foot_slip_speed_threshold_mps": 0.35,
+    "foot_slip_contact_fraction_numerator": 0,
+    "foot_slip_contact_fraction_denominator": 8,
+    "foot_slip_contact_fraction_semantics": "contacting-foot samples whose world-horizontal foot-speed proxy exceeds 0.35 m/s divided by all contacting-foot samples",
+    "foot_contact_step_fraction": 0.75,
+    "foot_contact_steps": 3,
+    "contacting_foot_samples": 8,
+    "nonfoot_contact_detection_threshold_n": 1.0,
+    "safety_filter_projection_fraction": 0.0,
+    "safety_filter_projection_reasons": {},
+    "safety_filter_rejection_or_emergency_count": 0,
+    "action_compute_latency_ms_mean": 25.72356502059847,
+    "action_compute_and_execute_latency_ms_mean": 184.08754409756511,
+    "action_compute_and_execute_latency_ms_peak": 426.14657431840897,
+    "invalid_state_count": 0,
+    "max_projected_gravity_xy": 0.008035659790039062,
+    "min_base_height_m": 0.3574216067790985,
+    "max_joint_speed_rad_s": 17.300006866455078,
+    "termination_terms": [
+      "time_out"
+    ],
+    "action_trace": [
+      {
+        "step": 1,
+        "a_policy_raw": [
+          0.4076051414012909,
+          -0.49224942922592163,
+          -0.48111793398857117,
+          -0.02290397509932518,
+          -0.4888738691806793,
+          -0.46583306789398193,
+          0.49141013622283936,
+          -0.643800675868988,
+          -1.049391746520996,
+          -0.5791706442832947,
+          -0.6824806928634644,
+          -1.4029580354690552
+        ],
+        "a_base": [
+          0.4076051414012909,
+          -0.49224942922592163,
+          -0.48111793398857117,
+          -0.02290397509932518,
+          -0.4888738691806793,
+          -0.46583306789398193,
+          0.49141013622283936,
+          -0.643800675868988,
+          -1.049391746520996,
+          -0.5791706442832947,
+          -0.6824806928634644,
+          -1.4029580354690552
+        ],
+        "requested_delta": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "a_requested": [
+          0.4076051414012909,
+          -0.49224942922592163,
+          -0.48111793398857117,
+          -0.02290397509932518,
+          -0.4888738691806793,
+          -0.46583306789398193,
+          0.49141013622283936,
+          -0.643800675868988,
+          -1.049391746520996,
+          -0.5791706442832947,
+          -0.6824806928634644,
+          -1.4029580354690552
+        ],
+        "a_executed_command": [
+          0.4076051414012909,
+          -0.49224942922592163,
+          -0.48111793398857117,
+          -0.02290397509932518,
+          -0.4888738691806793,
+          -0.46583306789398193,
+          0.49141013622283936,
+          -0.643800675868988,
+          -1.049391746520996,
+          -0.5791706442832947,
+          -0.6824806928634644,
+          -1.4029580354690552
+        ],
+        "filter_state_before": {
+          "filter_previous_residual_action": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "filter_paused": [
+            false
+          ],
+          "filter_stable_steps": [
+            0
+          ],
+          "filter_contact_steps": [
+            0
+          ]
+        },
+        "projected": false,
+        "projection_reasons": [],
+        "safety_paused": false,
+        "policy_compute_latency_ms": 94.40911235287786,
+        "compute_and_execute_latency_ms": 206.5773536451161
+      },
+      {
+        "step": 2,
+        "a_policy_raw": [
+          0.4669966995716095,
+          0.07939054071903229,
+          -0.7724533081054688,
+          0.18292176723480225,
+          0.1270696222782135,
+          -0.49365097284317017,
+          0.4802688956260681,
+          -1.0215024948120117,
+          -1.8808737993240356,
+          -1.1216485500335693,
+          -0.3562522232532501,
+          -1.778011441230774
+        ],
+        "a_base": [
+          0.4669966995716095,
+          0.07939054071903229,
+          -0.7724533081054688,
+          0.18292176723480225,
+          0.1270696222782135,
+          -0.49365097284317017,
+          0.4802688956260681,
+          -1.0215024948120117,
+          -1.8808737993240356,
+          -1.1216485500335693,
+          -0.3562522232532501,
+          -1.778011441230774
+        ],
+        "requested_delta": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "a_requested": [
+          0.4669966995716095,
+          0.07939054071903229,
+          -0.7724533081054688,
+          0.18292176723480225,
+          0.1270696222782135,
+          -0.49365097284317017,
+          0.4802688956260681,
+          -1.0215024948120117,
+          -1.8808737993240356,
+          -1.1216485500335693,
+          -0.3562522232532501,
+          -1.778011441230774
+        ],
+        "a_executed_command": [
+          0.4669966995716095,
+          0.07939054071903229,
+          -0.7724533081054688,
+          0.18292176723480225,
+          0.1270696222782135,
+          -0.49365097284317017,
+          0.4802688956260681,
+          -1.0215024948120117,
+          -1.8808737993240356,
+          -1.1216485500335693,
+          -0.3562522232532501,
+          -1.778011441230774
+        ],
+        "filter_state_before": {
+          "filter_previous_residual_action": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "filter_paused": [
+            false
+          ],
+          "filter_stable_steps": [
+            0
+          ],
+          "filter_contact_steps": [
+            1
+          ]
+        },
+        "projected": false,
+        "projection_reasons": [],
+        "safety_paused": false,
+        "policy_compute_latency_ms": 2.9706149362027645,
+        "compute_and_execute_latency_ms": 426.14657431840897
+      },
+      {
+        "step": 3,
+        "a_policy_raw": [
+          0.5708545446395874,
+          -0.3067135512828827,
+          -0.5405317544937134,
+          0.21246761083602905,
+          0.15559297800064087,
+          -0.1984068900346756,
+          0.6164162158966064,
+          -1.0487996339797974,
+          -1.5295737981796265,
+          -1.4315834045410156,
+          -0.6341382265090942,
+          -1.4230592250823975
+        ],
+        "a_base": [
+          0.5708545446395874,
+          -0.3067135512828827,
+          -0.5405317544937134,
+          0.21246761083602905,
+          0.15559297800064087,
+          -0.1984068900346756,
+          0.6164162158966064,
+          -1.0487996339797974,
+          -1.5295737981796265,
+          -1.4315834045410156,
+          -0.6341382265090942,
+          -1.4230592250823975
+        ],
+        "requested_delta": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "a_requested": [
+          0.5708545446395874,
+          -0.3067135512828827,
+          -0.5405317544937134,
+          0.21246761083602905,
+          0.15559297800064087,
+          -0.1984068900346756,
+          0.6164162158966064,
+          -1.0487996339797974,
+          -1.5295737981796265,
+          -1.4315834045410156,
+          -0.6341382265090942,
+          -1.4230592250823975
+        ],
+        "a_executed_command": [
+          0.5708545446395874,
+          -0.3067135512828827,
+          -0.5405317544937134,
+          0.21246761083602905,
+          0.15559297800064087,
+          -0.1984068900346756,
+          0.6164162158966064,
+          -1.0487996339797974,
+          -1.5295737981796265,
+          -1.4315834045410156,
+          -0.6341382265090942,
+          -1.4230592250823975
+        ],
+        "filter_state_before": {
+          "filter_previous_residual_action": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "filter_paused": [
+            false
+          ],
+          "filter_stable_steps": [
+            0
+          ],
+          "filter_contact_steps": [
+            0
+          ]
+        },
+        "projected": false,
+        "projection_reasons": [],
+        "safety_paused": false,
+        "policy_compute_latency_ms": 2.790068741887808,
+        "compute_and_execute_latency_ms": 43.68311306461692
+      },
+      {
+        "step": 4,
+        "a_policy_raw": [
+          0.6633827686309814,
+          -0.21314087510108948,
+          -0.41489019989967346,
+          0.20637929439544678,
+          0.11880695819854736,
+          -0.3272932171821594,
+          0.734623908996582,
+          -1.0444167852401733,
+          -1.0332272052764893,
+          -1.4490935802459717,
+          -0.6931860446929932,
+          -1.2535309791564941
+        ],
+        "a_base": [
+          0.6633827686309814,
+          -0.21314087510108948,
+          -0.41489019989967346,
+          0.20637929439544678,
+          0.11880695819854736,
+          -0.3272932171821594,
+          0.734623908996582,
+          -1.0444167852401733,
+          -1.0332272052764893,
+          -1.4490935802459717,
+          -0.6931860446929932,
+          -1.2535309791564941
+        ],
+        "requested_delta": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "a_requested": [
+          0.6633827686309814,
+          -0.21314087510108948,
+          -0.41489019989967346,
+          0.20637929439544678,
+          0.11880695819854736,
+          -0.3272932171821594,
+          0.734623908996582,
+          -1.0444167852401733,
+          -1.0332272052764893,
+          -1.4490935802459717,
+          -0.6931860446929932,
+          -1.2535309791564941
+        ],
+        "a_executed_command": [
+          0.6633827686309814,
+          -0.21314087510108948,
+          -0.41489019989967346,
+          0.20637929439544678,
+          0.11880695819854736,
+          -0.3272932171821594,
+          0.734623908996582,
+          -1.0444167852401733,
+          -1.0332272052764893,
+          -1.4490935802459717,
+          -0.6931860446929932,
+          -1.2535309791564941
+        ],
+        "filter_state_before": {
+          "filter_previous_residual_action": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "filter_paused": [
+            false
+          ],
+          "filter_stable_steps": [
+            0
+          ],
+          "filter_contact_steps": [
+            0
+          ]
+        },
+        "projected": false,
+        "projection_reasons": [],
+        "safety_paused": false,
+        "policy_compute_latency_ms": 2.724464051425457,
+        "compute_and_execute_latency_ms": 59.94313536211848
+      }
+    ],
+    "family_metrics": {}
+  }
+}

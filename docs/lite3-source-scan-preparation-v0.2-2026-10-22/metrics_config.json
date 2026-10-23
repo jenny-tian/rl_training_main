@@ -1,5 +1,14 @@
 {
   "aggregation": "per_cell_and_per_family_no_direction_or_level_hidden",
+  "foot_slip_definition": {
+    "threshold_mps": 0.35,
+    "speed_frame": "world_horizontal_foot_velocity_xy",
+    "numerator": "number of contacting-foot samples whose world-horizontal foot-speed proxy is strictly greater than threshold_mps",
+    "denominator": "number of contacting-foot samples, summed over all four feet and control steps",
+    "zero_contact_status": "unavailable_no_contact_samples",
+    "contact_force_threshold_n": 1.0,
+    "contact_semantics": "contacting foot is a registered foot sensor sample whose force magnitude exceeds contact_force_threshold_n"
+  },
   "friction_specific": [
     "region_layout",
     "material_parameters",
@@ -25,6 +34,11 @@
     "invalid_state_count"
   ],
   "qualification_note": "Metrics schema is registered; complete episode collection has not passed runtime qualification.",
+  "measurement_notes": {
+    "foot_slip_contact_fraction_and_tangential_speed": "legacy v0.2 schema identifier retained for compatibility; the collected speed is the world-horizontal proxy defined above, not terrain-tangent speed",
+    "foot_slip_contact_fraction": "world-horizontal foot-speed proxy; it is not a direct measurement of foot-to-ground tangential velocity",
+    "swing_foot_clearance_m": "non-contact foot height above the generated surface minus that foot's median contacting sole offset"
+  },
   "rough_specific": [
     "audited_local_peak_valley_m",
     "spatial_scale_statistics",
