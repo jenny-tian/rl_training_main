@@ -84,10 +84,14 @@ class Lite3IsaacLabAdapter:
         terrain_feature_source: TerrainFeatureSource = "geometry",
         height_scanner_name: str = "height_scanner",
         height_scan_config: HeightScanConfig | None = None,
+        safety_height_source: Literal["world_z", "base_scan"] = "world_z",
     ):
         if terrain_feature_source not in {"proprio", "geometry", "height_scan"}:
             raise ValueError("terrain_feature_source must be proprio, geometry or height_scan")
         self.env = env
+        if safety_height_source not in {"world_z", "base_scan"}:
+            raise ValueError("safety_height_source must be world_z or base_scan")
+        self.safety_height_source = safety_height_source
         self.robot = env.scene[robot_name]
         self.contact_sensor = env.scene.sensors[contact_sensor_name]
         self.foot_ids, sensor_foot_names = self.contact_sensor.find_bodies(foot_body_pattern)
@@ -311,12 +315,33 @@ class Lite3IsaacLabAdapter:
             self._terrain_features(),
         )
 
+    def _safety_base_height(self) -> torch.Tensor:
+        root = self.robot.data.root_pos_w
+        if self.safety_height_source == "world_z":
+            return root[:, 2:3]
+        # Highest point in the 10 cm base patch gives conservative vertical
+        # clearance at step edges. Missing rays never fall back to world Z.
+        unavailable = torch.zeros_like(root[:, 2:3])
+        try:
+            hits = self.env.scene.sensors["height_scanner_base"].data.ray_hits_w
+            if not isinstance(hits, torch.Tensor) or hits.shape != (root.shape[0], 9, 3):
+                return unavailable
+            if hits.device != root.device:
+                return unavailable
+            valid = torch.isfinite(hits).all(dim=(1, 2)) & torch.isfinite(root).all(dim=1)
+            distance = torch.linalg.vector_norm(hits[:, :, :2] - root[:, None, :2], dim=-1)
+            valid &= (distance <= 0.08).all(dim=1)
+            clearance = root[:, 2:3] - hits[:, :, 2].amax(dim=1, keepdim=True)
+            return torch.where(valid[:, None], clearance, unavailable)
+        except (AttributeError, KeyError, TypeError, RuntimeError):
+            return unavailable
+
     def safety_state(self, control_timed_out: torch.Tensor) -> SafetyState:
         limits = select_joint_order(self.robot.data.soft_joint_pos_limits, self.joint_ids)
         nonfoot_forces = self.contact_sensor.data.net_forces_w[:, self.nonfoot_ids]
         return SafetyState(
             projected_gravity_xy=self.robot.data.projected_gravity_b[:, :2],
-            base_height=self.robot.data.root_pos_w[:, 2:3],
+            base_height=self._safety_base_height(),
             joint_pos=select_joint_order(self.robot.data.joint_pos, self.joint_ids),
             joint_vel=select_joint_order(self.robot.data.joint_vel, self.joint_ids),
             joint_lower=limits[..., 0],

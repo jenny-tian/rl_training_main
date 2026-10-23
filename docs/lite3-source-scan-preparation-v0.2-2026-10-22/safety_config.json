@@ -1,6 +1,14 @@
 {
   "candidate_scope": "Numeric values mirror existing adaptation-filter defaults only; they are not approved for the frozen-base policy scan until the scan-specific bridge is qualified.",
   "filter_state": "pre-execution temporal state must be snapshotted for shadow evaluation",
+  "base_height_reference": {
+    "source": "height_scanner_base",
+    "update_period": "physics timestep (0.005 s), so safety reads the current physics state",
+    "definition": "root world Z minus highest terrain hit in the nine-ray 0.1 m by 0.1 m base patch",
+    "validity": "all nine XYZ hits and root XYZ finite, each hit within 0.08 m horizontally of current root",
+    "invalid_measurement": "zero clearance; unchanged 0.20 m height guard stops execution; no world-Z fallback",
+    "scope": "Source scan explicitly selects base_scan; other adapter callers retain legacy world_z unless explicitly configured"
+  },
   "limits": {
     "max_joint_velocity_rad_s": 30.0,
     "max_projected_gravity_xy": 0.65,

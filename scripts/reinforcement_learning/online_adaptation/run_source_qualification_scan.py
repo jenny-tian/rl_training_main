@@ -80,6 +80,9 @@ def _build_env_cfg(
     env_cfg = parse_env_cfg(TASK, device=device, num_envs=1)
     env_cfg.seed = initial_state_seed
     env_cfg.scene.num_envs = 1
+    # Safety queries occur after physics stepping; avoid a control-period-old
+    # base patch when substep rewards have already consumed the scanner.
+    env_cfg.scene.height_scanner_base.update_period = env_cfg.sim.dt
     generator = env_cfg.scene.terrain.terrain_generator
     generator.seed = geometry_seed
     generator.curriculum = True
@@ -635,7 +638,7 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
 
     unwrapped = wrapped_env.unwrapped
     device = torch.device(unwrapped.device)
-    adapter = Lite3IsaacLabAdapter(unwrapped)
+    adapter = Lite3IsaacLabAdapter(unwrapped, safety_height_source="base_scan")
     safety = _new_safety_filter(device)
     bridge = FrozenPolicySafetyBridge(policy, adapter, safety)
     # RslRlVecEnvWrapper.reset() has no seed argument; seed before resetting.
@@ -1030,6 +1033,7 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         "invalid_state_count": invalid_state_count,
         "max_projected_gravity_xy": max_tilt,
         "min_base_height_m": min_base_height if min_base_height != float("inf") else None,
+        "base_height_semantics": "vertical root clearance above highest of nine base-scan hits; invalid scan yields zero and safety stop",
         "max_joint_speed_rad_s": max_joint_speed,
         "termination_terms": terminal_snapshot.get("active_termination_terms", []),
         "action_trace": action_trace,

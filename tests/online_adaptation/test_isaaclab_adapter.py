@@ -17,6 +17,62 @@ from rl_training.online_adaptation.terrain_observation import (
 pytestmark = pytest.mark.isaaclab
 
 
+def _base_scan_adapter(surface_z=0.0, clearance=0.31):
+    env = _height_scan_env(include_scanner=False)
+    env.scene["robot"].data.root_pos_w[:, 2] = surface_z + clearance
+    xy = torch.cartesian_prod(torch.tensor([-0.05, 0.0, 0.05]), torch.tensor([-0.05, 0.0, 0.05]))
+    hits = torch.cat((xy, torch.full((9, 1), surface_z)), dim=1).unsqueeze(0)
+    env.scene.sensors["height_scanner_base"] = SimpleNamespace(data=SimpleNamespace(ray_hits_w=hits))
+    return Lite3IsaacLabAdapter(env, safety_height_source="base_scan")
+
+
+@pytest.mark.parametrize("surface_z", [0.0, -0.115, 0.6])
+def test_safety_clearance_is_invariant_to_terrain_translation(surface_z):
+    adapter = _base_scan_adapter(surface_z)
+    state = adapter.safety_state(torch.zeros(1, 1, dtype=torch.bool))
+    assert state.base_height.item() == pytest.approx(0.31)
+
+
+def test_flat_scan_preserves_legacy_filter_decision():
+    from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
+    adapter = _base_scan_adapter()
+    scan_state = adapter.safety_state(torch.zeros(1, 1, dtype=torch.bool))
+    adapter.safety_height_source = "world_z"
+    legacy_state = adapter.safety_state(torch.zeros(1, 1, dtype=torch.bool))
+    decisions = [SafetyFilter(SafetyLimits(residual_limits=torch.full((1, 12), 0.2))).project(
+        torch.zeros(1, 12), torch.zeros(1, 12), state) for state in (scan_state, legacy_state)]
+    assert torch.equal(scan_state.base_height, legacy_state.base_height)
+    assert torch.equal(decisions[0].action, decisions[1].action)
+    assert torch.equal(decisions[0].paused, decisions[1].paused)
+
+
+@pytest.mark.parametrize("failure", ["missing", "nan", "inf", "shape", "stale_xy", "low_clearance"])
+def test_scan_height_failures_and_elevated_low_clearance_pause_filter(failure):
+    from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
+    adapter = _base_scan_adapter(0.6, 0.1 if failure == "low_clearance" else 0.31)
+    sensors = adapter.env.scene.sensors
+    if failure == "missing":
+        del sensors["height_scanner_base"]
+    elif failure in {"nan", "inf"}:
+        sensors["height_scanner_base"].data.ray_hits_w[0, 0, 2] = float(failure)
+    elif failure == "shape":
+        sensors["height_scanner_base"].data.ray_hits_w = torch.zeros(1, 8, 3)
+    elif failure == "stale_xy":
+        sensors["height_scanner_base"].data.ray_hits_w[..., 0] += 1.0
+    state = adapter.safety_state(torch.zeros(1, 1, dtype=torch.bool))
+    decision = SafetyFilter(SafetyLimits(residual_limits=torch.full((1, 12), 0.2))).project(
+        torch.zeros(1, 12), torch.zeros(1, 12), state)
+    assert torch.isfinite(state.base_height).all()
+    assert decision.paused.item()
+    assert "height" in decision.reasons
+
+
+def test_step_edge_uses_highest_surface_in_base_patch():
+    adapter = _base_scan_adapter()
+    adapter.env.scene.sensors["height_scanner_base"].data.ray_hits_w[0, 0, 2] = 0.05
+    assert adapter.safety_state(torch.zeros(1, 1, dtype=torch.bool)).base_height.item() == pytest.approx(0.26)
+
+
 def test_compose_proprio_frame_has_fixed_order_and_49_dimensions():
     terms = [
         torch.full((2, 3), 1.0),

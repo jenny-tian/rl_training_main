@@ -19,7 +19,7 @@ from scripts.reinforcement_learning.online_adaptation.run_source_qualification_s
 )
 
 MANIFEST = ROOT / "docs/lite3-source-scan-preparation-v0.2-2026-10-22/source_qualification_scan_manifest_v0.2_preparation.json"
-MANIFEST_SHA256 = "dba281ad8a2fe31adae410c4df65947b51886ceb597c5472f3ca38bcfbaa6c54"
+MANIFEST_SHA256 = "2a41b603a381b7eace650a99c5c5b1540d2ffa1b3026659a700fccded77492ad"
 CELL_IDS = (
     "slope_L1_uphill", "slope_L1_downhill",
     "multi_step_stairs_L1_ascending", "multi_step_stairs_L1_descending",
@@ -89,6 +89,20 @@ def main():
             policy = runner.get_inference_policy(device=env.unwrapped.device)
             record = _run_episode(env, policy, cell, geometry_seed, state_seed,
                                   episode_index=1, max_steps=MAX_STEPS, bounded_smoke=True)
+            root = env.unwrapped.scene["robot"].data.root_pos_w
+            hits = env.unwrapped.scene.sensors["height_scanner_base"].data.ray_hits_w
+            height_diagnostic = {
+                "post_episode_root_position_w_m": root.cpu().tolist(),
+                "ray_hits_shape": list(hits.shape),
+                "ray_hits_w_m": [
+                    [[float(value) if torch.isfinite(value) else None for value in hit]
+                     for hit in row] for row in hits.cpu()
+                ],
+                "all_hits_finite": bool(torch.isfinite(hits).all()),
+                "max_hit_horizontal_distance_m": float(torch.linalg.vector_norm(
+                    hits[:, :, :2] - root[:, None, :2], dim=-1
+                ).nan_to_num(posinf=1e6).max()),
+            }
             observation, _ = _seeded_wrapper_reset(env, state_seed)
             reset_root = env.unwrapped.scene["robot"].data.root_pos_w[0].cpu().tolist()
             observations = list(observation.values()) if hasattr(observation, "values") else [observation]
@@ -122,6 +136,7 @@ def main():
             "policy_updated": False, "sealed_accessed": False, "qualification_claim": False,
             "frozen_module_sha256_before": before, "frozen_module_sha256_after": after,
             "explicit_reset_check": reset_check, "record": record,
+            "height_diagnostic_before_explicit_reset": height_diagnostic,
         }
         temporary = output.with_suffix(".json.tmp")
         with temporary.open("x", encoding="utf-8") as stream:

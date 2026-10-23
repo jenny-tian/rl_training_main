@@ -35,7 +35,7 @@ DEFAULT_MANIFEST = (
       "source_qualification_scan_manifest_v0.2_preparation.json"
 )
 MAX_SMOKE_STEPS = 200
-EXPECTED_MANIFEST_SHA256 = "dba281ad8a2fe31adae410c4df65947b51886ceb597c5472f3ca38bcfbaa6c54"
+EXPECTED_MANIFEST_SHA256 = "2a41b603a381b7eace650a99c5c5b1540d2ffa1b3026659a700fccded77492ad"
 
 
 def _utc_now() -> str:

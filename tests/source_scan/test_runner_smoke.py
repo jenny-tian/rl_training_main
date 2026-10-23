@@ -83,7 +83,8 @@ class _WrappedEnv:
 class _Adapter:
     contact_threshold = 1.0
 
-    def __init__(self, env):
+    def __init__(self, env, *, safety_height_source):
+        assert safety_height_source == "base_scan"
         self.env = env
         self.robot = env.scene.robot
         self.robot_foot_ids = [0, 1, 2, 3]

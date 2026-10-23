@@ -2205,7 +2205,7 @@
       },
       "scan_runner": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/scripts/reinforcement_learning/online_adaptation/run_source_qualification_scan.py",
-        "sha256": "c4df6ddb05d1a1334a13a5719bdd4c35147342fd92123fa03d8f497cb95532a0"
+        "sha256": "a3b98895f5b2ff4e22fbd8ad5a5f29b4c5ddc6437a7651a16f3901b3e9167ccd"
       },
       "safety_filter": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/online_adaptation/safety.py",
@@ -2213,7 +2213,7 @@
       },
       "safety_config": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/safety_config.json",
-        "sha256": "edbf7d66faffa55e59dffed7a188d1b2a254898dae679e949be03a120027a949"
+        "sha256": "232ea0df6aa019068de0a4dfb8db030d79174c96719a4e1f7cbc0475628fab60"
       },
       "observation_contract": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/observation_contract.json",
@@ -2359,6 +2359,7 @@
   },
   "preparation_notes": [
     "This preparation manifest is intentionally draft_not_for_run and execution_authorized=false.",
+    "Source safety height now uses conservative terrain-relative clearance from the nine-ray base scan; historical world-Z diagnostic results do not qualify this revised implementation. Full runtime qualification remains outstanding.",
     "The Isaac bridge smoke verified geometry loading, height-scan mesh coverage, and friction-region material binding; it did not load model_1998.pt or run a policy episode.",
     "Later bounded Flat policy and injected-timeout smokes are registered separately in bounded_smoke_evidence; they do not promote policy_safety_bridge_passed or authorize the 225-episode scan.",
     "No PPO update, source training, development selection, or sealed access is authorized by this file.",
