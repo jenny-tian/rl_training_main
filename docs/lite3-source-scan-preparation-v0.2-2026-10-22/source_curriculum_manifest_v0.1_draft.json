@@ -221,15 +221,24 @@
       "direction": "ascending",
       "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L2_ascending_headless_diagnostic_retry3_termination_fields.json",
       "sha256": "bcbaf7562f42dc1b5690608a3ceb58ba89e67729c66156e52a5e3ac20e51b816",
-      "interpretation": "repeat of the bounded diagnostic with configured-versus-triggered termination fields; bad_orientation_2 triggered, illegal_contact remained false, and contact mapping/threshold/three-step confirmation were internally consistent; promotion remains blocked pending first-riser audit and multi-seed evidence"
+      "interpretation": "repeat of the bounded diagnostic with configured-versus-triggered termination fields; bad_orientation_2 triggered, illegal_contact remained false, and contact mapping/threshold/three-step confirmation were internally consistent; promotion remains blocked pending multi-seed evidence"
+    },
+    {
+      "family": "multi_step_stairs",
+      "level": "L2",
+      "direction": "ascending",
+      "evidence_type": "offline_entry_geometry_audit",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L2_entry_geometry_audit.json",
+      "sha256": "1d95a0d63d0aac2156ac739d08725000c6ec6499221311208cec2a336a7becdd",
+      "interpretation": "pure-geometry audit passed across registered geometry seeds 10200-10204: five 3.5 cm risers, 0.5 m first tread, and a 2.0 m reset-relative approach to the first riser; the 0.5 m entry transition is a flat buffer, not a ramp; no geometry or entry-length blocker remains"
     }
   ],
   "family_specific_preconditions": {
     "multi_step_stairs_L2_ascending": [
       "contact/termination consistency verified in the retry3 diagnostic: configured non-foot mapping, 5 N threshold, three-control-step confirmation, and triggered-term state agree with the sensor history",
-      "verify the first-riser geometry and entry transition independently",
+      "first-riser geometry and entry transition independently audited across registered geometry seeds; no geometry blocker found",
       "repeat on registered diagnostic seeds before changing the candidate level",
-      "do not increase L2 sampling share until the first-riser audit and multi-seed evidence are complete"
+      "do not increase L2 sampling share until multi-seed evidence is complete"
     ],
     "slope_plus_rough": [
       "qualify the corresponding single slope and rough factors before promoting the combined level"
@@ -248,7 +257,6 @@
   "open_items_before_lock": [
     "set stage-specific family and level sampling shares",
     "set promotion and rollback thresholds with uncertainty and sample-count rules",
-    "complete the L2 stairs first-riser geometry and entry-transition audit",
     "complete multi-seed diagnostics for each family and direction",
     "register the Source PPO transition budget and stopping rules",
     "bind exact code, environment, checkpoint, and artifact hashes"
