@@ -1,0 +1,257 @@
+{
+  "schema_version": "lite3_source_curriculum_manifest_v0.1",
+  "manifest_id": "lite3_source_curriculum_20261025_draft_v0_1",
+  "status": "draft_not_for_run",
+  "execution_authorized": false,
+  "split": "source_train_curriculum_draft",
+  "created_date": "2026-10-25",
+  "updated_date": "2026-10-25",
+  "timezone": "Asia/Shanghai",
+  "purpose": "Register a staged Source PPO curriculum for six predeclared skill families. This file records candidate stage logic only; it does not authorize PPO training, a qualification scan, or checkpoint publication.",
+  "plan_document": "/home/tjx/rl_training_main/Lite3_v2.3_Fresh_C1a_20261021.md",
+  "preparation_manifest": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/source_qualification_scan_manifest_v0.2_preparation.json",
+    "manifest_id": "lite3_source_qualification_scan_20261022_preparation_v0_2",
+    "sha256": "0fce8c53e2e2c8537c8b048b2c5f718ebf74211bf2197e1da99eb3cecf6c1cb1"
+  },
+  "research_principles": {
+    "family_selection_basis": "predeclared movement mechanisms and transfer value, not frozen flat-PPO success alone",
+    "baseline_success_rate_role": "calibrate curriculum entry, promotion, rollback, and diagnostic priority; not a family admission gate",
+    "skill_learning_objective": "learn new contact, posture, foot-placement, height-transition, or slip-compensation behavior through staged Source training",
+    "failure_interpretation": "preserve a family when the failure is informative or decomposable; lower the level, add an intermediate level, or repair diagnostics before removing a family",
+    "training_authorization": "none; all numeric shares, promotion cutoffs, rollback cutoffs, and transition budgets remain proposals until a later lock action"
+  },
+  "family_skill_targets": [
+    {
+      "family": "flat",
+      "pilot_training_share": 0.1,
+      "skill_target": "retain the base gait, speed tracking, and stable support while other skills are introduced",
+      "level_roles": {
+        "L1": "skill acquisition and retention",
+        "L2": "reset and command variation retention",
+        "L3": "qualified light dynamics variation only"
+      },
+      "difficulty_reference": "difficulty_levels.flat"
+    },
+    {
+      "family": "multi_scale_rough",
+      "pilot_training_share": 0.2,
+      "skill_target": "recover from asynchronous support heights and multi-scale continuous contact changes",
+      "level_roles": {
+        "L1": "skill acquisition",
+        "L2": "support-change consolidation",
+        "L3": "scale and layout generalization"
+      },
+      "difficulty_reference": "difficulty_levels.multi_scale_rough"
+    },
+    {
+      "family": "slope",
+      "pilot_training_share": 0.2,
+      "skill_target": "control posture and support while the gravity direction changes on uphill, downhill, and cross-slope tracks",
+      "level_roles": {
+        "L1": "gravity-direction skill acquisition",
+        "L2": "posture and transition consolidation",
+        "L3": "slope-strength and direction generalization"
+      },
+      "difficulty_reference": "difficulty_levels.slope"
+    },
+    {
+      "family": "multi_step_stairs",
+      "pilot_training_share": 0.25,
+      "skill_target": "lift and place feet across repeated risers while maintaining body height, support, and forward progress",
+      "level_roles": {
+        "L1": "continuous foot-lift and height-transition acquisition",
+        "L2": "repeated support-change and posture-recovery consolidation",
+        "L3": "height, tread, and entry-layout generalization"
+      },
+      "difficulty_reference": "difficulty_levels.multi_step_stairs",
+      "direction_requirement": "ascending and descending must be registered separately"
+    },
+    {
+      "family": "slope_plus_rough",
+      "pilot_training_share": 0.15,
+      "skill_target": "combine gravity-direction control with bounded asynchronous contact variation",
+      "level_roles": {
+        "L1": "low-strength combined skill acquisition",
+        "L2": "combined posture and contact consolidation",
+        "L3": "bounded combined-condition generalization"
+      },
+      "difficulty_reference": "difficulty_levels.slope_plus_rough",
+      "combination_gate": "a combined level cannot be promoted while its corresponding single-family factors lack a consistent diagnostic boundary"
+    },
+    {
+      "family": "friction_variation",
+      "pilot_training_share": 0.1,
+      "skill_target": "compensate for spatially varying support friction and reduce foot slip without relying on uniform low friction",
+      "level_roles": {
+        "L1": "slip-compensation acquisition",
+        "L2": "region-transition consolidation",
+        "L3": "stronger friction-range and layout generalization"
+      },
+      "difficulty_reference": "difficulty_levels.friction_variation"
+    }
+  ],
+  "curriculum_stages": [
+    {
+      "stage_id": "skill_acquisition",
+      "stage_order": 1,
+      "status": "candidate_not_locked",
+      "purpose": "Give each predeclared family a learnable starting point and preserve the base gait.",
+      "level_policy": {
+        "flat": ["L1"],
+        "multi_scale_rough": ["L1"],
+        "slope": ["L1"],
+        "multi_step_stairs": ["L1"],
+        "slope_plus_rough": ["L1"],
+        "friction_variation": ["L1"]
+      },
+      "sampling_policy": "Use the registered six-family Pilot shares as the outer family proposal; stage-specific level shares and transition budgets must be locked separately.",
+      "promotion_requires": [
+        "diagnostic evidence is internally consistent for the family",
+        "the family produces nontrivial forward or posture-control feedback rather than immediate universal termination",
+        "no unresolved safety or contact-mapping blocker for the promoted level",
+        "the registered multi-metric report is complete"
+      ],
+      "rollback_action": "keep the family at L1, reduce its level share, or insert an intermediate geometry; do not delete the family solely because the frozen flat PPO fails"
+    },
+    {
+      "stage_id": "skill_consolidation",
+      "stage_order": 2,
+      "status": "candidate_not_locked",
+      "purpose": "Increase repeated contact, posture, and recovery demands while retaining an easier recovery distribution.",
+      "level_policy": {
+        "flat": ["L1", "L2"],
+        "multi_scale_rough": ["L1", "L2"],
+        "slope": ["L1", "L2"],
+        "multi_step_stairs": ["L1", "L2"],
+        "slope_plus_rough": ["L1", "L2"],
+        "friction_variation": ["L1", "L2"]
+      },
+      "sampling_policy": "Retain L1 as a recovery and anti-forgetting component while introducing L2 only for families whose promotion gate is satisfied.",
+      "promotion_requires": [
+        "multi-seed evidence of recoverable progress at the candidate L2",
+        "no unresolved mismatch between termination terms and contact-force evidence",
+        "motion quality and safety metrics remain within the later locked Source bounds",
+        "source-only validation seeds remain disjoint from curriculum-development seeds"
+      ],
+      "rollback_action": "reduce L2 exposure and restore L1 exposure after repeated safety termination, near-zero progress, or unresolved evidence inconsistency"
+    },
+    {
+      "stage_id": "skill_generalization",
+      "stage_order": 3,
+      "status": "candidate_not_locked",
+      "purpose": "Expose stronger levels and registered geometry/layout variation after the underlying skill is stable.",
+      "level_policy": {
+        "flat": ["L1", "L2", "L3"],
+        "multi_scale_rough": ["L1", "L2", "L3"],
+        "slope": ["L1", "L2", "L3"],
+        "multi_step_stairs": ["L1", "L2", "L3"],
+        "slope_plus_rough": ["L1", "L2", "L3"],
+        "friction_variation": ["L1", "L2", "L3"]
+      },
+      "sampling_policy": "Introduce L3 and layout/seed variation only after the corresponding family has passed its L2 promotion gate; keep lower levels present for retention.",
+      "promotion_requires": [
+        "L2 is stable on held-out Source validation seeds",
+        "the L3 geometry and contact audit are complete",
+        "the level remains inside the locked Source boundary and does not consume Development or Sealed seeds"
+      ],
+      "rollback_action": "return to the highest validated lower level and retain the failure evidence for a later curriculum review"
+    }
+  ],
+  "promotion_and_rollback_policy": {
+    "metrics_required_before_any_lock": [
+      "complete_episode_and_forward_progress",
+      "velocity_tracking_error",
+      "roll_pitch_and_lateral_offset",
+      "nonfoot_contact_and_termination_mapping",
+      "foot_slip_and_contact_quality",
+      "safety_filter_projection_and_rejection",
+      "failure_location_and_recoverability",
+      "family_specific_metrics"
+    ],
+    "threshold_status": "not_locked",
+    "numeric_thresholds": null,
+    "minimum_sample_count": null,
+    "promotion_decision": "must be made per family and level; an aggregate success rate cannot promote all families",
+    "rollback_triggers_candidate": [
+      "repeated safety termination",
+      "near-zero progress at the level entry",
+      "repeated nonfoot contact or fall with no recoverable trajectory",
+      "unresolved discrepancy between termination terms and sensor evidence",
+      "source retention degradation beyond the later locked bound"
+    ],
+    "rollback_is_not": "a decision to remove the skill family from Source"
+  },
+  "current_diagnostic_evidence": [
+    {
+      "family": "slope",
+      "level": "L1",
+      "direction": "downhill",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261024/slope_L1_downhill_headless_diagnostic_retry3.json",
+      "sha256": "00a5bfde3d077e9f25b650a071ba9a87e998721264804b29c1acde1869e5b76c",
+      "interpretation": "single bounded diagnostic completed; not a qualification result"
+    },
+    {
+      "family": "multi_step_stairs",
+      "level": "L1",
+      "direction": "ascending",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L1_ascending_headless_diagnostic_retry1.json",
+      "sha256": "57b04c14c83f4bb45d0f619b49461a06488aaa02bbf604aece516b21cf98f933",
+      "interpretation": "3/3 registered treads crossed but full-track completion was not reached; candidate skill-acquisition evidence"
+    },
+    {
+      "family": "multi_step_stairs",
+      "level": "L1",
+      "direction": "descending",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L1_descending_headless_diagnostic_retry1.json",
+      "sha256": "621fbd74b7abbd2c67a758645f8202e470ce62664ceac2b6160fb67c4217ff54",
+      "interpretation": "3/3 registered treads crossed and bounded completion reached; single-seed directional evidence only"
+    },
+    {
+      "family": "multi_step_stairs",
+      "level": "L2",
+      "direction": "ascending",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L2_ascending_headless_diagnostic_retry2.json",
+      "sha256": "50f687e91fa31edfe5c269d97dddd55fb2c5ec5905ae27942a40b26237222ba1",
+      "interpretation": "fall near the first step; promotion is blocked pending contact/termination consistency and multi-seed evidence"
+    },
+    {
+      "family": "multi_step_stairs",
+      "level": "L2",
+      "direction": "ascending",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L2_ascending_headless_diagnostic_retry3_termination_fields.json",
+      "sha256": "bcbaf7562f42dc1b5690608a3ceb58ba89e67729c66156e52a5e3ac20e51b816",
+      "interpretation": "repeat of the bounded diagnostic with configured-versus-triggered termination fields; bad_orientation_2 triggered, illegal_contact remained false, and contact mapping/threshold/three-step confirmation were internally consistent; promotion remains blocked pending first-riser audit and multi-seed evidence"
+    }
+  ],
+  "family_specific_preconditions": {
+    "multi_step_stairs_L2_ascending": [
+      "contact/termination consistency verified in the retry3 diagnostic: configured non-foot mapping, 5 N threshold, three-control-step confirmation, and triggered-term state agree with the sensor history",
+      "verify the first-riser geometry and entry transition independently",
+      "repeat on registered diagnostic seeds before changing the candidate level",
+      "do not increase L2 sampling share until the first-riser audit and multi-seed evidence are complete"
+    ],
+    "slope_plus_rough": [
+      "qualify the corresponding single slope and rough factors before promoting the combined level"
+    ],
+    "friction_variation": [
+      "keep candidate material coefficients distinct from measured effective contact friction"
+    ]
+  },
+  "data_isolation": {
+    "curriculum_diagnostic_seeds": "must remain disjoint from source_train, source_validation, development, probe, and sealed partitions",
+    "checkpoint": "read-only model_1998.pt until a later Source PPO training lock",
+    "sealed_access": false,
+    "online_adaptation": false,
+    "checkpoint_publication": false
+  },
+  "open_items_before_lock": [
+    "set stage-specific family and level sampling shares",
+    "set promotion and rollback thresholds with uncertainty and sample-count rules",
+    "complete the L2 stairs first-riser geometry and entry-transition audit",
+    "complete multi-seed diagnostics for each family and direction",
+    "register the Source PPO transition budget and stopping rules",
+    "bind exact code, environment, checkpoint, and artifact hashes"
+  ],
+  "non_authorization_statement": "This draft records a curriculum proposal only. It must not be passed to a training runner or qualification runner until a later lock action supplies thresholds, budgets, hashes, approvals, and runtime qualifications."
+}
