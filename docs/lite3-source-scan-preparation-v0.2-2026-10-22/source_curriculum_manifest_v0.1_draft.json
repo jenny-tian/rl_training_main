@@ -231,14 +231,25 @@
       "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L2_entry_geometry_audit.json",
       "sha256": "1d95a0d63d0aac2156ac739d08725000c6ec6499221311208cec2a336a7becdd",
       "interpretation": "pure-geometry audit passed across registered geometry seeds 10200-10204: five 3.5 cm risers, 0.5 m first tread, and a 2.0 m reset-relative approach to the first riser; the 0.5 m entry transition is a flat buffer, not a ramp; no geometry or entry-length blocker remains"
+    },
+    {
+      "family": "multi_step_stairs",
+      "level": "L2",
+      "direction": "ascending",
+      "evidence_type": "bounded_multiseed_diagnostic",
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/l2_ascending_multiseed_retry1/progress.json",
+      "sha256": "ceb8c7ca5a04f3ab1714072c210dd550ccc14d6eda89b2c146a559197c37e8bb",
+      "episode_count": 5,
+      "interpretation": "Five paired geometry/state seeds completed; 0/5 crossed the first riser (completed_step_index=0). Two episodes ended with bad_orientation_2 falls and three reached the 1600-step diagnostic limit. Descriptive evidence only; L2 promotion remains blocked."
     }
   ],
   "family_specific_preconditions": {
     "multi_step_stairs_L2_ascending": [
       "contact/termination consistency verified in the retry3 diagnostic: configured non-foot mapping, 5 N threshold, three-control-step confirmation, and triggered-term state agree with the sensor history",
       "first-riser geometry and entry transition independently audited across registered geometry seeds; no geometry blocker found",
-      "repeat on registered diagnostic seeds before changing the candidate level",
-      "do not increase L2 sampling share until multi-seed evidence is complete"
+      "five-seed bounded diagnostic completed with no first-riser crossings (two bad_orientation_2 falls and three diagnostic step-limit episodes); L2 promotion remains blocked",
+      "consolidate the L1 ascending and descending skills before reassessing L2; any later L2 promotion requires multi-seed learning-progress evidence and disjoint held-out Source validation",
+      "do not increase L2 sampling share until the L1 consolidation review and a predeclared L2 learnability plan are complete"
     ],
     "slope_plus_rough": [
       "qualify the corresponding single slope and rough factors before promoting the combined level"
