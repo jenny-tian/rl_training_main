@@ -60,12 +60,18 @@
       "pilot_training_share": 0.25,
       "skill_target": "lift and place feet across repeated risers while maintaining body height, support, and forward progress",
       "level_roles": {
-        "L1": "continuous foot-lift and height-transition acquisition",
+        "L1": "acquire and consolidate continuous foot-lift and repeated height transitions in both directions",
         "L2": "repeated support-change and posture-recovery consolidation",
         "L3": "height, tread, and entry-layout generalization"
       },
       "difficulty_reference": "difficulty_levels.multi_step_stairs",
-      "direction_requirement": "ascending and descending must be registered separately"
+      "direction_requirement": "ascending and descending must be registered and retained separately",
+      "L1_consolidation_objectives": [
+        "learn repeated foot lift, placement, and support transfer across all registered treads in both ascending and descending tracks",
+        "retain forward progress and command tracking while controlling roll, pitch, and lateral drift through the stair transitions",
+        "track swing-foot clearance, front-foot riser collision, catching/stuck events, foot slip, and safety-filter activity as skill evidence rather than relying on completion alone",
+        "verify the acquired behavior across independent training and held-out Source seeds before reconsidering L2"
+      ]
     },
     {
       "family": "slope_plus_rough",
@@ -197,7 +203,7 @@
       "direction": "ascending",
       "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L1_ascending_headless_diagnostic_retry1.json",
       "sha256": "57b04c14c83f4bb45d0f619b49461a06488aaa02bbf604aece516b21cf98f933",
-      "interpretation": "3/3 registered treads crossed but full-track completion was not reached; candidate skill-acquisition evidence"
+      "interpretation": "one logged bounded episode from the five-seed candidate cell: 3/3 registered treads crossed, 8.58 m forward progress, no front-foot riser collision or catch, but the 1600-step limit was reached before full-track completion; single-seed frozen-checkpoint diagnostic, not evidence of a trained skill or five-seed result"
     },
     {
       "family": "multi_step_stairs",
@@ -205,7 +211,7 @@
       "direction": "descending",
       "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L1_descending_headless_diagnostic_retry1.json",
       "sha256": "621fbd74b7abbd2c67a758645f8202e470ce62664ceac2b6160fb67c4217ff54",
-      "interpretation": "3/3 registered treads crossed and bounded completion reached; single-seed directional evidence only"
+      "interpretation": "one logged bounded episode from the five-seed candidate cell: 3/3 registered treads crossed and track completion reached, with one front-foot riser collision and no catch; single-seed frozen-checkpoint diagnostic, not evidence of a trained skill or five-seed result"
     },
     {
       "family": "multi_step_stairs",
@@ -244,11 +250,20 @@
     }
   ],
   "family_specific_preconditions": {
+    "multi_step_stairs_L1_consolidation": [
+      "the current ascending and descending runtime reports each contain one logged episode (episode_index=1), although five seed pairs were registered; treat them as single-seed baseline diagnostics only",
+      "the ascending sample crossed all three treads but hit the 1600-step limit before track completion; the descending sample completed all three treads and the track, with one front-foot riser collision",
+      "consolidation means learning and retaining repeatable stair behavior in both directions, assessed with per-seed completion/progress, velocity tracking, roll/pitch, lateral drift, clearance, collision/catch, slip, and safety-filter metrics",
+      "before L2 reassessment, require a Source-trained checkpoint and independent multi-seed held-out Source evidence that L1 behavior is retained in both directions; frozen model_1998.pt diagnostics do not establish learned skill",
+      "sample counts, uncertainty handling, and numeric L1 exit bounds remain unlocked and must be predeclared before any training lock"
+    ],
     "multi_step_stairs_L2_ascending": [
       "contact/termination consistency verified in the retry3 diagnostic: configured non-foot mapping, 5 N threshold, three-control-step confirmation, and triggered-term state agree with the sensor history",
       "first-riser geometry and entry transition independently audited across registered geometry seeds; no geometry blocker found",
       "five-seed bounded diagnostic completed with no first-riser crossings (two bad_orientation_2 falls and three diagnostic step-limit episodes); L2 promotion remains blocked",
-      "consolidate the L1 ascending and descending skills before reassessing L2; any later L2 promotion requires multi-seed learning-progress evidence and disjoint held-out Source validation",
+      "reopen L2 assessment only after the Source-trained policy satisfies the L1 consolidation review in both directions; the frozen flat checkpoint's 0/5 first-riser result is baseline difficulty evidence, not a reason to remove the stair skill family",
+      "the first L2 reassessment is a learnability diagnostic: register per-seed first-riser progress, foot clearance, collision/catch, posture, tracking, and safety evidence; repeated zero progress should trigger review of an intermediate progression rather than automatic family removal",
+      "any promotion beyond diagnostic reassessment requires multi-seed learning-progress evidence and disjoint held-out Source validation; numeric promotion and sample-count rules remain unlocked",
       "do not increase L2 sampling share until the L1 consolidation review and a predeclared L2 learnability plan are complete"
     ],
     "slope_plus_rough": [
@@ -268,6 +283,7 @@
   "open_items_before_lock": [
     "set stage-specific family and level sampling shares",
     "set promotion and rollback thresholds with uncertainty and sample-count rules",
+    "predeclare the L1 multi-step-stair consolidation review and L2 learnability reassessment gates, including disjoint train/validation seed sets",
     "complete multi-seed diagnostics for each family and direction",
     "register the Source PPO transition budget and stopping rules",
     "bind exact code, environment, checkpoint, and artifact hashes"
