@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "source/rl_training"))
 
 from scripts.tools import source_family_runtime_smoke as runtime_smoke  # noqa: E402
+from scripts.tools import run_l2_stair_multiseed_diagnostic as multiseed  # noqa: E402
 
 
 def test_l2_ascending_is_the_only_new_l2_runtime_cell():
@@ -90,4 +91,60 @@ def test_termination_diagnostic_separates_configured_and_triggered_terms():
     assert illegal["sensor_body_ids"] == list(range(13))
     assert illegal["threshold_n"] == 5.0
     assert illegal["consecutive_steps"] == 3
+
+
+def test_single_episode_runner_only_accepts_registered_paired_seed_indices():
+    _manifest, cell = runtime_smoke.select_cell("multi_step_stairs_L2_ascending")
+
+    assert runtime_smoke.resolve_registered_seed_pair(cell, None, None) == (10200, 20200)
+    assert runtime_smoke.resolve_registered_seed_pair(cell, 10203, 20203) == (10203, 20203)
+    with pytest.raises(ValueError, match="pair index"):
+        runtime_smoke.resolve_registered_seed_pair(cell, 10203, 20202)
+    with pytest.raises(ValueError, match="registered range"):
+        runtime_smoke.resolve_registered_seed_pair(cell, 10205, 20205)
+
+
+def test_multiseed_plan_pairs_only_the_five_registered_l2_seeds():
+    _manifest, cell = runtime_smoke.select_cell("multi_step_stairs_L2_ascending")
+
+    assert multiseed.registered_seed_pairs(cell) == [
+        {"geometry_seed": 10200, "initial_state_seed": 20200},
+        {"geometry_seed": 10201, "initial_state_seed": 20201},
+        {"geometry_seed": 10202, "initial_state_seed": 20202},
+        {"geometry_seed": 10203, "initial_state_seed": 20203},
+        {"geometry_seed": 10204, "initial_state_seed": 20204},
+    ]
+
+    commands = [
+        multiseed.build_episode_command(
+            pair,
+            output=ROOT / f"episode_{index}.json",
+            device="cuda:0",
+            heartbeat_steps=50,
+        )
+        for index, pair in enumerate(multiseed.registered_seed_pairs(cell), start=1)
+    ]
+    assert all(command[command.index("--cell-id") + 1] == "multi_step_stairs_L2_ascending" for command in commands)
+    assert all("--headless" in command for command in commands)
+    assert all("--output" in command for command in commands)
+
+
+def test_multiseed_aggregate_is_descriptive_and_applies_no_threshold():
+    aggregate = multiseed.aggregate_records([
+        {"termination_reason": "fall", "completed_step_index": 0},
+        {"termination_reason": "fall", "completed_step_index": 1},
+        {"termination_reason": "fall", "completed_step_index": 0},
+        {"termination_reason": "completion", "completed_step_index": 5},
+        {"termination_reason": "body_contact_termination", "completed_step_index": 0},
+    ])
+
+    assert aggregate["episode_count"] == 5
+    assert aggregate["termination_reason_counts"] == {
+        "fall": 3,
+        "completion": 1,
+        "body_contact_termination": 1,
+    }
+    assert aggregate["completed_step_index_counts"] == {"0": 3, "1": 1, "5": 1}
+    assert aggregate["qualification_claim"] is False
+    assert "no promotion" in aggregate["interpretation"]
 

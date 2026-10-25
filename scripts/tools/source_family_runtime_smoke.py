@@ -148,6 +148,30 @@ def select_cell(cell_id: str):
     return manifest, cells[0]
 
 
+def resolve_registered_seed_pair(
+    cell: dict, geometry_seed: int | None, initial_state_seed: int | None
+) -> tuple[int, int]:
+    """Resolve one seed pair, defaulting to the first registered pair."""
+
+    if (geometry_seed is None) != (initial_state_seed is None):
+        raise ValueError("geometry and initial-state seeds must be supplied together")
+    geometry_lo, geometry_hi = cell["geometry_seed_range"]
+    state_lo, state_hi = cell["initial_state_seed_range"]
+    resolved_geometry = geometry_lo if geometry_seed is None else geometry_seed
+    resolved_state = state_lo if initial_state_seed is None else initial_state_seed
+    if not geometry_lo <= resolved_geometry <= geometry_hi:
+        raise ValueError(
+            f"geometry seed must be in the registered range [{geometry_lo}, {geometry_hi}]"
+        )
+    if not state_lo <= resolved_state <= state_hi:
+        raise ValueError(
+            f"initial-state seed must be in the registered range [{state_lo}, {state_hi}]"
+        )
+    if resolved_geometry - geometry_lo != resolved_state - state_lo:
+        raise ValueError("geometry and initial-state seeds must preserve the registered pair index")
+    return int(resolved_geometry), int(resolved_state)
+
+
 def main():
     from isaaclab.app import AppLauncher
 
@@ -158,6 +182,8 @@ def main():
         "--heartbeat-steps", type=int, default=HEARTBEAT_STEPS,
         help="persist progress every N control steps (1-200)",
     )
+    parser.add_argument("--geometry-seed", type=int, help="registered geometry seed for this cell")
+    parser.add_argument("--initial-state-seed", type=int, help="registered initial-state seed for this cell")
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
     if not args.headless:
@@ -165,6 +191,12 @@ def main():
     if not 1 <= args.heartbeat_steps <= 200:
         parser.error("--heartbeat-steps must be in [1, 200]")
     manifest, cell = select_cell(args.cell_id)
+    try:
+        geometry_seed, state_seed = resolve_registered_seed_pair(
+            cell, args.geometry_seed, args.initial_state_seed
+        )
+    except ValueError as error:
+        parser.error(str(error))
     output = args.output.resolve()
     checkpoint = Path(manifest["base_checkpoint"]["path"])
     source_files = [Path(__file__).resolve(), ROOT / "scripts/tools/runtime_progress.py",
@@ -182,6 +214,8 @@ def main():
         "status": "started_not_completed",
         "started_at_utc": started,
         "cell_id": args.cell_id,
+        "geometry_seed": geometry_seed,
+        "initial_state_seed": state_seed,
         "manifest_sha256": MANIFEST_SHA256,
         "checkpoint_sha256": manifest["base_checkpoint"]["sha256"],
         "source_sha256": source_hashes,
@@ -223,8 +257,6 @@ def main():
         from rsl_rl.runners import OnPolicyRunner
         from rl_training.online_adaptation.rsl_rl_compat import freeze_rsl_rl_models, load_frozen_rsl_rl_checkpoint
 
-        geometry_seed = cell["geometry_seed_range"][0]
-        state_seed = cell["initial_state_seed_range"][0]
         phase = "building_environment"
         journal.update(phase=phase, geometry_seed=geometry_seed, initial_state_seed=state_seed)
         env, cfg = _make_wrapped_env(cell, geometry_seed, state_seed, device=args.device)
