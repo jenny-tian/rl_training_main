@@ -1,0 +1,257 @@
+{
+  "schema_version": "lite3_l2_stair_entry_geometry_audit_v1",
+  "status": "offline_geometry_audit_completed",
+  "simulation_started": false,
+  "policy_executed": false,
+  "training_started": false,
+  "sealed_accessed": false,
+  "qualification_claim": false,
+  "cell_id": "multi_step_stairs_L2_ascending",
+  "inputs": {
+    "preparation_manifest": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/source_qualification_scan_manifest_v0.2_preparation.json",
+      "sha256": "0fce8c53e2e2c8537c8b048b2c5f718ebf74211bf2197e1da99eb3cecf6c1cb1"
+    },
+    "runtime_report": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L2_ascending_headless_diagnostic_retry3_termination_fields.json",
+      "sha256": "bcbaf7562f42dc1b5690608a3ceb58ba89e67729c66156e52a5e3ac20e51b816"
+    },
+    "geometry_generator": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py",
+      "sha256": "54febda2f79e1f8bce142d37261bb649002bf4d5df36c1798c8503a338bf6c0d"
+    },
+    "registered_geometry_generator_sha256": "54febda2f79e1f8bce142d37261bb649002bf4d5df36c1798c8503a338bf6c0d",
+    "geometry_seed": 10200,
+    "initial_state_seed_from_runtime": 20200
+  },
+  "registered_geometry": {
+    "size": [
+      12.0,
+      4.0
+    ],
+    "flat_length_m": 3.0,
+    "transition_length_m": 0.5,
+    "grid_spacing_m": 0.1,
+    "step_count": 5,
+    "step_height_m": 0.035,
+    "tread_depth_m": 0.5,
+    "direction_or_layout": "ascending"
+  },
+  "registered_track": {
+    "start_x_m": 1.5,
+    "completion_x_m": 10.5,
+    "lateral_margin_m": 0.2
+  },
+  "generated_geometry": {
+    "origin_local_m": [
+      1.5,
+      2.0,
+      0.0
+    ],
+    "mesh_bounds_m": [
+      [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      [
+        12.0,
+        4.0,
+        0.17500000000000002
+      ]
+    ],
+    "mesh_is_watertight": true,
+    "mesh_is_winding_consistent": true,
+    "metadata": {
+      "track_length_m": 12.0,
+      "track_width_m": 4.0,
+      "direction": "ascending",
+      "step_count": 5,
+      "step_height_m": 0.035,
+      "tread_depth_m": 0.5,
+      "entry_x_m": 3.5,
+      "exit_x_m": 6.0,
+      "initial_surface_height_m": 0.0,
+      "terminal_surface_height_m": 0.17500000000000002,
+      "steps": [
+        {
+          "riser_x_m": 3.5,
+          "tread_end_x_m": 4.0,
+          "height_before_m": 0.0,
+          "height_after_m": 0.035
+        },
+        {
+          "riser_x_m": 4.0,
+          "tread_end_x_m": 4.5,
+          "height_before_m": 0.035,
+          "height_after_m": 0.07
+        },
+        {
+          "riser_x_m": 4.5,
+          "tread_end_x_m": 5.0,
+          "height_before_m": 0.07,
+          "height_after_m": 0.10500000000000001
+        },
+        {
+          "riser_x_m": 5.0,
+          "tread_end_x_m": 5.5,
+          "height_before_m": 0.10500000000000001,
+          "height_after_m": 0.14
+        },
+        {
+          "riser_x_m": 5.5,
+          "tread_end_x_m": 6.0,
+          "height_before_m": 0.14,
+          "height_after_m": 0.17500000000000002
+        }
+      ]
+    }
+  },
+  "registered_geometry_seed_stability": {
+    "seed_range": [
+      10200,
+      10204
+    ],
+    "checks": [
+      {
+        "seed": 10200,
+        "metadata_matches_reference": true,
+        "mesh_vertices_match_reference": true,
+        "mesh_faces_match_reference": true
+      },
+      {
+        "seed": 10201,
+        "metadata_matches_reference": true,
+        "mesh_vertices_match_reference": true,
+        "mesh_faces_match_reference": true
+      },
+      {
+        "seed": 10202,
+        "metadata_matches_reference": true,
+        "mesh_vertices_match_reference": true,
+        "mesh_faces_match_reference": true
+      },
+      {
+        "seed": 10203,
+        "metadata_matches_reference": true,
+        "mesh_vertices_match_reference": true,
+        "mesh_faces_match_reference": true
+      },
+      {
+        "seed": 10204,
+        "metadata_matches_reference": true,
+        "mesh_vertices_match_reference": true,
+        "mesh_faces_match_reference": true
+      }
+    ],
+    "conclusion": "rules-based stair geometry is byte-identical across the registered geometry seeds"
+  },
+  "entry_audit": {
+    "initial_flat_prefix_m": 3.0,
+    "entry_buffer_m": 0.5,
+    "entry_transition_geometry": "flat_buffer_before_first_riser",
+    "entry_transition_is_ramp": false,
+    "first_riser_local_x_m": 3.5,
+    "first_riser_progress_from_reset_m": 2.0,
+    "first_riser_height_change_m": 0.035,
+    "first_tread_interval_local_x_m": [
+      3.5,
+      4.0
+    ],
+    "first_tread_depth_m": 0.5,
+    "stair_end_local_x_m": 6.0,
+    "stair_end_progress_from_reset_m": 4.5,
+    "completion_progress_from_reset_m": 9.0,
+    "post_stair_plateau_before_completion_m": 4.5,
+    "surface_samples": {
+      "before_first_riser": {
+        "local_x_m": 3.49999,
+        "surface_z_m": 0.0
+      },
+      "after_first_riser": {
+        "local_x_m": 3.50001,
+        "surface_z_m": 0.035
+      },
+      "first_tread_near_end": {
+        "local_x_m": 3.99999,
+        "surface_z_m": 0.035
+      }
+    }
+  },
+  "runtime_alignment": {
+    "terrain_origin_world_m": [
+      -4.5,
+      0.0,
+      0.0
+    ],
+    "root_start_world_m": [
+      -4.498934745788574,
+      4.525741678662598e-05,
+      0.37278109788894653
+    ],
+    "root_start_progress_from_terrain_origin_m": 0.0010652542114257812,
+    "root_start_local_x_m": 1.5010652542114258,
+    "root_start_to_first_riser_m": 1.9989347457885742,
+    "root_terminal_world_m": [
+      -2.349675178527832,
+      0.2699187994003296,
+      0.30480116605758667
+    ],
+    "root_terminal_progress_from_terrain_origin_m": 2.150324821472168,
+    "root_terminal_distance_past_first_riser_m": 0.15032482147216797,
+    "terminal_feet": [
+      {
+        "body_name": "FL_FOOT",
+        "local_x_m": 3.917839765548706,
+        "local_y_m": 2.2128983438014984,
+        "surface_z_m_from_report": 0.035,
+        "vertical_clearance_m_from_report": 0.02193157762289047,
+        "current_force_n": 36.03511047363281,
+        "history_peak_force_n": 39.7869873046875,
+        "relative_to_first_riser": "on_first_tread"
+      },
+      {
+        "body_name": "FR_FOOT",
+        "local_x_m": 3.977313280105591,
+        "local_y_m": 2.0749717876315117,
+        "surface_z_m_from_report": 0.035,
+        "vertical_clearance_m_from_report": 0.23962264895439148,
+        "current_force_n": 0.0,
+        "history_peak_force_n": 0.0,
+        "relative_to_first_riser": "on_first_tread"
+      },
+      {
+        "body_name": "HL_FOOT",
+        "local_x_m": 3.2244176864624023,
+        "local_y_m": 2.1553924530744553,
+        "surface_z_m_from_report": 0.0,
+        "vertical_clearance_m_from_report": 0.021483317017555237,
+        "current_force_n": 53.49427032470703,
+        "history_peak_force_n": 53.49427032470703,
+        "relative_to_first_riser": "before"
+      },
+      {
+        "body_name": "HR_FOOT",
+        "local_x_m": 3.530616044998169,
+        "local_y_m": 1.9969487357884645,
+        "surface_z_m_from_report": 0.035,
+        "vertical_clearance_m_from_report": 0.24696650743484497,
+        "current_force_n": 0.0,
+        "history_peak_force_n": 0.0,
+        "relative_to_first_riser": "on_first_tread"
+      }
+    ]
+  },
+  "verdict": {
+    "registered_step_count_matches_generated_risers": true,
+    "first_riser_alignment_passed": true,
+    "entry_flat_buffer_surface_check_passed": true,
+    "first_riser_height_check_passed": true,
+    "first_tread_depth_check_passed": true,
+    "runtime_start_position_is_inside_entry_flat_buffer": true,
+    "runtime_terminal_position_reached_first_tread": true,
+    "geometry_entry_is_not_too_short": true,
+    "audit_conclusion": "The registered L2 ascending track has a 2.0 m reset-relative approach to the first 3.5 cm riser and a 0.5 m first tread. The transition_length_m field is implemented as a flat entry buffer, not a ramp. The terminal root and foot positions are consistent with the first-riser/first-tread layout; the fall is not explained by an accidentally short or missing entry segment.",
+    "remaining_runtime_question": "The geometry audit does not establish whether the frozen policy can recover the body posture after the first riser on other registered seeds."
+  }
+}
