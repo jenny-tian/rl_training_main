@@ -1,0 +1,107 @@
+{
+  "status": "installed_mesh_id_shape_error_reproduced",
+  "simulation_started": false,
+  "dependency_path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/ray_caster/multi_mesh_ray_caster.py",
+  "dependency_sha256": "8ec8313b9cd6068e65f41057d569f1d303ced1859860e77368b27d7fc6cf815b",
+  "source_method_lines": {
+    "_initialize_rays_impl": 344,
+    "_update_buffers_impl": 351
+  },
+  "stubbed_components": [
+    "parent ray initialization",
+    "raycast_dynamic_meshes"
+  ],
+  "cases": [
+    {
+      "num_rays": 345,
+      "env_ids": [
+        0,
+        1
+      ],
+      "allocated_shape": [
+        2,
+        345,
+        1
+      ],
+      "selected_shape": [
+        2,
+        345,
+        1
+      ],
+      "returned_ids_shape": [
+        2,
+        345
+      ],
+      "reproduced": true,
+      "error": "shape mismatch: value tensor of shape [2, 345] cannot be broadcast to indexing result of shape [2, 345, 1]"
+    },
+    {
+      "num_rays": 345,
+      "env_ids": [
+        1
+      ],
+      "allocated_shape": [
+        2,
+        345,
+        1
+      ],
+      "selected_shape": [
+        1,
+        345,
+        1
+      ],
+      "returned_ids_shape": [
+        1,
+        345
+      ],
+      "reproduced": true,
+      "error": "shape mismatch: value tensor of shape [345] cannot be broadcast to indexing result of shape [1, 345, 1]"
+    },
+    {
+      "num_rays": 9,
+      "env_ids": [
+        0,
+        1
+      ],
+      "allocated_shape": [
+        2,
+        9,
+        1
+      ],
+      "selected_shape": [
+        2,
+        9,
+        1
+      ],
+      "returned_ids_shape": [
+        2,
+        9
+      ],
+      "reproduced": true,
+      "error": "shape mismatch: value tensor of shape [2, 9] cannot be broadcast to indexing result of shape [2, 9, 1]"
+    },
+    {
+      "num_rays": 9,
+      "env_ids": [
+        1
+      ],
+      "allocated_shape": [
+        2,
+        9,
+        1
+      ],
+      "selected_shape": [
+        1,
+        9,
+        1
+      ],
+      "returned_ids_shape": [
+        1,
+        9
+      ],
+      "reproduced": true,
+      "error": "shape mismatch: value tensor of shape [9] cannot be broadcast to indexing result of shape [1, 9, 1]"
+    }
+  ],
+  "repair_applied": false
+}

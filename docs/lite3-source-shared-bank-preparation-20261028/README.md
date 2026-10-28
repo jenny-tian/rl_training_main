@@ -90,3 +90,5 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training \
 即便下一步通过，也只支持该版本与配置下的“两环境 shared-bank 短时重叠/扫描/直接 reset smoke”。它不覆盖所有地形上的机器人重叠、自动终止 reset、非空策略历史的真实运行、单边动作激励/冻结策略运动隔离、G3 完整动态越界检查、G4 吞吐预算、120 环境、checkpoint sampler 恢复或 PPO。
 
 既有 60 环境 reserved-row G2 通过记录继续保留；本阶段不把它扩展解释为共享 bank 已通过。下一阶段真实运行须经用户确认。
+
+**后续运行结果（2026-10-28）：** 用户批准后，从干净提交 `87b5c89` 执行了一次上述两环境检查。在观测管理器构建阶段，启用 mesh hit ID 的本机 `MultiMeshRayCaster` 出现 `(2,345)` 到 `(2,345,1)` 的写入维度错误，未进入初始 reset 或共享诊断。异常关闭未及时结束，经核对进程身份后发送 SIGTERM 收尾，监督器总耗时 114.317 秒、显存采样峰值 2,818 MiB；退出后 GPU0 18 MiB、无残留测试进程。没有自动重试或修复运行代码。详见 [失败记录与下一阶段离线修复建议](../lite3-source-shared-bank-2env-20261028/README.md)。
