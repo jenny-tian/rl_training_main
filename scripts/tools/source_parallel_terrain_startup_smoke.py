@@ -1,4 +1,4 @@
-"""G1 startup diagnostic for the approved 8-, 16-, and 32-environment stages.
+"""G1 startup diagnostic for the approved 8-, 16-, 32-, and 60-environment stages.
 
 Build the map, reset all environments and take one zero-action control step.
 No policy, training, or asynchronous reset qualification is performed.
@@ -49,8 +49,8 @@ def main() -> int:
     parser.add_argument("--trace-output", type=Path)
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
-    if args.num_envs not in (8, 16, 32):
-        parser.error("this G1 startup smoke supports only 8, 16, or 32 environments")
+    if args.num_envs not in (8, 16, 32, 60):
+        parser.error("this G1 startup smoke supports only 8, 16, 32, or 60 environments")
     if args.seed < 0:
         parser.error("--seed must be nonnegative")
     output_path = args.output.resolve()
