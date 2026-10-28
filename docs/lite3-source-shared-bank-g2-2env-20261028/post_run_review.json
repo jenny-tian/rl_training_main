@@ -1,0 +1,103 @@
+{
+  "reviewed_at_utc": "2026-10-28T15:15:42.313993+00:00",
+  "status": "shared_bank_g2_2env_passed",
+  "runtime_revision": "2134d87b9db03263a6aef7335088c8ef98bc0f94",
+  "supervisor_exit_code": 0,
+  "child_exit_code": 0,
+  "run_count_this_phase": 1,
+  "automatic_retry": false,
+  "runtime_source_modified": false,
+  "source_hashes_verified": 143,
+  "dependency_hashes_verified": 34,
+  "assets_verified": 6,
+  "assignment_count": 123,
+  "direct_reset_count": 120,
+  "audited_reset_batches": 91,
+  "complete_blocks": 1,
+  "tail_tickets": [
+    {
+      "env_id": 0,
+      "row": 0,
+      "column": 0,
+      "subterrain": "flat",
+      "assignment_index": 120,
+      "episode_index": 60,
+      "block_index": 1,
+      "index_in_block": 0
+    },
+    {
+      "env_id": 1,
+      "row": 0,
+      "column": 6,
+      "subterrain": "stairs_ascending",
+      "assignment_index": 121,
+      "episode_index": 60,
+      "block_index": 1,
+      "index_in_block": 1
+    },
+    {
+      "env_id": 0,
+      "row": 0,
+      "column": 1,
+      "subterrain": "multi_scale_rough",
+      "assignment_index": 122,
+      "episode_index": 61,
+      "block_index": 1,
+      "index_in_block": 2
+    }
+  ],
+  "automatic_reset_ids": [
+    0
+  ],
+  "post_automatic_reset_step_passed": true,
+  "nonempty_observation_history_tested": false,
+  "contact_substeps": 80,
+  "contact_control_steps": 20,
+  "total_control_steps": 22,
+  "ground_contact_points": {
+    "0": 276,
+    "1": 268
+  },
+  "cross_environment_contacts_in_initial_probe": 0,
+  "contact_evidence_scope": "initial 20 control steps only; excludes G2 final two control steps",
+  "elapsed_s": 21.35114717623219,
+  "environment_construction_seconds": 2.5950167141854763,
+  "sampled_gpu_peak_mib": 2820,
+  "cpu_peak_rss_kib": 4061444,
+  "gpu0_after": [
+    "0",
+    "GPU-044ddc24-86ef-a67d-7e14-9358300bc3dc",
+    "NVIDIA GeForce RTX 3090",
+    "18 MiB",
+    "24576 MiB",
+    "0 %"
+  ],
+  "test_processes_remaining": false,
+  "log_review": {
+    "console.log": {
+      "explicit_errors": [],
+      "warnings": 16
+    },
+    "kit.log": {
+      "explicit_errors": [],
+      "warnings": 16
+    },
+    "isaaclab.log": {
+      "explicit_errors": [],
+      "warnings": 0
+    }
+  },
+  "journal_phase_counts": {
+    "initial": 1,
+    "before_reset": 91,
+    "assignment_comparison": 91,
+    "reset_checked": 91,
+    "shared_reset_scanners": 90,
+    "automatic_reset_output": 1,
+    "post_automatic_reset_step": 1
+  },
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "full_motion_isolation_qualified": false,
+  "full_parallel_runtime_qualified": false
+}

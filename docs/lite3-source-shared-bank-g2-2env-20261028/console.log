@@ -1,0 +1,350 @@
+[parallel-terrain-smoke] app-launch-start
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: /home/tjx/IsaacLab/apps/isaaclab.python.headless.kit
+Loading user config located at: '/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261028_231339.log
+2026-10-28T15:13:39Z [128ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-10-28T15:13:40Z [736ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-10-28T15:13:40Z [747ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 580.178.04    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 3090          | Yes: 0 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 044ddc24.. |
+|     |                                  |        |     |            | 3b        |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | NVIDIA GeForce RTX 3090          | Yes: 1 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 372c69f6.. |
+|     |                                  |        |     |            | 5e        |            |
+|---------------------------------------------------------------------------------------------|
+| 2   | NVIDIA GeForce RTX 3090          | Yes: 2 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 55105845.. |
+|     |                                  |        |     |            | b1        |            |
+|---------------------------------------------------------------------------------------------|
+| 3   | NVIDIA GeForce RTX 3090          | Yes: 3 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 92d634a9.. |
+|     |                                  |        |     |            | d9        |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-138-generic
+| XServer Vendor: The X.Org Foundation, XServer Version: 12014000 (1.20.14.0)
+| Processor: Intel(R) Xeon(R) Gold 6226R CPU @ 2.90GHz
+| Cores: 32 | Logical Cores: 64
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 128384 | Free Memory: 118697
+| Total Page/Swap (MB): 249999 | Free Page/Swap: 244351
+|---------------------------------------------------------------------------------------------|
+2026-10-28T15:13:46Z [6,626ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+2026-10-28T15:13:46Z [6,626ms] [Warning] [gpu.foundation.plugin] Detected IOMMU is enabled. Running CUDA peer-to-peer bandwidth and latency validation.
+Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
+   D\D     0      1      2      3 
+     0 832.89   3.86   3.86   3.86 
+     1   3.86 834.67   3.86   3.86 
+     2   3.77   3.76 835.56   3.80 
+     3   3.77   3.76   3.80 833.40 
+P2P=Enabled Latency (P2P Writes) Matrix (us)
+   GPU     0      1      2      3 
+     0   1.51  13.77  16.12  16.46 
+     1  13.59   1.59  16.30  14.78 
+     2  13.62  14.46   1.54  14.15 
+     3  16.68  16.51  13.66   1.58 
+
+   CPU     0      1      2      3 
+     0   2.88   8.06   8.53   8.51 
+     1   8.07   2.71   8.30   8.43 
+     2   8.18   8.27   2.80   8.60 
+     3   8.34   8.19   8.53   2.84 
+2026-10-28T15:13:48Z [9,261ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed bandwidth: 3.8 GB/s.
+2026-10-28T15:13:48Z [9,261ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed latency: 16.7 us.
+2026-10-28T15:13:48Z [9,261ms] [Warning] [gpu.foundation.plugin] Please verify if observed bandwidth and latency are expected.
+[parallel-terrain-smoke] app-launch-complete
+[parallel-terrain-smoke] imports-complete
+[parallel-terrain-smoke] config-construction-start
+[parallel-terrain-smoke] environment-construction-start
+
+[36m======================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /tmp/isaaclab/logs/isaaclab_2026-10-28_23-13-49.log[0m
+[36m======================================================================================[0m
+
+[33m23:13:49 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.[0m
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 130196
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+2026-10-28T15:13:49Z [10,081ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/FR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FR_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,081ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/FL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FL_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,081ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/HL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HL_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,081ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/HR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HR_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,104ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/HR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HR_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,104ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/FR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FR_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,104ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/HL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HL_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+2026-10-28T15:13:49Z [10,104ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/FL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FL_FOOT/visuals> (recomposing stage on stage @anon:0x5af56043bb10:World0.usd@ <0x5af560440f50>)
+
+[INFO] Generating terrains based on curriculum took : 0.275553 seconds
+[INFO]: Time taken for scene creation : 1.052936 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 2
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : False
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 1.146313 seconds
+[33m23:13:51 [velocity_command.py] WARNING: The velocity command has the 'ranges.heading' attribute set to '(0.0, 0.0)' but the heading command is not active. Consider setting the flag for the heading command to True.[0m
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++---------------------------------------------------------+
+|                   Active Command Terms                  |
++-------+---------------+---------------------------------+
+| Index | Name          |               Type              |
++-------+---------------+---------------------------------+
+|   0   | base_velocity | UniformThresholdVelocityCommand |
++-------+---------------+---------------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 2 active terms.
++-----------------------------------------+
+|  Active Event Terms in Mode: 'startup'  |
++--------+--------------------------------+
+| Index  | Name                           |
++--------+--------------------------------+
+|   0    | randomize_rigid_body_material  |
++--------+--------------------------------+
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++--------+----------------------------+
+| Index  | Name                       |
++--------+----------------------------+
+|   0    | randomize_reset_joints     |
+|   1    | randomize_reset_base       |
++--------+----------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 2 groups.
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (45,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | base_ang_vel                    |    (3,)   |
+|     1     | projected_gravity               |    (3,)   |
+|     2     | velocity_commands               |    (3,)   |
+|     3     | joint_pos                       |   (12,)   |
+|     4     | joint_vel                       |   (12,)   |
+|     5     | actions                         |   (12,)   |
++-----------+---------------------------------+-----------+
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (393,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | projected_gravity              |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (345,)   |
++-----------+--------------------------------+-------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 4 active terms.
++-----------------------------------------------+
+|            Active Termination Terms           |
++-------+----------------------------+----------+
+| Index | Name                       | Time Out |
++-------+----------------------------+----------+
+|   0   | source_terrain_tile_bounds |  False   |
+|   1   | time_out                   |   True   |
+|   2   | illegal_contact            |  False   |
+|   3   | bad_orientation_2          |  False   |
++-------+----------------------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 25 active terms.
++----------------------------------------------+
+|             Active Reward Terms              |
++-------+---------------------------+----------+
+| Index | Name                      |   Weight |
++-------+---------------------------+----------+
+|   0   | lin_vel_z_l2              |    -20.0 |
+|   1   | ang_vel_xy_l2             |    -0.25 |
+|   2   | flat_orientation_l2       |    -20.0 |
+|   3   | tilt_guard_band           |    -20.0 |
+|   4   | base_height_l2            |    -50.0 |
+|   5   | joint_torques_l2          | -0.00025 |
+|   6   | joint_acc_l2              |   -1e-08 |
+|   7   | joint_pos_limits          |     -5.0 |
+|   8   | joint_power               |  -0.0008 |
+|   9   | hipx_joint_pos_penalty    |     -0.4 |
+|   10  | knee_joint_pos_penalty    |       -2 |
+|   11  | joint_mirror              |    -0.05 |
+|   12  | action_rate_l2            |     -0.1 |
+|   13  | undesired_contacts        |     -0.5 |
+|   14  | contact_forces            |     -0.1 |
+|   15  | foot_impact_velocity      |     -2.0 |
+|   16  | track_lin_vel_xy_exp      |      4.0 |
+|   17  | track_ang_vel_z_exp       |      1.5 |
+|   18  | feet_air_time_lin_xy      |      5.0 |
+|   19  | feet_air_time_ang_z_lite3 |      5.0 |
+|   20  | feet_gait                 |      0.5 |
+|   21  | phase_foot_trajectory_exp |      2.0 |
+|   22  | feet_contact_without_cmd  |      0.1 |
+|   23  | feet_slide                |    -0.05 |
+|   24  | stand_still               |     -0.5 |
++-------+---------------------------+----------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 1 active terms.
++-----------------------------------------------+
+|            Active Curriculum Terms            |
++-------+---------------------------------------+
+| Index | Name                                  |
++-------+---------------------------------------+
+|   0   | source_terrain_parallel_reset_sampler |
++-------+---------------------------------------+
+
+[INFO]: Completed setting up the environment...
+[parallel-terrain-smoke] environment-construction-complete
+[parallel-terrain-smoke] initial-reset-start
+[parallel-terrain-smoke] initial-reset-complete
+[parallel-terrain-smoke] shared-control-step-checked: 1
+[parallel-terrain-smoke] shared-control-step-checked: 2
+[parallel-terrain-smoke] shared-control-step-checked: 3
+[parallel-terrain-smoke] shared-control-step-checked: 4
+[parallel-terrain-smoke] shared-control-step-checked: 5
+[parallel-terrain-smoke] shared-control-step-checked: 6
+[parallel-terrain-smoke] shared-control-step-checked: 7
+[parallel-terrain-smoke] shared-control-step-checked: 8
+[parallel-terrain-smoke] shared-control-step-checked: 9
+[parallel-terrain-smoke] shared-control-step-checked: 10
+[parallel-terrain-smoke] shared-control-step-checked: 11
+[parallel-terrain-smoke] shared-control-step-checked: 12
+[parallel-terrain-smoke] shared-control-step-checked: 13
+[parallel-terrain-smoke] shared-control-step-checked: 14
+[parallel-terrain-smoke] shared-control-step-checked: 15
+[parallel-terrain-smoke] shared-control-step-checked: 16
+[parallel-terrain-smoke] shared-control-step-checked: 17
+[parallel-terrain-smoke] shared-control-step-checked: 18
+[parallel-terrain-smoke] shared-control-step-checked: 19
+[parallel-terrain-smoke] shared-control-step-checked: 20
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=1 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=2 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=3 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=4 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=5 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=6 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=7 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=8 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=9 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=10 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=11 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=12 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=13 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=14 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=15 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=16 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=17 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=18 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=19 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=20 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=21 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=22 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=23 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=24 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=25 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=26 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=27 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=28 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=29 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=30 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=31 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=32 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=33 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=34 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=35 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=36 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=37 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=38 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=39 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=40 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=41 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=42 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=43 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=44 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=45 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=46 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=47 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=48 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=49 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=50 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=51 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=52 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=53 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=54 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=55 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=56 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=57 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=58 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=59 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=60 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=61 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=62 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=63 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=64 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=65 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=66 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=67 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=68 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=69 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=70 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=71 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=72 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=73 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=74 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=75 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=76 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=77 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=78 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=79 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=80 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=81 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=82 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=83 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=84 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=85 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=86 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=87 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=88 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=89 count=1 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=90 count=2 mode=direct
+[parallel-terrain-smoke] lifecycle-reset-checked: batch=91 count=1 mode=automatic_timeout
+[parallel-terrain-smoke] report-write-complete
+[parallel-terrain-smoke] environment-close-start
+[parallel-terrain-smoke] environment-close-complete
+[parallel-terrain-smoke] simulation-app-close-start
