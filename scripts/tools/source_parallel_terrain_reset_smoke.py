@@ -206,6 +206,17 @@ def main() -> int:
                 raise AssertionError("reset robot root does not use the newly assigned origin")
             _trace(trace_file, "async-reset-assertions-complete")
 
+            from pxr import Usd, UsdGeom
+
+            terrain_mesh_triangles = {}
+            for prim_path in terrain.terrain_prim_paths:
+                for prim in Usd.PrimRange(unwrapped.sim.stage.GetPrimAtPath(prim_path)):
+                    if prim.IsA(UsdGeom.Mesh):
+                        counts = UsdGeom.Mesh(prim).GetFaceVertexCountsAttr().Get()
+                        terrain_mesh_triangles[str(prim.GetPath())] = sum(
+                            max(0, int(count) - 2) for count in counts
+                        )
+
             report = {
                 "schema_version": "source_parallel_terrain_reset_smoke_v1",
                 "status": "diagnostic_smoke_passed",
@@ -234,9 +245,7 @@ def main() -> int:
                 "action_dim": action_dim,
                 "environment_construction_seconds": construction_seconds,
                 "cpu_peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
-                "terrain_mesh_triangles": {
-                    name: int(len(mesh.faces)) for name, mesh in terrain.meshes.items()
-                },
+                "terrain_mesh_triangles": terrain_mesh_triangles,
                 "terrain_generator_seed": env_cfg.scene.terrain.terrain_generator.seed,
                 "terrain_tile_size": list(env_cfg.scene.terrain.terrain_generator.size),
                 "tile_guard_runtime_body_ids": resolved_ids,
