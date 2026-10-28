@@ -47,6 +47,9 @@ class SourceTerrainImporter(TerrainImporter):
         self._parallel_reset_sampler_enabled = bool(
             getattr(cfg, "parallel_reset_sampler_enabled", False)
         )
+        self._shared_bank_rows = getattr(cfg, "shared_bank_rows", None)
+        if self._shared_bank_rows is not None and not self._parallel_reset_sampler_enabled:
+            raise ValueError("shared Source bank requires the explicit parallel reset sampler")
         if self._parallel_reset_sampler_enabled:
             generator_cfg = getattr(cfg, "terrain_generator", None)
             configured_num_envs = getattr(cfg, "parallel_reset_sampler_num_envs", None)
@@ -71,11 +74,14 @@ class SourceTerrainImporter(TerrainImporter):
                 raise ValueError(
                     "parallel Source importer sub-terrain classes do not match the registered layout"
                 )
-            if generator_cfg.num_rows != cfg.num_envs or generator_cfg.num_cols != len(
+            rows = cfg.num_envs if self._shared_bank_rows is None else self._shared_bank_rows
+            if type(rows) is not int or not 1 <= rows <= cfg.num_envs:
+                raise ValueError("shared Source bank row count is invalid")
+            if generator_cfg.num_rows != rows or generator_cfg.num_cols != len(
                 names
             ):
                 raise ValueError(
-                    "parallel Source importer requires one row per environment and 15 columns"
+                    "parallel Source importer requires the declared row count and 15 columns"
                 )
             expected_proportion = 1.0 / len(names)
             if any(
@@ -349,13 +355,20 @@ class SourceTerrainImporter(TerrainImporter):
                 self.device, dtype=torch.float
             )
         self.terrain_origins = terrain_origins.to(self.device, dtype=torch.float)
-        self.max_terrain_level = num_envs
+        bank_rows = self._shared_bank_rows
+        row_count = num_envs if bank_rows is None else bank_rows
+        self.max_terrain_level = row_count
         self.terrain_levels = self.terrain_origins.new_tensor(
-            range(num_envs), dtype=torch.long
+            [i % row_count for i in range(num_envs)], dtype=torch.long
         )
         self.terrain_types = self.terrain_levels.new_zeros((num_envs,))
         self.env_origins = self.terrain_origins[self.terrain_levels, self.terrain_types]
-        initialize_reserved_row_environment_origins(self, num_envs)
+        if bank_rows is None:
+            initialize_reserved_row_environment_origins(self, num_envs)
+        else:
+            from rl_training.source_scan.parallel_terrain_allocation import initialize_source_environment_origins
+
+            initialize_source_environment_origins(self, num_envs, bank_rows=bank_rows)
         return self.env_origins
 
 

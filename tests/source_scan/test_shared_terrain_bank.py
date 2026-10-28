@@ -1,4 +1,4 @@
-"""Offline scheduling evidence only; shared terrain is not wired into runtime."""
+"""Offline scheduling evidence only; these tests do not qualify runtime isolation."""
 
 from collections import Counter
 from dataclasses import replace

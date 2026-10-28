@@ -15,6 +15,7 @@ class SourceTerrainImporterCfg(TerrainImporterCfg):
     class_type: type = SourceTerrainImporter
     parallel_reset_sampler_enabled: bool = False
     parallel_reset_sampler_num_envs: int | None = None
+    shared_bank_rows: int | None = None
 
 
 __all__ = ["SourceTerrainImporterCfg"]

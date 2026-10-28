@@ -1,8 +1,8 @@
-"""Offline prototype for asynchronous Source terrain assignment.
+"""Asynchronous Source terrain scheduling and transactional reset adapters.
 
 Each environment owns one row containing one tile per sub-terrain. The
 weighted episode schedule is independent of the physical tile proportions.
-This module never creates a simulator, changes origins, or starts training.
+The adapters only change selected origin buffers; they never create a simulator or start training.
 Unique tile indices alone are not proof of physical collision isolation.
 """
 
@@ -161,8 +161,9 @@ def assign_source_terrain_for_parallel_reset(
 ) -> tuple[TerrainAssignment, ...]:
     """Apply scheduled row/column/origin assignments before Isaac Lab resets assets.
 
-    The Source configuration must provide one terrain row per environment and
-    one equally weighted column per registered sub-terrain. Isaac Lab calls
+    The Source configuration provides a reserved row per environment, or an
+    explicitly enabled shared bank with audited collision groups, and one
+    equally weighted column per registered sub-terrain. Isaac Lab calls
     curriculum terms before ``scene.reset`` and reset events, so changing
     ``terrain.env_origins`` here updates the origin consumed by the subsequent
     root-state reset. This adapter does not qualify physical separation or
@@ -203,9 +204,17 @@ def assign_source_terrain_for_parallel_reset(
     num_rows = getattr(generator_cfg, "num_rows", None)
     num_cols = getattr(generator_cfg, "num_cols", None)
     sub_terrains = getattr(generator_cfg, "sub_terrains", None)
-    if num_rows != num_envs:
+    bank_rows = getattr(terrain_cfg, "shared_bank_rows", None)
+    if bank_rows is not None:
+        if type(bank_rows) is not int or not 1 <= bank_rows <= num_envs:
+            raise RuntimeError("shared bank rows must be between one and the environment count")
+        from .shared_terrain_bank import audit_shared_collision_groups
+
+        audit_shared_collision_groups(scene)
+    expected_rows = num_envs if bank_rows is None else bank_rows
+    if num_rows != expected_rows:
         raise RuntimeError(
-            "reserved-row terrain map must have exactly one row per environment"
+            "Source terrain map rows do not match the explicit reserved-row/shared-bank layout"
         )
     if not isinstance(sub_terrains, Mapping) or not sub_terrains:
         raise RuntimeError(
@@ -242,9 +251,9 @@ def assign_source_terrain_for_parallel_reset(
         raise RuntimeError(
             "terrain importer must expose initialized origins, types, and levels"
         )
-    if tuple(terrain_origins.shape) != (num_envs, len(labels), 3):
+    if tuple(terrain_origins.shape) != (expected_rows, len(labels), 3):
         raise RuntimeError(
-            "terrain origin grid does not match reserved-row configuration"
+            "terrain origin grid does not match Source allocation configuration"
         )
     if tuple(env_origins.shape) != (num_envs, 3):
         raise RuntimeError(
@@ -257,13 +266,20 @@ def assign_source_terrain_for_parallel_reset(
     if not bool(terrain_origins.isfinite().all().item()):
         raise RuntimeError("terrain origin grid contains non-finite values")
 
-    signature = (num_envs, labels, proportions, tuple(terrain_origins.shape))
+    signature = (num_envs, labels, proportions, tuple(terrain_origins.shape), bank_rows)
     current_allocator = getattr(env, "_source_parallel_terrain_allocator", None)
     is_new_allocator = current_allocator is None
     if is_new_allocator:
-        candidate_allocator = ReservedRowTerrainAllocator(
-            num_envs, SOURCE_RESET_BLOCK_COUNTS, sampler_seed
-        )
+        if bank_rows is None:
+            candidate_allocator = ReservedRowTerrainAllocator(
+                num_envs, SOURCE_RESET_BLOCK_COUNTS, sampler_seed
+            )
+        else:
+            from .shared_terrain_bank import SharedBankTerrainAllocator
+
+            candidate_allocator = SharedBankTerrainAllocator(
+                num_envs, SOURCE_RESET_BLOCK_COUNTS, sampler_seed, bank_rows=bank_rows
+            )
     else:
         if getattr(env, "_source_parallel_terrain_signature", None) != signature:
             raise RuntimeError(
@@ -309,8 +325,17 @@ def set_uniform_subterrain_proportions(sub_terrains: Mapping[str, object]) -> No
 def initialize_reserved_row_environment_origins(terrain, num_envs: int) -> None:
     """Give every environment a unique owner row before the first env reset."""
 
+    initialize_source_environment_origins(terrain, num_envs)
+
+
+def initialize_source_environment_origins(terrain, num_envs: int, *, bank_rows: int | None = None) -> None:
+    """Initialize reserved or explicitly shared origins without consuming tickets."""
+
     if type(num_envs) is not int or num_envs < 1:
         raise ValueError("num_envs must be a positive integer")
+    if bank_rows is not None and (type(bank_rows) is not int or not 1 <= bank_rows <= num_envs):
+        raise ValueError("bank_rows must be between one and the environment count")
+    expected_rows = num_envs if bank_rows is None else bank_rows
     terrain_origins = getattr(terrain, "terrain_origins", None)
     env_origins = getattr(terrain, "env_origins", None)
     terrain_types = getattr(terrain, "terrain_types", None)
@@ -323,15 +348,15 @@ def initialize_reserved_row_environment_origins(terrain, num_envs: int) -> None:
             "terrain importer must expose initialized origins, types, and levels"
         )
     if len(terrain_origins.shape) != 3 or tuple(terrain_origins.shape[0:1]) != (
-        num_envs,
+        expected_rows,
     ):
-        raise RuntimeError("reserved-row terrain must provide one row per environment")
+        raise RuntimeError("Source terrain origins must match the declared row count")
     if (
         terrain_origins.shape[1] != len(SOURCE_RESET_BLOCK_COUNTS)
         or terrain_origins.shape[2] != 3
     ):
         raise RuntimeError(
-            "reserved-row terrain must provide 15 columns of xyz origins"
+            "Source terrain must provide 15 columns of xyz origins"
         )
     if tuple(env_origins.shape) != (num_envs, 3):
         raise RuntimeError(
@@ -344,7 +369,7 @@ def initialize_reserved_row_environment_origins(terrain, num_envs: int) -> None:
     if not bool(terrain_origins.isfinite().all().item()):
         raise RuntimeError("terrain origin grid contains non-finite values")
 
-    rows = terrain_levels.new_tensor(range(num_envs))
+    rows = terrain_levels.new_tensor([i % expected_rows for i in range(num_envs)])
     initial_columns = terrain_types.new_zeros((num_envs,))
     old_levels = terrain_levels.clone()
     old_types = terrain_types.clone()
@@ -388,5 +413,6 @@ __all__ = [
     "TerrainAssignment",
     "assign_source_terrain_for_parallel_reset",
     "initialize_reserved_row_environment_origins",
+    "initialize_source_environment_origins",
     "set_uniform_subterrain_proportions",
 ]

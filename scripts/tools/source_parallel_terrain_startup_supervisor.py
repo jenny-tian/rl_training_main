@@ -296,13 +296,18 @@ def lifecycle_report_passed(report) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
-    parser.add_argument("--num-envs", type=int, choices=(8, 16, 32, 60), required=True)
+    parser.add_argument("--num-envs", type=int, choices=(2, 8, 16, 32, 60), required=True)
     parser.add_argument("--reset-lifecycle", action="store_true")
+    parser.add_argument("--shared-bank", action="store_true")
     parser.add_argument("--seed", type=int, default=130_001)
     parser.add_argument("--gpu-index", type=int, default=0)
     parser.add_argument("--startup-timeout-s", type=float, default=120.0)
     parser.add_argument("--total-timeout-s", type=float, default=180.0)
     args = parser.parse_args()
+    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196 or args.reset_lifecycle):
+        parser.error("--shared-bank requires --num-envs 2 --seed 130196 and excludes --reset-lifecycle")
+    if args.num_envs == 2 and not args.shared_bank:
+        parser.error("this supervisor requires --shared-bank for two environments")
     if args.reset_lifecycle and args.num_envs != 60:
         parser.error("--reset-lifecycle requires --num-envs 60")
     if args.seed < 0 or args.gpu_index < 0:
@@ -314,6 +319,16 @@ def main() -> int:
     root = supervisor_path.parents[2]
     smoke_script = supervisor_path.with_name("source_parallel_terrain_startup_smoke.py")
     run_dir = args.run_dir.resolve()
+
+    dependency_hashes = {}
+    dependency_audit_path = root / "docs/lite3-source-shared-bank-preparation-20261028/dependency_audit.json"
+    if args.shared_bank:
+        dependency_audit = json.loads(dependency_audit_path.read_text(encoding="utf-8"))
+        for item in dependency_audit["dependencies"]:
+            path = Path(item["path"])
+            if _sha256(path) != item["sha256"]:
+                raise RuntimeError(f"shared-bank dependency changed since offline review: {path}")
+            dependency_hashes[str(path)] = item["sha256"]
 
     if _capture(["git", "status", "--porcelain"], cwd=root):
         raise RuntimeError("refusing to launch from a dirty worktree")
@@ -351,6 +366,8 @@ def main() -> int:
     ]
     if args.reset_lifecycle:
         command.append("--reset-lifecycle")
+    if args.shared_bank:
+        command.append("--shared-bank")
     child_env = os.environ.copy()
     child_env["PYTHONUNBUFFERED"] = "1"
     source_path = str(root / "source/rl_training")
@@ -369,6 +386,7 @@ def main() -> int:
         *source_files,
         smoke_script,
         supervisor_path.with_name("source_parallel_reset_lifecycle.py"),
+        supervisor_path.with_name("source_shared_terrain_diagnostic.py"),
         supervisor_path,
         asset_audit_path,
     ]
@@ -376,6 +394,8 @@ def main() -> int:
         str(path.relative_to(root)): _sha256(path)
         for path in sorted(set(monitored_files))
     }
+    if args.shared_bank:
+        source_hashes[str(dependency_audit_path.relative_to(root))] = _sha256(dependency_audit_path)
     gpu_samples_path = run_dir / "gpu_samples.jsonl"
     gpu_samples_path.touch(exist_ok=False)
 
@@ -415,7 +435,7 @@ def main() -> int:
             "carb_flush_standard_stream_output": True,
             "post_termination_console_scan": True,
         },
-        "check": "reset_lifecycle" if args.reset_lifecycle else "startup",
+        "check": "shared_bank" if args.shared_bank else ("reset_lifecycle" if args.reset_lifecycle else "startup"),
         "num_envs": args.num_envs,
         "seed": args.seed,
         "device": f"cuda:{args.gpu_index}",
@@ -426,6 +446,7 @@ def main() -> int:
         "policy_loaded": False,
         "ppo_updates": 0,
         "source_file_sha256": source_hashes,
+        "dependency_file_sha256": dependency_hashes,
     }
     (run_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -445,6 +466,9 @@ def main() -> int:
     hashes_unchanged = all(
         _sha256(root / relative_path) == expected_hash
         for relative_path, expected_hash in source_hashes.items()
+    )
+    hashes_unchanged = hashes_unchanged and all(
+        _sha256(Path(path)) == expected_hash for path, expected_hash in dependency_hashes.items()
     )
     execution["code_hashes_unchanged"] = hashes_unchanged
     gpu_samples = [
@@ -473,6 +497,10 @@ def main() -> int:
                 and report.get("policy_loaded") is False
                 and report.get("ppo_updates") == 0
             )
+            if args.shared_bank:
+                from source_shared_terrain_diagnostic import shared_report_passed
+
+                smoke_passed = shared_report_passed(report)
         except (OSError, json.JSONDecodeError):
             smoke_passed = False
     passed = (

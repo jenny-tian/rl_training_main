@@ -169,10 +169,18 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
     source_parallel_sampler_enabled: bool = False
     source_parallel_sampler_num_envs: int | None = None
     source_parallel_sampler_seed: int | None = None
+    source_shared_bank_rows: int | None = None
 
     def __post_init__(self) -> None:
         super().__post_init__()
 
+        if self.source_shared_bank_rows is not None and (
+            not self.source_parallel_sampler_enabled
+            or type(self.source_shared_bank_rows) is not int
+            or type(self.source_parallel_sampler_num_envs) is not int
+            or not 1 <= self.source_shared_bank_rows <= self.source_parallel_sampler_num_envs
+        ):
+            raise ValueError("source_shared_bank_rows requires the parallel sampler and 1..num_envs rows")
         if self.source_reset_sampler_enabled and self.source_parallel_sampler_enabled:
             raise ValueError(
                 "single-env and parallel Source samplers are mutually exclusive"
@@ -200,7 +208,7 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
         sub_terrains = _source_sub_terrains(self.source_terrain_level)
         if self.source_parallel_sampler_enabled:
             set_uniform_subterrain_proportions(sub_terrains)
-            terrain_num_rows = self.source_parallel_sampler_num_envs
+            terrain_num_rows = self.source_shared_bank_rows or self.source_parallel_sampler_num_envs
             terrain_num_cols = len(sub_terrains)
             scene_num_envs = self.source_parallel_sampler_num_envs
         else:
@@ -231,6 +239,7 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
             parallel_reset_sampler_num_envs=(
                 scene_num_envs if self.source_parallel_sampler_enabled else None
             ),
+            shared_bank_rows=self.source_shared_bank_rows,
             collision_group=-1,
             physics_material=sim_utils.RigidBodyMaterialCfg(
                 friction_combine_mode="multiply",
@@ -273,6 +282,18 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
         # launchers must choose and record the parallel environment count.
         self.scene.num_envs = scene_num_envs
         self.scene.robot.init_state.pos = (0.0, 0.0, self.startup_base_height)
+        if self.source_shared_bank_rows is not None:
+            # Use the installed Cloner's inspectable USD collision groups.
+            # The GPU env-ID replication path is a separate future candidate.
+            self.scene.replicate_physics = False
+            self.scene.clone_in_fabric = False
+            self.scene.filter_collisions = True
+            self.scene.robot.collision_group = 0
+            self.scene.height_scanner.update_mesh_ids = True
+            self.scene.height_scanner_base.update_mesh_ids = True
+            from rl_training.source_scan.shared_terrain_bank import validate_shared_scene_cfg
+
+            validate_shared_scene_cfg(self.scene)
 
         self.commands.base_velocity.resampling_time_range = (1.0e9, 1.0e9)
         self.commands.base_velocity.rel_standing_envs = 0.0

@@ -1,0 +1,55 @@
+{
+  "status": "offline_source_review_only",
+  "date": "2026-10-28",
+  "simulation_started": false,
+  "dependencies": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py",
+      "sha256": "b3b61c5fe84cb47da8b3ae889909ce667c1873119ebdc9a91846b959fb6228ad"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene_cfg.py",
+      "sha256": "87a1e538001574243a6a29daef7b1c09dba154c869e27f315d9b56a11694c357"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/ray_caster/multi_mesh_ray_caster.py",
+      "sha256": "8ec8313b9cd6068e65f41057d569f1d303ced1859860e77368b27d7fc6cf815b"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/ray_caster/multi_mesh_ray_caster_cfg.py",
+      "sha256": "46066ef99f81073605b6cf3726180d12f417b00912ad5fc158c56f6dd895236a"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/schemas/schemas.py",
+      "sha256": "ba72769e57cae4729074231a9f5d58cfed1679b713fb0bf1bc3a8b35483084ef"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/contact_sensor/contact_sensor.py",
+      "sha256": "5bf3b77d2159850526e3833bf50253dbce06cb78b850eae13fb4088dc233760d"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py",
+      "sha256": "974977825dbbd916460b4f9bb12176ab2cde41026fadc05e1de02d8fbbc94725"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.cloner/isaacsim/core/cloner/impl/cloner.py",
+      "sha256": "245522d70141ca26308cba1b2a23dc7745953e76f4c318bf919eaf7d46ae0138"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/usdrt.scenegraph-7.6.1+69cbf6ad.lx64.r.cp311/include/usdrt/scenegraph/usd/physxSchema/physxSceneAPI.h",
+      "sha256": "86455f52cead7134da24586c43c5f5dedf7f536e62a7e6c4ad227782f0abf76b"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.demos-107.3.26+107.3.3.cp311.u353/omni/physxdemos/scenes/ContactReportDemo.py",
+      "sha256": "8835869b7607352cecf35b576ec8b2f8a486c2899c2d1cbcb10f4e55c09117b0"
+    }
+  ],
+  "findings": {
+    "collision_path": "InteractiveScene -> nonreplicated USD Cloner.filter_collisions",
+    "inverted_filter": "physxScene:invertCollisionGroupFilter",
+    "global_collider": "/World/ground",
+    "scan_target": "one merged static ground mesh; local hit mesh index zero",
+    "contact_report": "subscribe_contact_report_events with collider ownership, zero threshold on all bodies; positive ground control required",
+    "qualification": false
+  }
+}
