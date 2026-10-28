@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_ground_ray_caster.py",
+    "tests/source_scan/test_shared_terrain_runtime.py",
+    "tests/source_scan/test_shared_contact_report.py",
+    "tests/source_scan/test_shared_terrain_bank.py",
+    "tests/source_scan/test_parallel_terrain_allocation.py",
+    "tests/source_scan/test_source_parallel_reset_lifecycle.py",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py",
+    "tests/source_scan/test_source_terrain_importer_chunking.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_source_mesh_chunking.py",
+    "tests/source_scan/test_shared_tensor_contact.py"
+  ],
+  "environment": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "source/rl_training"
+  },
+  "started_at_utc": "2026-10-28T15:07:34.270356+00:00",
+  "source_sha256": {
+    "docs/lite3-source-shared-bank-preparation-20261028/dependency_audit.json": "00c464e37c4f4a66b3e6a2696ae76666cbbe49c1d801c7c064922676a70665b9",
+    "scripts/tools/source_parallel_reset_lifecycle.py": "059f3990c7a0e1254cdd32200d1fde61b1e31473d188a76bc2f3a42fb69f5746",
+    "scripts/tools/source_parallel_terrain_startup_smoke.py": "5d17ff3617aee7885b855ec4647ca1e084aa75ce71c5b38b3ef0795308f43d79",
+    "scripts/tools/source_parallel_terrain_startup_supervisor.py": "ce76d37376bbd4a0603de78f1cc9038a88791789851504f31809558e4d08c980",
+    "scripts/tools/source_shared_report_validation.py": "05cece049ae47cfafae1831628a86fd02794fd231b16c671042ae16a803cde52",
+    "scripts/tools/source_shared_terrain_diagnostic.py": "dbe0ff937dbc80739329085157d82a1af4e3e9d32b3780401a8466198948ce14",
+    "tests/source_scan/test_shared_contact_report.py": "4e2cae2d53c3231c285115dfd9b1352167c9e64a9c091921f21d2eefb0f8e016",
+    "tests/source_scan/test_shared_terrain_runtime.py": "4c3bc68924c34058577f046002ecceae60bacf83cd58dc86da695b3e13198438",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py": "8b7cc65697e7fb1a06b03d6b4f39abbd0fca6169e41d0b849258d93e6f6d6b30"
+  },
+  "exit_code": 0,
+  "completed_at_utc": "2026-10-28T15:08:06.895787+00:00",
+  "source_hashes_unchanged": true,
+  "regression_log_sha256": "ef78155bf30274d321e820ddd47ad8f780e1f1ad2da4fca65cbae3d5c67543ec"
+}

@@ -96,11 +96,23 @@ def _digest(value):
     return hashlib.sha256(value.cpu().contiguous().numpy().tobytes()).hexdigest()
 
 
-def run_lifecycle(env, seed, journal_path, trace):
-    if env.num_envs != 60:
-        raise ValueError('G2 lifecycle is restricted to 60 environments')
-    oracle = ReservedRowTerrainAllocator(60, SOURCE_RESET_BLOCK_COUNTS, seed)
-    tickets = list(oracle.reset(list(range(60))))
+def run_lifecycle(env, seed, journal_path, trace, *, shared_bank=False):
+    num_envs = 2 if shared_bank else 60
+    if env.num_envs != num_envs or (shared_bank and seed != 130196):
+        raise ValueError('G2 requires 60 reserved-row envs or two shared envs with seed 130196')
+    if shared_bank:
+        from rl_training.source_scan.shared_terrain_bank import SharedBankTerrainAllocator
+        from source_shared_terrain_diagnostic import check_scanners
+        if tuple(env.scene.terrain.terrain_origins.shape) != (1, 15, 3):
+            raise AssertionError('shared lifecycle requires one bank row')
+        oracle = SharedBankTerrainAllocator(2, SOURCE_RESET_BLOCK_COUNTS, seed, bank_rows=1)
+        batches = [(0,), (1,), (1, 0)] * 30
+        auto_ids = [0]
+    else:
+        oracle = ReservedRowTerrainAllocator(60, SOURCE_RESET_BLOCK_COUNTS, seed)
+        batches = reset_batches()
+        auto_ids = [2, 23, 58]
+    tickets = list(oracle.reset(list(range(num_envs))))
     if tuple(tickets) != env._source_parallel_terrain_allocator.assignments:
         raise AssertionError('initial assignments differ from deterministic replay')
     original_reset = env._reset_idx
@@ -135,7 +147,7 @@ def run_lifecycle(env, seed, journal_path, trace):
                 check_transition(before, after, ids)
                 if actual != expected:
                     raise AssertionError('runtime assignment differs from deterministic replay')
-                for i in set(range(60)) - set(ids):
+                for i in set(range(num_envs)) - set(ids):
                     if current[i] != prior[i]:
                         raise AssertionError('untouched assignment changed')
                 terrain = env.scene.terrain
@@ -169,7 +181,7 @@ def run_lifecycle(env, seed, journal_path, trace):
 
         env._reset_idx = audited_reset
         try:
-            for ids in reset_batches():
+            for ids in batches:
                 env._reset_idx(torch.tensor(ids, device=env.device, dtype=torch.long))
                 env.scene.write_data_to_sim()
                 env.sim.forward()
@@ -180,11 +192,14 @@ def run_lifecycle(env, seed, journal_path, trace):
                         raise AssertionError(f'nonfinite refreshed rays: {name}')
                     if sensor._is_outdated[list(ids)].any():
                         raise AssertionError(f'sensor did not refresh: {name}')
+                if shared_bank:
+                    journal.write(json.dumps({'phase': 'shared_reset_scanners', 'batch': len(records),
+                                              'scanners': check_scanners(env, flat_entry=True)}) + '\n')
+                    journal.flush()
                 obs = env.observation_manager.compute(update_history=True)
                 if not all(torch.isfinite(v).all() for v in obs.values()):
                     raise AssertionError('nonfinite refreshed observations')
             mode = 'automatic_timeout'
-            auto_ids = [2, 23, 58]
             env.episode_length_buf[auto_ids] = env.max_episode_length - 1
             count_before = len(records)
             action = torch.zeros_like(env.action_manager.action)
@@ -198,12 +213,32 @@ def run_lifecycle(env, seed, journal_path, trace):
             for name in ('height_scanner', 'height_scanner_base'):
                 if not torch.isfinite(env.scene.sensors[name].data.ray_hits_w).all():
                     raise AssertionError(f'nonfinite automatic reset rays: {name}')
+            if shared_bank:
+                journal.write(json.dumps({'phase': 'automatic_reset_output',
+                                          'terminated': terminated.cpu().tolist(),
+                                          'truncated': truncated.cpu().tolist(),
+                                          'scanners': check_scanners(env)}) + '\n')
+                journal.flush()
+                mode = 'post_automatic_reset'
+                count_after_auto = len(records)
+                obs, reward, terminated, truncated, _ = env.step(action)
+                if terminated.any() or truncated.any() or len(records) != count_after_auto:
+                    raise AssertionError('unexpected reset on first post-reset physics step')
+                if not torch.isfinite(reward).all() or not all(torch.isfinite(v).all() for v in obs.values()):
+                    raise AssertionError('nonfinite first post-reset physics output')
+                journal.write(json.dumps({'phase': 'post_automatic_reset_step',
+                                          'scanners': check_scanners(env), 'passed': True}) + '\n')
+                journal.flush()
         finally:
             env._reset_idx = original_reset
     summary = summarize_tickets(tickets)
-    if summary['assignment_count'] != 363 or summary['complete_blocks'] != 3:
+    if summary['assignment_count'] != (123 if shared_bank else 363) or summary['complete_blocks'] != (1 if shared_bank else 3):
         raise AssertionError('incomplete lifecycle coverage')
-    return {'status': 'reset_lifecycle_passed', **summary, 'direct_reset_count': 300,
+    return {'status': 'shared_reset_lifecycle_passed' if shared_bank else 'reset_lifecycle_passed',
+            **summary, 'direct_reset_count': 120 if shared_bank else 300,
+            'bank_rows': 1 if shared_bank else None, 'num_envs': num_envs,
+            'physics_control_steps': 2 if shared_bank else 1,
+            'post_automatic_reset_step_checked': shared_bank,
             'automatic_reset_ids': auto_ids, 'reset_batch_count': len(records),
             'journal': str(journal_path), 'diagnostic_timeout_injected': True,
             'history_buffers': records[0]['history_buffers'],

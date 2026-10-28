@@ -183,7 +183,7 @@ def test_supervisor_kills_signal_resistant_descendants(tmp_path, leader_exits, f
         state_path = Path(f"/proc/{int(ready_path.read_text())}/stat")
         try:
             return state_path.read_text().split(") ", 1)[1].split()[0] != "Z"
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
             return False
 
     try:
@@ -495,7 +495,8 @@ ARCHIVED_PROBE = MODULE_PATH.parents[2] / 'docs/lite3-source-shared-bank-2env-te
 
 
 @pytest.mark.parametrize('invalid_report', [False, True])
-def test_shared_main_in_fresh_interpreter_without_kit(tmp_path, invalid_report):
+@pytest.mark.parametrize('shared_g2', [False, True])
+def test_shared_main_in_fresh_interpreter_without_kit(tmp_path, invalid_report, shared_g2):
     """Real imports + main finalization; only launch/preflight are replaced by archived evidence."""
     code = r'''
 import importlib.abc
@@ -509,12 +510,20 @@ class NoSimulator(importlib.abc.MetaPathFinder):
         if fullname.split('.')[0] in {'rl_training', 'isaaclab', 'isaacsim', 'omni', 'pxr', 'torch'}:
             raise AssertionError('unexpected simulator/task import: ' + fullname)
 sys.meta_path.insert(0, NoSimulator())
-tools, archive, output, invalid = sys.argv[1:]
+tools, archive, output, invalid, g2 = sys.argv[1:]
 sys.path.insert(0, tools)
 import source_parallel_terrain_startup_supervisor as supervisor
 archive, output = Path(archive), Path(output)
 def completed_child(command, **kwargs):
     report = json.loads((archive / 'result.json').read_text())
+    assert ('--reset-lifecycle' in command) == (g2 == 'True')
+    if g2 == 'True':
+        report.update(status='shared_bank_g2_passed', total_zero_action_steps=22,
+                      reset_checks=dict(status='shared_reset_lifecycle_passed', num_envs=2, bank_rows=1,
+                                        assignment_count=123, complete_blocks=1, direct_reset_count=120,
+                                        reset_batch_count=91, automatic_reset_ids=[0],
+                                        diagnostic_timeout_injected=True, post_automatic_reset_step_checked=True,
+                                        physics_control_steps=2))
     if invalid == 'True':
         report['ground_contact_points']['0'] = 0
     (output / 'result.json').write_text(json.dumps(report))
@@ -522,12 +531,15 @@ def completed_child(command, **kwargs):
     return json.loads((archive / 'execution.json').read_text())
 sys.argv = [supervisor.__file__, '--shared-bank', '--num-envs', '2', '--seed', '130196',
             '--run-dir', str(output)]
+if g2 == 'True':
+    sys.argv.append('--reset-lifecycle')
 with patch.object(supervisor, '_capture', return_value=''), \
      patch.object(supervisor, '_gpu_preflight', return_value=('offline replay', '')), \
      patch.object(supervisor, 'run_monitored_process', side_effect=completed_child):
     exit_code = supervisor.main()
 manifest = json.loads((output / 'manifest.json').read_text())
 assert 'scripts/tools/source_shared_report_validation.py' in manifest['source_file_sha256']
+assert manifest['check'] == ('shared_bank_g2' if g2 == 'True' else 'shared_bank')
 assert exit_code == (1 if invalid == 'True' else 0)
 assert not any(k.split('.')[0] in {'rl_training', 'pxr', 'omni', 'torch'} for k in sys.modules)
 '''
@@ -535,7 +547,7 @@ assert not any(k.split('.')[0] in {'rl_training', 'pxr', 'omni', 'torch'} for k 
     env.pop('PYTHONPATH', None)
     completed = subprocess.run(
         [sys.executable, '-c', code, str(MODULE_PATH.parent), str(ARCHIVED_PROBE),
-         str(tmp_path / 'replay'), str(invalid_report)],
+         str(tmp_path / 'replay'), str(invalid_report), str(shared_g2)],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr

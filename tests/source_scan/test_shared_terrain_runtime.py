@@ -438,3 +438,96 @@ def test_shared_reset_diagnostic_retains_comparison_and_stops_on_fault(diagnosti
         diagnostic.check_shared_resets(env, diagnostic.SHARED_DIAGNOSTIC_SEED, records.append)
     assert len(env.reset_calls) == 1
     assert [r['phase'] for r in records] == ['before_reset', 'assignment_comparison']
+
+
+def shared_g2_env(diagnostic, fault=None):
+    env = lifecycle_env(diagnostic)
+    env.max_episode_length = 1000
+    forward = env.sim.forward
+    def refresh():
+        forward()
+        for sensor in env.scene.sensors.values():
+            sensor._is_outdated[:] = False
+    env.sim.forward = refresh
+    original_reset = env._reset_idx
+    def reset(ids):
+        original_reset(ids)
+        if fault == 'untouched_auto' and env.step_calls == 1:
+            env.scene['robot'].data.root_pos_w[1, 0] += 1
+    env._reset_idx = reset
+    env.step_calls = 0
+    def step(action):
+        env.step_calls += 1
+        assert not action.any()
+        env.scene['robot'].data.root_pos_w[:, 0] += .001
+        env.episode_length_buf += 1
+        truncated = env.episode_length_buf >= env.max_episode_length
+        if fault == 'wrong_auto':
+            truncated[:] = True
+        if truncated.any():
+            env._reset_idx(truncated.nonzero().flatten())
+        if fault == 'extra_reset' and env.step_calls == 2:
+            env._reset_idx(torch.tensor([1]))
+        refresh()
+        observations = env.observation_manager.compute(update_history=True)
+        if fault == 'nan_post_step' and env.step_calls == 2:
+            observations['policy'][0, 0] = float('nan')
+        return observations, torch.zeros(2), torch.zeros(2, dtype=torch.bool), truncated, {}
+    env.step = step
+    return env
+
+
+def test_shared_g2_complete_block_and_automatic_reset(diagnostic, tmp_path):
+    from source_parallel_reset_lifecycle import run_lifecycle
+    from source_shared_report_validation import shared_lifecycle_passed
+    import json
+    env = shared_g2_env(diagnostic)
+    original = env._reset_idx
+    path = tmp_path / 'g2.jsonl'
+    result = run_lifecycle(env, 130196, path, lambda _: None, shared_bank=True)
+    assert shared_lifecycle_passed(result)
+    assert result['blocks'][0]['counts'] == COUNTS
+    assert result['blocks'][1]['size'] == 3
+    assert result['history_buffers'] == ['history/policy/pos']
+    assert env.reset_calls[:-1] == [[0], [1], [1, 0]] * 30
+    assert env.reset_calls[-1] == [0]
+    assert env.step_calls == 2 and env._reset_idx is original
+    records = [json.loads(l) for l in path.read_text().splitlines()]
+    assert sum(x.get('phase') == 'reset_checked' for x in records) == 91
+    assert sum(x.get('phase') == 'shared_reset_scanners' for x in records) == 90
+    assert records[-1]['phase'] == 'post_automatic_reset_step'
+
+
+@pytest.mark.parametrize('fault', ['untouched_auto', 'wrong_auto', 'extra_reset', 'nan_post_step'])
+def test_shared_g2_auto_faults_fail_and_restore_hook(diagnostic, tmp_path, fault):
+    from source_parallel_reset_lifecycle import run_lifecycle
+    env = shared_g2_env(diagnostic, fault)
+    original = env._reset_idx
+    path = tmp_path / 'g2.jsonl'
+    with pytest.raises(AssertionError):
+        run_lifecycle(env, 130196, path, lambda _: None, shared_bank=True)
+    assert env._reset_idx is original
+    assert 'post_automatic_reset_step' not in path.read_text()
+    if fault == 'untouched_auto':
+        assert 'reset_failed' in path.read_text()
+
+
+def test_shared_g2_report_cannot_be_replaced_by_short_smoke(diagnostic, tmp_path):
+    from source_parallel_reset_lifecycle import run_lifecycle
+    from source_shared_report_validation import shared_report_passed
+    import json
+    report = json.loads((ROOT / 'docs/lite3-source-shared-bank-2env-tensor-repair-20261028/result.json').read_text())
+    assert shared_report_passed(report)
+    assert not shared_report_passed(report, reset_lifecycle=True)
+    report['reset_checks'] = run_lifecycle(shared_g2_env(diagnostic), 130196, tmp_path / 'g2.jsonl', lambda _: None, shared_bank=True)
+    report['status'] = 'shared_bank_g2_passed'
+    report['total_zero_action_steps'] = 22
+    assert shared_report_passed(report, reset_lifecycle=True)
+    assert not shared_report_passed(report)
+    for key, value in [('assignment_count', 122), ('complete_blocks', 0), ('reset_batch_count', 90),
+                       ('direct_reset_count', 119), ('automatic_reset_ids', [1]),
+                       ('diagnostic_timeout_injected', False), ('post_automatic_reset_step_checked', False),
+                       ('physics_control_steps', 1), ('bank_rows', 2)]:
+        changed = copy.deepcopy(report)
+        changed['reset_checks'][key] = value
+        assert not shared_report_passed(changed, reset_lifecycle=True), key

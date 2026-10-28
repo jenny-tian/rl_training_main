@@ -114,7 +114,7 @@ def check_shared_resets(env, seed, record):
             "automatic_reset_tested": False}
 
 
-def run_shared_diagnostic(env, seed, journal_path, trace):
+def run_shared_diagnostic(env, seed, journal_path, trace, *, reset_lifecycle=False):
     """20 zero-action steps at identical spawns, ray occlusion probe, five resets."""
     import carb.settings
     import omni.usd
@@ -225,13 +225,18 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
                 check_scanners(env)
                 trace(f'shared-control-step-checked: {step + 1}')
         ground_contacts = dict(capture.ground['poll'])
-        resets = check_shared_resets(env, seed, record)
+        if reset_lifecycle:
+            from source_parallel_reset_lifecycle import run_lifecycle
+            resets = run_lifecycle(env, seed, journal_path.with_suffix('.resets.jsonl'), trace, shared_bank=True)
+        else:
+            resets = check_shared_resets(env, seed, record)
         record({"phase": "complete", "reset_checks": resets})
-    return {"status": "shared_bank_smoke_passed", "num_envs": 2, "bank_rows": 1,
+    return {"status": "shared_bank_g2_passed" if reset_lifecycle else "shared_bank_smoke_passed", "num_envs": 2, "bank_rows": 1,
             "terrain_origin_shape": [1, 15, 3], "initial_assignments": [asdict(t) for t in assignments],
             "overlapping_spawn_checked": True, "cross_environment_contacts": 0,
             "ground_contact_points": ground_contacts, "contact_capture": capture.summary(),
             "zero_action_steps": SHARED_CONTROL_STEPS,
+            "total_zero_action_steps": SHARED_CONTROL_STEPS + (2 if reset_lifecycle else 0),
             "vertical_occlusion_probe_passed": True, "reset_checks": resets,
             "collision_groups": audit_shared_collision_groups(env.scene),
             "journal": str(journal_path), "policy_loaded": False, "ppo_updates": 0,

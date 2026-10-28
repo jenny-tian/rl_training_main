@@ -332,7 +332,8 @@ def test_report_validator_rejects_incomplete_corrupt_or_callback_only_evidence(c
 
 
 @pytest.mark.parametrize('fault', [None, 'no_contacts', 'tensor_cross'])
-def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact, monkeypatch, tmp_path, fault):
+@pytest.mark.parametrize('shared_g2', [False, True])
+def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact, monkeypatch, tmp_path, fault, shared_g2):
     import source_shared_terrain_diagnostic as diagnostic
     from test_shared_terrain_runtime import scanner_env
     env, interface, events = stepping_env()
@@ -417,15 +418,27 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
         reset_calls.append(True)
         return dict(assignment_count=8, reset_batch_count=5, direct_reset_count=6)
     monkeypatch.setattr(diagnostic, 'check_shared_resets', resets)
+    import source_parallel_reset_lifecycle as lifecycle
+    def g2_resets(actual_env, seed, path, trace, *, shared_bank):
+        assert actual_env is env and seed == 130196 and shared_bank
+        assert path.name == 'journal.resets.jsonl'
+        assert interface.simulations == 80
+        reset_calls.append(True)
+        return dict(status='shared_reset_lifecycle_passed', num_envs=2, bank_rows=1,
+                    assignment_count=123, complete_blocks=1, reset_batch_count=91,
+                    direct_reset_count=120, automatic_reset_ids=[0],
+                    diagnostic_timeout_injected=True, physics_control_steps=2,
+                    post_automatic_reset_step_checked=True)
+    monkeypatch.setattr(lifecycle, 'run_lifecycle', g2_resets)
     journal = tmp_path / 'journal.jsonl'
     if fault:
         with pytest.raises(AssertionError):
-            diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None)
+            diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None, reset_lifecycle=shared_g2)
         assert reset_calls == []
         assert interface.simulations == (1 if fault == 'tensor_cross' else 80)
     else:
-        report = diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None)
-        assert diagnostic.shared_report_passed(json.loads(json.dumps(report)))
+        report = diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None, reset_lifecycle=shared_g2)
+        assert diagnostic.shared_report_passed(json.loads(json.dumps(report)), reset_lifecycle=shared_g2)
         assert reset_calls == [True] and interface.simulations == 80
     entries = [json.loads(line) for line in journal.read_text().splitlines()]
     summary, = [r for r in entries if r['phase'] == 'contact_summary']

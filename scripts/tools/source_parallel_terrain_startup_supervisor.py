@@ -385,7 +385,7 @@ def finalize_run(*, run_dir: Path, root: Path, execution: dict,
         if shared_bank:
             from source_shared_report_validation import shared_report_passed
 
-            smoke_passed = shared_report_passed(report)
+            smoke_passed = shared_report_passed(report, reset_lifecycle=reset_lifecycle)
         else:
             smoke_passed = (
                 isinstance(report, dict)
@@ -431,11 +431,11 @@ def main() -> int:
     parser.add_argument("--startup-timeout-s", type=float, default=120.0)
     parser.add_argument("--total-timeout-s", type=float, default=180.0)
     args = parser.parse_args()
-    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196 or args.reset_lifecycle):
-        parser.error("--shared-bank requires --num-envs 2 --seed 130196 and excludes --reset-lifecycle")
+    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196):
+        parser.error("--shared-bank requires --num-envs 2 --seed 130196")
     if args.num_envs == 2 and not args.shared_bank:
         parser.error("this supervisor requires --shared-bank for two environments")
-    if args.reset_lifecycle and args.num_envs != 60:
+    if args.reset_lifecycle and not args.shared_bank and args.num_envs != 60:
         parser.error("--reset-lifecycle requires --num-envs 60")
     if args.seed < 0 or args.gpu_index < 0:
         parser.error("--seed and --gpu-index must be nonnegative")
@@ -566,7 +566,7 @@ def main() -> int:
             "post_termination_console_scan": True,
             "fatal_exception_trace_and_console_monitoring": True,
         },
-        "check": "shared_bank" if args.shared_bank else ("reset_lifecycle" if args.reset_lifecycle else "startup"),
+        "check": "shared_bank_g2" if args.shared_bank and args.reset_lifecycle else "shared_bank" if args.shared_bank else ("reset_lifecycle" if args.reset_lifecycle else "startup"),
         "num_envs": args.num_envs,
         "seed": args.seed,
         "device": f"cuda:{args.gpu_index}",

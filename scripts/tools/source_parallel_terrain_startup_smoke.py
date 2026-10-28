@@ -45,18 +45,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task", default="SourceTerrain-Deeprobotics-Lite3-v0")
     parser.add_argument("--num-envs", type=int, default=8)
-    parser.add_argument("--reset-lifecycle", action="store_true", help="G2 diagnostic, restricted to 60 envs")
+    parser.add_argument("--reset-lifecycle", action="store_true", help="G2: 60 reserved-row envs or two envs with --shared-bank")
     parser.add_argument("--shared-bank", action="store_true", help="Two-robot shared-bank diagnostic, seed 130196")
     parser.add_argument("--seed", type=int, default=130_001)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--trace-output", type=Path)
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
-    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196 or args.reset_lifecycle):
-        parser.error("--shared-bank requires --num-envs 2 --seed 130196 and excludes --reset-lifecycle")
+    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196):
+        parser.error("--shared-bank requires --num-envs 2 --seed 130196")
     if not args.shared_bank and args.num_envs not in (8, 16, 32, 60):
         parser.error("this G1 startup smoke supports only 8, 16, 32, or 60 environments")
-    if args.reset_lifecycle and args.num_envs != 60:
+    if args.reset_lifecycle and not args.shared_bank and args.num_envs != 60:
         parser.error("--reset-lifecycle requires --num-envs 60")
     if args.seed < 0:
         parser.error("--seed must be nonnegative")
@@ -120,7 +120,7 @@ def main() -> int:
 
                 report = run_shared_diagnostic(
                     unwrapped, args.seed, output_path.with_suffix('.shared.jsonl'),
-                    lambda message: _trace(trace_file, message),
+                    lambda message: _trace(trace_file, message), reset_lifecycle=args.reset_lifecycle,
                 )
                 report.update(environment_construction_seconds=construction_seconds,
                               cpu_peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
