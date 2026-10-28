@@ -65,7 +65,7 @@ def runtime_reader(contact, env, get_disabled=lambda: False):
     )
 
 
-def stepping_env(*, callback_mode='silent', fault=None):
+def stepping_env(*, callback_mode='silent', fault=None, num_envs=2):
     events = []
     class Recorder:
         active_terms = ()
@@ -74,7 +74,8 @@ def stepping_env(*, callback_mode='silent', fault=None):
         def record_pre_step(self): pass
     env = NS(_sim_step_counter=12, device='cpu', recorder_manager=Recorder(),
              cfg=NS(decimation=4, sim=NS(render_interval=4, create_stage_in_memory=False)), physics_dt=.005, step_dt=.02,
-             episode_length_buf=torch.zeros(2), common_step_counter=0, extras={})
+             episode_length_buf=torch.zeros(num_envs), common_step_counter=0, extras={})
+    env.num_envs = num_envs
 
     class Subscription:
         def __init__(self, interface): self.interface = interface
@@ -149,15 +150,16 @@ def stepping_env(*, callback_mode='silent', fault=None):
         interface.reports = ([], [])
     env.scene = NS(write_data_to_sim=lambda: events.append('write'), update=scene_update,
                    stage=stage, stage_id=stage.stage_id)
-    env.termination_manager = NS(compute=lambda: torch.zeros(2, dtype=torch.bool),
-                                 terminated=torch.zeros(2, dtype=torch.bool), time_outs=torch.zeros(2, dtype=torch.bool))
-    env.reward_manager = NS(compute=lambda dt: torch.zeros(2))
+    env.termination_manager = NS(compute=lambda: torch.zeros(num_envs, dtype=torch.bool),
+                                 terminated=torch.zeros(num_envs, dtype=torch.bool),
+                                 time_outs=torch.zeros(num_envs, dtype=torch.bool))
+    env.reward_manager = NS(compute=lambda dt: torch.zeros(num_envs))
     env.command_manager = NS(compute=lambda dt: None)
     env.event_manager = NS(available_modes=[])
     env.observation_calls = []
     def observations(update_history):
         env.observation_calls.append(update_history)
-        return {'policy': torch.ones(2, 3)}
+        return {'policy': torch.ones(num_envs, 3)}
     env.observation_manager = NS(compute=observations)
     env.step = MethodType(pinned_method('/envs/manager_based_rl_env.py', 'ManagerBasedRLEnv', 'step'), env)
     return env, interface, events
@@ -332,21 +334,21 @@ def test_report_validator_rejects_incomplete_corrupt_or_callback_only_evidence(c
 
 
 @pytest.mark.parametrize('fault', [None, 'no_contacts', 'tensor_cross'])
-@pytest.mark.parametrize('shared_g2', [False, True])
-def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact, monkeypatch, tmp_path, fault, shared_g2):
+@pytest.mark.parametrize(('num_envs', 'shared_g2'), [(2, False), (2, True), (8, True)])
+def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(
+    contact, monkeypatch, tmp_path, fault, num_envs, shared_g2):
     import source_shared_terrain_diagnostic as diagnostic
     from test_shared_terrain_runtime import scanner_env
-    env, interface, events = stepping_env()
-    env.num_envs = 2
+    env, interface, events = stepping_env(num_envs=num_envs)
     env.cfg.foot_link_name = '.*FOOT'
     env.sim.stage.GetPrimAtPath = lambda path: path
     env.sim.forward = lambda: None
-    env.action_manager.action = torch.zeros(2, 12)
+    env.action_manager.action = torch.zeros(num_envs, 12)
     names = ['FOOT', 'B_FOOT', 'C_FOOT', 'D_FOOT']
-    roots = torch.zeros(2, 13)
-    roots[:, 2] = .375
+    roots = torch.zeros(num_envs, 13)
+    roots[:, 3] = 1.0
     data = NS(root_state_w=roots, root_pos_w=roots[:, :3], default_root_state=roots.clone(),
-              body_pos_w=torch.zeros(2, 4, 3), body_lin_vel_w=torch.zeros(2, 4, 3))
+              body_pos_w=torch.zeros(num_envs, 4, 3), body_lin_vel_w=torch.zeros(num_envs, 4, 3))
     def write_pose(pose, env_ids): data.root_state_w[env_ids, :7] = pose
     robot = NS(data=data, num_bodies=4, find_bodies=lambda pattern: (list(range(4)), names),
                write_root_pose_to_sim=write_pose)
@@ -354,16 +356,22 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
     scene = Scene(robot=robot)
     scene.__dict__.update(vars(env.scene))
     scene.update = lambda dt: None
-    scene.env_prim_paths = ['/World/envs/env_0', '/World/envs/env_1']
-    scene.terrain = NS(terrain_origins=torch.zeros(1, 15, 3), env_origins=torch.zeros(2, 3))
-    scene.sensors = scanner_env().scene.sensors
+    scene.env_prim_paths = [f'/World/envs/env_{i}' for i in range(num_envs)]
+    terrain_origins = torch.zeros(1, 15, 3)
+    terrain_origins[0, :, 1] = torch.arange(15) * 4
+    scene.terrain = NS(terrain_origins=terrain_origins, env_origins=torch.zeros(num_envs, 3))
+    scene.sensors = scanner_env(num_envs).scene.sensors
     for sensor in scene.sensors.values(): sensor.update = lambda *a, **k: None
     # Sensor order intentionally differs from articulation order.
     scene.sensors['contact_forces'] = NS(body_names=list(reversed(names)),
-                                        data=NS(net_forces_w=torch.arange(24.).reshape(2, 4, 3)))
+                                        data=NS(net_forces_w=torch.arange(num_envs * 4 * 3.).reshape(num_envs, 4, 3)))
     env.scene = scene
-    tickets = diagnostic.SharedBankTerrainAllocator(2, diagnostic.SOURCE_RESET_BLOCK_COUNTS,
-                                                     diagnostic.SHARED_DIAGNOSTIC_SEED, bank_rows=1).reset([0, 1])
+    tickets = diagnostic.SharedBankTerrainAllocator(num_envs, diagnostic.SOURCE_RESET_BLOCK_COUNTS,
+                                                     diagnostic.SHARED_DIAGNOSTIC_SEED, bank_rows=1).reset(
+                                                         list(range(num_envs)))
+    scene.terrain.env_origins[:] = scene.terrain.terrain_origins[0, [t.column for t in tickets]]
+    roots[:, :3] = scene.terrain.env_origins
+    roots[:, 3] = 1.0
     env._source_parallel_terrain_allocator = NS(assignments=tickets)
     env.termination_manager.get_term_cfg = lambda name: NS(params={'asset_cfg': NS(body_ids=slice(None))})
     class Prim:
@@ -401,7 +409,8 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
             for i in range(n):
                 j = next(j for j, path in enumerate(self.filter_paths[i]) if path.startswith('/World/ground/'))
                 if fault == 'tensor_cross' and i == 0:
-                    j = next(j for j, path in enumerate(self.filter_paths[i]) if path.startswith('/World/envs/env_1/'))
+                    j = next(j for j, path in enumerate(self.filter_paths[i])
+                             if path.startswith(f'/World/envs/env_{num_envs - 1}/'))
                 if fault != 'no_contacts':
                     counts[i, j], starts[i, j], forces[i, 0], normals[i, 2], matrix[i, j, 2] = 1, i, 60, 1, 60
             return matrix, (forces, points, normals, distances, counts, starts)
@@ -424,9 +433,18 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
         assert path.name == 'journal.resets.jsonl'
         assert interface.simulations == 80
         reset_calls.append(True)
+        if num_envs == 8:
+            return dict(status='shared_reset_lifecycle_passed', num_envs=8, bank_rows=1,
+                        assignment_count=129, complete_blocks=1, reset_batch_count=33,
+                        direct_reset_count=120, direct_reset_batches=[], tail_ticket_count=9,
+                        automatic_reset_ids=[7], batch_coverage={
+                            'singleton': True, 'noncontiguous': True, 'unordered_input': True,
+                            'large_batch': True, 'highest_env_id': True},
+                        diagnostic_timeout_injected=True, physics_control_steps=2,
+                        post_automatic_reset_step_checked=True)
         return dict(status='shared_reset_lifecycle_passed', num_envs=2, bank_rows=1,
                     assignment_count=123, complete_blocks=1, reset_batch_count=91,
-                    direct_reset_count=120, automatic_reset_ids=[0],
+                    direct_reset_count=120, tail_ticket_count=3, automatic_reset_ids=[0],
                     diagnostic_timeout_injected=True, physics_control_steps=2,
                     post_automatic_reset_step_checked=True)
     monkeypatch.setattr(lifecycle, 'run_lifecycle', g2_resets)
@@ -440,12 +458,30 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
         report = diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None, reset_lifecycle=shared_g2)
         assert diagnostic.shared_report_passed(json.loads(json.dumps(report)), reset_lifecycle=shared_g2)
         assert reset_calls == [True] and interface.simulations == 80
+        if num_envs == 8:
+            assert report['contact_capture']['tensor_topology']['capacity'] == 65536
+            missing_env = json.loads(json.dumps(report))
+            del missing_env['ground_contact_points']['7']
+            assert not diagnostic.shared_report_passed(missing_env, reset_lifecycle=True)
+            bad_topology = json.loads(json.dumps(report))
+            bad_topology['contact_capture']['tensor_topology']['num_envs'] = 2
+            assert not diagnostic.shared_report_passed(bad_topology, reset_lifecycle=True)
+            bad_occlusion = json.loads(json.dumps(report))
+            bad_occlusion['vertical_occlusion_environment_ids'] = list(range(1, 7))
+            assert not diagnostic.shared_report_passed(bad_occlusion, reset_lifecycle=True)
+            bad_tail = json.loads(json.dumps(report))
+            bad_tail['reset_checks']['tail_ticket_count'] = 8
+            assert not diagnostic.shared_report_passed(bad_tail, reset_lifecycle=True)
     entries = [json.loads(line) for line in journal.read_text().splitlines()]
     summary, = [r for r in entries if r['phase'] == 'contact_summary']
     assert bool(summary['errors']) == bool(fault)
     initial = entries[0]['contact_sensor']
     assert initial['foot_net_contact_forces_w_N'][0][0] == [9., 10., 11.]
-    assert initial['foot_body_origin_height_above_tile_m'] == [[0.] * 4] * 2
+    assert initial['foot_body_origin_height_above_tile_m'] == [[0.] * 4] * num_envs
+    if num_envs == 8:
+        assert entries[0]['num_envs'] == 8 and entries[0]['bank_rows'] == 1
+        probe = next(r for r in entries if r['phase'] == 'vertical_occlusion_probe')
+        assert probe['tested_environment_ids'] == list(range(1, 8))
     assert not initial['collider_clearance_measured'] and not initial['pairwise_isolation_evidence']
     assert interface.callback is None
     assert 'record_post_physics_decimation_step' not in vars(env.recorder_manager)

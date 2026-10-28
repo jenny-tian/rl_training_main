@@ -22,6 +22,8 @@ from typing import Any
 _POLL_INTERVAL_S = 0.1
 _TERMINATE_GRACE_S = 10.0
 _GPU_SAMPLE_TIMEOUT_S = 1.0
+DEFAULT_MINIMUM_GPU_AVAILABLE_MIB = 8 * 1024
+SHARED_BANK_8ENV_MINIMUM_GPU_AVAILABLE_MIB = 12 * 1024
 _STARTUP_TRACE_MARKER = "initial-reset-complete"
 _FATAL_TRACE_LINES = frozenset({
     "[parallel-terrain-smoke] fatal-exception-recorded",
@@ -307,7 +309,15 @@ def _capture(command: Sequence[str], *, cwd: Path, timeout_s: float = 5.0) -> st
     ).strip()
 
 
-def _gpu_preflight(gpu_index: int, *, root: Path) -> tuple[str, str]:
+def minimum_gpu_available_mib(*, num_envs: int, shared_bank: bool) -> int:
+    if shared_bank and num_envs == 8:
+        return SHARED_BANK_8ENV_MINIMUM_GPU_AVAILABLE_MIB
+    return DEFAULT_MINIMUM_GPU_AVAILABLE_MIB
+
+
+def _gpu_preflight(
+    gpu_index: int, *, root: Path, minimum_available_mib: int = DEFAULT_MINIMUM_GPU_AVAILABLE_MIB
+) -> tuple[str, str]:
     gpu_snapshot = _capture(
         [
             "nvidia-smi",
@@ -325,10 +335,10 @@ def _gpu_preflight(gpu_index: int, *, root: Path) -> tuple[str, str]:
         raise RuntimeError(f"unexpected nvidia-smi GPU row: {row}")
     gpu_uuid = row[1]
     available_mib = int(row[4].split()[0]) - int(row[3].split()[0])
-    if available_mib < 8 * 1024:
+    if available_mib < minimum_available_mib:
         raise RuntimeError(
             f"GPU {gpu_index} has only {available_mib} MiB available; "
-            "at least 8192 MiB is required"
+            f"at least {minimum_available_mib} MiB is required"
         )
     process_snapshot = _capture(
         [
@@ -431,10 +441,12 @@ def main() -> int:
     parser.add_argument("--startup-timeout-s", type=float, default=120.0)
     parser.add_argument("--total-timeout-s", type=float, default=180.0)
     args = parser.parse_args()
-    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196):
-        parser.error("--shared-bank requires --num-envs 2 --seed 130196")
+    if args.shared_bank and (args.num_envs not in (2, 8) or args.seed != 130196):
+        parser.error("--shared-bank requires --num-envs 2 or 8 and --seed 130196")
     if args.num_envs == 2 and not args.shared_bank:
         parser.error("this supervisor requires --shared-bank for two environments")
+    if args.shared_bank and args.num_envs == 8 and not args.reset_lifecycle:
+        parser.error("eight-environment shared-bank checks require --reset-lifecycle")
     if args.reset_lifecycle and not args.shared_bank and args.num_envs != 60:
         parser.error("--reset-lifecycle requires --num-envs 60")
     if args.seed < 0 or args.gpu_index < 0:
@@ -462,7 +474,10 @@ def main() -> int:
     model_root = root / "deep_robotics_model"
     if _capture(["git", "-C", str(model_root), "status", "--porcelain"], cwd=root):
         raise RuntimeError("refusing to launch with a dirty robot-model submodule")
-    gpu_snapshot, gpu_process_snapshot = _gpu_preflight(args.gpu_index, root=root)
+    minimum_available_mib = minimum_gpu_available_mib(num_envs=args.num_envs, shared_bank=args.shared_bank)
+    gpu_snapshot, gpu_process_snapshot = _gpu_preflight(
+        args.gpu_index, root=root, minimum_available_mib=minimum_available_mib
+    )
     asset_audit_path = root / "docs/lite3-usd-collision-geometry-audit-20261027.json"
     asset_audit = json.loads(asset_audit_path.read_text(encoding="utf-8"))
     for asset in asset_audit["assets"].values():
@@ -570,6 +585,7 @@ def main() -> int:
         "num_envs": args.num_envs,
         "seed": args.seed,
         "device": f"cuda:{args.gpu_index}",
+        "minimum_gpu_available_mib": minimum_available_mib,
         "gpu_snapshot": gpu_snapshot,
         "gpu_process_snapshot": gpu_process_snapshot,
         "startup_timeout_s": args.startup_timeout_s,

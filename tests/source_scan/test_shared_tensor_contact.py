@@ -18,9 +18,10 @@ def tensor_module(monkeypatch):
     return source_shared_tensor_contact
 
 
-def setup_capture(module, *, fault=None, reorder=False):
+def setup_capture(module, *, fault=None, reorder=False, num_envs=2):
     """Use the installed buffer allocation/getters, with explicitly synthetic data."""
     env, interface, events = stepping_env()
+    bodies = [f'/World/envs/env_{i}/Robot/FOOT' for i in range(num_envs)]
     interface.get_contact_report = lambda: pytest.fail('CPU event API must not be used')
     interface.subscribe_contact_report_events = lambda _: pytest.fail('CPU event subscription must not be used')
 
@@ -40,17 +41,19 @@ def setup_capture(module, *, fault=None, reorder=False):
 
     class Backend:
         def create_rigid_contact_view(self, patterns, filters, capacity):
-            assert patterns == sorted(BODIES)
-            assert filters == [sorted(BODIES) + [GROUND]] * 2
+            assert patterns == sorted(bodies)
+            assert filters == [sorted(bodies) + [GROUND]] * num_envs
             assert capacity == 16
             self.sensor_paths = list(reversed(patterns)) if reorder else patterns
             self.filter_paths = [list(reversed(row)) if reorder else row for row in filters]
-            self.sensor_count, self.filter_count, self.max_contact_data_count = 2, 3, capacity
+            self.sensor_count, self.filter_count, self.max_contact_data_count = num_envs, num_envs + 1, capacity
             if fault == 'missing_filter': self.filter_paths[0][-1] = BODIES[0]
             return self
 
         def payload(self):
-            matrix, counts, starts = np.zeros((2, 3, 3), np.float32), np.zeros((2, 3), np.uint32), np.zeros((2, 3), np.uint32)
+            matrix = np.zeros((num_envs, num_envs + 1, 3), np.float32)
+            counts = np.zeros((num_envs, num_envs + 1), np.uint32)
+            starts = np.zeros((num_envs, num_envs + 1), np.uint32)
             forces = np.full((16, 1), np.nan, np.float32)
             points = np.full((16, 3), np.nan, np.float32)
             normals = np.full((16, 3), np.nan, np.float32)
@@ -64,8 +67,9 @@ def setup_capture(module, *, fault=None, reorder=False):
             ground_index = self.filter_paths[0].index(GROUND)
             if fault == 'empty': counts[:] = 0; matrix[:] = 0; net[:] = 0
             if fault == 'net_only': counts[:] = 0; matrix[:] = 0
-            if fault in ('cross', 'cross_cancelled', 'cross_tiny'):
-                j = self.filter_paths[0].index(self.sensor_paths[1])
+            if fault in ('cross', 'cross_cancelled', 'cross_tiny', 'cross_high'):
+                target = self.sensor_paths[-1] if fault == 'cross_high' else self.sensor_paths[1]
+                j = self.filter_paths[0].index(target)
                 matrix[0, j, 2] = 1e-8 if fault == 'cross_tiny' else 1
                 if fault == 'cross_cancelled': matrix[0, j] = 0; counts[0, j] = 2
             if fault == 'saturated': counts[0, ground_index] = 15
@@ -110,7 +114,7 @@ def setup_capture(module, *, fault=None, reorder=False):
                              get_backend_state=lambda: state)
     journal = []
     capture = module.TensorContactCapture(physics_view=physics, ground_colliders=[GROUND], physics_dt=.005,
-        capacity=16, stage_id=73, reporting_bodies=BODIES, record=journal.append, start_step=12,
+        num_envs=num_envs, capacity=16, stage_id=73, reporting_bodies=bodies, record=journal.append, start_step=12,
         decimation=4, control_steps=20)
     return env, interface, events, runtime, capture, journal, state
 
@@ -125,11 +129,18 @@ def complete(module, **kwargs):
     return capture, journal, events
 
 
+@pytest.mark.parametrize(('num_envs', 'expected'), [(2, 16384), (8, 65536)])
+def test_shared_contact_capacity_is_frozen_per_supported_environment_count(tensor_module, num_envs, expected):
+    assert tensor_module.contact_capacity_for(num_envs) == expected
+    with pytest.raises(ValueError):
+        tensor_module.contact_capacity_for(4)
+
+
 @pytest.mark.parametrize('reorder', [False, True])
 def test_pinned_gpu_tensor_contract_captures_all_substeps_without_cpu_reports(tensor_module, reorder):
     capture, journal, events = complete(tensor_module, reorder=reorder)
-    assert capture.ground['poll'] == {0: 80, 1: 80}
-    assert tensor_module.tensor_summary_passed(capture.summary(), {0: 80, 1: 80})
+    assert capture.ground['poll'] == {i: 80 for i in range(2)}
+    assert tensor_module.tensor_summary_passed(capture.summary(), {i: 80 for i in range(2)})
     assert events == ['action', 'write', 'simulate', 'fetch', 'tensor_net', 'tensor_matrix', 'tensor_data', 'scene_update'] * 80
     assert len([v for v in journal if v['phase'] == 'tensor_contact_sample']) == 80
     # Live entries copied, unused NaN capacity ignored, later native writes cannot alter the journal.
@@ -139,7 +150,7 @@ def test_pinned_gpu_tensor_contract_captures_all_substeps_without_cpu_reports(te
 
 @pytest.mark.parametrize('fault,steps', [
     ('missing_filter', 0), ('readback_mismatch', 0), ('empty', 80),
-    *[(f, 1) for f in ('net_only', 'cross', 'cross_cancelled', 'cross_tiny', 'saturated', 'overflow', 'range',
+    *[(f, 1) for f in ('net_only', 'cross', 'cross_cancelled', 'cross_tiny', 'cross_high', 'saturated', 'overflow', 'range',
                        'overlap', 'truncated', 'pair_mismatch', 'net_mismatch', 'nan', 'normal', 'backend_failure')],
 ])
 def test_invalid_or_missing_gpu_evidence_stops_and_restores_hook(tensor_module, fault, steps):
@@ -170,6 +181,40 @@ def test_mid_capture_changes_fail_before_next_substep(tensor_module, change):
             env.step(torch.zeros(2, 12))
     assert interface.simulations == 5
 
+
+
+def test_eight_environment_contact_topology_checks_all_actor_pairs(tensor_module):
+    capture, journal, events = complete(tensor_module, num_envs=8)
+    assert len(capture.topology['sensor_paths']) == 8
+    assert capture.topology['num_envs'] == 8
+    assert all(len(row) == 9 and len(set(row)) == 9 for row in capture.topology['filter_paths'])
+    assert capture.ground['poll'] == {i: 80 for i in range(8)}
+    assert tensor_module.tensor_summary_passed(capture.summary(), {i: 80 for i in range(8)})
+    assert capture.samples == 80 and capture.cross_contacts == []
+
+
+def test_eight_environment_cross_contact_with_highest_id_fails_before_next_step(tensor_module):
+    from source_shared_contact_report import capture_substeps
+    env, interface, events, runtime, capture, journal, state = setup_capture(
+        tensor_module, fault='cross_high', num_envs=8)
+    with pytest.raises(AssertionError, match='cross-environment'):
+        with capture_substeps(env, interface, capture, runtime):
+            env.step(torch.zeros(2, 12))
+            capture.check_control(env, 1)
+    assert interface.simulations == 1
+    assert capture.cross_contacts[0]['actors'] == [
+        '/World/envs/env_0/Robot/FOOT', '/World/envs/env_7/Robot/FOOT']
+
+
+def test_contact_topology_rejects_missing_environment_and_pair(tensor_module):
+    bodies = [f'/World/envs/env_{i}/Robot/FOOT' for i in range(8)]
+    with pytest.raises(AssertionError):
+        tensor_module.validate_topology(bodies[:-1], [bodies + [GROUND]] * 7,
+                                        bodies[:-1], [GROUND], num_envs=8)
+    filters = [bodies + [GROUND] for _ in bodies]
+    filters[3] = filters[3][1:]
+    with pytest.raises(AssertionError):
+        tensor_module.validate_topology(bodies, filters, bodies, [GROUND], num_envs=8)
 
 def test_serialized_summary_rejects_missing_or_old_evidence(tensor_module):
     import json

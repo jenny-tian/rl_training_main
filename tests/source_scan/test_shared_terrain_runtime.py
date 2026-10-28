@@ -213,12 +213,15 @@ def test_contact_classification_uses_exact_environment_and_ground_ownership(diag
     assert diagnostic.classify_contact(*paths) == expected
 
 
-def scanner_env():
+def scanner_env(num_envs=2):
     sensors = {}
     for name in ('height_scanner', 'height_scanner_base'):
-        sensors[name] = NS(data=NS(ray_hits_w=torch.zeros(2, 9, 3), ray_mesh_ids=torch.zeros(2, 9, 1)),
-                           _mesh_ids_wp=NS(numpy=lambda: np.full((2, 1), 42)), meshes={'/World/ground': NS(id=42)})
-    return NS(scene=NS(sensors=sensors, terrain=NS(env_origins=torch.zeros(2, 3))))
+        sensors[name] = NS(data=NS(ray_hits_w=torch.zeros(num_envs, 9, 3),
+                                   ray_mesh_ids=torch.zeros(num_envs, 9, 1)),
+                           _mesh_ids_wp=NS(numpy=lambda: np.full((num_envs, 1), 42)),
+                           meshes={'/World/ground': NS(id=42)})
+    return NS(num_envs=num_envs,
+              scene=NS(sensors=sensors, terrain=NS(env_origins=torch.zeros(num_envs, 3))))
 
 
 @pytest.mark.parametrize('fault', ['target', 'extra', 'miss', 'nan', 'height', 'ids_shape'])
@@ -359,36 +362,40 @@ def test_actual_importer_maps_small_bank_to_independent_environment_buffers(monk
     np.testing.assert_array_equal(actual.numpy(), origins[[0, 1, 0, 1, 0, 1, 0], 0])
 
 
-def lifecycle_env(diagnostic, fault=None):
+def lifecycle_env(diagnostic, fault=None, num_envs=2):
     """Two synthetic managers with the actual shared adapter and USD audit."""
-    cfg_scene = shared_scene()
+    cfg_scene = shared_scene(num_envs)
     class Scene(dict):
         def write_data_to_sim(self): pass
         def update(self, _dt): pass
     scene = Scene()
     scene.__dict__.update(vars(cfg_scene))
-    env = NS(num_envs=2, scene=scene, device='cpu')
-    assign(env, [0, 1], diagnostic.SHARED_DIAGNOSTIC_SEED)
-    root = NS(root_state_w=torch.zeros(2, 13), default_root_state=torch.zeros(2, 13),
-              joint_pos=torch.ones(2, 12), joint_vel=torch.zeros(2, 12))
+    env = NS(num_envs=num_envs, scene=scene, device='cpu')
+    assign(env, list(range(num_envs)), diagnostic.SHARED_DIAGNOSTIC_SEED)
+    root = NS(root_state_w=torch.zeros(num_envs, 13), default_root_state=torch.zeros(num_envs, 13),
+              joint_pos=torch.ones(num_envs, 12), joint_vel=torch.zeros(num_envs, 12))
     root.default_root_state[:, 2] = 0.4
     root.root_pos_w = root.root_state_w[:, :3]
     root.root_pos_w[:] = root.default_root_state[:, :3] + scene.terrain.env_origins
     scene['robot'] = NS(data=root)
-    scene.sensors = scanner_env().scene.sensors
+    scene.sensors = {}
+    for name, rays in (('height_scanner', 9), ('height_scanner_base', 9)):
+        scene.sensors[name] = NS(
+            data=NS(ray_hits_w=torch.zeros(num_envs, rays, 3), ray_mesh_ids=torch.zeros(num_envs, rays, 1)),
+            _mesh_ids_wp=NS(numpy=lambda: np.full((num_envs, 1), 42)),
+            meshes={'/World/ground': NS(id=42)},
+            _timestamp=torch.ones(num_envs), _timestamp_last_update=torch.ones(num_envs),
+            _is_outdated=torch.zeros(num_envs, dtype=torch.bool))
     for sensor in scene.sensors.values():
-        sensor._timestamp = torch.ones(2)
-        sensor._timestamp_last_update = torch.ones(2)
-        sensor._is_outdated = torch.zeros(2, dtype=torch.bool)
         sensor._data = sensor.data
-    env.episode_length_buf = torch.ones(2, dtype=torch.long)
-    env.action_manager = NS(action=torch.ones(2, 12), prev_action=torch.ones(2, 12))
-    env.command_manager = NS(active_terms=['velocity'], get_command=lambda _: torch.zeros(2, 3))
-    history = NS(_buffer=torch.ones(3, 2, 4), _num_pushes=torch.ones(2, dtype=torch.long))
+    env.episode_length_buf = torch.ones(num_envs, dtype=torch.long)
+    env.action_manager = NS(action=torch.ones(num_envs, 12), prev_action=torch.ones(num_envs, 12))
+    env.command_manager = NS(active_terms=['velocity'], get_command=lambda _: torch.zeros(num_envs, 3))
+    history = NS(_buffer=torch.ones(3, num_envs, 4), _num_pushes=torch.ones(num_envs, dtype=torch.long))
     def compute(update_history):
         history._buffer[:] = 1
         history._num_pushes += 1
-        return {'policy': torch.ones(2, 4)}
+        return {'policy': torch.ones(num_envs, 4)}
     env.observation_manager = NS(_group_obs_term_history_buffer={'policy': {'pos': history}}, compute=compute)
     env.reset_calls = []
     env.old_allocators = []
@@ -440,8 +447,8 @@ def test_shared_reset_diagnostic_retains_comparison_and_stops_on_fault(diagnosti
     assert [r['phase'] for r in records] == ['before_reset', 'assignment_comparison']
 
 
-def shared_g2_env(diagnostic, fault=None):
-    env = lifecycle_env(diagnostic)
+def shared_g2_env(diagnostic, fault=None, num_envs=2):
+    env = lifecycle_env(diagnostic, num_envs=num_envs)
     env.max_episode_length = 1000
     forward = env.sim.forward
     def refresh():
@@ -472,10 +479,39 @@ def shared_g2_env(diagnostic, fault=None):
         observations = env.observation_manager.compute(update_history=True)
         if fault == 'nan_post_step' and env.step_calls == 2:
             observations['policy'][0, 0] = float('nan')
-        return observations, torch.zeros(2), torch.zeros(2, dtype=torch.bool), truncated, {}
+        return observations, torch.zeros(num_envs), torch.zeros(num_envs, dtype=torch.bool), truncated, {}
     env.step = step
     return env
 
+
+
+def test_shared_eight_environment_g2_batches_cover_full_block_and_auto_reset(diagnostic, tmp_path):
+    from source_parallel_reset_lifecycle import run_lifecycle
+    from source_shared_report_validation import shared_lifecycle_passed
+    import json
+    env = shared_g2_env(diagnostic, num_envs=8)
+    original = env._reset_idx
+    path = tmp_path / 'g2_8env.jsonl'
+    result = run_lifecycle(env, 130196, path, lambda _: None, shared_bank=True)
+    assert shared_lifecycle_passed(result)
+    assert result['assignment_count'] == 129 and result['complete_blocks'] == 1
+    assert result['direct_reset_count'] == 120 and result['reset_batch_count'] == 33
+    assert result['tail_ticket_count'] == 9
+    assert result['batch_coverage'] == {
+        'singleton': True, 'noncontiguous': True, 'unordered_input': True,
+        'large_batch': True, 'highest_env_id': True}
+    assert env.reset_calls[-1] == [7]
+    assert env.step_calls == 2 and env._reset_idx is original
+    records = [json.loads(line) for line in path.read_text().splitlines()]
+    before = [item for item in records if item.get('phase') == 'before_reset']
+    assert len(before) == 33
+    assert any(item.get('input_ids') == list(range(7, -1, -1)) for item in before)
+    comparisons = [item for item in records if item.get('phase') == 'assignment_comparison']
+    tickets = records[0]['initial_assignments'] + [t for item in comparisons for t in item['actual_assignments']]
+    assert len(tickets) == 129
+    assert [ticket['assignment_index'] for ticket in tickets] == list(range(129))
+    assert sum(item.get('phase') == 'reset_checked' for item in records) == 33
+    assert records[-1]['phase'] == 'post_automatic_reset_step'
 
 def test_shared_g2_complete_block_and_automatic_reset(diagnostic, tmp_path):
     from source_parallel_reset_lifecycle import run_lifecycle

@@ -1,4 +1,4 @@
-"""Bounded two-robot shared-bank diagnostic; imports do not launch Isaac Sim."""
+"""Bounded two- or eight-environment shared-bank diagnostic; no import launches simulation."""
 
 from dataclasses import asdict
 import json
@@ -11,7 +11,7 @@ from source_parallel_reset_lifecycle import snapshot, check_transition, summariz
 from source_shared_contact_report import (
     ContactRuntime, capture_substeps, classify_contact,
 )
-from source_shared_tensor_contact import TensorContactCapture
+from source_shared_tensor_contact import TensorContactCapture, contact_capacity_for
 from source_shared_report_validation import SHARED_CONTROL_STEPS, shared_report_passed
 
 SHARED_DIAGNOSTIC_SEED = 130196
@@ -29,7 +29,8 @@ def contact_sensor_snapshot(env):
     sensor_ids = [sensor_names.index(name) for name in names]
     heights = robot.data.body_pos_w[:, body_ids, 2] - env.scene.terrain.env_origins[:, 2, None]
     forces = sensor.data.net_forces_w
-    if (forces.shape != (2, len(sensor_names), 3) or heights.shape != (2, 4)
+    n = int(getattr(env, 'num_envs', forces.shape[0]))
+    if (forces.shape != (n, len(sensor_names), 3) or heights.shape != (n, 4)
             or not torch.isfinite(heights).all() or not torch.isfinite(forces).all()):
         raise AssertionError('invalid foot-height or contact-force telemetry')
     return {'foot_names': names, 'foot_body_origin_height_above_tile_m': heights.cpu().tolist(),
@@ -46,9 +47,10 @@ def check_scanners(env, *, flat_entry=False):
         data = sensor.data
         ids = sensor._mesh_ids_wp.numpy()
         ground_id = sensor.meshes["/World/ground"].id
-        if ids.shape != (2, 1) or not (ids == ground_id).all():
+        n = int(getattr(env, 'num_envs', data.ray_hits_w.shape[0]))
+        if ids.shape != (n, 1) or not (ids == ground_id).all():
             raise AssertionError(f"{name}: runtime ray targets are not the shared ground mesh")
-        if (data.ray_hits_w.ndim != 3 or data.ray_hits_w.shape[0] != 2
+        if (data.ray_hits_w.ndim != 3 or data.ray_hits_w.shape[0] != n
                 or data.ray_hits_w.shape[1] == 0 or data.ray_hits_w.shape[2] != 3
                 or not isinstance(data.ray_mesh_ids, torch.Tensor)
                 or data.ray_mesh_ids.shape != (*data.ray_hits_w.shape[:2], 1)):
@@ -115,26 +117,42 @@ def check_shared_resets(env, seed, record):
 
 
 def run_shared_diagnostic(env, seed, journal_path, trace, *, reset_lifecycle=False):
-    """20 zero-action steps at identical spawns, ray occlusion probe, five resets."""
+    """Run the bounded shared-bank contact, scan, and reset diagnostics."""
     import carb.settings
     import omni.usd
     from omni.physx import get_physx_interface, get_physx_simulation_interface
     from pxr import PhysxSchema, Usd, UsdPhysics, UsdUtils
 
-    if env.num_envs != 2 or seed != SHARED_DIAGNOSTIC_SEED:
-        raise ValueError("shared diagnostic requires two environments and seed 130196")
+    num_envs = int(env.num_envs)
+    if num_envs not in (2, 8) or seed != SHARED_DIAGNOSTIC_SEED:
+        raise ValueError("shared diagnostic supports two or eight environments with seed 130196")
+    if num_envs == 8 and not reset_lifecycle:
+        raise ValueError("eight-environment shared qualification requires the complete reset lifecycle")
     terrain = env.scene.terrain
     robot = env.scene['robot']
     if tuple(terrain.terrain_origins.shape) != (1, 15, 3):
         raise AssertionError("expected one shared bank row with fifteen columns")
     assignments = env._source_parallel_terrain_allocator.assignments
-    expected = SharedBankTerrainAllocator(2, SOURCE_RESET_BLOCK_COUNTS, seed, bank_rows=1).reset([0, 1])
-    if assignments != expected or any(t.subterrain != 'flat' for t in assignments):
-        raise AssertionError("initial shared assignments must overlap on flat")
-    if not torch.equal(terrain.env_origins[0], terrain.env_origins[1]) or not torch.allclose(
-        robot.data.root_state_w[0], robot.data.root_state_w[1], atol=1e-5, rtol=0,
-    ):
-        raise AssertionError("robots do not have identical overlapping initial states")
+    expected = SharedBankTerrainAllocator(num_envs, SOURCE_RESET_BLOCK_COUNTS, seed, bank_rows=1).reset(
+        list(range(num_envs)))
+    if assignments != expected or any(item is None for item in assignments):
+        raise AssertionError("initial shared assignments differ from the deterministic schedule")
+    if num_envs == 2 and any(ticket.subterrain != 'flat' for ticket in assignments):
+        raise AssertionError("two-environment overlap probe must start on flat")
+    tile_groups = {}
+    for item in assignments:
+        tile_groups.setdefault((item.row, item.column), []).append(item.env_id)
+    overlapping_groups = [ids for ids in tile_groups.values() if len(ids) > 1]
+    if not overlapping_groups:
+        raise AssertionError("fixed diagnostic seed did not produce an overlapping spawn group")
+    for ids in overlapping_groups:
+        selected = torch.tensor(ids, device=env.device, dtype=torch.long)
+        origins = terrain.env_origins[selected]
+        roots = robot.data.root_state_w[selected]
+        if not torch.equal(origins, origins[0:1].expand_as(origins)) or not torch.allclose(
+            roots, roots[0:1].expand_as(roots), atol=1e-5, rtol=0,
+        ):
+            raise AssertionError("robots assigned to one shared tile do not share the same spawn state")
     if not torch.allclose(robot.data.root_pos_w, robot.data.default_root_state[:, :3] + terrain.env_origins,
                           atol=1e-5, rtol=0):
         raise AssertionError("shared initial roots do not match origins")
@@ -144,6 +162,8 @@ def run_shared_diagnostic(env, seed, journal_path, trace, *, reset_lifecycle=Fal
     if sorted(guard_ids) != all_ids:
         raise AssertionError("tile guard does not cover all robot bodies")
     reporting_bodies = []
+    if len(env.scene.env_prim_paths) != num_envs:
+        raise AssertionError("runtime scene paths do not cover the configured shared environments")
     for path in env.scene.env_prim_paths:
         bodies = [p for p in Usd.PrimRange(env.sim.stage.GetPrimAtPath(path + '/Robot'))
                   if p.HasAPI(UsdPhysics.RigidBodyAPI)]
@@ -162,34 +182,41 @@ def run_shared_diagnostic(env, seed, journal_path, trace, *, reset_lifecycle=Fal
             journal.write(json.dumps(value, allow_nan=False) + '\n')
             journal.flush()
 
-        record({"phase": "initial", "collision_groups": audit_shared_collision_groups(env.scene),
-                "assignments": [asdict(t) for t in assignments], "reporting_bodies": reporting_bodies,
+        record({"phase": "initial", "num_envs": num_envs, "bank_rows": 1,
+                "collision_groups": audit_shared_collision_groups(env.scene),
+                "assignments": [asdict(t) for t in assignments],
+                "overlapping_spawn_groups": overlapping_groups, "reporting_bodies": reporting_bodies,
                 "ground_colliders": ground_colliders,
                 "roots": robot.data.root_state_w.cpu().tolist(), "scanners": check_scanners(env, flat_entry=True),
                 "contact_sensor": contact_sensor_snapshot(env)})
 
-        # At a fixed env-0 pose, moving env-1 vertically through its ray paths
-        # must not change env-0 ground hits. No physics integration in this probe.
-        baseline = {name: env.scene.sensors[name].data.ray_hits_w[0].clone()
-                    for name in ('height_scanner', 'height_scanner_base')}
-        pose = robot.data.root_state_w[1:2, :7].clone()
-        lifted = pose.clone()
-        lifted[:, 2] += 0.8
-        ids = torch.tensor([1], device=env.device)
-        robot.write_root_pose_to_sim(lifted, env_ids=ids)
-        env.scene.write_data_to_sim()
-        env.sim.forward()
-        env.scene.update(0.0)
-        for name, expected_hits in baseline.items():
-            sensor = env.scene.sensors[name]
-            sensor.update(0.0, force_recompute=True)
-            if not torch.allclose(sensor.data.ray_hits_w[0], expected_hits, atol=1e-5, rtol=0):
-                raise AssertionError("another robot changed stationary ground scans")
-        record({"phase": "vertical_occlusion_probe", "lift_m": 0.8, "scanners": check_scanners(env, flat_entry=True)})
-        robot.write_root_pose_to_sim(pose, env_ids=ids)
-        env.scene.write_data_to_sim()
-        env.sim.forward()
-        env.scene.update(0.0)
+        # Move each non-reference robot through the scanner paths independently.
+        # Every stationary environment must continue to hit the shared ground.
+        scanner_names = ('height_scanner', 'height_scanner_base')
+        baseline = {name: env.scene.sensors[name].data.ray_hits_w.clone() for name in scanner_names}
+        occlusion_records = []
+        for target_id in range(1, num_envs):
+            ids = torch.tensor([target_id], device=env.device)
+            pose = robot.data.root_state_w[target_id:target_id + 1, :7].clone()
+            lifted = pose.clone()
+            lifted[:, 2] += 0.8
+            robot.write_root_pose_to_sim(lifted, env_ids=ids)
+            env.scene.write_data_to_sim()
+            env.sim.forward()
+            env.scene.update(0.0)
+            for name in scanner_names:
+                sensor = env.scene.sensors[name]
+                sensor.update(0.0, force_recompute=True)
+                if not torch.allclose(sensor.data.ray_hits_w, baseline[name], atol=1e-5, rtol=0):
+                    raise AssertionError("another robot changed stationary ground scans")
+            occlusion_records.append(target_id)
+            robot.write_root_pose_to_sim(pose, env_ids=ids)
+            env.scene.write_data_to_sim()
+            env.sim.forward()
+            env.scene.update(0.0)
+        record({"phase": "vertical_occlusion_probe", "lift_m": 0.8,
+                "tested_environment_ids": occlusion_records,
+                "scanners": check_scanners(env, flat_entry=True)})
 
         interface = get_physx_simulation_interface()
         runtime = ContactRuntime(
@@ -205,7 +232,8 @@ def run_shared_diagnostic(env, seed, journal_path, trace, *, reset_lifecycle=Fal
         capture = TensorContactCapture(
             stage_id=UsdUtils.StageCache.Get().GetId(env.sim.get_initial_stage()).ToLongInt(),
             reporting_bodies=reporting_bodies, ground_colliders=ground_colliders,
-            physics_view=env.sim.physics_sim_view, physics_dt=env.physics_dt, record=record,
+            physics_view=env.sim.physics_sim_view, physics_dt=env.physics_dt, num_envs=num_envs, record=record,
+            capacity=contact_capacity_for(num_envs),
             start_step=env._sim_step_counter, decimation=4, control_steps=SHARED_CONTROL_STEPS,
         )
         with capture_substeps(env, interface, capture, runtime):
@@ -231,13 +259,16 @@ def run_shared_diagnostic(env, seed, journal_path, trace, *, reset_lifecycle=Fal
         else:
             resets = check_shared_resets(env, seed, record)
         record({"phase": "complete", "reset_checks": resets})
-    return {"status": "shared_bank_g2_passed" if reset_lifecycle else "shared_bank_smoke_passed", "num_envs": 2, "bank_rows": 1,
+    return {"status": "shared_bank_g2_passed" if reset_lifecycle else "shared_bank_smoke_passed",
+            "num_envs": num_envs, "bank_rows": 1,
             "terrain_origin_shape": [1, 15, 3], "initial_assignments": [asdict(t) for t in assignments],
             "overlapping_spawn_checked": True, "cross_environment_contacts": 0,
             "ground_contact_points": ground_contacts, "contact_capture": capture.summary(),
             "zero_action_steps": SHARED_CONTROL_STEPS,
             "total_zero_action_steps": SHARED_CONTROL_STEPS + (2 if reset_lifecycle else 0),
-            "vertical_occlusion_probe_passed": True, "reset_checks": resets,
+            "vertical_occlusion_probe_passed": True,
+            "vertical_occlusion_environment_ids": list(range(1, num_envs)),
+            "reset_checks": resets,
             "collision_groups": audit_shared_collision_groups(env.scene),
             "journal": str(journal_path), "policy_loaded": False, "ppo_updates": 0,
             "motion_isolation_qualified": False, "qualification_claim": False}

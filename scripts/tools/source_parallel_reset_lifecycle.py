@@ -97,17 +97,28 @@ def _digest(value):
 
 
 def run_lifecycle(env, seed, journal_path, trace, *, shared_bank=False):
-    num_envs = 2 if shared_bank else 60
+    num_envs = int(env.num_envs) if shared_bank else 60
     if env.num_envs != num_envs or (shared_bank and seed != 130196):
-        raise ValueError('G2 requires 60 reserved-row envs or two shared envs with seed 130196')
+        raise ValueError('G2 requires 60 reserved-row envs or two/eight shared envs with seed 130196')
+    direct_batches = None
     if shared_bank:
         from rl_training.source_scan.shared_terrain_bank import SharedBankTerrainAllocator
         from source_shared_terrain_diagnostic import check_scanners
+        if num_envs not in (2, 8) or seed != 130196:
+            raise ValueError('shared lifecycle supports two or eight environments with seed 130196')
         if tuple(env.scene.terrain.terrain_origins.shape) != (1, 15, 3):
             raise AssertionError('shared lifecycle requires one bank row')
-        oracle = SharedBankTerrainAllocator(2, SOURCE_RESET_BLOCK_COUNTS, seed, bank_rows=1)
-        batches = [(0,), (1,), (1, 0)] * 30
-        auto_ids = [0]
+        oracle = SharedBankTerrainAllocator(num_envs, SOURCE_RESET_BLOCK_COUNTS, seed, bank_rows=1)
+        if num_envs == 2:
+            batches = [(0,), (1,), (1, 0)] * 30
+            auto_ids = [0]
+        else:
+            # Eight fixed permutations cover singleton, scattered, unordered,
+            # and all-environment batches while completing one 120-ticket block.
+            pattern = [(7,), (6, 1, 3), (4, 2, 0), tuple(range(7, -1, -1))]
+            batches = pattern * 8
+            auto_ids = [7]
+        direct_batches = [tuple(ids) for ids in batches]
     else:
         oracle = ReservedRowTerrainAllocator(60, SOURCE_RESET_BLOCK_COUNTS, seed)
         batches = reset_batches()
@@ -123,10 +134,12 @@ def run_lifecycle(env, seed, journal_path, trace, *, shared_bank=False):
         journal.flush()
 
         def audited_reset(env_ids):
-            ids = sorted(env_ids.cpu().tolist())
+            input_ids = env_ids.cpu().tolist()
+            ids = sorted(input_ids)
             before = snapshot(env)
             prior = env._source_parallel_terrain_allocator.assignments
             journal.write(json.dumps({'phase': 'before_reset', 'mode': mode, 'ids': ids,
+                                      'input_ids': input_ids,
                                       'prior_assignments': [asdict(t) for t in prior]}) + '\n')
             journal.flush()
             try:
@@ -232,10 +245,28 @@ def run_lifecycle(env, seed, journal_path, trace, *, shared_bank=False):
         finally:
             env._reset_idx = original_reset
     summary = summarize_tickets(tickets)
-    if summary['assignment_count'] != (123 if shared_bank else 363) or summary['complete_blocks'] != (1 if shared_bank else 3):
+    direct_count = sum(map(len, direct_batches)) if shared_bank else 300
+    expected_assignments = (num_envs + direct_count + len(auto_ids)) if shared_bank else 363
+    expected_blocks = 1 if shared_bank else 3
+    if summary['assignment_count'] != expected_assignments or summary['complete_blocks'] != expected_blocks:
         raise AssertionError('incomplete lifecycle coverage')
+    batch_coverage = None
+    if shared_bank and num_envs == 8:
+        flat_batches = direct_batches
+        batch_coverage = {
+            'singleton': any(len(batch) == 1 for batch in flat_batches),
+            'noncontiguous': any(len(batch) >= 2 and max(batch) - min(batch) + 1 > len(batch)
+                                 for batch in flat_batches),
+            'unordered_input': any(len(batch) >= 2 and tuple(batch) != tuple(sorted(batch))
+                                   for batch in flat_batches),
+            'large_batch': any(len(batch) >= 6 for batch in flat_batches),
+            'highest_env_id': any(num_envs - 1 in batch for batch in flat_batches),
+        }
     return {'status': 'shared_reset_lifecycle_passed' if shared_bank else 'reset_lifecycle_passed',
-            **summary, 'direct_reset_count': 120 if shared_bank else 300,
+            **summary, 'direct_reset_count': direct_count if shared_bank else 300,
+            'direct_reset_batches': [list(batch) for batch in direct_batches] if shared_bank else None,
+            'batch_coverage': batch_coverage,
+            'tail_ticket_count': len(tickets) % sum(SOURCE_RESET_BLOCK_COUNTS.values()),
             'bank_rows': 1 if shared_bank else None, 'num_envs': num_envs,
             'physics_control_steps': 2 if shared_bank else 1,
             'post_automatic_reset_step_checked': shared_bank,

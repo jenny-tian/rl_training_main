@@ -128,9 +128,11 @@ class ContactCapture:
 
     def _owner(self, actor, collider):
         if actor in self.bodies and (collider == actor or collider.startswith(actor + '/')):
-            match = re.match(r'^/World/envs/env_([01])/Robot/', actor)
-            if match:
-                return int(match[1])
+            prefix = '/World/envs/env_'
+            if actor.startswith(prefix):
+                env_text, separator, suffix = actor[len(prefix):].partition('/Robot/')
+                if separator and env_text.isdecimal():
+                    return int(env_text)
         if all(p == '/World/ground' or p.startswith('/World/ground/') for p in (actor, collider)):
             return 'ground'
         raise ValueError(f'unknown actor/collider ownership: {actor}, {collider}')
@@ -155,7 +157,7 @@ class ContactCapture:
             paths = [str(self.decode_path(p)) for p in (header.collider0, header.collider1)]
             owners = [self._owner(a, c) for a, c in zip(actors, paths)]
             kind, owner = classify_contact(*paths)
-            if owners[0] in (0, 1) and owners[1] in (0, 1) and owners[0] != owners[1]:
+            if type(owners[0]) is int and type(owners[1]) is int and owners[0] != owners[1]:
                 self.cross_contacts.append({'channel': channel, 'sim_step': sim_step, 'colliders': paths})
                 self.record({'phase': 'cross_environment_contact', **self.cross_contacts[-1]})
                 raise AssertionError('cross-environment contact reported')
@@ -213,8 +215,15 @@ class ContactCapture:
         if (len(self.poll_steps) != self.control_steps * self.decimation
                 or len(self.control_poll_counts) != self.control_steps or self.errors or self.cross_contacts):
             raise AssertionError('incomplete or failed contact capture')
-        if not all(self.ground['poll'][i] > 0 for i in (0, 1)):
-            raise AssertionError('contact-report positive control missing: both robots must touch ground')
+        owners = set()
+        for body in self.bodies:
+            prefix = '/World/envs/env_'
+            if body.startswith(prefix):
+                env_text, separator, _ = body[len(prefix):].partition('/Robot/')
+                if separator and env_text.isdecimal():
+                    owners.add(int(env_text))
+        if not owners or any(self.ground['poll'][i] <= 0 for i in owners):
+            raise AssertionError('contact-report positive control missing: every environment must touch ground')
         self.positive_controls_validated = True
 
     def summary(self):

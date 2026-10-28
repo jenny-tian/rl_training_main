@@ -45,15 +45,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task", default="SourceTerrain-Deeprobotics-Lite3-v0")
     parser.add_argument("--num-envs", type=int, default=8)
-    parser.add_argument("--reset-lifecycle", action="store_true", help="G2: 60 reserved-row envs or two envs with --shared-bank")
-    parser.add_argument("--shared-bank", action="store_true", help="Two-robot shared-bank diagnostic, seed 130196")
+    parser.add_argument("--reset-lifecycle", action="store_true", help="G2: 60 reserved-row envs or two/eight envs with --shared-bank")
+    parser.add_argument("--shared-bank", action="store_true", help="Shared-bank diagnostic for two or eight environments, seed 130196")
     parser.add_argument("--seed", type=int, default=130_001)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--trace-output", type=Path)
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
-    if args.shared_bank and (args.num_envs != 2 or args.seed != 130196):
-        parser.error("--shared-bank requires --num-envs 2 --seed 130196")
+    if args.shared_bank and (args.num_envs not in (2, 8) or args.seed != 130196):
+        parser.error("--shared-bank requires --num-envs 2 or 8 and --seed 130196")
+    if args.shared_bank and args.num_envs == 8 and not args.reset_lifecycle:
+        parser.error("eight-environment shared-bank checks require --reset-lifecycle")
     if not args.shared_bank and args.num_envs not in (8, 16, 32, 60):
         parser.error("this G1 startup smoke supports only 8, 16, 32, or 60 environments")
     if args.reset_lifecycle and not args.shared_bank and args.num_envs != 60:

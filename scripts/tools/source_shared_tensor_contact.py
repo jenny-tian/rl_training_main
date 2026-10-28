@@ -1,4 +1,4 @@
-"""Pair-resolved GPU contact evidence for the bounded two-robot probe.
+"""Pair-resolved GPU contact evidence for the bounded shared-bank probe.
 
 The installed tensor API supports an explicit filter list per sensor. Wildcard
 filters are not a Cartesian product. Never infer isolation from net forces alone.
@@ -13,8 +13,16 @@ from source_shared_contact_report import ContactCapture, classify_contact, conta
 
 
 CONTACT_CAPACITY = 16384
+SHARED_CONTACT_CAPACITIES = {2: CONTACT_CAPACITY, 8: CONTACT_CAPACITY * 4}
 FORCE_ATOL = 1e-4
 FORCE_RTOL = 1e-4
+
+
+def contact_capacity_for(num_envs):
+    """Return the frozen detailed-contact capacity for a shared-bank size."""
+    if type(num_envs) is not int or num_envs not in SHARED_CONTACT_CAPACITIES:
+        raise ValueError('shared contact capacity is defined only for two or eight environments')
+    return SHARED_CONTACT_CAPACITIES[num_envs]
 
 
 def _copy(value):
@@ -38,13 +46,18 @@ def tensor_runtime_passed(state, stage_id):
             and re.fullmatch(r'cuda(?::\d+)?', backend['tensor_device']) is not None)
 
 
-def validate_topology(sensors, filters, bodies, ground):
-    """Require resolved paths to cover every body and every static ground actor."""
+def _body_environment(path):
+    match = re.fullmatch(r'/World/envs/env_(\d+)/Robot/.+', path)
+    return int(match[1]) if match else None
+
+
+def validate_topology(sensors, filters, bodies, ground, *, num_envs):
+    """Require the complete body/ground Cartesian product for every environment."""
+    owners = {_body_environment(path) for path in bodies}
+    expected_owners = set(range(num_envs)) if type(num_envs) is int and num_envs > 0 else set()
     if (not bodies or len(set(bodies)) != len(bodies) or not ground or len(set(ground)) != len(ground)
-            or any(not p.startswith('/World/ground/') for p in ground)
-            or any(re.fullmatch(r'/World/envs/env_[01]/Robot/.+', p) is None for p in bodies)
-            or any(not any(p.startswith(f'/World/envs/env_{i}/Robot/') for p in bodies) for i in (0, 1))
-            or set(bodies) & set(ground)):
+            or any(not isinstance(path, str) or not path.startswith('/World/ground/') for path in ground)
+            or None in owners or owners != expected_owners or set(bodies) & set(ground)):
         raise AssertionError('invalid contact inventory')
     expected = set(bodies) | set(ground)
     if (len(sensors) != len(bodies) or set(sensors) != set(bodies) or len(filters) != len(sensors)
@@ -57,11 +70,18 @@ class TensorContactCapture(ContactCapture):
 
     uses_contact_events = False
 
-    def __init__(self, *, physics_view, ground_colliders, physics_dt, capacity=CONTACT_CAPACITY, **kwargs):
+    def __init__(self, *, physics_view, ground_colliders, physics_dt, num_envs=None,
+                 capacity=CONTACT_CAPACITY, **kwargs):
         super().__init__(decode_path=None, event_types={}, **kwargs)
         if type(capacity) is not int or capacity < 2 or not np.isfinite(physics_dt) or physics_dt <= 0:
             raise ValueError('invalid tensor contact capacity or physics timestep')
         self.physics_view, self.physics_dt = physics_view, physics_dt
+        owners = {_body_environment(path) for path in self.bodies}
+        inferred_envs = max((owner for owner in owners if owner is not None), default=-1) + 1
+        self.num_envs = inferred_envs if num_envs is None else num_envs
+        if (type(self.num_envs) is not int or self.num_envs < 1
+                or owners != set(range(self.num_envs))):
+            raise ValueError('contact bodies must cover every configured environment')
         self.capacity = capacity
         self.ground_colliders = sorted(ground_colliders)
         self.view = None
@@ -78,7 +98,8 @@ class TensorContactCapture(ContactCapture):
         if self.view is None:
             bodies = sorted(self.bodies)
             targets = bodies + self.ground_colliders
-            validate_topology(bodies, [targets] * len(bodies), bodies, self.ground_colliders)
+            validate_topology(bodies, [targets] * len(bodies), bodies, self.ground_colliders,
+                              num_envs=self.num_envs)
             self.view = self.physics_view.create_rigid_contact_view(
                 bodies, filter_patterns=[list(targets) for _ in bodies], max_contact_data_count=self.capacity)
             self.topology = self._topology()
@@ -89,12 +110,14 @@ class TensorContactCapture(ContactCapture):
     def _topology(self):
         sensors = list(self.view.sensor_paths)
         filters = [list(row) for row in self.view.filter_paths]
-        validate_topology(sensors, filters, list(self.bodies), self.ground_colliders)
+        validate_topology(sensors, filters, list(self.bodies), self.ground_colliders,
+                          num_envs=self.num_envs)
         if (self.view.sensor_count != len(sensors) or self.view.filter_count != len(filters[0])
                 or self.view.max_contact_data_count != self.capacity):
             raise AssertionError('tensor contact counts/capacity do not match resolved paths')
         return {'sensor_paths': sensors, 'filter_paths': filters, 'ground_colliders': self.ground_colliders,
-                'sensor_count': len(sensors), 'filter_count': len(filters[0]), 'capacity': self.capacity}
+                'sensor_count': len(sensors), 'filter_count': len(filters[0]), 'num_envs': self.num_envs,
+                'capacity': self.capacity}
 
     def poll(self, env, interface, get_runtime):
         step = env._sim_step_counter
@@ -199,8 +222,12 @@ def tensor_summary_passed(summary, ground_contacts, *, control_steps=20, decimat
         return False
     topology = summary.get('tensor_topology')
     try:
+        inferred = {_body_environment(path) for path in topology['sensor_paths']}
+        num_envs = topology.get('num_envs', max((i for i in inferred if i is not None), default=-1) + 1)
+        if topology.get('num_envs', num_envs) != num_envs:
+            return False
         validate_topology(topology['sensor_paths'], topology['filter_paths'], topology['sensor_paths'],
-                          topology['ground_colliders'])
+                          topology['ground_colliders'], num_envs=num_envs)
         if (topology['sensor_count'] != len(topology['sensor_paths'])
                 or topology['filter_count'] != len(topology['filter_paths'][0])):
             return False
@@ -230,4 +257,4 @@ def tensor_summary_passed(summary, ground_contacts, *, control_steps=20, decimat
             and all(type(points.get(str(i), points.get(i))) is int
                     and points.get(str(i), points.get(i, 0)) > 0
                     and points.get(str(i), points.get(i)) == ground_contacts.get(str(i), ground_contacts.get(i))
-                    for i in (0, 1)))
+                    for i in range(num_envs)))

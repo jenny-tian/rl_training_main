@@ -390,6 +390,72 @@ def test_main_rejects_late_failure_even_with_successful_smoke_report(
     assert (outcome["fatal_exception"] is not None) == late_fatal
 
 
+def test_eight_environment_shared_bank_requires_complete_lifecycle_flag(monkeypatch, tmp_path):
+    monkeypatch.setattr(
+        sys, "argv", [str(MODULE_PATH), "--shared-bank", "--num-envs", "8", "--seed", "130196",
+                       "--run-dir", str(tmp_path / "run")]
+    )
+    with pytest.raises(SystemExit) as error:
+        supervisor_module.main()
+    assert error.value.code == 2
+
+
+def test_eight_environment_smoke_rejects_missing_lifecycle_before_output(tmp_path):
+    smoke_path = MODULE_PATH.with_name("source_parallel_terrain_startup_smoke.py")
+    output = tmp_path / "must-not-exist.json"
+    code = r'''
+import runpy, sys, types
+app = types.ModuleType('isaaclab.app')
+class AppLauncher:
+    @staticmethod
+    def add_app_launcher_args(parser):
+        return None
+app.AppLauncher = AppLauncher
+sys.modules['isaaclab.app'] = app
+tools, output = sys.argv[1:]
+sys.path.insert(0, tools)
+sys.argv = ['smoke', '--shared-bank', '--num-envs', '8', '--seed', '130196', '--output', output]
+runpy.run_path(tools + '/source_parallel_terrain_startup_smoke.py', run_name='__main__')
+'''
+    completed = subprocess.run(
+        [sys.executable, "-c", code, str(smoke_path.parent), str(output)],
+        capture_output=True, text=True, timeout=30,
+    )
+    assert completed.returncode == 2
+    assert "eight-environment shared-bank checks require --reset-lifecycle" in completed.stderr
+    assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    ("num_envs", "shared_bank", "expected"),
+    [(2, True, 8192), (8, True, 12288), (8, False, 8192)],
+)
+def test_gpu_preflight_budget_is_stricter_for_eight_environment_shared_bank(
+    num_envs, shared_bank, expected
+):
+    assert supervisor_module.minimum_gpu_available_mib(
+        num_envs=num_envs, shared_bank=shared_bank
+    ) == expected
+
+
+@pytest.mark.parametrize(('available_mib', 'accepted'), [(12288, True), (12287, False)])
+def test_gpu_preflight_enforces_the_configured_eight_environment_floor(
+    monkeypatch, available_mib, accepted
+):
+    total_mib = 24576
+    used_mib = total_mib - available_mib
+    snapshots = iter((
+        f"0, GPU-fixture, RTX fixture, {used_mib} MiB, {total_mib} MiB, 0 %",
+        "",
+    ))
+    monkeypatch.setattr(supervisor_module, "_capture", lambda *args, **kwargs: next(snapshots))
+    if accepted:
+        supervisor_module._gpu_preflight(0, root=Path('/tmp'), minimum_available_mib=12288)
+    else:
+        with pytest.raises(RuntimeError, match='at least 12288 MiB is required'):
+            supervisor_module._gpu_preflight(0, root=Path('/tmp'), minimum_available_mib=12288)
+
+
 def test_fatal_parser_matches_only_explicit_diagnostic_lines():
     for marker in supervisor_module._FATAL_TRACE_LINES:
         assert supervisor_module.find_fatal_exception("noise\n" + marker + "\n") == marker
@@ -495,8 +561,8 @@ ARCHIVED_PROBE = MODULE_PATH.parents[2] / 'docs/lite3-source-shared-bank-2env-te
 
 
 @pytest.mark.parametrize('invalid_report', [False, True])
-@pytest.mark.parametrize('shared_g2', [False, True])
-def test_shared_main_in_fresh_interpreter_without_kit(tmp_path, invalid_report, shared_g2):
+@pytest.mark.parametrize(('num_envs', 'shared_g2'), [(2, False), (2, True), (8, True)])
+def test_shared_main_in_fresh_interpreter_without_kit(tmp_path, invalid_report, num_envs, shared_g2):
     """Real imports + main finalization; only launch/preflight are replaced by archived evidence."""
     code = r'''
 import importlib.abc
@@ -510,26 +576,44 @@ class NoSimulator(importlib.abc.MetaPathFinder):
         if fullname.split('.')[0] in {'rl_training', 'isaaclab', 'isaacsim', 'omni', 'pxr', 'torch'}:
             raise AssertionError('unexpected simulator/task import: ' + fullname)
 sys.meta_path.insert(0, NoSimulator())
-tools, archive, output, invalid, g2 = sys.argv[1:]
+tools, archive, output, invalid, env_count, g2 = sys.argv[1:]
+env_count = int(env_count)
 sys.path.insert(0, tools)
 import source_parallel_terrain_startup_supervisor as supervisor
 archive, output = Path(archive), Path(output)
 def completed_child(command, **kwargs):
     report = json.loads((archive / 'result.json').read_text())
     assert ('--reset-lifecycle' in command) == (g2 == 'True')
+    assert command[command.index('--num-envs') + 1] == str(env_count)
+    if env_count == 8:
+        report['num_envs'] = 8
+        report['ground_contact_points'] = {str(i): 1 for i in range(8)}
+        report['vertical_occlusion_environment_ids'] = list(range(1, 8))
+        capture = report['contact_capture']
+        topology = capture['tensor_topology']
+        sensors = [f'/World/envs/env_{i}/Robot/FOOT' for i in range(8)]
+        filters = sensors + topology['ground_colliders']
+        topology.update(sensor_paths=sensors, filter_paths=[filters] * 8, sensor_count=8,
+                        filter_count=len(filters), num_envs=8, capacity=65536)
+        capture['ground_contact_points'] = {str(i): 1 for i in range(8)}
     if g2 == 'True':
         report.update(status='shared_bank_g2_passed', total_zero_action_steps=22,
-                      reset_checks=dict(status='shared_reset_lifecycle_passed', num_envs=2, bank_rows=1,
-                                        assignment_count=123, complete_blocks=1, direct_reset_count=120,
-                                        reset_batch_count=91, automatic_reset_ids=[0],
+                      reset_checks=dict(status='shared_reset_lifecycle_passed', num_envs=env_count, bank_rows=1,
+                                        assignment_count=129 if env_count == 8 else 123, complete_blocks=1,
+                                        direct_reset_count=120, reset_batch_count=33 if env_count == 8 else 91,
+                                        tail_ticket_count=9 if env_count == 8 else 3,
+                                        automatic_reset_ids=[7] if env_count == 8 else [0],
                                         diagnostic_timeout_injected=True, post_automatic_reset_step_checked=True,
-                                        physics_control_steps=2))
+                                        physics_control_steps=2,
+                                        batch_coverage={'singleton': True, 'noncontiguous': True,
+                                            'unordered_input': True, 'large_batch': True,
+                                            'highest_env_id': True} if env_count == 8 else None))
     if invalid == 'True':
         report['ground_contact_points']['0'] = 0
     (output / 'result.json').write_text(json.dumps(report))
     (output / 'gpu_samples.jsonl').write_bytes((archive / 'gpu_samples.jsonl').read_bytes())
     return json.loads((archive / 'execution.json').read_text())
-sys.argv = [supervisor.__file__, '--shared-bank', '--num-envs', '2', '--seed', '130196',
+sys.argv = [supervisor.__file__, '--shared-bank', '--num-envs', str(env_count), '--seed', '130196',
             '--run-dir', str(output)]
 if g2 == 'True':
     sys.argv.append('--reset-lifecycle')
@@ -540,6 +624,7 @@ with patch.object(supervisor, '_capture', return_value=''), \
 manifest = json.loads((output / 'manifest.json').read_text())
 assert 'scripts/tools/source_shared_report_validation.py' in manifest['source_file_sha256']
 assert manifest['check'] == ('shared_bank_g2' if g2 == 'True' else 'shared_bank')
+assert manifest['minimum_gpu_available_mib'] == (12288 if env_count == 8 else 8192)
 assert exit_code == (1 if invalid == 'True' else 0)
 assert not any(k.split('.')[0] in {'rl_training', 'pxr', 'omni', 'torch'} for k in sys.modules)
 '''
@@ -547,7 +632,7 @@ assert not any(k.split('.')[0] in {'rl_training', 'pxr', 'omni', 'torch'} for k 
     env.pop('PYTHONPATH', None)
     completed = subprocess.run(
         [sys.executable, '-c', code, str(MODULE_PATH.parent), str(ARCHIVED_PROBE),
-         str(tmp_path / 'replay'), str(invalid_report), str(shared_g2)],
+         str(tmp_path / 'replay'), str(invalid_report), str(num_envs), str(shared_g2)],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
