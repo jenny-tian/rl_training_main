@@ -1,0 +1,37 @@
+{
+  "schema_version": "lite3_source_60env_offline_repair_validation_v1",
+  "recorded_at_utc": "2026-10-28T02:56:07.140884+00:00",
+  "base_revision": "a9222ae7d30824720aa1618f4301b9ba08240357",
+  "scope": "Offline mesh/importer/supervisor tests and allocation/reset regressions",
+  "simulator_started": false,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "runtime_60env_retested": false,
+  "maximum_previously_passed_runtime_num_envs": 32,
+  "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training /home/tjx/anaconda3/envs/env_isaaclab/bin/pytest -q tests/source_scan/test_source_mesh_chunking.py tests/source_scan/test_source_parallel_terrain_startup_supervisor.py tests/source_scan/test_source_terrain_importer_chunking.py tests/source_scan/test_parallel_terrain_allocation.py tests/source_scan/test_source_terrain_reset_sampler.py --junitxml=/tmp/lite3_offline_repair_20261028_junit.xml",
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+  "tests": 95,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "pytest_summary": "95 passed in 3.56s",
+  "test_cases_by_module": {
+    "tests.source_scan.test_parallel_terrain_allocation": 49,
+    "tests.source_scan.test_source_mesh_chunking": 12,
+    "tests.source_scan.test_source_parallel_terrain_startup_supervisor": 10,
+    "tests.source_scan.test_source_terrain_importer_chunking": 4,
+    "tests.source_scan.test_source_terrain_reset_sampler": 20
+  },
+  "file_sha256": {
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/_mesh_chunking.py": "cde9bb82232a3c0da9654dbf643d04aa9ee75cfe9bfd319d243cf5c10df14273",
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer.py": "fb814f3054ef72508a32e47728535981c4edbffba97e4754898810e63b04982b",
+    "scripts/tools/source_parallel_terrain_startup_supervisor.py": "4b9ef2fcab343e0fd98511da4ce4e7d70919df07c24a8c44e9443666999e14b6",
+    "tests/source_scan/test_source_mesh_chunking.py": "04be6bd88ab538e56551078f292e5ed21ec933c2cdea2a1d66e24d3b36fa10e4",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py": "40218f2234c0e6a58a668472dd23f5f7262e9971643cf5a2bf1ddbe0393dd806",
+    "tests/source_scan/test_source_terrain_importer_chunking.py": "3870f915790293b89d9edf5694ee36534644ac985affd38aaa1f59e4eeb0f510",
+    "tests/source_scan/test_parallel_terrain_allocation.py": "fd0ba0b173c82a9bd71e09d38ad65110410c9e27a1340cefe177a3a84c3b3161",
+    "tests/source_scan/test_source_terrain_reset_sampler.py": "5a3c2bc3a2ff9655df973492e13c34b280b8aa355f7084690b528cb3bfbcd83e"
+  },
+  "junit_report": "offline_tests.junit.xml",
+  "limitations": "Does not validate PhysX cooking, RayCaster aggregation, or runtime friction binding; the 60-environment failure remains unresolved at runtime."
+}

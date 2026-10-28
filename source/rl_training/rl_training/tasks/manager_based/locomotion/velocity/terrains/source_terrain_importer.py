@@ -17,6 +17,7 @@ from rl_training.source_scan.parallel_terrain_allocation import (
     initialize_reserved_row_environment_origins,
 )
 
+from ._mesh_chunking import balanced_face_chunk_slices
 from .source_terrain_isaac import (
     FRICTION_COEFFICIENT_SCALE,
     FRICTION_REGION_MARKER_ALPHA,
@@ -24,6 +25,10 @@ from .source_terrain_isaac import (
 
 _LOG = logging.getLogger(__name__)
 _VISUAL_FACE_COLOUR = np.asarray([150, 150, 150, 255], dtype=np.uint8)
+# A 32-environment startup has successfully cooked a 15,035,016-triangle
+# ordinary collider. Use that observed-good count as a per-collider ceiling;
+# larger generated maps are split into balanced meshes no larger than it.
+MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES = 15_035_016
 
 
 class SourceTerrainImporter(TerrainImporter):
@@ -100,7 +105,12 @@ class SourceTerrainImporter(TerrainImporter):
             )
         tagged = face_colours[:, 3] == FRICTION_REGION_MARKER_ALPHA
         if not tagged.any():
-            self._import_mesh_part(root_path, mesh, self.cfg.physics_material)
+            self._import_mesh_chunks(
+                root_path,
+                mesh,
+                self.cfg.physics_material,
+                face_indices=None,
+            )
             return
 
         coefficient_q = (
@@ -132,12 +142,12 @@ class SourceTerrainImporter(TerrainImporter):
         sim_utils.create_prim(root_path, "Xform")
         ordinary_faces = np.flatnonzero(~tagged)
         if ordinary_faces.size:
-            ordinary_mesh = self._extract_faces(mesh, ordinary_faces)
-            ordinary_mesh.visual.face_colors = np.tile(
-                _VISUAL_FACE_COLOUR, (len(ordinary_mesh.faces), 1)
-            )
-            self._import_mesh_part(
-                f"{root_path}/ordinary", ordinary_mesh, self.cfg.physics_material
+            self._import_mesh_chunks(
+                f"{root_path}/ordinary",
+                mesh,
+                self.cfg.physics_material,
+                face_indices=ordinary_faces,
+                reset_face_colours=True,
             )
 
         for coefficient in present_values:
@@ -151,7 +161,12 @@ class SourceTerrainImporter(TerrainImporter):
             )
             material = self._make_region_material(float(coefficient))
             region_name = f"friction_{int(round(float(coefficient) * 1_000_000)):08d}"
-            self._import_mesh_part(f"{root_path}/{region_name}", region_mesh, material)
+            self._import_mesh_chunks(
+                f"{root_path}/{region_name}",
+                region_mesh,
+                material,
+                face_indices=None,
+            )
 
         _LOG.info(
             "Imported Source Terrain '%s' with %d friction-material collider(s): %s",
@@ -159,6 +174,63 @@ class SourceTerrainImporter(TerrainImporter):
             len(present_values),
             present_values.tolist(),
         )
+
+    def _import_mesh_chunks(
+        self,
+        root_path: str,
+        mesh: trimesh.Trimesh,
+        physics_material: sim_utils.RigidBodyMaterialCfg,
+        *,
+        face_indices: np.ndarray | None,
+        reset_face_colours: bool = False,
+    ) -> None:
+        """Import one material class as colliders below the face-count limit."""
+
+        face_count = len(mesh.faces) if face_indices is None else len(face_indices)
+        if face_count == 0:
+            raise ValueError("Source Terrain colliders must contain at least one triangle")
+        chunks = tuple(
+            balanced_face_chunk_slices(
+                face_count, MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES
+            )
+        )
+        if not chunks:
+            return
+        if len(chunks) == 1 and face_indices is None and not reset_face_colours:
+            self._import_mesh_part(root_path, mesh, physics_material)
+            return
+
+        if len(chunks) > 1:
+            sim_utils.create_prim(root_path, "Xform")
+
+        for chunk_index, chunk_slice in enumerate(chunks):
+            if face_indices is None:
+                selected_faces = np.arange(
+                    chunk_slice.start, chunk_slice.stop, dtype=np.int64
+                )
+            else:
+                selected_faces = face_indices[chunk_slice]
+            chunk_mesh = self._extract_faces(mesh, selected_faces)
+            if reset_face_colours:
+                chunk_mesh.visual.face_colors = np.tile(
+                    _VISUAL_FACE_COLOUR, (len(chunk_mesh.faces), 1)
+                )
+            chunk_path = (
+                root_path
+                if len(chunks) == 1
+                else f"{root_path}/part_{chunk_index:03d}"
+            )
+            self._import_mesh_part(chunk_path, chunk_mesh, physics_material)
+
+        if len(chunks) > 1:
+            _LOG.info(
+                "Imported terrain collider '%s' as %d triangle-mesh parts "
+                "(%d total triangles; limit %d per part)",
+                root_path,
+                len(chunks),
+                face_count,
+                MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES,
+            )
 
     def _configured_friction_candidates(self) -> np.ndarray:
         generator_cfg = self.cfg.terrain_generator
