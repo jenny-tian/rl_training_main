@@ -99,10 +99,9 @@ def _digest(value):
 def run_lifecycle(env, seed, journal_path, trace):
     if env.num_envs != 60:
         raise ValueError('G2 lifecycle is restricted to 60 environments')
-    allocator = env._source_parallel_terrain_allocator
     oracle = ReservedRowTerrainAllocator(60, SOURCE_RESET_BLOCK_COUNTS, seed)
     tickets = list(oracle.reset(list(range(60))))
-    if tuple(tickets) != allocator.assignments:
+    if tuple(tickets) != env._source_parallel_terrain_allocator.assignments:
         raise AssertionError('initial assignments differ from deterministic replay')
     original_reset = env._reset_idx
     records = []
@@ -114,40 +113,59 @@ def run_lifecycle(env, seed, journal_path, trace):
         def audited_reset(env_ids):
             ids = sorted(env_ids.cpu().tolist())
             before = snapshot(env)
-            prior = allocator.assignments
-            journal.write(json.dumps({'phase': 'before_reset', 'mode': mode, 'ids': ids}) + '\n')
+            prior = env._source_parallel_terrain_allocator.assignments
+            journal.write(json.dumps({'phase': 'before_reset', 'mode': mode, 'ids': ids,
+                                      'prior_assignments': [asdict(t) for t in prior]}) + '\n')
             journal.flush()
-            original_reset(env_ids)
-            after = snapshot(env)
-            check_transition(before, after, ids)
-            expected = oracle.reset(ids)
-            actual = tuple(allocator.assignments[i] for i in ids)
-            if actual != expected:
-                raise AssertionError('runtime assignment differs from deterministic replay')
-            for i in set(range(60)) - set(ids):
-                if allocator.assignments[i] != prior[i]:
-                    raise AssertionError('untouched assignment changed')
-            terrain = env.scene.terrain
-            index = torch.tensor(ids, device=env.device, dtype=torch.long)
-            origins = terrain.terrain_origins[terrain.terrain_levels[index], terrain.terrain_types[index]]
-            if not torch.equal(origins, terrain.env_origins[index]):
-                raise AssertionError('reset origin does not match assigned tile')
-            root = env.scene['robot'].data
-            if not torch.allclose(root.root_pos_w[index], root.default_root_state[index, :3] + origins, atol=1e-5, rtol=0):
-                raise AssertionError('reset root does not match assigned origin')
-            tickets.extend(actual)
-            record = {'before_buffer_sha256': {k: _digest(v) for k, v in before.items()},
-                      'phase': 'reset_checked', 'mode': mode, 'ids': ids,
-                      'assignments': [asdict(t) for t in actual],
-                      'before': {k: {'sha256': _digest(v), 'selected': v[index].cpu().tolist()}
-                                 for k, v in before.items() if k in ('root', 'origin', 'row', 'column', 'episode') or k.startswith('command/')},
-                      'after': {k: {'sha256': _digest(v)} for k, v in after.items()},
-                      'history_buffers': [k for k in after if k.startswith('history/')],
-                      'untouched_buffers_equal': True}
-            records.append(record)
-            journal.write(json.dumps(record, allow_nan=False) + '\n')
-            journal.flush()
-            trace(f'lifecycle-reset-checked: batch={len(records)} count={len(ids)} mode={mode}')
+            try:
+                original_reset(env_ids)
+                # The transactional adapter replaces the allocator after committing origins.
+                # Re-read it after every reset; the pre-reset object is now a stale snapshot.
+                current = env._source_parallel_terrain_allocator.assignments
+                expected = oracle.reset(ids)
+                actual = tuple(current[i] for i in ids)
+                journal.write(json.dumps({
+                    'phase': 'assignment_comparison', 'mode': mode, 'ids': ids,
+                    'actual_assignments': [asdict(t) if t is not None else None for t in actual],
+                    'expected_assignments': [asdict(t) for t in expected],
+                    'current_assignments': [asdict(t) if t is not None else None for t in current],
+                }, allow_nan=False) + '\n')
+                journal.flush()
+                after = snapshot(env)
+                check_transition(before, after, ids)
+                if actual != expected:
+                    raise AssertionError('runtime assignment differs from deterministic replay')
+                for i in set(range(60)) - set(ids):
+                    if current[i] != prior[i]:
+                        raise AssertionError('untouched assignment changed')
+                terrain = env.scene.terrain
+                index = torch.tensor(ids, device=env.device, dtype=torch.long)
+                origins = terrain.terrain_origins[terrain.terrain_levels[index], terrain.terrain_types[index]]
+                if not torch.equal(origins, terrain.env_origins[index]):
+                    raise AssertionError('reset origin does not match assigned tile')
+                root = env.scene['robot'].data
+                if not torch.allclose(root.root_pos_w[index], root.default_root_state[index, :3] + origins, atol=1e-5, rtol=0):
+                    raise AssertionError('reset root does not match assigned origin')
+                tickets.extend(actual)
+                record = {'before_buffer_sha256': {k: _digest(v) for k, v in before.items()},
+                          'phase': 'reset_checked', 'mode': mode, 'ids': ids,
+                          'assignments': [asdict(t) for t in actual],
+                          'before': {k: {'sha256': _digest(v), 'selected': v[index].cpu().tolist()}
+                                     for k, v in before.items() if k in ('root', 'origin', 'row', 'column', 'episode') or k.startswith('command/')},
+                          'after': {k: {'sha256': _digest(v)} for k, v in after.items()},
+                          'history_buffers': [k for k in after if k.startswith('history/')],
+                          'untouched_buffers_equal': True}
+                records.append(record)
+                journal.write(json.dumps(record, allow_nan=False) + '\n')
+                journal.flush()
+                trace(f'lifecycle-reset-checked: batch={len(records)} count={len(ids)} mode={mode}')
+            except Exception as error:
+                journal.write(json.dumps({
+                    'phase': 'reset_failed', 'mode': mode, 'ids': ids,
+                    'error_type': type(error).__name__, 'error': str(error),
+                }) + '\n')
+                journal.flush()
+                raise
 
         env._reset_idx = audited_reset
         try:
