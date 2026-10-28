@@ -1,0 +1,175 @@
+{
+  "reviewed_at_utc": "2026-10-28T11:04:24.829860+00:00",
+  "status": "shared_bank_smoke_failed_pre_capture_stage_guard",
+  "runtime_revision": "e5c29d84cc19de139c566909a5bfcb205f9e8fb6",
+  "model_revision": "b452a1f404d37155400242f18e454fed8bcc51b8",
+  "supervisor_exit_code": 1,
+  "run_count_this_phase": 1,
+  "runtime_code_modified": false,
+  "installed_dependencies_modified": false,
+  "automatic_retry": false,
+  "manual_stop": false,
+  "training_started": false,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "source_hash_count": 141,
+  "dependency_hash_count": 22,
+  "asset_hash_count": 6,
+  "source_hashes_unchanged": true,
+  "dependency_hashes_unchanged": true,
+  "asset_hashes_unchanged": true,
+  "model_clean": true,
+  "journal_phase_counts": {
+    "initial": 1,
+    "vertical_occlusion_probe": 1,
+    "contact_runtime": 1,
+    "contact_error": 1,
+    "contact_summary": 1
+  },
+  "environment_construction_completed": true,
+  "initial_reset_completed": true,
+  "overlapping_initial_roots_checked": true,
+  "initial_assignment_count": 2,
+  "reporting_body_count": 34,
+  "scanner_ray_counts": {
+    "height_scanner": 345,
+    "height_scanner_base": 9
+  },
+  "vertical_occlusion_probe_passed": true,
+  "contact_runtime": {
+    "phase": "contact_runtime",
+    "stage_id": 9223001,
+    "attached_stage": 0,
+    "disable_contact_processing": false
+  },
+  "contact_subscription_installed": false,
+  "zero_action_control_steps_checked": 0,
+  "probe_physics_substeps_checked": 0,
+  "physics_initialization_occurred": true,
+  "contact_capture": {
+    "phase": "contact_summary",
+    "schema": "shared_contact_capture_v1",
+    "stage_id": 9223001,
+    "runtime_checked": false,
+    "start_sim_step": 0,
+    "decimation": 4,
+    "control_steps": 20,
+    "poll_steps": [],
+    "control_poll_counts": [],
+    "channels": {
+      "poll": {
+        "calls": 0,
+        "headers": 0,
+        "data": 0
+      },
+      "callback": {
+        "calls": 0,
+        "headers": 0,
+        "data": 0
+      }
+    },
+    "ground_contact_points": {},
+    "callback_ground_contact_points": {},
+    "cross_environment_contacts": 0,
+    "errors": [
+      {
+        "channel": "capture",
+        "error": "AssertionError('contact runtime stage mismatch or processing disabled/unknown')"
+      }
+    ],
+    "positive_controls_validated": false
+  },
+  "reset_batches_checked": 0,
+  "contact_callback_count_interpretation": "Subscription was not installed: zero callback count is not evidence of callback silence.",
+  "physical_isolation_qualified": false,
+  "contact_pipeline_recovery_verified": false,
+  "stage_zero_semantics_proven": false,
+  "prior_callback_silence_root_cause_confirmed": false,
+  "result_json_produced": false,
+  "execution_elapsed_s": 15.267017629928887,
+  "stop_to_execution_end_s": 0.9043055730871856,
+  "fatal_exception": {
+    "marker": "[parallel-terrain-smoke] fatal-exception-recorded",
+    "stream": "console",
+    "detected_phase": "monitor",
+    "detected_elapsed_s": 14.36269764881581
+  },
+  "simulation_app_close_complete_marker": false,
+  "gpu_sample_count": 14,
+  "sampled_gpu_peak_mib": 2820,
+  "cpu_peak_rss_available": false,
+  "gpu0_after_memory_mib": 18,
+  "gpu0_after_utilization_percent": 0,
+  "gpu0_after_compute_process_count": 0,
+  "test_processes_remaining": false,
+  "unrelated_gpu_processes_modified_by_this_task": false,
+  "log_review": {
+    "console.log": {
+      "explicit_error_lines": [],
+      "cooking_failure_lines": [],
+      "traceback_lines": [
+        "Traceback (most recent call last):",
+        "AssertionError: contact runtime stage mismatch or processing disabled/unknown"
+      ]
+    },
+    "kit.log": {
+      "explicit_error_lines": [],
+      "cooking_failure_lines": [],
+      "traceback_lines": []
+    },
+    "isaaclab.log": {
+      "explicit_error_lines": [],
+      "cooking_failure_lines": [],
+      "traceback_lines": []
+    }
+  },
+  "read_only_followup_sources_sha256": {
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/simulation_context.py": "d95f2eaa138b4fff845ac72439caa2eca5deab4f0d5609e06f163d20eef4df93",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/simulation_cfg.py": "d8035df355c576ad7c876789bba54be4ebb361f5c16786a4ec8578143eebc118",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/utils/stage.py": "17aff7672bddcfdda55d3f6f9c94c95f5469d1ff941e5740bba48161df2be65d",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_env.py": "74d495925e264521b05a92296bbaf98adcabb7d94f3787ab3ed61f4d0680a198",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/contact_sensor/contact_sensor.py": "5bf3b77d2159850526e3833bf50253dbce06cb78b850eae13fb4088dc233760d",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physx/bindings/_physx.pyi": "ff13abb83480dcc707ac2ad60062306aef7a33f885d32ed4c8ee6dfea2008e79",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.tests-107.3.26+107.3.3.cp311.u353/omni/physxtests/utils/physicsBase.py": "6cd35a15b7c5678c988ff824e7f5f6b641ee14c06928cf63af1cf35a62d98a07",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.api/isaacsim/core/api/physics_context/physics_context.py": "7486ec315d2525bdef6e1cef294d67d419511e3367e7f40001a8324e2b6a7751"
+  },
+  "followup_source_findings": [
+    "Binding describes get_attached_stage as stage attached through IPhysxSimulation; it does not define zero for every USD lifecycle.",
+    "SimulationCfg defaults create_stage_in_memory=False; attach_stage_to_usd_context returns before explicit PhysX attach for a non-memory stage.",
+    "Official physicsBase test harness explicitly attaches its memory stage before stepping; CPU contact tests stub attached stage as 73 and do not model the standard USD lifecycle.",
+    "Kit initialized TimeSampleStorage for stage 9223001; zero attached-stage return alone does not prove absence of a simulated scene.",
+    "This phase did not remove the guard, call attach_stage, or rerun the simulation."
+  ],
+  "archive_source_paths": {
+    "console.log": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/console.log",
+    "execution.json": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/execution.json",
+    "gpu_samples.jsonl": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/gpu_samples.jsonl",
+    "manifest.json": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/manifest.json",
+    "outcome.json": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/outcome.json",
+    "result.shared.jsonl": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/result.shared.jsonl",
+    "trace.log": "/tmp/lite3_shared_bank_2env_contact_repair_20261028/trace.log",
+    "kit.log": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261028_185811.log",
+    "isaaclab.log": "/tmp/isaaclab/logs/isaaclab_2026-10-28_18-58-22.log"
+  },
+  "archived_artifact_sha256": {
+    "console.log": "7c3a9cd52916a444d445c6f8510ddf7ce5f69eebe30cc20a781d893201e46d0e",
+    "execution.json": "6f0f91951ce4743a65699a39233144da79854fd5adbb89c9c2403a66c16ca58c",
+    "gpu_after.csv": "83f0b7214bd718e716daa6c0773bafd57143b9df54eb1864f70fbca46aa7414d",
+    "gpu_compute_after.csv": "e7f88325f54f032c72abb29e728a8b234efb75af888e931519bf1f08b88a7089",
+    "gpu_samples.jsonl": "7e28b3a0eca456866b949466ff3c17866e9ca8897100d7a584a6eeb1b657b4be",
+    "isaaclab.log": "32e8da0a93afdedfaa965a99a17503fb7d56c3155786d850e87bee5dcc2c1abb",
+    "kit.log": "4efd17a2fa9009a692c1786b2f0bc9363206c7e6da6996e5fcae6b0cc88425fa",
+    "manifest.json": "b9a34eadd8416c22d822c257e2fa8da713c17bc56b7a2833b6adf7b4c61ef00e",
+    "outcome.json": "f9739f837b80ec1e5fe81fc665d97eb37af4b7c478ae20ff2409e30aa4e2d8d8",
+    "result.shared.jsonl": "639955784264b5d77ce8013e0ae1feb0b94409b47146b12012f6de9443552b8e",
+    "test_processes_after.json": "acc4cb18d2a06c47c317714adf0e1c47c1b47fd694443c2c0abf59a940473003",
+    "trace.log": "e5e3d67384a076bc5090ce89aa2fbb56cfda38b26f69b7d4844303576fe3883c"
+  },
+  "archive_validation": {
+    "raw_artifacts_match_original": true,
+    "json_and_jsonl_valid": true,
+    "readme_links_valid": true,
+    "runtime_source_unchanged": true,
+    "prior_failure_archives_unchanged": true
+  }
+}

@@ -96,3 +96,5 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training \
 **后续离线修复（2026-10-28）：** 经用户同意，共享配置已改用项目内静态地面 ray caster 适配 mesh-ID 维度，监督器已增加致命标记自动停止。293 项离线回归通过，尚未真实复测。依赖清单在原 10 项上扩充为 14 项，原安装文件未改动。修复与新目录复测命令见 [离线修复记录](../lite3-source-shared-bank-offline-repair-20261028/README.md)。
 
 **最新进展（2026-10-28，接触链路）：** 扫描修复后真实复测已完成 20 个控制步，但因地面接触阳性报告缺失而失败，见 [复测记录](../lite3-source-shared-bank-2env-repair-20261028/README.md)。用户批准的后续离线修复已完成逐物理子步即时采集、独立回调计数、严格数据校验及足端/接触力遥测；334 项离线回归通过，依赖清单扩充为 22 项且原 14 项不变。本阶段没有启动仿真，原回调静默原因仍未证实。下一次运行使用新目录并单独确认，见 [接触链路修复与复测方案](../lite3-source-shared-bank-contact-offline-repair-20261028/README.md)。
+
+**后续真实复测（2026-10-28）：** 用户批准的一次接触链路复测从 `e5c29d8` 运行，初始化与扫描探针完成后，在接触采集前 stage 校验失败：USD ID `9223001`、PhysX attached ID `0`，接触处理已开启。订阅、20 步控制及五批 reset 均未开始，不能验证采集修复或共享隔离。监督器自动结束，GPU0 已释放；没有修改运行代码或重试。原始证据及下一阶段离线核对建议见 [stage 校验失败记录](../lite3-source-shared-bank-2env-contact-repair-20261028/README.md)。
