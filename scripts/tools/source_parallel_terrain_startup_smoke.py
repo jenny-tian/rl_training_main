@@ -1,7 +1,8 @@
 """G1 startup diagnostic for the approved 8-, 16-, 32-, and 60-environment stages.
 
 Build the map, reset all environments and take one zero-action control step.
-No policy, training, or asynchronous reset qualification is performed.
+The optional --reset-lifecycle adds the G2 reset diagnostic at 60 environments.
+No policy or training is loaded.
 """
 
 from __future__ import annotations
@@ -44,6 +45,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--task", default="SourceTerrain-Deeprobotics-Lite3-v0")
     parser.add_argument("--num-envs", type=int, default=8)
+    parser.add_argument("--reset-lifecycle", action="store_true", help="G2 diagnostic, restricted to 60 envs")
     parser.add_argument("--seed", type=int, default=130_001)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--trace-output", type=Path)
@@ -51,6 +53,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.num_envs not in (8, 16, 32, 60):
         parser.error("this G1 startup smoke supports only 8, 16, 32, or 60 environments")
+    if args.reset_lifecycle and args.num_envs != 60:
+        parser.error("--reset-lifecycle requires --num-envs 60")
     if args.seed < 0:
         parser.error("--seed must be nonnegative")
     output_path = args.output.resolve()
@@ -90,6 +94,11 @@ def main() -> int:
             source_parallel_sampler_num_envs=args.num_envs,
             source_parallel_sampler_seed=args.seed,
         )
+        if args.reset_lifecycle:
+            from isaaclab.managers import TerminationTermCfg
+            from isaaclab.envs import mdp as isaac_mdp
+            # Diagnostic-only timeout: selected counters are advanced at the end.
+            env_cfg.terminations.time_out = TerminationTermCfg(func=isaac_mdp.time_out, time_out=True)
         env_cfg.seed = args.seed
         env_cfg.sim.device = args.device
         _trace(trace_file, "environment-construction-start")
@@ -184,6 +193,14 @@ def main() -> int:
                     raise AssertionError(f"{sensor_name} produced non-finite ray hits")
             _trace(trace_file, "height-scanner-assertions-complete")
 
+            lifecycle = None
+            if args.reset_lifecycle:
+                from source_parallel_reset_lifecycle import run_lifecycle
+                lifecycle = run_lifecycle(
+                    unwrapped, args.seed, output_path.with_suffix(".resets.jsonl"),
+                    lambda message: _trace(trace_file, message),
+                )
+
             from pxr import Usd, UsdGeom
 
             terrain_mesh_triangles = {}
@@ -229,13 +246,14 @@ def main() -> int:
                 "tile_guard_runtime_body_names": list(robot.body_names),
                 "tile_guard_covers_all_runtime_bodies": True,
                 "termination_flags_after_first_step": termination_flags,
-                "zero_action_steps": 1,
+                "zero_action_steps": 2 if args.reset_lifecycle else 1,
+                "reset_lifecycle": lifecycle,
                 "reset_info_keys": sorted(reset_info),
                 "step_info_keys": sorted(step_info),
                 "startup_origins_match_rows_and_columns": True,
                 "robot_roots_match_assigned_origins": True,
                 "height_scanners_finite": True,
-                "asynchronous_reset_tested": False,
+                "asynchronous_reset_tested": args.reset_lifecycle,
                 "policy_loaded": False,
                 "ppo_updates": 0,
                 "qualification_claim": False,

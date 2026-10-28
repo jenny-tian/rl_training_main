@@ -281,15 +281,30 @@ def _gpu_preflight(gpu_index: int, *, root: Path) -> tuple[str, str]:
     return gpu_snapshot, process_snapshot
 
 
+def lifecycle_report_passed(report) -> bool:
+    return (
+        isinstance(report, dict)
+        and report.get("status") == "reset_lifecycle_passed"
+        and report.get("assignment_count") == 363
+        and report.get("complete_blocks") == 3
+        and report.get("direct_reset_count") == 300
+        and report.get("automatic_reset_ids") == [2, 23, 58]
+        and report.get("reset_batch_count") == 10
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--num-envs", type=int, choices=(8, 16, 32, 60), required=True)
+    parser.add_argument("--reset-lifecycle", action="store_true")
     parser.add_argument("--seed", type=int, default=130_001)
     parser.add_argument("--gpu-index", type=int, default=0)
     parser.add_argument("--startup-timeout-s", type=float, default=120.0)
     parser.add_argument("--total-timeout-s", type=float, default=180.0)
     args = parser.parse_args()
+    if args.reset_lifecycle and args.num_envs != 60:
+        parser.error("--reset-lifecycle requires --num-envs 60")
     if args.seed < 0 or args.gpu_index < 0:
         parser.error("--seed and --gpu-index must be nonnegative")
     if args.startup_timeout_s <= 0 or args.total_timeout_s <= 0:
@@ -334,6 +349,8 @@ def main() -> int:
         str(trace_path),
         "--kit_args=--/log/flushStandardStreamOutput=true",
     ]
+    if args.reset_lifecycle:
+        command.append("--reset-lifecycle")
     child_env = os.environ.copy()
     child_env["PYTHONUNBUFFERED"] = "1"
     source_path = str(root / "source/rl_training")
@@ -351,6 +368,7 @@ def main() -> int:
     monitored_files = [
         *source_files,
         smoke_script,
+        supervisor_path.with_name("source_parallel_reset_lifecycle.py"),
         supervisor_path,
         asset_audit_path,
     ]
@@ -397,6 +415,7 @@ def main() -> int:
             "carb_flush_standard_stream_output": True,
             "post_termination_console_scan": True,
         },
+        "check": "reset_lifecycle" if args.reset_lifecycle else "startup",
         "num_envs": args.num_envs,
         "seed": args.seed,
         "device": f"cuda:{args.gpu_index}",
@@ -449,7 +468,8 @@ def main() -> int:
             smoke_passed = (
                 report.get("status") == "diagnostic_smoke_passed"
                 and report.get("num_envs") == args.num_envs
-                and report.get("zero_action_steps") == 1
+                and report.get("zero_action_steps") == (2 if args.reset_lifecycle else 1)
+                and (not args.reset_lifecycle or lifecycle_report_passed(report.get("reset_lifecycle")))
                 and report.get("policy_loaded") is False
                 and report.get("ppo_updates") == 0
             )

@@ -1,0 +1,193 @@
+"""G2 reset-boundary audit; importable without Isaac Sim. No training."""
+from collections import Counter
+from dataclasses import asdict
+import hashlib
+import json
+
+import torch
+
+from rl_training.source_scan.parallel_terrain_allocation import (
+    ReservedRowTerrainAllocator, SOURCE_RESET_BLOCK_COUNTS,
+)
+
+
+def reset_batches():
+    """300 direct resets, with single, scattered, and large rotating batches."""
+    return [(0,), (59, 7, 41, 1, 19)] + [
+        tuple((offset + i) % 60 for i in range(45)) for offset in range(0, 60, 10)
+    ] + [tuple(range(24))]
+
+
+def snapshot(env):
+    terrain = env.scene.terrain
+    robot = env.scene['robot'].data
+    values = {
+        'row': terrain.terrain_levels, 'column': terrain.terrain_types,
+        'origin': terrain.env_origins, 'root': robot.root_state_w,
+        'joint_pos': robot.joint_pos, 'joint_vel': robot.joint_vel,
+        'episode': env.episode_length_buf,
+        'action': env.action_manager.action, 'previous_action': env.action_manager.prev_action,
+    }
+    for name in env.command_manager.active_terms:
+        values['command/' + name] = env.command_manager.get_command(name)
+    for group, terms in env.observation_manager._group_obs_term_history_buffer.items():
+        for name, buffer in terms.items():
+            if buffer._buffer is None:
+                raise AssertionError(f'uninitialized observation history: {group}/{name}')
+            values[f'history/{group}/{name}'] = buffer._buffer.transpose(0, 1)
+            values[f'pushes/{group}/{name}'] = buffer._num_pushes
+    for name, sensor in env.scene.sensors.items():
+        for attr in ('_timestamp', '_timestamp_last_update', '_is_outdated'):
+            values[f'sensor/{name}/{attr}'] = getattr(sensor, attr)
+        # Reading raw caches must not trigger lazy sensor recomputation.
+        for attr, value in vars(sensor._data).items():
+            if isinstance(value, torch.Tensor) and value.ndim and value.shape[0] == env.num_envs:
+                values[f'cache/{name}/{attr}'] = value
+    return {name: value.detach().clone() for name, value in values.items()}
+
+
+def check_transition(before, after, ids):
+    """Compare only the reset boundary, never a physics integration interval."""
+    if before.keys() != after.keys():
+        raise AssertionError('snapshot buffer inventory changed')
+    selected = torch.as_tensor(sorted(ids), device=before['row'].device, dtype=torch.long)
+    other = torch.ones(len(before['row']), device=selected.device, dtype=torch.bool)
+    other[selected] = False
+    for name in before:
+        if not torch.equal(before[name][other], after[name][other]):
+            raise AssertionError(f'reset changed untouched buffer: {name}')
+        value = after[name][selected]
+        if name in ('root', 'joint_pos', 'joint_vel', 'origin') or name.startswith('command/'):
+            if not torch.isfinite(value).all():
+                raise AssertionError(f'nonfinite reset state: {name}')
+        contact_clear = name.startswith('cache/contact_forces/') and name.rsplit('/', 1)[-1] in (
+            'net_forces_w', 'net_forces_w_history', 'force_matrix_w', 'force_matrix_w_history',
+            'current_air_time', 'last_air_time', 'current_contact_time', 'last_contact_time',
+        )
+        if contact_clear or name.startswith(('history/', 'pushes/')) or name in ('episode', 'action', 'previous_action'):
+            if torch.count_nonzero(value):
+                raise AssertionError(f'reset did not clear {name}')
+        if name.startswith('sensor/'):
+            if name.endswith('/_is_outdated'):
+                if not value.all():
+                    raise AssertionError(f'reset did not invalidate {name}')
+            elif torch.count_nonzero(value):
+                raise AssertionError(f'reset did not clear {name}')
+
+
+def summarize_tickets(tickets):
+    if [t.assignment_index for t in tickets] != list(range(len(tickets))):
+        raise AssertionError('missing, duplicate, or reordered assignment tickets')
+    blocks = []
+    for offset in range(0, len(tickets), 120):
+        block = tickets[offset:offset + 120]
+        if any(t.block_index != offset // 120 or t.index_in_block != i for i, t in enumerate(block)):
+            raise AssertionError('invalid block position')
+        counts = dict(Counter(t.subterrain for t in block))
+        if len(block) == 120 and counts != SOURCE_RESET_BLOCK_COUNTS:
+            raise AssertionError('incorrect full-block terrain counts')
+        blocks.append({'block_index': offset // 120, 'size': len(block), 'counts': counts,
+                       'complete': len(block) == 120})
+    return {'assignment_count': len(tickets), 'blocks': blocks,
+            'complete_blocks': sum(b['complete'] for b in blocks)}
+
+
+def _digest(value):
+    return hashlib.sha256(value.cpu().contiguous().numpy().tobytes()).hexdigest()
+
+
+def run_lifecycle(env, seed, journal_path, trace):
+    if env.num_envs != 60:
+        raise ValueError('G2 lifecycle is restricted to 60 environments')
+    allocator = env._source_parallel_terrain_allocator
+    oracle = ReservedRowTerrainAllocator(60, SOURCE_RESET_BLOCK_COUNTS, seed)
+    tickets = list(oracle.reset(list(range(60))))
+    if tuple(tickets) != allocator.assignments:
+        raise AssertionError('initial assignments differ from deterministic replay')
+    original_reset = env._reset_idx
+    records = []
+    mode = 'direct'
+    with journal_path.open('x', encoding='utf-8') as journal:
+        journal.write(json.dumps({'initial_assignments': [asdict(t) for t in tickets]}) + '\n')
+        journal.flush()
+
+        def audited_reset(env_ids):
+            ids = sorted(env_ids.cpu().tolist())
+            before = snapshot(env)
+            prior = allocator.assignments
+            journal.write(json.dumps({'phase': 'before_reset', 'mode': mode, 'ids': ids}) + '\n')
+            journal.flush()
+            original_reset(env_ids)
+            after = snapshot(env)
+            check_transition(before, after, ids)
+            expected = oracle.reset(ids)
+            actual = tuple(allocator.assignments[i] for i in ids)
+            if actual != expected:
+                raise AssertionError('runtime assignment differs from deterministic replay')
+            for i in set(range(60)) - set(ids):
+                if allocator.assignments[i] != prior[i]:
+                    raise AssertionError('untouched assignment changed')
+            terrain = env.scene.terrain
+            index = torch.tensor(ids, device=env.device, dtype=torch.long)
+            origins = terrain.terrain_origins[terrain.terrain_levels[index], terrain.terrain_types[index]]
+            if not torch.equal(origins, terrain.env_origins[index]):
+                raise AssertionError('reset origin does not match assigned tile')
+            root = env.scene['robot'].data
+            if not torch.allclose(root.root_pos_w[index], root.default_root_state[index, :3] + origins, atol=1e-5, rtol=0):
+                raise AssertionError('reset root does not match assigned origin')
+            tickets.extend(actual)
+            record = {'before_buffer_sha256': {k: _digest(v) for k, v in before.items()},
+                      'phase': 'reset_checked', 'mode': mode, 'ids': ids,
+                      'assignments': [asdict(t) for t in actual],
+                      'before': {k: {'sha256': _digest(v), 'selected': v[index].cpu().tolist()}
+                                 for k, v in before.items() if k in ('root', 'origin', 'row', 'column', 'episode') or k.startswith('command/')},
+                      'after': {k: {'sha256': _digest(v)} for k, v in after.items()},
+                      'history_buffers': [k for k in after if k.startswith('history/')],
+                      'untouched_buffers_equal': True}
+            records.append(record)
+            journal.write(json.dumps(record, allow_nan=False) + '\n')
+            journal.flush()
+            trace(f'lifecycle-reset-checked: batch={len(records)} count={len(ids)} mode={mode}')
+
+        env._reset_idx = audited_reset
+        try:
+            for ids in reset_batches():
+                env._reset_idx(torch.tensor(ids, device=env.device, dtype=torch.long))
+                env.scene.write_data_to_sim()
+                env.sim.forward()
+                env.scene.update(0.0)
+                for name in ('height_scanner', 'height_scanner_base'):
+                    sensor = env.scene.sensors[name]
+                    if not torch.isfinite(sensor.data.ray_hits_w).all():
+                        raise AssertionError(f'nonfinite refreshed rays: {name}')
+                    if sensor._is_outdated[list(ids)].any():
+                        raise AssertionError(f'sensor did not refresh: {name}')
+                obs = env.observation_manager.compute(update_history=True)
+                if not all(torch.isfinite(v).all() for v in obs.values()):
+                    raise AssertionError('nonfinite refreshed observations')
+            mode = 'automatic_timeout'
+            auto_ids = [2, 23, 58]
+            env.episode_length_buf[auto_ids] = env.max_episode_length - 1
+            count_before = len(records)
+            action = torch.zeros_like(env.action_manager.action)
+            obs, reward, terminated, truncated, _ = env.step(action)
+            if terminated.any() or truncated.nonzero().flatten().cpu().tolist() != auto_ids:
+                raise AssertionError('unexpected termination or missing diagnostic timeout')
+            if len(records) != count_before + 1 or records[-1]['ids'] != auto_ids:
+                raise AssertionError('env.step did not execute exactly the expected reset batch')
+            if not torch.isfinite(reward).all() or not all(torch.isfinite(v).all() for v in obs.values()):
+                raise AssertionError('nonfinite automatic reset output')
+            for name in ('height_scanner', 'height_scanner_base'):
+                if not torch.isfinite(env.scene.sensors[name].data.ray_hits_w).all():
+                    raise AssertionError(f'nonfinite automatic reset rays: {name}')
+        finally:
+            env._reset_idx = original_reset
+    summary = summarize_tickets(tickets)
+    if summary['assignment_count'] != 363 or summary['complete_blocks'] != 3:
+        raise AssertionError('incomplete lifecycle coverage')
+    return {'status': 'reset_lifecycle_passed', **summary, 'direct_reset_count': 300,
+            'automatic_reset_ids': auto_ids, 'reset_batch_count': len(records),
+            'journal': str(journal_path), 'diagnostic_timeout_injected': True,
+            'history_buffers': records[0]['history_buffers'],
+            'unchanged_comparison_scope': 'immediately around _reset_idx, excluding physics steps',
+            'motion_isolation_qualified': False}

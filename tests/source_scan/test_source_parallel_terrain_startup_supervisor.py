@@ -354,3 +354,15 @@ def test_main_rejects_late_collision_even_with_successful_smoke_report(
     assert outcome["status"] == ("startup_check_failed" if late_collision else "diagnostic_smoke_passed")
     assert outcome["stop_reason"] is None
     assert outcome["collision_cooking_failure"] == diagnostic
+
+
+def test_lifecycle_report_requires_complete_direct_and_automatic_reset_coverage():
+    report = dict(status='reset_lifecycle_passed', assignment_count=363, complete_blocks=3,
+                  direct_reset_count=300, automatic_reset_ids=[2, 23, 58], reset_batch_count=10)
+    assert supervisor_module.lifecycle_report_passed(report)
+    assert not supervisor_module.lifecycle_report_passed(None)
+    for key in report:
+        incomplete = dict(report)
+        del incomplete[key]
+        assert not supervisor_module.lifecycle_report_passed(incomplete)
+    assert not supervisor_module.lifecycle_report_passed(dict(report, automatic_reset_ids=[2, 23]))
