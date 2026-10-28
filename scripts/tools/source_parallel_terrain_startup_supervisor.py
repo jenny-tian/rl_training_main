@@ -37,6 +37,17 @@ def find_collision_cooking_failure(text: str) -> str | None:
     return None
 
 
+def _scan_final_console(console_path: Path) -> str | None:
+    """Scan all output after cleanup, including writes made by SIGTERM handlers."""
+
+    with console_path.open(encoding="utf-8", errors="replace") as console_file:
+        for line in console_file:
+            marker = find_collision_cooking_failure(line)
+            if marker is not None:
+                return marker
+    return None
+
+
 def _trace_has_completed_initial_reset(trace_path: Path) -> bool:
     try:
         return _STARTUP_TRACE_MARKER in trace_path.read_text(encoding="utf-8")
@@ -118,6 +129,8 @@ def run_monitored_process(
     started = time.monotonic()
     stop_reason: str | None = None
     failure_marker: str | None = None
+    collision_failure: dict[str, Any] | None = None
+    stop_requested_elapsed_s: float | None = None
     recent_output = ""
     next_sample_s = 0.0
     with console_path.open("xb") as console_file:
@@ -141,6 +154,11 @@ def run_monitored_process(
                         recent_output = (recent_output + new_text)[-8192:]
                         if failure_marker is not None:
                             stop_reason = "physx_cooking_failure"
+                            collision_failure = {
+                                "marker": failure_marker,
+                                "detected_phase": "monitor",
+                                "detected_elapsed_s": time.monotonic() - started,
+                            }
                             break
 
                     if process.poll() is not None:
@@ -152,6 +170,11 @@ def run_monitored_process(
                             )
                             if failure_marker is not None:
                                 stop_reason = "physx_cooking_failure"
+                                collision_failure = {
+                                    "marker": failure_marker,
+                                    "detected_phase": "process_exit",
+                                    "detected_elapsed_s": time.monotonic() - started,
+                                }
                         break
 
                     elapsed_s = time.monotonic() - started
@@ -180,9 +203,20 @@ def run_monitored_process(
                     time.sleep(poll_interval_s)
         finally:
             # Also clean up on monitoring errors, interrupts, or an exited leader.
+            if stop_reason is not None:
+                stop_requested_elapsed_s = time.monotonic() - started
             _terminate_process_group(process, terminate_grace_s)
 
     exit_code = process.wait()
+    final_marker = _scan_final_console(console_path)
+    if collision_failure is None and final_marker is not None:
+        # This did not cause the stop. Preserve the real trigger (e.g. timeout)
+        # and separately record the diagnostic that became visible on cleanup.
+        collision_failure = {
+            "marker": final_marker,
+            "detected_phase": "post_termination",
+            "detected_elapsed_s": time.monotonic() - started,
+        }
     return {
         "exit_code": exit_code,
         "stop_reason": stop_reason,
@@ -191,6 +225,8 @@ def run_monitored_process(
         "total_timeout_s": total_timeout_s,
         "monitor_poll_interval_s": poll_interval_s,
         "failure_marker": failure_marker,
+        "stop_requested_elapsed_s": stop_requested_elapsed_s,
+        "collision_cooking_failure": collision_failure,
     }
 
 
@@ -283,6 +319,7 @@ def main() -> int:
     console_path = run_dir / "console.log"
     command = [
         sys.executable,
+        "-u",
         str(smoke_script),
         "--headless",
         "--device",
@@ -295,8 +332,10 @@ def main() -> int:
         str(result_path),
         "--trace-output",
         str(trace_path),
+        "--kit_args=--/log/flushStandardStreamOutput=true",
     ]
     child_env = os.environ.copy()
+    child_env["PYTHONUNBUFFERED"] = "1"
     source_path = str(root / "source/rl_training")
     inherited_pythonpath = child_env.get("PYTHONPATH")
     child_env["PYTHONPATH"] = (
@@ -347,12 +386,17 @@ def main() -> int:
             samples_file.flush()
 
     manifest = {
-        "schema_version": "source_parallel_terrain_startup_supervisor_v1",
+        "schema_version": "source_parallel_terrain_startup_supervisor_v2",
         "revision": _capture(["git", "rev-parse", "HEAD"], cwd=root),
         "model_revision": _capture(
             ["git", "-C", str(model_root), "rev-parse", "HEAD"], cwd=root
         ),
         "command": command,
+        "logging": {
+            "python_unbuffered": True,
+            "carb_flush_standard_stream_output": True,
+            "post_termination_console_scan": True,
+        },
         "num_envs": args.num_envs,
         "seed": args.seed,
         "device": f"cuda:{args.gpu_index}",
@@ -413,6 +457,7 @@ def main() -> int:
             smoke_passed = False
     passed = (
         execution["stop_reason"] is None
+        and execution["collision_cooking_failure"] is None
         and execution["exit_code"] == 0
         and hashes_unchanged
         and smoke_passed
@@ -421,6 +466,7 @@ def main() -> int:
         "status": "diagnostic_smoke_passed" if passed else "startup_check_failed",
         "stop_reason": execution["stop_reason"],
         "failure_marker": execution["failure_marker"],
+        "collision_cooking_failure": execution["collision_cooking_failure"],
         "code_hashes_unchanged": hashes_unchanged,
         "result_json_produced": result_path.is_file(),
         "training_started": False,

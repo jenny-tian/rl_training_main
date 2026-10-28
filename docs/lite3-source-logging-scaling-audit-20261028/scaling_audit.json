@@ -1,0 +1,694 @@
+{
+  "scope": "representative L1 tile geometry and analytical count extrapolation",
+  "simulator_started": false,
+  "physx_cooking_tested": false,
+  "failed_map_reconstructed": false,
+  "source_sha256": {
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py": "54febda2f79e1f8bce142d37261bb649002bf4d5df36c1798c8503a338bf6c0d",
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py": "c018296e8cadcc49e169e6b90da35ea0fb58ca278835e1f1f713af5c5dfea0cd"
+  },
+  "tiles": [
+    {
+      "name": "flat",
+      "config": {
+        "family": "flat",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 12,
+      "vertices": 8,
+      "bottom_triangles": 2,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 4.0,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "multi_scale_rough",
+      "config": {
+        "family": "multi_scale_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 78080,
+      "vertices": 39042,
+      "bottom_triangles": 38400,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.0024993515107780695,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_uphill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 19840,
+      "vertices": 9922,
+      "bottom_triangles": 9600,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.009997406043112278,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_downhill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 19840,
+      "vertices": 9922,
+      "bottom_triangles": 9600,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.009997406043112278,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_cross_slope_left",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 19840,
+      "vertices": 9922,
+      "bottom_triangles": 9600,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.009997501387260854,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_cross_slope_right",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 19840,
+      "vertices": 9922,
+      "bottom_triangles": 9600,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.009997501387260854,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "stairs_ascending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "ascending",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 36,
+      "vertices": 20,
+      "bottom_triangles": 2,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.07999999821186066,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "stairs_descending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "descending",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 36,
+      "vertices": 20,
+      "bottom_triangles": 2,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.009999999776482582,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_rough_uphill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 78080,
+      "vertices": 39042,
+      "bottom_triangles": 38400,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.0024993753468152136,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_rough_downhill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 78080,
+      "vertices": 39042,
+      "bottom_triangles": 38400,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.0024993515107780695,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_rough_cross_slope_left",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 78080,
+      "vertices": 39042,
+      "bottom_triangles": 38400,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.0024993515107780695,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "slope_rough_cross_slope_right",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 78080,
+      "vertices": 39042,
+      "bottom_triangles": 38400,
+      "friction_material": false,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 0.0024993515107780695,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "friction_left_right_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 48,
+      "vertices": 32,
+      "bottom_triangles": 8,
+      "friction_material": true,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 1.0,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "friction_front_back_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "front_back_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 48,
+      "vertices": 32,
+      "bottom_triangles": 8,
+      "friction_material": true,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 3.0,
+      "watertight": true,
+      "winding_consistent": true
+    },
+    {
+      "name": "friction_alternating_regions",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "alternating_regions",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "triangles": 48,
+      "vertices": 32,
+      "bottom_triangles": 8,
+      "friction_material": true,
+      "finite_float32_at_far_row_60": true,
+      "degenerate_triangles_at_far_row_60": 0,
+      "min_double_area_m2_at_far_row_60": 2.0,
+      "watertight": true,
+      "winding_consistent": true
+    }
+  ],
+  "ordinary_triangles_per_row_excluding_border": 469844,
+  "friction_triangles_per_row": 144,
+  "bottom_triangles_per_row": 230430,
+  "extrapolation_excluding_generator_border": [
+    {
+      "num_envs": 32,
+      "tile_count": 480,
+      "map_size_m": [
+        384.0,
+        60.0
+      ],
+      "ordinary_triangles": 15035008,
+      "all_triangles": 15039616,
+      "active_tile_fraction": 0.06666666666666667
+    },
+    {
+      "num_envs": 60,
+      "tile_count": 900,
+      "map_size_m": [
+        720.0,
+        60.0
+      ],
+      "ordinary_triangles": 28190640,
+      "all_triangles": 28199280,
+      "active_tile_fraction": 0.06666666666666667
+    },
+    {
+      "num_envs": 120,
+      "tile_count": 1800,
+      "map_size_m": [
+        1440.0,
+        60.0
+      ],
+      "ordinary_triangles": 56381280,
+      "all_triangles": 56398560,
+      "active_tile_fraction": 0.06666666666666667
+    },
+    {
+      "num_envs": 4096,
+      "tile_count": 61440,
+      "map_size_m": [
+        49152.0,
+        60.0
+      ],
+      "ordinary_triangles": 1924481024,
+      "all_triangles": 1925070848,
+      "active_tile_fraction": 0.06666666666666667
+    }
+  ],
+  "recorded_ordinary_counts": [
+    {
+      "num_envs": 32,
+      "observed": 15035016,
+      "difference_from_tile_sum": 8
+    },
+    {
+      "num_envs": 60,
+      "observed": 28190648,
+      "difference_from_tile_sum": 8
+    }
+  ],
+  "limitations": [
+    "One representative seed per class; not every failed-map tile was regenerated.",
+    "Counts exclude generator borders; no exported USD/PhysX mesh validation.",
+    "Finite, nondegenerate sample tiles do not prove full-map cooking validity.",
+    "No measured training throughput or hardware environment limit can be inferred."
+  ]
+}

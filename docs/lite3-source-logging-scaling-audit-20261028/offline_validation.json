@@ -1,0 +1,32 @@
+{
+  "recorded_at_utc": "2026-10-28T05:44:54.500926+00:00",
+  "base_revision": "e19a4ca1d575cea431ce546377fe62b34ac17bd8",
+  "scope": "offline supervisor fix and source terrain scaling diagnosis",
+  "simulator_started": false,
+  "runtime_60env_retested": false,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "maximum_previously_passed_source_startup_num_envs": 32,
+  "test_command": "env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training /home/tjx/anaconda3/envs/env_isaaclab/bin/python -m pytest -q tests/source_scan/test_source_mesh_chunking.py tests/source_scan/test_source_parallel_terrain_startup_supervisor.py tests/source_scan/test_source_terrain_importer_chunking.py tests/source_scan/test_parallel_terrain_allocation.py tests/source_scan/test_source_terrain_reset_sampler.py --junitxml=/tmp/lite3_source_logging_repair_20261028.junit.xml",
+  "audit_command": "/home/tjx/anaconda3/envs/env_isaaclab/bin/python scripts/tools/source_terrain_scaling_audit.py --output /tmp/lite3_source_scaling_audit_20261028.json",
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+  "tests": 101,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "pytest_summary": "101 passed in 4.59s",
+  "test_cases_by_module": {
+    "tests.source_scan.test_source_mesh_chunking": 12,
+    "tests.source_scan.test_source_parallel_terrain_startup_supervisor": 16,
+    "tests.source_scan.test_source_terrain_importer_chunking": 4,
+    "tests.source_scan.test_parallel_terrain_allocation": 49,
+    "tests.source_scan.test_source_terrain_reset_sampler": 20
+  },
+  "file_sha256": {
+    "scripts/tools/source_parallel_terrain_startup_supervisor.py": "3c4111fa4928649737b4ae7fc9e0d9d214cc4cdb8f5a6171d1a2bda5b29fd86f",
+    "scripts/tools/source_terrain_scaling_audit.py": "acf77800158c26cae24c09c36a7cba5fefabbd32e17224ae25a55afb34de6f6d",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py": "54571777c8ededa262f12b6760e859b53e77dd32d4c8a1c06582f5f5c8c182f1"
+  },
+  "historical_log_review": "historical_log_review.json",
+  "limitations": "Real Carbonite flushing latency, full failed-map geometry and PhysX cooking were not tested."
+}
