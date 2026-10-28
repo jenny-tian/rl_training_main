@@ -1,0 +1,62 @@
+{
+  "schema_version": "source_parallel_terrain_startup_post_run_review_v1",
+  "reviewed_at_utc": "2026-10-28T03:06:51.970484+00:00",
+  "status": "g1_60env_recheck_failed_cooking_and_startup_timeout",
+  "revision": "7a6f94b9a227280a7c264d55d129cfc94918ff15",
+  "model_revision": "b452a1f404d37155400242f18e454fed8bcc51b8",
+  "supervisor_exit_code": 1,
+  "child_exit_code": 0,
+  "recorded_stop_reason": "startup_timeout",
+  "recorded_failure_marker": null,
+  "post_run_first_cooking_failure": "2026-10-28T03:02:18Z [98,017ms] [Warning] [omni.physx.cooking.plugin] UjitsoMeshCookingContext: cooking failure for /World/ground/terrain/ordinary/part_000/mesh",
+  "failed_colliders": [
+    "/World/ground/terrain/ordinary/part_000/mesh",
+    "/World/ground/terrain/ordinary/part_001/mesh"
+  ],
+  "ordinary_total_triangles_from_importer_log": 28190648,
+  "ordinary_chunk_count_from_importer_log": 2,
+  "triangles_per_ordinary_chunk_computed_from_balanced_split": 14095324,
+  "mesh_counts_validated_from_final_usd_report": false,
+  "code_hashes_unchanged": true,
+  "code_files_hashed": 134,
+  "asset_hashes_match_audit_after_run": true,
+  "environment_construction_complete": false,
+  "initial_reset_complete": false,
+  "first_control_step_complete": false,
+  "result_json_produced": false,
+  "gpu_sample_count": 114,
+  "sampled_gpu_peak_mib": 2786,
+  "post_run_gpu_snapshot": {
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=index,uuid,name,memory.used,memory.total,utilization.gpu",
+      "--format=csv,noheader"
+    ],
+    "exit_code": 0,
+    "output": "0, GPU-044ddc24-86ef-a67d-7e14-9358300bc3dc, NVIDIA GeForce RTX 3090, 18 MiB, 24576 MiB, 0 %\n1, GPU-372c69f6-05ad-a4d1-5c16-9b58aa8d6f2b, NVIDIA GeForce RTX 3090, 15 MiB, 24576 MiB, 0 %\n2, GPU-55105845-89ae-f3c0-7767-78dbc0626808, NVIDIA GeForce RTX 3090, 12 MiB, 24576 MiB, 0 %\n3, GPU-92d634a9-18e3-aa0d-0955-31b05af08e22, NVIDIA GeForce RTX 3090, 12496 MiB, 24576 MiB, 5 %"
+  },
+  "post_run_gpu_processes": {
+    "command": [
+      "nvidia-smi",
+      "--query-compute-apps=gpu_uuid,pid,process_name,used_gpu_memory",
+      "--format=csv,noheader"
+    ],
+    "exit_code": 0,
+    "output": "GPU-92d634a9-18e3-aa0d-0955-31b05af08e22, 778177, /home/yyf/miniconda3/envs/rmamorph/bin/python, 314 MiB\nGPU-92d634a9-18e3-aa0d-0955-31b05af08e22, 3565437, /home/yyf/miniconda3/envs/rmamorph/bin/python, 12156 MiB"
+  },
+  "post_run_test_processes": {
+    "command": [
+      "pgrep",
+      "-af",
+      "^/home/tjx/anaconda3/envs/env_isaaclab/bin/python.*scripts/tools/source_parallel_terrain_startup_(smoke|supervisor)[.]py"
+    ],
+    "exit_code": 1,
+    "output": ""
+  },
+  "maximum_previously_passed_runtime_num_envs": 32,
+  "automatic_retry_performed": false,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "real_time_failure_detection_validated": false,
+  "diagnostic_limitation": "The completed console log matches the cooking-failure parser, but the live supervisor stopped on timeout with no marker. Output buffering or visibility timing is possible; byte arrival timestamps were not recorded, so the cause is not established. The monitor also does not rescan console output after terminating the child."
+}
