@@ -1,0 +1,3831 @@
+{
+  "baseline_revision": "368bb0421593cef02e5851183650d3e2ed5ee39a",
+  "geometry_source_sha256": "54febda2f79e1f8bce142d37261bb649002bf4d5df36c1798c8503a338bf6c0d",
+  "cases": [
+    {
+      "id": "L1-flat",
+      "config": {
+        "family": "flat",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "50dc2ce3e7c17fcbe7d9f16c04cc68d41e890ba16d03dd0fbf82634030c50938",
+      "triangle_count": 12,
+      "volume": 48.0,
+      "surface_area": 128.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "geometry": "plane",
+        "track_length_m": 12.0,
+        "track_width_m": 4.0
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-multi_scale_rough",
+      "config": {
+        "family": "multi_scale_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "d57fa1536a06a0879b16f0c98e7b003c6e85768c14c88b94ef3ddf9e845e2564",
+      "triangle_count": 78080,
+      "volume": 48.00001143111353,
+      "surface_area": 128.00182571195862,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "rough_start_x_m": 3.0,
+        "fully_rough_start_x_m": 3.5,
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "rough_lane_width_m": 4.0,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.02,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.02711444011687894,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.019999999999999997,
+        "sampled_local_peak_valley_p50_m": 0.009264579800188353,
+        "sampled_local_peak_valley_p95_m": 0.014633835166296186,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.014394588403714447,
+          0.012719851713164495
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_uphill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "bc6a268726405f5f7e05d21c00a7a814396db16ec46c1981dd6b940351222298",
+      "triangle_count": 19840,
+      "volume": 60.51087888420712,
+      "surface_area": 136.6273227822789,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "uphill",
+        "slope_angle_deg": 5.0,
+        "main_axis_grade_sign": 1.0,
+        "max_x_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          0.0,
+          0.5686763129185061
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_downhill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "68441cfa0762130658c8c44baa88bdadb47d4f1e7688faf7120ef3e7a88b405e",
+      "triangle_count": 19840,
+      "volume": 35.48912111579287,
+      "surface_area": 119.56703339472372,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "downhill",
+        "slope_angle_deg": 5.0,
+        "main_axis_grade_sign": -1.0,
+        "max_x_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.5686763129185061,
+          -0.0
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_cross_slope_left",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "caefc40e1f684df170339db82dbad095f503060ae580ab6baae819b5459c9b55",
+      "triangle_count": 19840,
+      "volume": 47.99999999999998,
+      "surface_area": 128.1894770419758,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_left",
+        "slope_angle_deg": 5.0,
+        "cross_axis_grade_sign": 1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.17497732705184801,
+          0.17497732705184801
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_cross_slope_right",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "ea3895362475dc42634443c6eac00af65fa18b06289a5c9cfe2a2c963da2515f",
+      "triangle_count": 19840,
+      "volume": 48.0,
+      "surface_area": 128.1894770419758,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_right",
+        "slope_angle_deg": 5.0,
+        "cross_axis_grade_sign": -1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.17497732705184801,
+          0.17497732705184801
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-stairs_ascending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "ascending",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "57ac4f3f0783a6ebf046a604e74f020a0ee145fe200f75859d71df54f0e7b9c6",
+      "triangle_count": 36,
+      "volume": 49.92000000000001,
+      "surface_area": 129.44,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "direction": "ascending",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "entry_x_m": 3.5,
+        "exit_x_m": 5.0,
+        "initial_surface_height_m": 0.0,
+        "terminal_surface_height_m": 0.06,
+        "steps": [
+          {
+            "riser_x_m": 3.5,
+            "tread_end_x_m": 4.0,
+            "height_before_m": 0.0,
+            "height_after_m": 0.02
+          },
+          {
+            "riser_x_m": 4.0,
+            "tread_end_x_m": 4.5,
+            "height_before_m": 0.02,
+            "height_after_m": 0.04
+          },
+          {
+            "riser_x_m": 4.5,
+            "tread_end_x_m": 5.0,
+            "height_before_m": 0.04,
+            "height_after_m": 0.06
+          }
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-stairs_descending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "descending",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "d9288f4e84560daa23bff9ee23335a95a362d8d61be2af123a8d014ead03e080",
+      "triangle_count": 36,
+      "volume": 48.96,
+      "surface_area": 128.96,
+      "origin": [
+        1.5,
+        2.0,
+        0.06
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "direction": "descending",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "entry_x_m": 3.5,
+        "exit_x_m": 5.0,
+        "initial_surface_height_m": 0.06,
+        "terminal_surface_height_m": 0.0,
+        "steps": [
+          {
+            "riser_x_m": 3.5,
+            "tread_end_x_m": 4.0,
+            "height_before_m": 0.06,
+            "height_after_m": 0.04
+          },
+          {
+            "riser_x_m": 4.0,
+            "tread_end_x_m": 4.5,
+            "height_before_m": 0.04,
+            "height_after_m": 0.02
+          },
+          {
+            "riser_x_m": 4.5,
+            "tread_end_x_m": 5.0,
+            "height_before_m": 0.02,
+            "height_after_m": 0.0
+          }
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_rough_uphill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "086c76d1c6059c6910ddedb4ae9590bd26e348988a729a967b57264aa5a1a6d1",
+      "triangle_count": 78080,
+      "volume": 60.51088459976393,
+      "surface_area": 136.62592595709006,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "uphill",
+        "slope_angle_deg": 5.0,
+        "main_axis_grade_sign": 1.0,
+        "max_x_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          0.0,
+          0.5686763129185072
+        ],
+        "max_combined_abs_height_m": 0.568677055609768,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.01,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.01355722005843947,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.009999999999999998,
+        "sampled_local_peak_valley_p50_m": 0.004632289900094177,
+        "sampled_local_peak_valley_p95_m": 0.007316917583148093,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.0071972942018572236,
+          0.006359925856582248
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_rough_downhill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "62316f7484fde0c6040dc749dda1952e505cef54aff778a85a08ddc55e499610",
+      "triangle_count": 78080,
+      "volume": 35.489126831349616,
+      "surface_area": 119.56558803375842,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "downhill",
+        "slope_angle_deg": 5.0,
+        "main_axis_grade_sign": -1.0,
+        "max_x_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.5686763129185072,
+          -0.0
+        ],
+        "max_combined_abs_height_m": 0.5687098201023458,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.01,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.01355722005843947,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.009999999999999998,
+        "sampled_local_peak_valley_p50_m": 0.004632289900094177,
+        "sampled_local_peak_valley_p95_m": 0.007316917583148093,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.0071972942018572236,
+          0.006359925856582248
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_rough_cross_slope_left",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "688d109b0e0ffcb03dfa21e75133778a7b52ece3b94b3533995bee054d2e26a2",
+      "triangle_count": 78080,
+      "volume": 48.00000571555677,
+      "surface_area": 128.19096262923122,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_left",
+        "slope_angle_deg": 5.0,
+        "cross_axis_grade_sign": 1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.17497732705184801,
+          0.17497732705184801
+        ],
+        "max_combined_abs_height_m": 0.18217462125370523,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.01,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.01355722005843947,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.009999999999999998,
+        "sampled_local_peak_valley_p50_m": 0.004632289900094177,
+        "sampled_local_peak_valley_p95_m": 0.007316917583148093,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.0071972942018572236,
+          0.006359925856582248
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-slope_rough_cross_slope_right",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.01,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "49243769d7751a8c624800fb4cc9e5c261d4dcb849b1b80cc83a78038615992a",
+      "triangle_count": 78080,
+      "volume": 48.00000571555677,
+      "surface_area": 128.18917005180094,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_right",
+        "slope_angle_deg": 5.0,
+        "cross_axis_grade_sign": -1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.08748866352592401,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.17497732705184801,
+          0.17497732705184801
+        ],
+        "max_combined_abs_height_m": 0.17892550828713522,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.01,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.01355722005843947,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.009999999999999998,
+        "sampled_local_peak_valley_p50_m": 0.004632289900094177,
+        "sampled_local_peak_valley_p95_m": 0.007316917583148093,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.0071972942018572236,
+          0.006359925856582248
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L1-friction_left_right_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "1e6a7284401de8f5bd24b4cc8d297d507513d2bd0c370a69898013965b2ba6d4",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 200.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "left_right_bands",
+        "candidate_friction_range": [
+          0.7,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.7999999999999999,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.9,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.7,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            3.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L1-friction_front_back_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "front_back_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "4ec8c36a463c07cbbb82faad563044a68d7a7ef7fe946a949176b0373cc1af7b",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 152.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "front_back_bands",
+        "candidate_friction_range": [
+          0.7,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            3.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.7999999999999999,
+          "bounds_xy_m": [
+            3.0,
+            6.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.9,
+          "bounds_xy_m": [
+            6.0,
+            9.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.7,
+          "bounds_xy_m": [
+            9.0,
+            12.0,
+            0.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L1-friction_alternating_regions",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "alternating_regions",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "1288796b7def888a66509ceb504cd9b0e7648c0c3e1794c59d3c1c220881fbb3",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 160.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "alternating_regions",
+        "candidate_friction_range": [
+          0.7,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            6.0,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.7999999999999999,
+          "bounds_xy_m": [
+            6.0,
+            12.0,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.9,
+          "bounds_xy_m": [
+            0.0,
+            6.0,
+            2.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.7,
+          "bounds_xy_m": [
+            6.0,
+            12.0,
+            2.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L2-flat",
+      "config": {
+        "family": "flat",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "50dc2ce3e7c17fcbe7d9f16c04cc68d41e890ba16d03dd0fbf82634030c50938",
+      "triangle_count": 12,
+      "volume": 48.0,
+      "surface_area": 128.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "geometry": "plane",
+        "track_length_m": 12.0,
+        "track_width_m": 4.0
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-multi_scale_rough",
+      "config": {
+        "family": "multi_scale_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.03,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "e2984c4208bc0fc1eb318ed797531507040fa79f3bef1bda3c82024d2ef71a33",
+      "triangle_count": 78080,
+      "volume": 48.0000171466703,
+      "surface_area": 128.01006844356317,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "rough_start_x_m": 3.0,
+        "fully_rough_start_x_m": 3.5,
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "rough_lane_width_m": 4.0,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.03,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.04067166017531841,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.03,
+        "sampled_local_peak_valley_p50_m": 0.013896869700282529,
+        "sampled_local_peak_valley_p95_m": 0.021950752749444274,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.02159188260557167,
+          0.019079777569746742
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_uphill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "f685cbd594ff7e8c02823dbcdd393f0e4cd579a239f514b8c1b1d17117f410c8",
+      "triangle_count": 19840,
+      "volume": 68.09733936244199,
+      "surface_area": 141.95276188940562,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "uphill",
+        "slope_angle_deg": 8.0,
+        "main_axis_grade_sign": 1.0,
+        "max_x_grade": 0.14054083470239143,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          0.0,
+          0.9135154255655443
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_downhill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "4fbc80bb76658260cc035b609aa8f53b920c559be89aed9a5efa8e55d80e2bc6",
+      "triangle_count": 19840,
+      "volume": 28.551401064704148,
+      "surface_area": 114.97979274053671,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "downhill",
+        "slope_angle_deg": 8.0,
+        "main_axis_grade_sign": -1.0,
+        "max_x_grade": 0.14054083470239143,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.9135154255655443,
+          -0.0
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_cross_slope_left",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "8c907dd20cd3d75f638e684242f604cb849b26be9df5133702a9b87f84992ed0",
+      "triangle_count": 19840,
+      "volume": 47.99999999999998,
+      "surface_area": 128.4785678524996,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_left",
+        "slope_angle_deg": 8.0,
+        "cross_axis_grade_sign": 1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.14054083470239145,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.2810816694047829,
+          0.2810816694047829
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_cross_slope_right",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "b2956b1928b6c97ca061f49dc029f25beb33b267058be3c18cb374f10f0bd31a",
+      "triangle_count": 19840,
+      "volume": 48.0,
+      "surface_area": 128.4785678524996,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_right",
+        "slope_angle_deg": 8.0,
+        "cross_axis_grade_sign": -1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.14054083470239145,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.2810816694047829,
+          0.2810816694047829
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-stairs_ascending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "ascending",
+        "step_count": 5,
+        "step_height_m": 0.035,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "a8d9a3cb4296049e87dc72d625d0bbe59692e6ec3a8bbb1e5a7b57c543b852e6",
+      "triangle_count": 52,
+      "volume": 53.25000000000001,
+      "surface_area": 132.025,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "direction": "ascending",
+        "step_count": 5,
+        "step_height_m": 0.035,
+        "tread_depth_m": 0.5,
+        "entry_x_m": 3.5,
+        "exit_x_m": 6.0,
+        "initial_surface_height_m": 0.0,
+        "terminal_surface_height_m": 0.17500000000000002,
+        "steps": [
+          {
+            "riser_x_m": 3.5,
+            "tread_end_x_m": 4.0,
+            "height_before_m": 0.0,
+            "height_after_m": 0.035
+          },
+          {
+            "riser_x_m": 4.0,
+            "tread_end_x_m": 4.5,
+            "height_before_m": 0.035,
+            "height_after_m": 0.07
+          },
+          {
+            "riser_x_m": 4.5,
+            "tread_end_x_m": 5.0,
+            "height_before_m": 0.07,
+            "height_after_m": 0.10500000000000001
+          },
+          {
+            "riser_x_m": 5.0,
+            "tread_end_x_m": 5.5,
+            "height_before_m": 0.10500000000000001,
+            "height_after_m": 0.14
+          },
+          {
+            "riser_x_m": 5.5,
+            "tread_end_x_m": 6.0,
+            "height_before_m": 0.14,
+            "height_after_m": 0.17500000000000002
+          }
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-stairs_descending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "descending",
+        "step_count": 5,
+        "step_height_m": 0.035,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "61911cf71c487f17c691416e7758734c400ffdd1f1deea416583ec9a5c71d042",
+      "triangle_count": 52,
+      "volume": 51.15,
+      "surface_area": 130.975,
+      "origin": [
+        1.5,
+        2.0,
+        0.17500000000000002
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "direction": "descending",
+        "step_count": 5,
+        "step_height_m": 0.035,
+        "tread_depth_m": 0.5,
+        "entry_x_m": 3.5,
+        "exit_x_m": 6.0,
+        "initial_surface_height_m": 0.17500000000000002,
+        "terminal_surface_height_m": 0.0,
+        "steps": [
+          {
+            "riser_x_m": 3.5,
+            "tread_end_x_m": 4.0,
+            "height_before_m": 0.17500000000000002,
+            "height_after_m": 0.14
+          },
+          {
+            "riser_x_m": 4.0,
+            "tread_end_x_m": 4.5,
+            "height_before_m": 0.14,
+            "height_after_m": 0.10500000000000001
+          },
+          {
+            "riser_x_m": 4.5,
+            "tread_end_x_m": 5.0,
+            "height_before_m": 0.10500000000000001,
+            "height_after_m": 0.07
+          },
+          {
+            "riser_x_m": 5.0,
+            "tread_end_x_m": 5.5,
+            "height_before_m": 0.07,
+            "height_after_m": 0.035
+          },
+          {
+            "riser_x_m": 5.5,
+            "tread_end_x_m": 6.0,
+            "height_before_m": 0.035,
+            "height_after_m": 0.0
+          }
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_rough_uphill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.015,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "b7402e2be349ba954acd4e220ae41c1a1f4bf2a93ec637eb360f88cb15121687",
+      "triangle_count": 78080,
+      "volume": 68.09734793577715,
+      "surface_area": 141.95258379219152,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "uphill",
+        "slope_angle_deg": 8.0,
+        "main_axis_grade_sign": 1.0,
+        "max_x_grade": 0.14054083470239143,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          0.0,
+          0.9135154255655462
+        ],
+        "max_combined_abs_height_m": 0.9135154255655462,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.015,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.020335830087659205,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.015,
+        "sampled_local_peak_valley_p50_m": 0.0069484348501412645,
+        "sampled_local_peak_valley_p95_m": 0.010975376374722137,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.010795941302785834,
+          0.009539888784873371
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_rough_downhill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.015,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "07eba672c47e1eac5abd62e47db2a1b9cf25a2d393db73e0b9e6007a32d00344",
+      "triangle_count": 78080,
+      "volume": 28.55350941187145,
+      "surface_area": 114.98089912572414,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "downhill",
+        "slope_angle_deg": 8.0,
+        "main_axis_grade_sign": -1.0,
+        "max_x_grade": 0.14054083470239143,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.9135154255655462,
+          -0.0
+        ],
+        "max_combined_abs_height_m": 0.9135591708537146,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.015,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.020335830087659205,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.015,
+        "sampled_local_peak_valley_p50_m": 0.0069484348501412645,
+        "sampled_local_peak_valley_p95_m": 0.010975376374722137,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.010795941302785834,
+          0.009539888784873371
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_rough_cross_slope_left",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.015,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "352464ff3e84ddda652305ff21d3f70c7b76f7e5ed52396533376b078cc543f1",
+      "triangle_count": 78080,
+      "volume": 48.00000857333515,
+      "surface_area": 128.4851809834873,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_left",
+        "slope_angle_deg": 8.0,
+        "cross_axis_grade_sign": 1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.14054083470239145,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.2810816694047829,
+          0.2810816694047829
+        ],
+        "max_combined_abs_height_m": 0.29187761070756874,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.015,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.020335830087659205,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.015,
+        "sampled_local_peak_valley_p50_m": 0.0069484348501412645,
+        "sampled_local_peak_valley_p95_m": 0.010975376374722137,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.010795941302785834,
+          0.009539888784873371
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-slope_rough_cross_slope_right",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.015,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 8.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "abf777b038ab21021403e94f29855afd10da70401b528b49c5484ee6069c837c",
+      "triangle_count": 78080,
+      "volume": 48.00000857333515,
+      "surface_area": 128.4810792183985,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_right",
+        "slope_angle_deg": 8.0,
+        "cross_axis_grade_sign": -1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.14054083470239145,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.2810816694047829,
+          0.2810816694047829
+        ],
+        "max_combined_abs_height_m": 0.2870039412577137,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.015,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.020335830087659205,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.015,
+        "sampled_local_peak_valley_p50_m": 0.0069484348501412645,
+        "sampled_local_peak_valley_p95_m": 0.010975376374722137,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.010795941302785834,
+          0.009539888784873371
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L2-friction_left_right_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.5,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "1e6a7284401de8f5bd24b4cc8d297d507513d2bd0c370a69898013965b2ba6d4",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 200.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "left_right_bands",
+        "candidate_friction_range": [
+          0.5,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.6666666666666666,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.8333333333333333,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.5,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            3.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L2-friction_front_back_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.5,
+          1.0
+        ],
+        "friction_layout": "front_back_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "4ec8c36a463c07cbbb82faad563044a68d7a7ef7fe946a949176b0373cc1af7b",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 152.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "front_back_bands",
+        "candidate_friction_range": [
+          0.5,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            3.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.6666666666666666,
+          "bounds_xy_m": [
+            3.0,
+            6.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.8333333333333333,
+          "bounds_xy_m": [
+            6.0,
+            9.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.5,
+          "bounds_xy_m": [
+            9.0,
+            12.0,
+            0.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L2-friction_alternating_regions",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.5,
+          1.0
+        ],
+        "friction_layout": "alternating_regions",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "1288796b7def888a66509ceb504cd9b0e7648c0c3e1794c59d3c1c220881fbb3",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 160.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "alternating_regions",
+        "candidate_friction_range": [
+          0.5,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            6.0,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.6666666666666666,
+          "bounds_xy_m": [
+            6.0,
+            12.0,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.8333333333333333,
+          "bounds_xy_m": [
+            0.0,
+            6.0,
+            2.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.5,
+          "bounds_xy_m": [
+            6.0,
+            12.0,
+            2.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L3-flat",
+      "config": {
+        "family": "flat",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "50dc2ce3e7c17fcbe7d9f16c04cc68d41e890ba16d03dd0fbf82634030c50938",
+      "triangle_count": 12,
+      "volume": 48.0,
+      "surface_area": 128.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "geometry": "plane",
+        "track_length_m": 12.0,
+        "track_width_m": 4.0
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-multi_scale_rough",
+      "config": {
+        "family": "multi_scale_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.04,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "ccf136748e9b530112edf10c31446c5fac27c1dc50af5a23c27761ccdaf9c470",
+      "triangle_count": 78080,
+      "volume": 48.00002286222708,
+      "surface_area": 128.02318033188982,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "rough_start_x_m": 3.0,
+        "fully_rough_start_x_m": 3.5,
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "rough_lane_width_m": 4.0,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.04,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.05422888023375788,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.039999999999999994,
+        "sampled_local_peak_valley_p50_m": 0.018529159600376707,
+        "sampled_local_peak_valley_p95_m": 0.029267670332592373,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.028789176807428894,
+          0.02543970342632899
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_uphill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 12.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "8edb0d32050f0ee375c4546dc3c6ba7fa118dd09e06cac3b8b5ce4836a4d1564",
+      "triangle_count": 19840,
+      "volume": 78.39558831881313,
+      "surface_area": 149.2927111875001,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "uphill",
+        "slope_angle_deg": 12.0,
+        "main_axis_grade_sign": 1.0,
+        "max_x_grade": 0.21255656167002213,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          0.0,
+          1.3816176508551425
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_downhill",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 12.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "95808bcc6adbd8ca95bcc97eb9564196562601dda7689d23889eda4a63e00429",
+      "triangle_count": 19840,
+      "volume": 40.72205892223371,
+      "surface_area": 123.25594648921037,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "downhill",
+        "slope_angle_deg": 12.0,
+        "main_axis_grade_sign": -1.0,
+        "max_x_grade": 0.21255656167002213,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -1.3816176508551425,
+          -0.0
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_cross_slope_left",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 12.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "a954779b97f01bb90f32c077b8da2c75ff39cdd5cb87c8969ff8c20fc6ff15f7",
+      "triangle_count": 19840,
+      "volume": 47.99999999999999,
+      "surface_area": 129.05541884897144,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_left",
+        "slope_angle_deg": 12.0,
+        "cross_axis_grade_sign": 1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.21255656167002213,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.42511312334004425,
+          0.42511312334004425
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_cross_slope_right",
+      "config": {
+        "family": "slope",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 12.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "9cae1b9a6b0629b1327fae3c12686032d4f7176216e6b4c4bebb6b71d8f8ce3f",
+      "triangle_count": 19840,
+      "volume": 47.99999999999999,
+      "surface_area": 129.05541884897144,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_right",
+        "slope_angle_deg": 12.0,
+        "cross_axis_grade_sign": -1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.21255656167002213,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.42511312334004425,
+          0.42511312334004425
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-stairs_ascending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "ascending",
+        "step_count": 5,
+        "step_height_m": 0.05,
+        "tread_depth_m": 0.4,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "6aa26d0b068efb476070aed09adc46d199101bf809cc72bb46b533ec3a14e929",
+      "triangle_count": 52,
+      "volume": 55.699999999999996,
+      "surface_area": 133.85,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "direction": "ascending",
+        "step_count": 5,
+        "step_height_m": 0.05,
+        "tread_depth_m": 0.4,
+        "entry_x_m": 3.5,
+        "exit_x_m": 5.5,
+        "initial_surface_height_m": 0.0,
+        "terminal_surface_height_m": 0.25,
+        "steps": [
+          {
+            "riser_x_m": 3.5,
+            "tread_end_x_m": 3.9,
+            "height_before_m": 0.0,
+            "height_after_m": 0.05
+          },
+          {
+            "riser_x_m": 3.9,
+            "tread_end_x_m": 4.3,
+            "height_before_m": 0.05,
+            "height_after_m": 0.1
+          },
+          {
+            "riser_x_m": 4.3,
+            "tread_end_x_m": 4.7,
+            "height_before_m": 0.1,
+            "height_after_m": 0.15000000000000002
+          },
+          {
+            "riser_x_m": 4.7,
+            "tread_end_x_m": 5.1000000000000005,
+            "height_before_m": 0.15000000000000002,
+            "height_after_m": 0.2
+          },
+          {
+            "riser_x_m": 5.1,
+            "tread_end_x_m": 5.5,
+            "height_before_m": 0.2,
+            "height_after_m": 0.25
+          }
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-stairs_descending",
+      "config": {
+        "family": "multi_step_stairs",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "descending",
+        "step_count": 5,
+        "step_height_m": 0.05,
+        "tread_depth_m": 0.4,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "983c41541c613f2fdef94c5b76a4f850fcbbe4901935720376811d4bb5374419",
+      "triangle_count": 52,
+      "volume": 52.300000000000004,
+      "surface_area": 132.15,
+      "origin": [
+        1.5,
+        2.0,
+        0.25
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "direction": "descending",
+        "step_count": 5,
+        "step_height_m": 0.05,
+        "tread_depth_m": 0.4,
+        "entry_x_m": 3.5,
+        "exit_x_m": 5.5,
+        "initial_surface_height_m": 0.25,
+        "terminal_surface_height_m": 0.0,
+        "steps": [
+          {
+            "riser_x_m": 3.5,
+            "tread_end_x_m": 3.9,
+            "height_before_m": 0.25,
+            "height_after_m": 0.2
+          },
+          {
+            "riser_x_m": 3.9,
+            "tread_end_x_m": 4.3,
+            "height_before_m": 0.2,
+            "height_after_m": 0.15000000000000002
+          },
+          {
+            "riser_x_m": 4.3,
+            "tread_end_x_m": 4.7,
+            "height_before_m": 0.15000000000000002,
+            "height_after_m": 0.1
+          },
+          {
+            "riser_x_m": 4.7,
+            "tread_end_x_m": 5.1000000000000005,
+            "height_before_m": 0.1,
+            "height_after_m": 0.05
+          },
+          {
+            "riser_x_m": 5.1,
+            "tread_end_x_m": 5.5,
+            "height_before_m": 0.05,
+            "height_after_m": 0.0
+          }
+        ]
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_rough_uphill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 10.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "fb7e791a21a2f2cd7f2dec0d597b5083c10cbb64c161cd5b3f997f049a9e7737",
+      "triangle_count": 78080,
+      "volume": 73.21476967242403,
+      "surface_area": 145.58653208445935,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "uphill",
+        "slope_angle_deg": 10.0,
+        "main_axis_grade_sign": 1.0,
+        "max_x_grade": 0.17632698070846498,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          0.0,
+          1.146125374605022
+        ],
+        "max_combined_abs_height_m": 1.1461259152299839,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.02,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.02711444011687894,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.019999999999999997,
+        "sampled_local_peak_valley_p50_m": 0.009264579800188353,
+        "sampled_local_peak_valley_p95_m": 0.014633835166296186,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.014394588403714447,
+          0.012719851713164495
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_rough_downhill",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 10.0,
+        "direction": "downhill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "9dca3b1f1a310add479d278735739bc5a03044eaabdfcd3d79c94b18d971cad1",
+      "triangle_count": 78080,
+      "volume": 34.60244251212976,
+      "surface_area": 119.08070661872368,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "downhill",
+        "slope_angle_deg": 10.0,
+        "main_axis_grade_sign": -1.0,
+        "max_x_grade": 0.17632698070846498,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -1.146125374605022,
+          -0.0
+        ],
+        "max_combined_abs_height_m": 1.1461914442151395,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.02,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.02711444011687894,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.019999999999999997,
+        "sampled_local_peak_valley_p50_m": 0.009264579800188353,
+        "sampled_local_peak_valley_p95_m": 0.014633835166296186,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.014394588403714447,
+          0.012719851713164495
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_rough_cross_slope_left",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 10.0,
+        "direction": "cross_slope_left",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "81259d40574b1eda7485119cefad76fc763cd5c46322728dab0f0de0d5a62c2b",
+      "triangle_count": 78080,
+      "volume": 48.000011431113535,
+      "surface_area": 128.7527168141119,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_left",
+        "slope_angle_deg": 10.0,
+        "cross_axis_grade_sign": 1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.17632698070846498,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.35265396141692995,
+          0.35265396141692995
+        ],
+        "max_combined_abs_height_m": 0.3670485498206444,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.02,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.02711444011687894,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.019999999999999997,
+        "sampled_local_peak_valley_p50_m": 0.009264579800188353,
+        "sampled_local_peak_valley_p95_m": 0.014633835166296186,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.014394588403714447,
+          0.012719851713164495
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-slope_rough_cross_slope_right",
+      "config": {
+        "family": "slope_plus_rough",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 2.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 10.0,
+        "direction": "cross_slope_right",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.7,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "d6844442ea9717edb7dbdf0be66c7a9072b4ed92f322a43c2c077be14083a6ce",
+      "triangle_count": 78080,
+      "volume": 48.00001143111354,
+      "surface_area": 128.74613600409685,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "exit_flat_length_m": 2.0,
+        "direction": "cross_slope_right",
+        "slope_angle_deg": 10.0,
+        "cross_axis_grade_sign": -1.0,
+        "positive_y_semantics": "left",
+        "max_cross_grade": 0.17632698070846498,
+        "entry_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "slope_height_range_m": [
+          -0.35265396141692995,
+          0.35265396141692995
+        ],
+        "max_combined_abs_height_m": 0.36055032388750435,
+        "rough_spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "rough_band_rms_before_scaling": [
+          0.6646351680704837,
+          0.5907696339260844
+        ],
+        "requested_peak_valley_m": 0.02,
+        "requested_peak_valley_semantics": "maximum over registered sampled contact-scale windows",
+        "full_challenge_peak_valley_m": 0.02711444011687894,
+        "rough_audit_window_m": 0.4,
+        "rough_audit_window_stride_max_m": 0.2,
+        "rough_audit_window_count": 551,
+        "sampled_local_peak_valley_max_m": 0.019999999999999997,
+        "sampled_local_peak_valley_p50_m": 0.009264579800188353,
+        "sampled_local_peak_valley_p95_m": 0.014633835166296186,
+        "local_audit_semantics": "mesh vertex statistics in sampled square windows; not measured foot contacts",
+        "rough_height_range_m": [
+          -0.014394588403714447,
+          0.012719851713164495
+        ],
+        "rough_transition_x_m": [
+          3.0,
+          3.5
+        ],
+        "rough_exit_transition_x_m": [
+          9.5,
+          10.0
+        ],
+        "rough_exit_flat_x_m": [
+          10.0,
+          12.0
+        ],
+        "composition": "slope_heightfield_plus_tapered_multiscale_heightfield"
+      },
+      "friction_regions": []
+    },
+    {
+      "id": "L3-friction_left_right_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.3,
+          1.0
+        ],
+        "friction_layout": "left_right_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "1e6a7284401de8f5bd24b4cc8d297d507513d2bd0c370a69898013965b2ba6d4",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 200.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "left_right_bands",
+        "candidate_friction_range": [
+          0.3,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.5333333333333333,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.7666666666666666,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            2.0,
+            3.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.3,
+          "bounds_xy_m": [
+            0.0,
+            12.0,
+            3.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L3-friction_front_back_bands",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.3,
+          1.0
+        ],
+        "friction_layout": "front_back_bands",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "4ec8c36a463c07cbbb82faad563044a68d7a7ef7fe946a949176b0373cc1af7b",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 152.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "front_back_bands",
+        "candidate_friction_range": [
+          0.3,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            3.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.5333333333333333,
+          "bounds_xy_m": [
+            3.0,
+            6.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.7666666666666666,
+          "bounds_xy_m": [
+            6.0,
+            9.0,
+            0.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.3,
+          "bounds_xy_m": [
+            9.0,
+            12.0,
+            0.0,
+            4.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "L3-friction_alternating_regions",
+      "config": {
+        "family": "friction_variation",
+        "size": [
+          12.0,
+          4.0
+        ],
+        "seed": 10001,
+        "flat_length_m": 3.0,
+        "transition_length_m": 0.5,
+        "exit_flat_length_m": 0.0,
+        "rough_peak_valley_m": 0.02,
+        "rough_audit_window_m": 0.4,
+        "spatial_scales_m": [
+          0.2,
+          0.4
+        ],
+        "slope_angle_deg": 5.0,
+        "direction": "uphill",
+        "step_count": 3,
+        "step_height_m": 0.02,
+        "tread_depth_m": 0.5,
+        "friction_range": [
+          0.3,
+          1.0
+        ],
+        "friction_layout": "alternating_regions",
+        "friction_region_count": 4,
+        "grid_spacing_m": 0.1
+      },
+      "non_bottom_triangle_sha256": "1288796b7def888a66509ceb504cd9b0e7648c0c3e1794c59d3c1c220881fbb3",
+      "triangle_count": 48,
+      "volume": 48.0,
+      "surface_area": 160.0,
+      "origin": [
+        1.5,
+        2.0,
+        0.0
+      ],
+      "metadata": {
+        "track_length_m": 12.0,
+        "track_width_m": 4.0,
+        "layout": "alternating_regions",
+        "candidate_friction_range": [
+          0.3,
+          1.0
+        ],
+        "effective_friction_confirmed": false,
+        "material_binding_status": "not_implemented_geometry_only",
+        "region_count": 4
+      },
+      "friction_regions": [
+        {
+          "region_id": 0,
+          "mesh_index": 0,
+          "friction_coefficient_candidate": 1.0,
+          "bounds_xy_m": [
+            0.0,
+            6.0,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 1,
+          "mesh_index": 1,
+          "friction_coefficient_candidate": 0.5333333333333333,
+          "bounds_xy_m": [
+            6.0,
+            12.0,
+            0.0,
+            2.0
+          ]
+        },
+        {
+          "region_id": 2,
+          "mesh_index": 2,
+          "friction_coefficient_candidate": 0.7666666666666666,
+          "bounds_xy_m": [
+            0.0,
+            6.0,
+            2.0,
+            4.0
+          ]
+        },
+        {
+          "region_id": 3,
+          "mesh_index": 3,
+          "friction_coefficient_candidate": 0.3,
+          "bounds_xy_m": [
+            6.0,
+            12.0,
+            2.0,
+            4.0
+          ]
+        }
+      ]
+    }
+  ]
+}

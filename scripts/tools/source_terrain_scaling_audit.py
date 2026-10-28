@@ -106,9 +106,18 @@ def audit(root: Path) -> dict:
         } for n in (32, 60, 120, 4096)],
         "recorded_ordinary_counts": [
             {"num_envs": n, "observed": count,
-             "difference_from_tile_sum": count - n * ordinary_per_row}
+             "difference_from_current_tile_sum": count - n * ordinary_per_row}
             for n, count in ((32, 15_035_016), (60, 28_190_648))
         ],
+        "historical_count_comparison_note": (
+            "Observed counts predate bottom simplification and tile partitioning. "
+            "Differences now include the topology optimization, not just the old border."
+        ),
+        "shared_bank_geometry_candidates_not_runtime_qualified": [{
+            "bank_rows": rows, "tile_count": rows * len(tiles),
+            "all_triangles": rows * (ordinary_per_row + friction_per_row),
+            "geometry_variants_per_class": rows,
+        } for rows in (1, 4, 8, 16)],
         "limitations": [
             "One representative seed per class; not every failed-map tile was regenerated.",
             "Counts exclude generator borders; no exported USD/PhysX mesh validation.",

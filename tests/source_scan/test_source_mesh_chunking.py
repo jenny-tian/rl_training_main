@@ -53,3 +53,16 @@ def test_balanced_chunks_cover_every_face_once(face_count, max_face_count, expec
 def test_chunk_planner_rejects_invalid_counts(face_count, max_face_count):
     with pytest.raises(ValueError):
         tuple(balanced_face_chunk_slices(face_count, max_face_count))
+
+
+@pytest.mark.parametrize("ranges,count", [
+    ([], 1), ([("tile_r0000_c00", 1, 3)], 3),
+    ([("tile_r0000_c00", 0, 2), ("tile_r0001_c00", 1, 3)], 3),
+    ([("tile_r0000_c00", 0, 2), ("tile_r0001_c00", 3, 4)], 4),
+    ([("tile_r0000_c00", 0, 2), ("tile_r0000_c00", 2, 3)], 3),
+    ([("../../terrain", 0, 2)], 2), ([("tile_r0000_c00", False, 2)], 2),
+    ([("tile_r0000_c00", 0, 2)], 3),
+])
+def test_tile_ranges_reject_gaps_overlap_duplicates_and_unsafe_names(ranges, count):
+    with pytest.raises(ValueError):
+        mesh_chunking_module.validate_tile_face_ranges(ranges, count)

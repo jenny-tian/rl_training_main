@@ -584,29 +584,45 @@ def _heightfield_prism(x: np.ndarray, y: np.ndarray, heights: np.ndarray) -> tri
     bottom_z = min(-_SUPPORT_DEPTH_M, float(np.min(heights)) - 0.1)
     xy = np.stack(np.meshgrid(x, y), axis=-1).reshape(-1, 2)
     top = np.column_stack((xy, heights.reshape(-1)))
-    bottom = np.column_stack((xy, np.full(len(xy), bottom_z, dtype=np.float64)))
-    vertices = np.vstack((top, bottom))
-    faces: list[tuple[int, int, int]] = []
     rows, cols = len(y), len(x)
-    offset = rows * cols
-    for iy in range(rows - 1):
-        for ix in range(cols - 1):
-            a = iy * cols + ix
-            b, c, d = a + 1, a + cols, a + cols + 1
-            faces.extend(((a, b, c), (b, d, c),
-                          (offset + a, offset + c, offset + b),
-                          (offset + b, offset + c, offset + d)))
+    # Retain every perimeter vertex so the bottom and the unchanged side
+    # triangles share exact edges. The interior bottom is flat: a fan needs
+    # O(rows + cols) triangles instead of duplicating the dense top grid.
+    perimeter = np.concatenate((
+        np.arange(cols),
+        np.arange(1, rows) * cols + cols - 1,
+        (rows - 1) * cols + np.arange(cols - 2, -1, -1),
+        np.arange(rows - 2, 0, -1) * cols,
+    ))
+    bottom = np.column_stack((xy[perimeter], np.full(len(perimeter), bottom_z)))
+    center = np.asarray([[(x[0] + x[-1]) / 2.0, (y[0] + y[-1]) / 2.0, bottom_z]])
+    vertices = np.vstack((top, bottom, center))
+    bottom_ids = np.full(len(top), -1, dtype=np.int64)
+    bottom_ids[perimeter] = len(top) + np.arange(len(perimeter))
+    # Keep the two top triangles in each cell exactly as before.
+    a = (np.arange(rows - 1)[:, None] * cols + np.arange(cols - 1)).reshape(-1)
+    top_faces = np.stack((
+        np.column_stack((a, a + 1, a + cols)),
+        np.column_stack((a + 1, a + cols + 1, a + cols)),
+    ), axis=1).reshape(-1, 3)
+    faces: list[tuple[int, int, int]] = []
     for ix in range(cols - 1):
         a, b = ix, ix + 1
-        faces.extend(((a, offset + a, b), (b, offset + a, offset + b)))
+        faces.extend(((a, bottom_ids[a], b), (b, bottom_ids[a], bottom_ids[b])))
         a, b = (rows - 1) * cols + ix, (rows - 1) * cols + ix + 1
-        faces.extend(((a, b, offset + a), (b, offset + b, offset + a)))
+        faces.extend(((a, b, bottom_ids[a]), (b, bottom_ids[b], bottom_ids[a])))
     for iy in range(rows - 1):
         a, b = iy * cols, (iy + 1) * cols
-        faces.extend(((a, b, offset + a), (b, offset + b, offset + a)))
+        faces.extend(((a, b, bottom_ids[a]), (b, bottom_ids[b], bottom_ids[a])))
         a, b = iy * cols + cols - 1, (iy + 1) * cols + cols - 1
-        faces.extend(((a, offset + a, b), (b, offset + a, offset + b)))
-    return trimesh.Trimesh(vertices=vertices, faces=np.asarray(faces, dtype=np.int64), process=False)
+        faces.extend(((a, bottom_ids[a], b), (b, bottom_ids[a], bottom_ids[b])))
+    ring = bottom_ids[perimeter]
+    bottom_faces = np.column_stack((np.full(len(ring), len(vertices) - 1), np.roll(ring, -1), ring))
+    return trimesh.Trimesh(
+        vertices=vertices,
+        faces=np.concatenate((top_faces, np.asarray(faces, dtype=np.int64), bottom_faces)),
+        process=False,
+    )
 
 
 def _box_mesh(

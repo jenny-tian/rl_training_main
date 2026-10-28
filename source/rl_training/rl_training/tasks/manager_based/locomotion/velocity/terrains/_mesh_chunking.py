@@ -3,6 +3,33 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+import re
+
+
+SOURCE_TILE_FACE_RANGES = "source_tile_face_ranges_v1"
+
+
+def validate_tile_face_ranges(ranges, face_count: int) -> tuple[tuple[str, int, int], ...]:
+    """Require ordered, disjoint, nonempty tile ranges covering the whole mesh."""
+
+    if type(face_count) is not int or face_count < 1:
+        raise ValueError("tile mesh face_count must be a positive integer")
+    result = []
+    names = set()
+    expected_start = 0
+    for name, start, stop in ranges:
+        if not isinstance(name, str) or re.fullmatch(r"tile_r[0-9]+_c[0-9]+|border", name) is None:
+            raise ValueError("invalid Source tile mesh name")
+        if name in names:
+            raise ValueError("duplicate Source tile mesh name")
+        if type(start) is not int or type(stop) is not int or start != expected_start or stop <= start:
+            raise ValueError("Source tile face ranges must be contiguous and nonempty")
+        names.add(name)
+        result.append((name, start, stop))
+        expected_start = stop
+    if expected_start != face_count:
+        raise ValueError("Source tile face ranges do not cover the mesh")
+    return tuple(result)
 
 
 def balanced_face_chunk_slices(face_count: int, max_face_count: int) -> Iterator[slice]:
@@ -30,4 +57,4 @@ def balanced_face_chunk_slices(face_count: int, max_face_count: int) -> Iterator
         start = stop
 
 
-__all__ = ["balanced_face_chunk_slices"]
+__all__ = ["SOURCE_TILE_FACE_RANGES", "balanced_face_chunk_slices", "validate_tile_face_ranges"]

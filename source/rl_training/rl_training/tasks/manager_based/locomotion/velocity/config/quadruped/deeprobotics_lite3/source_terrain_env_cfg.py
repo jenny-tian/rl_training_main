@@ -28,6 +28,7 @@ from rl_training.tasks.manager_based.locomotion.velocity.terrains import (
     SourceTerrainImporterCfg,
     SourceTerrainTrackCfg,
 )
+from rl_training.tasks.manager_based.locomotion.velocity.terrains.source_terrain_generator import SourceTerrainGenerator
 from rl_training.tasks.manager_based.locomotion.velocity.velocity_env_cfg import (
     TerminationsCfg,
 )
@@ -211,6 +212,7 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
             prim_path="/World/ground",
             terrain_type="generator",
             terrain_generator=TerrainGeneratorCfg(
+                class_type=SourceTerrainGenerator,
                 seed=10_001,
                 curriculum=True,
                 size=(12.0, 4.0),

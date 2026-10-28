@@ -17,7 +17,7 @@ from rl_training.source_scan.parallel_terrain_allocation import (
     initialize_reserved_row_environment_origins,
 )
 
-from ._mesh_chunking import balanced_face_chunk_slices
+from ._mesh_chunking import SOURCE_TILE_FACE_RANGES, balanced_face_chunk_slices, validate_tile_face_ranges
 from .source_terrain_isaac import (
     FRICTION_COEFFICIENT_SCALE,
     FRICTION_REGION_MARKER_ALPHA,
@@ -25,10 +25,10 @@ from .source_terrain_isaac import (
 
 _LOG = logging.getLogger(__name__)
 _VISUAL_FACE_COLOUR = np.asarray([150, 150, 150, 255], dtype=np.uint8)
-# A 32-environment startup has successfully cooked a 15,035,016-triangle
-# ordinary collider. Use that observed-good count as a per-collider ceiling;
-# larger generated maps are split into balanced meshes no larger than it.
-MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES = 15_035_016
+# A construction budget, not a claimed PhysX limit or runtime qualification.
+# Current Source tiles fit below this after bottom simplification. Tile
+# ownership is the primary partition; count splitting is only a fallback.
+MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES = 100_000
 
 
 class SourceTerrainImporter(TerrainImporter):
@@ -37,8 +37,8 @@ class SourceTerrainImporter(TerrainImporter):
     Isaac Lab's stock importer binds one rigid-body material to a generated
     mesh.  Source friction tracks encode their candidate coefficient in face
     colours; this importer separates only those faces into independently bound
-    static triangle-mesh colliders.  All other terrain families remain in one
-    ordinary collider with the configured terrain material.
+    static triangle-mesh colliders. Each material class is then split by the
+    generator's tile ranges, preserving triangle coordinates and winding.
     """
 
     cfg: TerrainImporterCfg
@@ -98,6 +98,12 @@ class SourceTerrainImporter(TerrainImporter):
                 f"Existing terrains: {', '.join(self.terrain_names)}."
             )
 
+        tile_ranges = mesh.metadata.get(SOURCE_TILE_FACE_RANGES)
+        if tile_ranges is not None:
+            validate_tile_face_ranges(tile_ranges, len(mesh.faces))
+        elif getattr(self.cfg, "parallel_reset_sampler_enabled", False):
+            raise ValueError("parallel Source terrain requires generator tile face ranges")
+
         face_colours = np.asarray(mesh.visual.face_colors, dtype=np.uint8)
         if face_colours.shape != (len(mesh.faces), 4):
             raise ValueError(
@@ -154,22 +160,18 @@ class SourceTerrainImporter(TerrainImporter):
             coefficient_faces = np.flatnonzero(
                 tagged & np.isclose(coefficient_values, coefficient, atol=5e-7)
             )
-            region_mesh = self._extract_faces(mesh, coefficient_faces)
-            # The marker is an internal transport tag, not a terrain texture.
-            region_mesh.visual.face_colors = np.tile(
-                _VISUAL_FACE_COLOUR, (len(region_mesh.faces), 1)
-            )
             material = self._make_region_material(float(coefficient))
             region_name = f"friction_{int(round(float(coefficient) * 1_000_000)):08d}"
             self._import_mesh_chunks(
                 f"{root_path}/{region_name}",
-                region_mesh,
+                mesh,
                 material,
-                face_indices=None,
+                face_indices=coefficient_faces,
+                reset_face_colours=True,
             )
 
         _LOG.info(
-            "Imported Source Terrain '%s' with %d friction-material collider(s): %s",
+            "Imported Source Terrain '%s' with %d friction material(s): %s",
             name,
             len(present_values),
             present_values.tolist(),
@@ -184,52 +186,66 @@ class SourceTerrainImporter(TerrainImporter):
         face_indices: np.ndarray | None,
         reset_face_colours: bool = False,
     ) -> None:
-        """Import one material class as colliders below the face-count limit."""
+        """Import a material class by whole tiles, then enforce a count budget."""
 
         face_count = len(mesh.faces) if face_indices is None else len(face_indices)
         if face_count == 0:
             raise ValueError("Source Terrain colliders must contain at least one triangle")
-        chunks = tuple(
-            balanced_face_chunk_slices(
+        tile_ranges = mesh.metadata.get(SOURCE_TILE_FACE_RANGES)
+        chunks = []
+        if tile_ranges is not None:
+            for tile_name, start, stop in validate_tile_face_ranges(tile_ranges, len(mesh.faces)):
+                if face_indices is None:
+                    selected = np.arange(start, stop, dtype=np.int64)
+                else:
+                    # Material selections come from flatnonzero and stay sorted.
+                    lower, upper = np.searchsorted(face_indices, (start, stop))
+                    selected = face_indices[lower:upper]
+                for index, span in enumerate(balanced_face_chunk_slices(
+                    len(selected), MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES
+                )):
+                    suffix = f"/part_{index:03d}" if len(selected) > MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES else ""
+                    chunks.append((f"{tile_name}{suffix}", selected[span]))
+        else:
+            for index, span in enumerate(balanced_face_chunk_slices(
                 face_count, MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES
-            )
-        )
-        if not chunks:
-            return
-        if len(chunks) == 1 and face_indices is None and not reset_face_colours:
+            )):
+                selected = (
+                    np.arange(span.start, span.stop, dtype=np.int64)
+                    if face_indices is None else face_indices[span]
+                )
+                chunks.append((f"part_{index:03d}", selected))
+
+        if len(chunks) == 1 and tile_ranges is None and face_indices is None and not reset_face_colours:
             self._import_mesh_part(root_path, mesh, physics_material)
             return
 
-        if len(chunks) > 1:
+        use_children = tile_ranges is not None or len(chunks) > 1
+        if use_children:
             sim_utils.create_prim(root_path, "Xform")
 
-        for chunk_index, chunk_slice in enumerate(chunks):
-            if face_indices is None:
-                selected_faces = np.arange(
-                    chunk_slice.start, chunk_slice.stop, dtype=np.int64
-                )
-            else:
-                selected_faces = face_indices[chunk_slice]
+        for chunk_name, selected_faces in chunks:
+            chunk_path = f"{root_path}/{chunk_name}" if use_children else root_path
+            if "/part_" in chunk_name:
+                parent_path = chunk_path.rsplit("/", 1)[0]
+                if chunk_name.endswith("/part_000"):
+                    sim_utils.create_prim(parent_path, "Xform")
             chunk_mesh = self._extract_faces(mesh, selected_faces)
             if reset_face_colours:
                 chunk_mesh.visual.face_colors = np.tile(
                     _VISUAL_FACE_COLOUR, (len(chunk_mesh.faces), 1)
                 )
-            chunk_path = (
-                root_path
-                if len(chunks) == 1
-                else f"{root_path}/part_{chunk_index:03d}"
-            )
             self._import_mesh_part(chunk_path, chunk_mesh, physics_material)
 
-        if len(chunks) > 1:
+        if use_children:
             _LOG.info(
                 "Imported terrain collider '%s' as %d triangle-mesh parts "
-                "(%d total triangles; limit %d per part)",
+                "(%d total triangles; budget %d per part; tile layout: %s)",
                 root_path,
                 len(chunks),
                 face_count,
                 MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES,
+                tile_ranges is not None,
             )
 
     def _configured_friction_candidates(self) -> np.ndarray:
@@ -285,13 +301,20 @@ class SourceTerrainImporter(TerrainImporter):
     def _extract_faces(
         mesh: trimesh.Trimesh, face_indices: np.ndarray
     ) -> trimesh.Trimesh:
-        extracted = mesh.submesh([face_indices], append=True, repair=False)
-        if not isinstance(extracted, trimesh.Trimesh) or len(extracted.faces) == 0:
+        if len(face_indices) == 0:
             raise RuntimeError(
                 "failed to extract non-empty Source Terrain collider faces"
             )
-        extracted.remove_unreferenced_vertices()
-        return extracted
+        # Remap only vertices referenced by this chunk. Generic submesh
+        # extraction can allocate full-map vertex masks for every small tile.
+        selected_faces = mesh.faces[face_indices]
+        vertex_ids, inverse = np.unique(selected_faces.reshape(-1), return_inverse=True)
+        return trimesh.Trimesh(
+            vertices=mesh.vertices[vertex_ids],
+            faces=inverse.reshape(-1, 3),
+            face_colors=np.asarray(mesh.visual.face_colors)[face_indices],
+            process=False,
+        )
 
     def _import_mesh_part(
         self,
