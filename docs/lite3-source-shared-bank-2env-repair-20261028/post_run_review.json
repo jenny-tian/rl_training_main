@@ -1,0 +1,135 @@
+{
+  "reviewed_at_utc": "2026-10-28T08:58:39.877789+00:00",
+  "status": "shared_bank_smoke_failed_contact_positive_control_missing",
+  "runtime_revision": "27441a8e3188cb2e4f8c8f796b9836676cff0481",
+  "model_revision": "b452a1f404d37155400242f18e454fed8bcc51b8",
+  "supervisor_exit_code": 1,
+  "run_count_this_phase": 1,
+  "runtime_code_modified": false,
+  "installed_dependencies_modified": false,
+  "automatic_retry": false,
+  "training_started": false,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "source_hash_count": 140,
+  "dependency_hash_count": 14,
+  "asset_hash_count": 6,
+  "source_hashes_unchanged": true,
+  "dependency_hashes_unchanged": true,
+  "asset_hashes_unchanged": true,
+  "model_clean": true,
+  "journal_phase_counts": {
+    "initial": 1,
+    "vertical_occlusion_probe": 1,
+    "control_step": 20
+  },
+  "initial_reset_completed": true,
+  "initial_assignment_count": 2,
+  "overlapping_initial_roots_checked": true,
+  "reporting_body_count": 34,
+  "scanner_ray_counts": {
+    "height_scanner": 345,
+    "height_scanner_base": 9
+  },
+  "vertical_occlusion_probe_passed": true,
+  "zero_action_control_steps_checked": 20,
+  "physics_dt_s": 0.005,
+  "control_dt_s": 0.02,
+  "control_simulation_duration_s": 0.4,
+  "unexpected_termination_seen": false,
+  "contact_journal_records": 0,
+  "ground_contact_points_recorded": {
+    "0": 0,
+    "1": 0
+  },
+  "cross_environment_contacts_not_qualified": true,
+  "contact_callback_invocation_count": null,
+  "contact_callback_invocation_count_note": "The journal records headers, not callback invocations; zero records cannot distinguish no callback from empty header batches.",
+  "five_batch_direct_reset_started": false,
+  "reset_batches_checked": 0,
+  "result_json_produced": false,
+  "fatal_exception": {
+    "marker": "[parallel-terrain-smoke] fatal-exception-recorded",
+    "stream": "console",
+    "detected_phase": "monitor",
+    "detected_elapsed_s": 15.003605084028095
+  },
+  "execution_elapsed_s": 15.827483902685344,
+  "stop_to_execution_end_s": 0.8238620706833899,
+  "manual_stop": false,
+  "simulation_app_close_complete_marker": false,
+  "gpu_sample_count": 15,
+  "sampled_gpu_peak_mib": 2820,
+  "cpu_peak_rss_available": false,
+  "log_review": {
+    "console.log": {
+      "explicit_error_lines": [],
+      "terrain_cooking_failure_lines": [],
+      "traceback_lines": [
+        "Traceback (most recent call last):",
+        "AssertionError: contact-report positive control missing: both robots must touch ground"
+      ]
+    },
+    "kit.log": {
+      "explicit_error_lines": [],
+      "terrain_cooking_failure_lines": [],
+      "traceback_lines": []
+    },
+    "isaaclab.log": {
+      "explicit_error_lines": [],
+      "terrain_cooking_failure_lines": [],
+      "traceback_lines": []
+    }
+  },
+  "read_only_followup_sources_sha256": {
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/simulation_context.py": "d95f2eaa138b4fff845ac72439caa2eca5deab4f0d5609e06f163d20eef4df93",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/contact_sensor/contact_sensor.py": "5bf3b77d2159850526e3833bf50253dbce06cb78b850eae13fb4088dc233760d",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.tests-107.3.26+107.3.3.cp311.u353/omni/physxtests/tests/PhysxContactReportAPI.py": "bc6e92e7ce3538cc06d4b4f15374285f5838c92c576c9bd35f8820e5f744837d",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.tests-107.3.26+107.3.3.cp311.u353/omni/physxtests/utils/physicsBase.py": "6cd35a15b7c5678c988ff824e7f5f6b641ee14c06928cf63af1cf35a62d98a07"
+  },
+  "followup_source_review_is_runtime_verification": false,
+  "contact_failure_root_cause_confirmed": false,
+  "archive_source_paths": {
+    "result.shared.jsonl": "/tmp/lite3_shared_bank_2env_repair_20261028/result.shared.jsonl",
+    "gpu_samples.jsonl": "/tmp/lite3_shared_bank_2env_repair_20261028/gpu_samples.jsonl",
+    "execution.json": "/tmp/lite3_shared_bank_2env_repair_20261028/execution.json",
+    "manifest.json": "/tmp/lite3_shared_bank_2env_repair_20261028/manifest.json",
+    "console.log": "/tmp/lite3_shared_bank_2env_repair_20261028/console.log",
+    "trace.log": "/tmp/lite3_shared_bank_2env_repair_20261028/trace.log",
+    "outcome.json": "/tmp/lite3_shared_bank_2env_repair_20261028/outcome.json",
+    "kit.log": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261028_165414.log",
+    "isaaclab.log": "/tmp/isaaclab/logs/isaaclab_2026-10-28_16-54-24.log",
+    "test_processes_after.json": "/tmp/lite3_shared_bank_2env_repair_processes_after.json"
+  },
+  "archived_artifact_sha256": {
+    "result.shared.jsonl": "3669bd2fa7880f33c88c7bc65ddf9041ca7c64b9b83fec1084831435b420f391",
+    "gpu_samples.jsonl": "71e7cf618c3ad50cd72580de23f214ac5226a3c7c78f449759a7cd4b171bb30e",
+    "execution.json": "af8085ae9e94e30888a57d87219c9a5b3d2a35d0797756bc6ac4670319027b22",
+    "manifest.json": "0f6843ce123d234a2669f9e706d22e11e7b304ea61bb0aac83428967e4b12de5",
+    "console.log": "015cc904c32b466989148ef133f97913604db372155d9d083bf0c08fda36e33d",
+    "trace.log": "9d9966da8867a7ea42ac83eb2271c83a58ac0a88bbcaba4c8d8df40b36778a8d",
+    "outcome.json": "63d72ff6f82fb59dca52283958fa776dc7687d7e897ef60ea73abd86a5707eb7",
+    "kit.log": "da8da84aa7c1509c2973a7814cf309830941224531402899f1eec8020b5b9982",
+    "isaaclab.log": "30f3d8137089bab96ebe24b4cdea7bf93da9618af784b7192a8c51f0dfec89cc",
+    "test_processes_after.json": "2188908514bcbe33c9b37cd10817e6fb0ead7a4d7b7da3c45e29c37b761688e7",
+    "gpu_after.csv": "da708900b474b22a4a79f9bfb651909581d2f5334767fef9ee7ed68f1db432df",
+    "gpu_compute_after.csv": "0ba4d85fb3c21d5854ac611eded405b32ddee340c6c0f1f077388be588ccd88e"
+  },
+  "gpu0_after_memory_mib": 18,
+  "gpu0_after_utilization_percent": 0,
+  "gpu0_after_compute_process_count": 0,
+  "unrelated_gpu_process_snapshot_unchanged": true,
+  "archive_validation": {
+    "json_and_jsonl_valid": true,
+    "readme_links_valid": true,
+    "staged_artifact_hashes_match_original": true,
+    "full_staged_diff_check_exit_code": 2,
+    "raw_log_trailing_whitespace_count": 33,
+    "raw_log_trailing_whitespace_paths": [
+      "docs/lite3-source-shared-bank-2env-repair-20261028/console.log",
+      "docs/lite3-source-shared-bank-2env-repair-20261028/kit.log"
+    ],
+    "authored_and_structured_files_diff_check_exit_code": 0,
+    "raw_logs_preserved_byte_for_byte": true
+  }
+}
