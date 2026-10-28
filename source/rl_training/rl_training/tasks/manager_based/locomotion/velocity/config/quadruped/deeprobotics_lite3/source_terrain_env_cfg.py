@@ -291,8 +291,11 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
             self.scene.robot.collision_group = 0
             self.scene.height_scanner.update_mesh_ids = True
             self.scene.height_scanner_base.update_mesh_ids = True
+            from rl_training.source_scan.source_ground_ray_caster import SourceGroundRayCaster
             from rl_training.source_scan.shared_terrain_bank import validate_shared_scene_cfg
 
+            self.scene.height_scanner.class_type = SourceGroundRayCaster
+            self.scene.height_scanner_base.class_type = SourceGroundRayCaster
             validate_shared_scene_cfg(self.scene)
 
         self.commands.base_velocity.resampling_time_range = (1.0e9, 1.0e9)

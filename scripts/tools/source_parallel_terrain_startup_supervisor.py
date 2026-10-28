@@ -1,4 +1,4 @@
-"""Run the Source Terrain startup smoke with fail-fast PhysX log monitoring.
+"""Run Source startup smoke with cooking/fatal-exception monitoring.
 
 This supervisor is intended for an explicitly approved startup check. It does
 not load a policy or start PPO training.
@@ -23,6 +23,10 @@ _POLL_INTERVAL_S = 0.1
 _TERMINATE_GRACE_S = 10.0
 _GPU_SAMPLE_TIMEOUT_S = 1.0
 _STARTUP_TRACE_MARKER = "initial-reset-complete"
+_FATAL_TRACE_LINES = frozenset({
+    "[parallel-terrain-smoke] fatal-exception-recorded",
+    "[parallel-terrain-smoke] simulation-app-close-exception",
+})
 
 
 def find_collision_cooking_failure(text: str) -> str | None:
@@ -37,12 +41,32 @@ def find_collision_cooking_failure(text: str) -> str | None:
     return None
 
 
-def _scan_final_console(console_path: Path) -> str | None:
+def find_fatal_exception(text: str) -> str | None:
+    """Match the diagnostic's explicit fatal markers, not arbitrary log prose."""
+    return next((line.strip() for line in text.splitlines() if line.strip() in _FATAL_TRACE_LINES), None)
+
+
+def _fatal_exception_record(console_text: str, trace_path: Path, phase: str, started: float) -> dict | None:
+    marker = find_fatal_exception(console_text)
+    stream = "console"
+    if marker is None:
+        try:
+            marker = find_fatal_exception(trace_path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            pass
+        stream = "trace"
+    if marker is None:
+        return None
+    return {"marker": marker, "stream": stream, "detected_phase": phase,
+            "detected_elapsed_s": time.monotonic() - started}
+
+
+def _scan_final_console(console_path: Path, finder=find_collision_cooking_failure) -> str | None:
     """Scan all output after cleanup, including writes made by SIGTERM handlers."""
 
     with console_path.open(encoding="utf-8", errors="replace") as console_file:
         for line in console_file:
-            marker = find_collision_cooking_failure(line)
+            marker = finder(line)
             if marker is not None:
                 return marker
     return None
@@ -112,7 +136,7 @@ def run_monitored_process(
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Run one process and stop promptly on PhysX cooking failure or timeout."""
+    """Stop on cooking errors, explicit fatal markers or the fixed timeouts."""
 
     if not command:
         raise ValueError("command must not be empty")
@@ -130,6 +154,7 @@ def run_monitored_process(
     stop_reason: str | None = None
     failure_marker: str | None = None
     collision_failure: dict[str, Any] | None = None
+    fatal_exception: dict[str, Any] | None = None
     stop_requested_elapsed_s: float | None = None
     recent_output = ""
     next_sample_s = 0.0
@@ -146,10 +171,12 @@ def run_monitored_process(
             with console_path.open("rb") as monitor_file:
                 while True:
                     new_bytes = monitor_file.read()
+                    combined_output = recent_output
                     if new_bytes:
                         new_text = new_bytes.decode("utf-8", errors="replace")
+                        combined_output = recent_output[-1024:] + new_text
                         failure_marker = find_collision_cooking_failure(
-                            recent_output[-1024:] + new_text
+                            combined_output
                         )
                         recent_output = (recent_output + new_text)[-8192:]
                         if failure_marker is not None:
@@ -160,6 +187,12 @@ def run_monitored_process(
                                 "detected_elapsed_s": time.monotonic() - started,
                             }
                             break
+
+                    fatal_exception = _fatal_exception_record(combined_output, trace_path, "monitor", started)
+                    if fatal_exception is not None:
+                        stop_reason = "fatal_exception"
+                        failure_marker = fatal_exception["marker"]
+                        break
 
                     if process.poll() is not None:
                         # Inspect the full final write before truncating history.
@@ -175,6 +208,13 @@ def run_monitored_process(
                                     "detected_phase": "process_exit",
                                     "detected_elapsed_s": time.monotonic() - started,
                                 }
+                        fatal_exception = _fatal_exception_record(
+                            recent_output + final_bytes.decode("utf-8", errors="replace"),
+                            trace_path, "process_exit", started,
+                        )
+                        if fatal_exception is not None and stop_reason is None:
+                            stop_reason = "fatal_exception"
+                            failure_marker = fatal_exception["marker"]
                         break
 
                     elapsed_s = time.monotonic() - started
@@ -217,6 +257,11 @@ def run_monitored_process(
             "detected_phase": "post_termination",
             "detected_elapsed_s": time.monotonic() - started,
         }
+    if fatal_exception is None:
+        # A late fatal marker may appear when SIGTERM flushes buffers.
+        # Keep the original timeout/resource trigger and still reject success.
+        final_fatal_marker = _scan_final_console(console_path, find_fatal_exception)
+        fatal_exception = _fatal_exception_record(final_fatal_marker or "", trace_path, "post_termination", started)
     return {
         "exit_code": exit_code,
         "stop_reason": stop_reason,
@@ -227,6 +272,8 @@ def run_monitored_process(
         "failure_marker": failure_marker,
         "stop_requested_elapsed_s": stop_requested_elapsed_s,
         "collision_cooking_failure": collision_failure,
+        "fatal_exception": fatal_exception,
+        "terminate_grace_s": terminate_grace_s,
     }
 
 
@@ -424,7 +471,7 @@ def main() -> int:
             samples_file.flush()
 
     manifest = {
-        "schema_version": "source_parallel_terrain_startup_supervisor_v2",
+        "schema_version": "source_parallel_terrain_startup_supervisor_v3",
         "revision": _capture(["git", "rev-parse", "HEAD"], cwd=root),
         "model_revision": _capture(
             ["git", "-C", str(model_root), "rev-parse", "HEAD"], cwd=root
@@ -434,6 +481,7 @@ def main() -> int:
             "python_unbuffered": True,
             "carb_flush_standard_stream_output": True,
             "post_termination_console_scan": True,
+            "fatal_exception_trace_and_console_monitoring": True,
         },
         "check": "shared_bank" if args.shared_bank else ("reset_lifecycle" if args.reset_lifecycle else "startup"),
         "num_envs": args.num_envs,
@@ -506,6 +554,7 @@ def main() -> int:
     passed = (
         execution["stop_reason"] is None
         and execution["collision_cooking_failure"] is None
+        and execution["fatal_exception"] is None
         and execution["exit_code"] == 0
         and hashes_unchanged
         and smoke_passed
@@ -515,6 +564,7 @@ def main() -> int:
         "stop_reason": execution["stop_reason"],
         "failure_marker": execution["failure_marker"],
         "collision_cooking_failure": execution["collision_cooking_failure"],
+        "fatal_exception": execution["fatal_exception"],
         "code_hashes_unchanged": hashes_unchanged,
         "result_json_produced": result_path.is_file(),
         "training_started": False,

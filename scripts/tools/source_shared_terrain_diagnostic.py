@@ -41,6 +41,11 @@ def check_scanners(env, *, flat_entry=False):
         ground_id = sensor.meshes["/World/ground"].id
         if ids.shape != (2, 1) or not (ids == ground_id).all():
             raise AssertionError(f"{name}: runtime ray targets are not the shared ground mesh")
+        if (data.ray_hits_w.ndim != 3 or data.ray_hits_w.shape[0] != 2
+                or data.ray_hits_w.shape[1] == 0 or data.ray_hits_w.shape[2] != 3
+                or not isinstance(data.ray_mesh_ids, torch.Tensor)
+                or data.ray_mesh_ids.shape != (*data.ray_hits_w.shape[:2], 1)):
+            raise AssertionError(f"{name}: invalid ray-hit or mesh-ID cache dimensions")
         if not torch.isfinite(data.ray_hits_w).all() or not (data.ray_mesh_ids == 0).all():
             raise AssertionError(f"{name}: missing ground hit or nonfinite ray")
         if flat_entry and not torch.allclose(

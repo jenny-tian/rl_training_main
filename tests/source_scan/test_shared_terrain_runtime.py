@@ -221,7 +221,7 @@ def scanner_env():
     return NS(scene=NS(sensors=sensors, terrain=NS(env_origins=torch.zeros(2, 3))))
 
 
-@pytest.mark.parametrize('fault', ['target', 'extra', 'miss', 'nan', 'height'])
+@pytest.mark.parametrize('fault', ['target', 'extra', 'miss', 'nan', 'height', 'ids_shape'])
 def test_runtime_scan_failure_is_detected(diagnostic, fault):
     env = scanner_env()
     sensor = env.scene.sensors['height_scanner']
@@ -229,6 +229,7 @@ def test_runtime_scan_failure_is_detected(diagnostic, fault):
     elif fault == 'extra': sensor._mesh_ids_wp.numpy = lambda: np.full((2, 2), 42)
     elif fault == 'miss': sensor.data.ray_mesh_ids[0, 0] = -1
     elif fault == 'nan': sensor.data.ray_hits_w[0, 0, 0] = float('nan')
+    elif fault == 'ids_shape': sensor.data.ray_mesh_ids = sensor.data.ray_mesh_ids[..., 0]
     else: sensor.data.ray_hits_w[0, 0, 2] = 0.8
     with pytest.raises(AssertionError): diagnostic.check_scanners(env, flat_entry=True)
 
@@ -296,7 +297,9 @@ def _construct_scene_config(*, shared=None, enabled=True, num_envs=2):
     return config
 
 
-def test_actual_config_construction_keeps_shared_opt_in_and_sets_explicit_filters():
+def test_actual_config_construction_keeps_shared_opt_in_and_sets_explicit_filters(monkeypatch):
+    from test_source_ground_ray_caster import load_adapter
+    adapter, _ = load_adapter(monkeypatch)
     default = _construct_scene_config(enabled=False)
     assert default.source_shared_bank_rows is None and default.scene.num_envs == 1
     reserved = _construct_scene_config()
@@ -305,6 +308,8 @@ def test_actual_config_construction_keeps_shared_opt_in_and_sets_explicit_filter
     shared = _construct_scene_config(shared=1)
     assert shared.scene.terrain.terrain_generator.num_rows == 1
     assert shared.scene.terrain.shared_bank_rows == 1 and shared.scene.num_envs == 2
+    assert shared.scene.height_scanner.class_type is adapter.SourceGroundRayCaster
+    assert shared.scene.height_scanner_base.class_type is adapter.SourceGroundRayCaster
     validate_shared_scene_cfg(shared.scene)
 
 

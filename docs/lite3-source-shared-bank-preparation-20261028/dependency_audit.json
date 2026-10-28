@@ -42,6 +42,22 @@
     {
       "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.demos-107.3.26+107.3.3.cp311.u353/omni/physxdemos/scenes/ContactReportDemo.py",
       "sha256": "8835869b7607352cecf35b576ec8b2f8a486c2899c2d1cbcb10f4e55c09117b0"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/ray_caster/multi_mesh_ray_caster_data.py",
+      "sha256": "002d629a93b1ab9b12b77c19c0f4d6fbeed7ae30260b7799f0a3f2f0dc126aad"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/ray_caster/ray_caster.py",
+      "sha256": "b6a84cb0e506f4a4724d3262e0f533ccb31d75128e1e46282220fcfa688e286c"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/sensor_base.py",
+      "sha256": "4716a4b89ed1ac4f640f8744f1e2fcaac2e74d00c2193e0ce24e52c61e5659fc"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/warp/ops.py",
+      "sha256": "6202538ae05e3f424a0dfdd4df7e00cc272e4213827cceafa5a0a72df8baea84"
     }
   ],
   "findings": {
@@ -51,5 +67,14 @@
     "scan_target": "one merged static ground mesh; local hit mesh index zero",
     "contact_report": "subscribe_contact_report_events with collider ownership, zero threshold on all bodies; positive ground control required",
     "qualification": false
+  },
+  "mesh_id_contract_review": {
+    "date": "2026-10-28",
+    "public_shape": "(N, B, 1)",
+    "warp_return_shape": "(N, B)",
+    "dtype": "int16",
+    "miss_id": -1,
+    "adapter": "rl_training.source_scan.source_ground_ray_caster.SourceGroundRayCaster",
+    "installed_dependencies_modified": false
   }
 }

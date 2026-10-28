@@ -1,4 +1,4 @@
-"""The startup supervisor must stop immediately on a terrain cooking error."""
+"""The supervisor must stop on cooking errors or explicit fatal trace markers."""
 
 import importlib.util
 import json
@@ -132,7 +132,8 @@ def test_supervisor_stops_if_resource_sampling_fails(tmp_path):
 
 @pytest.mark.skipif(sys.platform != "linux", reason="uses Linux process state")
 @pytest.mark.parametrize("leader_exits", [False, True])
-def test_supervisor_kills_signal_resistant_descendants(tmp_path, leader_exits):
+@pytest.mark.parametrize("failure_kind", ["cooking", "fatal"])
+def test_supervisor_kills_signal_resistant_descendants(tmp_path, leader_exits, failure_kind):
     ready_path = tmp_path / "child.pid"
     child_code = (
         "import os, pathlib, signal, time\n"
@@ -140,11 +141,13 @@ def test_supervisor_kills_signal_resistant_descendants(tmp_path, leader_exits):
         f"pathlib.Path({str(ready_path)!r}).write_text(str(os.getpid()))\n"
         "time.sleep(20)\n"
     )
+    marker = ("cooking failure for /World/ground/terrain/ordinary/mesh" if failure_kind == "cooking"
+              else "[parallel-terrain-smoke] fatal-exception-recorded")
     leader_code = (
         "import pathlib, subprocess, sys, time\n"
         f"subprocess.Popen([sys.executable, '-c', {child_code!r}])\n"
         f"while not pathlib.Path({str(ready_path)!r}).exists(): time.sleep(0.01)\n"
-        "print('cooking failure for /World/ground/terrain/ordinary/mesh', flush=True)\n"
+        f"print({marker!r}, flush=True)\n"
         + ("sys.exit(0)\n" if leader_exits else "time.sleep(20)\n")
     )
 
@@ -167,7 +170,7 @@ def test_supervisor_kills_signal_resistant_descendants(tmp_path, leader_exits):
             poll_interval_s=0.02,
             terminate_grace_s=0.1,
         )
-        assert result["stop_reason"] == "physx_cooking_failure"
+        assert result["stop_reason"] == ("physx_cooking_failure" if failure_kind == "cooking" else "fatal_exception")
         deadline = time.monotonic() + 2
         while child_running() and time.monotonic() < deadline:
             time.sleep(0.01)
@@ -249,12 +252,14 @@ def test_completed_initial_reset_still_obeys_total_timeout(tmp_path):
 
 @pytest.mark.skipif(os.name != "posix", reason="requires SIGTERM handlers")
 @pytest.mark.parametrize("trigger", ["startup_timeout", "total_timeout", "resource_monitor_failure"])
-def test_cleanup_captures_buffered_failure_without_rewriting_stop_trigger(tmp_path, trigger):
+@pytest.mark.parametrize("failure_kind", ["cooking", "fatal"])
+def test_cleanup_captures_buffered_failure_without_rewriting_stop_trigger(tmp_path, trigger, failure_kind):
     ready_path = tmp_path / "ready"
     trace_path = tmp_path / "trace.log"
     if trigger == "total_timeout":
         trace_path.write_text("initial-reset-complete\n")
-    marker = "cooking failure for /World/ground/terrain/ordinary/part_001/mesh"
+    marker = ("cooking failure for /World/ground/terrain/ordinary/part_001/mesh" if failure_kind == "cooking"
+              else "[parallel-terrain-smoke] simulation-app-close-exception")
     code = (
         "import pathlib, signal, sys, time\n"
         "def stop(*_):\n"
@@ -293,7 +298,7 @@ def test_cleanup_captures_buffered_failure_without_rewriting_stop_trigger(tmp_pa
         assert "GPU sample failed" in result["failure_marker"]
     else:
         assert result["failure_marker"] is None
-    diagnostic = result["collision_cooking_failure"]
+    diagnostic = result["collision_cooking_failure" if failure_kind == "cooking" else "fatal_exception"]
     assert diagnostic["marker"] == marker
     assert diagnostic["detected_phase"] == "post_termination"
     assert diagnostic["detected_elapsed_s"] >= result["stop_requested_elapsed_s"]
@@ -314,9 +319,9 @@ def test_failure_survives_a_large_final_output_burst(tmp_path):
     assert result["stop_reason"] == "physx_cooking_failure"
 
 
-@pytest.mark.parametrize("late_collision", [False, True])
-def test_main_rejects_late_collision_even_with_successful_smoke_report(
-    tmp_path, monkeypatch, late_collision
+@pytest.mark.parametrize("late_collision,late_fatal", [(False, False), (True, False), (False, True)])
+def test_main_rejects_late_failure_even_with_successful_smoke_report(
+    tmp_path, monkeypatch, late_collision, late_fatal
 ):
     run_dir = tmp_path / "run"
     monkeypatch.setattr(sys, "argv", [str(MODULE_PATH), "--run-dir", str(run_dir), "--num-envs", "60"])
@@ -346,14 +351,106 @@ def test_main_rejects_late_collision_even_with_successful_smoke_report(
             "zero_action_steps": 1, "policy_loaded": False, "ppo_updates": 0,
         }))
         return {"exit_code": 0, "stop_reason": None, "failure_marker": None,
-                "collision_cooking_failure": diagnostic}
+                "collision_cooking_failure": diagnostic,
+                "fatal_exception": {"detected_phase": "post_termination", "marker": "fatal"} if late_fatal else None}
 
     monkeypatch.setattr(supervisor_module, "run_monitored_process", completed_smoke)
-    assert supervisor_module.main() == (1 if late_collision else 0)
+    failed = late_collision or late_fatal
+    assert supervisor_module.main() == (1 if failed else 0)
     outcome = json.loads((run_dir / "outcome.json").read_text())
-    assert outcome["status"] == ("startup_check_failed" if late_collision else "diagnostic_smoke_passed")
+    assert outcome["status"] == ("startup_check_failed" if failed else "diagnostic_smoke_passed")
     assert outcome["stop_reason"] is None
     assert outcome["collision_cooking_failure"] == diagnostic
+    assert (outcome["fatal_exception"] is not None) == late_fatal
+
+
+def test_fatal_parser_matches_only_explicit_diagnostic_lines():
+    for marker in supervisor_module._FATAL_TRACE_LINES:
+        assert supervisor_module.find_fatal_exception("noise\n" + marker + "\n") == marker
+    for noise in ("fatal-exception-recorded", "[Warning] fatal-exception-recorded",
+                  "[parallel-terrain-smoke] simulation-app-close-start",
+                  "[parallel-terrain-smoke] report-write-complete",
+                  "mentioned: [parallel-terrain-smoke] fatal-exception-recorded",
+                  "[parallel-terrain-smoke] fatal-exception-recorded-example"):
+        assert supervisor_module.find_fatal_exception(noise) is None
+
+
+@pytest.mark.skipif(os.name != "posix", reason="requires SIGTERM")
+@pytest.mark.parametrize("stream", ["console", "trace"])
+@pytest.mark.parametrize("ignore_sigterm", [False, True])
+def test_fatal_marker_ends_stuck_close_within_cleanup_grace(tmp_path, stream, ignore_sigterm):
+    trace_path = tmp_path / "trace.log"
+    marker = "[parallel-terrain-smoke] fatal-exception-recorded"
+    code = "import pathlib, signal, sys, time\n"
+    if ignore_sigterm:
+        code += "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+    if stream == "trace":
+        code += f"pathlib.Path({str(trace_path)!r}).write_text({marker!r} + '\\n')\n"
+    else:
+        code += f"print({marker!r}, flush=True)\n"
+    code += "time.sleep(20)\n"
+    result = supervisor_module.run_monitored_process(
+        [sys.executable, "-c", code], console_path=tmp_path / "console.log", trace_path=trace_path,
+        startup_timeout_s=5, total_timeout_s=10, poll_interval_s=0.01, terminate_grace_s=0.1,
+    )
+    assert result["stop_reason"] == "fatal_exception"
+    assert result["failure_marker"] == marker
+    assert result["fatal_exception"]["stream"] == stream
+    assert result["fatal_exception"]["detected_phase"] == "monitor"
+    assert result["elapsed_s"] < 3  # Neither the 5s startup limit nor the 20s child sleep.
+    assert result["elapsed_s"] - result["stop_requested_elapsed_s"] < 1
+    assert result["terminate_grace_s"] == 0.1
+    assert result["exit_code"] == (-signal.SIGKILL if ignore_sigterm else -signal.SIGTERM)
+
+
+@pytest.mark.parametrize("stream", ["console", "trace"])
+def test_fragmented_fatal_marker_is_detected(tmp_path, stream):
+    trace_path = tmp_path / "trace.log"
+    marker = "[parallel-terrain-smoke] fatal-exception-recorded"
+    code = "import pathlib, sys, time\n"
+    if stream == "console":
+        code += f"sys.stdout.write({marker[:20]!r}); sys.stdout.flush(); time.sleep(0.05)\n"
+        code += f"sys.stdout.write({marker[20:]!r} + '\\n'); sys.stdout.flush()\n"
+    else:
+        code += f"p=pathlib.Path({str(trace_path)!r}); p.write_text({marker[:20]!r}); time.sleep(0.05)\n"
+        code += f"p.write_text({marker!r} + '\\n')\n"
+    code += "time.sleep(20)\n"
+    result = supervisor_module.run_monitored_process(
+        [sys.executable, "-c", code], console_path=tmp_path / "console.log", trace_path=trace_path,
+        startup_timeout_s=5, total_timeout_s=10, poll_interval_s=0.01, terminate_grace_s=0.1,
+    )
+    assert result["stop_reason"] == "fatal_exception"
+    assert result["fatal_exception"]["marker"] == marker
+
+
+def test_fatal_marker_cannot_be_hidden_by_zero_exit_or_large_final_output(tmp_path):
+    marker = "[parallel-terrain-smoke] simulation-app-close-exception"
+    result = supervisor_module.run_monitored_process(
+        [sys.executable, "-c", f"print({marker!r}); print('noise' * 10000)"],
+        console_path=tmp_path / "console.log", trace_path=tmp_path / "trace.log",
+        startup_timeout_s=5, total_timeout_s=10, poll_interval_s=0.02, terminate_grace_s=0.1,
+    )
+    assert result["stop_reason"] == "fatal_exception"
+    assert result["fatal_exception"]["marker"] == marker
+
+
+def test_archived_shared_bank_failure_now_triggers_automatic_stop(tmp_path):
+    root = MODULE_PATH.parents[2]
+    archived = root / "docs/lite3-source-shared-bank-2env-20261028"
+    trace_path = tmp_path / "trace.log"
+    code = (
+        "import pathlib, sys, time\n"
+        f"pathlib.Path({str(trace_path)!r}).write_bytes(pathlib.Path({str(archived / 'trace.log')!r}).read_bytes())\n"
+        f"sys.stdout.write(pathlib.Path({str(archived / 'console.log')!r}).read_text()); sys.stdout.flush()\n"
+        "time.sleep(20)\n"
+    )
+    result = supervisor_module.run_monitored_process(
+        [sys.executable, "-c", code], console_path=tmp_path / "console.log", trace_path=trace_path,
+        startup_timeout_s=5, total_timeout_s=10, poll_interval_s=0.01, terminate_grace_s=0.1,
+    )
+    assert result["stop_reason"] == "fatal_exception"
+    assert result["fatal_exception"]["marker"] == "[parallel-terrain-smoke] fatal-exception-recorded"
+    assert result["elapsed_s"] < 3
 
 
 def test_lifecycle_report_requires_complete_direct_and_automatic_reset_coverage():

@@ -92,3 +92,5 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training \
 既有 60 环境 reserved-row G2 通过记录继续保留；本阶段不把它扩展解释为共享 bank 已通过。下一阶段真实运行须经用户确认。
 
 **后续运行结果（2026-10-28）：** 用户批准后，从干净提交 `87b5c89` 执行了一次上述两环境检查。在观测管理器构建阶段，启用 mesh hit ID 的本机 `MultiMeshRayCaster` 出现 `(2,345)` 到 `(2,345,1)` 的写入维度错误，未进入初始 reset 或共享诊断。异常关闭未及时结束，经核对进程身份后发送 SIGTERM 收尾，监督器总耗时 114.317 秒、显存采样峰值 2,818 MiB；退出后 GPU0 18 MiB、无残留测试进程。没有自动重试或修复运行代码。详见 [失败记录与下一阶段离线修复建议](../lite3-source-shared-bank-2env-20261028/README.md)。
+
+**后续离线修复（2026-10-28）：** 经用户同意，共享配置已改用项目内静态地面 ray caster 适配 mesh-ID 维度，监督器已增加致命标记自动停止。293 项离线回归通过，尚未真实复测。依赖清单在原 10 项上扩充为 14 项，原安装文件未改动。修复与新目录复测命令见 [离线修复记录](../lite3-source-shared-bank-offline-repair-20261028/README.md)。
