@@ -1,0 +1,35 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_ground_ray_caster.py",
+    "tests/source_scan/test_shared_terrain_runtime.py",
+    "tests/source_scan/test_shared_contact_report.py",
+    "tests/source_scan/test_shared_terrain_bank.py",
+    "tests/source_scan/test_parallel_terrain_allocation.py",
+    "tests/source_scan/test_source_parallel_reset_lifecycle.py",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py",
+    "tests/source_scan/test_source_terrain_importer_chunking.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_source_mesh_chunking.py",
+    "tests/source_scan/test_shared_tensor_contact.py"
+  ],
+  "environment": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "source/rl_training"
+  },
+  "started_at_utc": "2026-10-28T14:58:54.392435+00:00",
+  "source_sha256": {
+    "scripts/tools/source_parallel_terrain_startup_supervisor.py": "35e83460bdce1d3607522cd6b218c0d204ea4e69396e5608f2661e07653e051a",
+    "scripts/tools/source_shared_report_validation.py": "b92ec3b2e263eb3c1261922a1da41bab2357889a894c16d0af2559ea59032c47",
+    "scripts/tools/source_shared_terrain_diagnostic.py": "887f00f4faa567d251e0ed31a9b89d1c69a286eb40740ecdf94405bdd582e617",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py": "1c86c05782c8dac9d6490e032550f0acf0cc67bd98ffbfc084eac52d7ac6f98a"
+  },
+  "predicate_ast_unchanged": true,
+  "exit_code": 0,
+  "completed_at_utc": "2026-10-28T14:59:24.069580+00:00",
+  "source_hashes_unchanged": true,
+  "regression_log_sha256": "9edf356a9e1490e2607df44cde2ada761cb1c2e37c90bacb65948881264ff4cf"
+}

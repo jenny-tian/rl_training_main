@@ -489,3 +489,112 @@ def test_lifecycle_report_requires_complete_direct_and_automatic_reset_coverage(
         del incomplete[key]
         assert not supervisor_module.lifecycle_report_passed(incomplete)
     assert not supervisor_module.lifecycle_report_passed(dict(report, automatic_reset_ids=[2, 23]))
+
+
+ARCHIVED_PROBE = MODULE_PATH.parents[2] / 'docs/lite3-source-shared-bank-2env-tensor-repair-20261028'
+
+
+@pytest.mark.parametrize('invalid_report', [False, True])
+def test_shared_main_in_fresh_interpreter_without_kit(tmp_path, invalid_report):
+    """Real imports + main finalization; only launch/preflight are replaced by archived evidence."""
+    code = r'''
+import importlib.abc
+import json
+from pathlib import Path
+import sys
+from unittest.mock import patch
+
+class NoSimulator(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split('.')[0] in {'rl_training', 'isaaclab', 'isaacsim', 'omni', 'pxr', 'torch'}:
+            raise AssertionError('unexpected simulator/task import: ' + fullname)
+sys.meta_path.insert(0, NoSimulator())
+tools, archive, output, invalid = sys.argv[1:]
+sys.path.insert(0, tools)
+import source_parallel_terrain_startup_supervisor as supervisor
+archive, output = Path(archive), Path(output)
+def completed_child(command, **kwargs):
+    report = json.loads((archive / 'result.json').read_text())
+    if invalid == 'True':
+        report['ground_contact_points']['0'] = 0
+    (output / 'result.json').write_text(json.dumps(report))
+    (output / 'gpu_samples.jsonl').write_bytes((archive / 'gpu_samples.jsonl').read_bytes())
+    return json.loads((archive / 'execution.json').read_text())
+sys.argv = [supervisor.__file__, '--shared-bank', '--num-envs', '2', '--seed', '130196',
+            '--run-dir', str(output)]
+with patch.object(supervisor, '_capture', return_value=''), \
+     patch.object(supervisor, '_gpu_preflight', return_value=('offline replay', '')), \
+     patch.object(supervisor, 'run_monitored_process', side_effect=completed_child):
+    exit_code = supervisor.main()
+manifest = json.loads((output / 'manifest.json').read_text())
+assert 'scripts/tools/source_shared_report_validation.py' in manifest['source_file_sha256']
+assert exit_code == (1 if invalid == 'True' else 0)
+assert not any(k.split('.')[0] in {'rl_training', 'pxr', 'omni', 'torch'} for k in sys.modules)
+'''
+    env = os.environ.copy()
+    env.pop('PYTHONPATH', None)
+    completed = subprocess.run(
+        [sys.executable, '-c', code, str(MODULE_PATH.parent), str(ARCHIVED_PROBE),
+         str(tmp_path / 'replay'), str(invalid_report)],
+        cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    outcome = json.loads((tmp_path / 'replay/outcome.json').read_text())
+    assert outcome['status'] == ('startup_check_failed' if invalid_report else 'diagnostic_smoke_passed')
+    assert outcome['finalization_error'] is None
+
+
+@pytest.mark.parametrize('fault', [
+    'missing_result', 'bad_json', 'wrong_type', 'bad_topology', 'missing_source',
+    'changed_source', 'bad_samples', 'import_error', 'validator_error', 'child_failure',
+    'late_contact_loss',
+])
+def test_finalization_failures_always_leave_failed_outcome(tmp_path, monkeypatch, fault):
+    monkeypatch.syspath_prepend(str(MODULE_PATH.parent))
+    import source_shared_report_validation as validator
+    import builtins
+    report = json.loads((ARCHIVED_PROBE / 'result.json').read_text())
+    execution = json.loads((ARCHIVED_PROBE / 'execution.json').read_text())
+    (tmp_path / 'gpu_samples.jsonl').write_bytes((ARCHIVED_PROBE / 'gpu_samples.jsonl').read_bytes())
+    if fault == 'wrong_type':
+        report = []
+    if fault == 'bad_topology':
+        report['contact_capture']['tensor_topology'] = []
+    if fault != 'missing_result':
+        (tmp_path / 'result.json').write_text('{' if fault == 'bad_json' else json.dumps(report))
+    if fault == 'bad_samples':
+        (tmp_path / 'gpu_samples.jsonl').write_text('{')
+    source_hashes = {}
+    if fault in ('missing_source', 'changed_source'):
+        source_hashes['source.py'] = 'expected'
+        if fault == 'changed_source':
+            (tmp_path / 'source.py').write_text('changed')
+    if fault == 'import_error':
+        original_import = builtins.__import__
+        def fail_import(name, *args, **kwargs):
+            if name == 'source_shared_report_validation':
+                raise ImportError('injected validator import failure')
+            return original_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, '__import__', fail_import)
+    if fault == 'validator_error':
+        def fail_validation(_report):
+            raise RuntimeError('injected validation failure')
+        monkeypatch.setattr(validator, 'shared_report_passed', fail_validation)
+    if fault == 'child_failure':
+        execution['exit_code'] = 1
+        execution['stop_reason'] = 'fatal_exception'
+    if fault == 'late_contact_loss':
+        execution['fatal_exception'] = {'marker': 'Dropping contacts', 'detected_phase': 'post_termination'}
+    outcome = supervisor_module.finalize_run(
+        run_dir=tmp_path, root=tmp_path, execution=execution,
+        source_hashes=source_hashes, dependency_hashes={}, num_envs=2, shared_bank=True,
+    )
+    assert outcome == json.loads((tmp_path / 'outcome.json').read_text())
+    assert outcome['status'] == 'startup_check_failed'
+    assert outcome['stop_reason'] == execution['stop_reason']
+    assert outcome['fatal_exception'] == execution['fatal_exception']
+    persisted = json.loads((tmp_path / 'execution.json').read_text())
+    assert persisted['exit_code'] == execution['exit_code']
+    if fault not in ('wrong_type', 'bad_topology', 'changed_source', 'child_failure', 'late_contact_loss'):
+        assert outcome['finalization_error'] is not None
+        assert persisted['finalization_error'] == outcome['finalization_error']

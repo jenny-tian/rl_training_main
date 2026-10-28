@@ -11,10 +11,10 @@ from source_parallel_reset_lifecycle import snapshot, check_transition, summariz
 from source_shared_contact_report import (
     ContactRuntime, capture_substeps, classify_contact,
 )
-from source_shared_tensor_contact import TensorContactCapture, tensor_summary_passed
+from source_shared_tensor_contact import TensorContactCapture
+from source_shared_report_validation import SHARED_CONTROL_STEPS, shared_report_passed
 
 SHARED_DIAGNOSTIC_SEED = 130196
-SHARED_CONTROL_STEPS = 20
 SHARED_RESET_BATCHES = ((0,), (1,), (1, 0), (0,), (1,))
 
 
@@ -236,27 +236,3 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
             "collision_groups": audit_shared_collision_groups(env.scene),
             "journal": str(journal_path), "policy_loaded": False, "ppo_updates": 0,
             "motion_isolation_qualified": False, "qualification_claim": False}
-
-
-def shared_report_passed(report):
-    """Fail closed if a success file omits any required shared-bank coverage."""
-    if not isinstance(report, dict):
-        return False
-    contacts = report.get('ground_contact_points', {})
-    resets = report.get('reset_checks', {})
-    if not isinstance(contacts, dict) or not isinstance(resets, dict):
-        return False
-    return (
-        report.get('status') == 'shared_bank_smoke_passed'
-        and report.get('num_envs') == 2 and report.get('bank_rows') == 1
-        and report.get('zero_action_steps') == SHARED_CONTROL_STEPS
-        and report.get('overlapping_spawn_checked') is True
-        and report.get('cross_environment_contacts') == 0
-        and all(type(contacts.get(str(i), contacts.get(i))) is int
-                and contacts.get(str(i), contacts.get(i, 0)) > 0 for i in (0, 1))
-        and tensor_summary_passed(report.get('contact_capture'), contacts)
-        and report.get('vertical_occlusion_probe_passed') is True
-        and resets.get('assignment_count') == 8 and resets.get('reset_batch_count') == 5
-        and resets.get('direct_reset_count') == 6
-        and report.get('policy_loaded') is False and report.get('ppo_updates') == 0
-    )

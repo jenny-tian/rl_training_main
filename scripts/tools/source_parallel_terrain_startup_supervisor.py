@@ -355,6 +355,71 @@ def lifecycle_report_passed(report) -> bool:
     )
 
 
+def finalize_run(*, run_dir: Path, root: Path, execution: dict,
+                 source_hashes: dict, dependency_hashes: dict,
+                 num_envs: int, shared_bank: bool = False, reset_lifecycle: bool = False) -> dict:
+    """Persist a fail-closed outcome even when post-run validation raises.
+
+    Called only after child cleanup. No simulator imports or process launches.
+    Filesystem write failures still propagate: an unwritable archive cannot be guaranteed.
+    """
+    result_path = run_dir / "result.json"
+    hashes_unchanged = False
+    smoke_passed = False
+    finalization_error = None
+    execution = dict(execution)
+    execution.update(sampled_gpu_peak_mib=None, gpu_sampling_interval_s=1.0,
+                     gpu_sample_timeout_s=_GPU_SAMPLE_TIMEOUT_S)
+    phase = "hash_verification"
+    try:
+        hashes_unchanged = all(
+            _sha256(root / path) == expected for path, expected in source_hashes.items()
+        ) and all(_sha256(Path(path)) == expected for path, expected in dependency_hashes.items())
+        phase = "gpu_sample_summary"
+        samples = [json.loads(line) for line in (run_dir / "gpu_samples.jsonl").read_text().splitlines()
+                   if line.strip()]
+        execution["sampled_gpu_peak_mib"] = max(
+            (sample["memory_used_mib"] for sample in samples), default=None)
+        phase = "report_validation"
+        report = json.loads(result_path.read_text(encoding="utf-8"))
+        if shared_bank:
+            from source_shared_report_validation import shared_report_passed
+
+            smoke_passed = shared_report_passed(report)
+        else:
+            smoke_passed = (
+                isinstance(report, dict)
+                and report.get("status") == "diagnostic_smoke_passed"
+                and report.get("num_envs") == num_envs
+                and report.get("zero_action_steps") == (2 if reset_lifecycle else 1)
+                and (not reset_lifecycle or lifecycle_report_passed(report.get("reset_lifecycle")))
+                and report.get("policy_loaded") is False and report.get("ppo_updates") == 0
+            )
+    except Exception as exc:
+        # Import, schema, read and validation failures must never omit the outcome.
+        finalization_error = {"phase": phase, "type": type(exc).__name__, "message": str(exc)}
+    execution["code_hashes_unchanged"] = hashes_unchanged
+    execution["finalization_error"] = finalization_error
+    passed = (
+        finalization_error is None and hashes_unchanged and smoke_passed
+        and execution["stop_reason"] is None and execution["collision_cooking_failure"] is None
+        and execution["fatal_exception"] is None and execution["exit_code"] == 0
+    )
+    outcome = {
+        "status": "diagnostic_smoke_passed" if passed else "startup_check_failed",
+        "stop_reason": execution["stop_reason"], "failure_marker": execution["failure_marker"],
+        "collision_cooking_failure": execution["collision_cooking_failure"],
+        "fatal_exception": execution["fatal_exception"],
+        "code_hashes_unchanged": hashes_unchanged,
+        "result_json_produced": result_path.is_file(),
+        "report_validation_passed": smoke_passed,
+        "finalization_error": finalization_error, "training_started": False,
+    }
+    (run_dir / "execution.json").write_text(json.dumps(execution, ensure_ascii=False, indent=2) + "\n")
+    (run_dir / "outcome.json").write_text(json.dumps(outcome, ensure_ascii=False, indent=2) + "\n")
+    return outcome
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
@@ -451,6 +516,7 @@ def main() -> int:
         supervisor_path.with_name("source_shared_terrain_diagnostic.py"),
         supervisor_path.with_name("source_shared_contact_report.py"),
         supervisor_path.with_name("source_shared_tensor_contact.py"),
+        supervisor_path.with_name("source_shared_report_validation.py"),
         supervisor_path,
         asset_audit_path,
     ]
@@ -528,69 +594,13 @@ def main() -> int:
         cwd=root,
         env=child_env,
     )
-    hashes_unchanged = all(
-        _sha256(root / relative_path) == expected_hash
-        for relative_path, expected_hash in source_hashes.items()
-    )
-    hashes_unchanged = hashes_unchanged and all(
-        _sha256(Path(path)) == expected_hash for path, expected_hash in dependency_hashes.items()
-    )
-    execution["code_hashes_unchanged"] = hashes_unchanged
-    gpu_samples = [
-        json.loads(line)
-        for line in gpu_samples_path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
-    execution["sampled_gpu_peak_mib"] = max(
-        (sample["memory_used_mib"] for sample in gpu_samples), default=None
-    )
-    execution["gpu_sampling_interval_s"] = 1.0
-    execution["gpu_sample_timeout_s"] = _GPU_SAMPLE_TIMEOUT_S
-    (run_dir / "execution.json").write_text(
-        json.dumps(execution, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-
-    smoke_passed = False
-    if result_path.is_file():
-        try:
-            report = json.loads(result_path.read_text(encoding="utf-8"))
-            smoke_passed = (
-                report.get("status") == "diagnostic_smoke_passed"
-                and report.get("num_envs") == args.num_envs
-                and report.get("zero_action_steps") == (2 if args.reset_lifecycle else 1)
-                and (not args.reset_lifecycle or lifecycle_report_passed(report.get("reset_lifecycle")))
-                and report.get("policy_loaded") is False
-                and report.get("ppo_updates") == 0
-            )
-            if args.shared_bank:
-                from source_shared_terrain_diagnostic import shared_report_passed
-
-                smoke_passed = shared_report_passed(report)
-        except (OSError, json.JSONDecodeError):
-            smoke_passed = False
-    passed = (
-        execution["stop_reason"] is None
-        and execution["collision_cooking_failure"] is None
-        and execution["fatal_exception"] is None
-        and execution["exit_code"] == 0
-        and hashes_unchanged
-        and smoke_passed
-    )
-    outcome = {
-        "status": "diagnostic_smoke_passed" if passed else "startup_check_failed",
-        "stop_reason": execution["stop_reason"],
-        "failure_marker": execution["failure_marker"],
-        "collision_cooking_failure": execution["collision_cooking_failure"],
-        "fatal_exception": execution["fatal_exception"],
-        "code_hashes_unchanged": hashes_unchanged,
-        "result_json_produced": result_path.is_file(),
-        "training_started": False,
-    }
-    (run_dir / "outcome.json").write_text(
-        json.dumps(outcome, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    outcome = finalize_run(
+        run_dir=run_dir, root=root, execution=execution,
+        source_hashes=source_hashes, dependency_hashes=dependency_hashes,
+        num_envs=args.num_envs, shared_bank=args.shared_bank, reset_lifecycle=args.reset_lifecycle,
     )
     print(json.dumps({"run_dir": str(run_dir), **outcome}, ensure_ascii=False), flush=True)
-    return 0 if passed else 1
+    return 0 if outcome["status"] == "diagnostic_smoke_passed" else 1
 
 
 if __name__ == "__main__":
