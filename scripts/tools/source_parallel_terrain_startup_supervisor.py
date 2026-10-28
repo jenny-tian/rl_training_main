@@ -434,6 +434,7 @@ def main() -> int:
         smoke_script,
         supervisor_path.with_name("source_parallel_reset_lifecycle.py"),
         supervisor_path.with_name("source_shared_terrain_diagnostic.py"),
+        supervisor_path.with_name("source_shared_contact_report.py"),
         supervisor_path,
         asset_audit_path,
     ]

@@ -242,6 +242,12 @@ def test_shared_report_rejects_missing_coverage(diagnostic):
     report = dict(status='shared_bank_smoke_passed', num_envs=2, bank_rows=1, zero_action_steps=20,
                   overlapping_spawn_checked=True, cross_environment_contacts=0,
                   ground_contact_points={'0': 1, '1': 1}, vertical_occlusion_probe_passed=True,
+                  contact_capture=dict(schema='shared_contact_capture_v1', stage_id=73, start_sim_step=12,
+                      runtime_checked=True, positive_controls_validated=True, decimation=4, control_steps=20,
+                      poll_steps=list(range(13, 93)), control_poll_counts=[4] * 20,
+                      channels={'poll': dict(calls=80, headers=2, data=2),
+                                'callback': dict(calls=0, headers=0, data=0)},
+                      ground_contact_points={'0': 1, '1': 1}, errors=[], cross_environment_contacts=0),
                   reset_checks=dict(assignment_count=8, reset_batch_count=5, direct_reset_count=6),
                   policy_loaded=False, ppo_updates=0)
     assert diagnostic.shared_report_passed(report)

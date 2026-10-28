@@ -1,34 +1,40 @@
 """Bounded two-robot shared-bank diagnostic; imports do not launch Isaac Sim."""
 
-from collections import Counter
 from dataclasses import asdict
 import json
-import re
 
 import torch
 
 from rl_training.source_scan.parallel_terrain_allocation import SOURCE_RESET_BLOCK_COUNTS
 from rl_training.source_scan.shared_terrain_bank import SharedBankTerrainAllocator, audit_shared_collision_groups
 from source_parallel_reset_lifecycle import snapshot, check_transition, summarize_tickets, _digest
+from source_shared_contact_report import (
+    ContactCapture, capture_substeps, classify_contact, contact_summary_passed,
+)
 
 SHARED_DIAGNOSTIC_SEED = 130196
 SHARED_CONTROL_STEPS = 20
 SHARED_RESET_BATCHES = ((0,), (1,), (1, 0), (0,), (1,))
 
 
-def classify_contact(path0, path1):
-    """Use collider ownership, not net-force cancellation, to detect coupling."""
-    def owner(path):
-        match = re.match(r"^/World/envs/env_(\d+)/Robot/", path)
-        return int(match[1]) if match else None
-
-    owners = (owner(path0), owner(path1))
-    if all(i is not None for i in owners) and owners[0] != owners[1]:
-        return "cross_environment", None
-    for i, path in ((owners[0], path1), (owners[1], path0)):
-        if i is not None and path.startswith("/World/ground/"):
-            return "ground", i
-    return "other", None
+def contact_sensor_snapshot(env):
+    """Body-origin height and net force telemetry; neither proves pairwise isolation."""
+    robot = env.scene['robot']
+    sensor = env.scene.sensors['contact_forces']
+    body_ids, names = robot.find_bodies(env.cfg.foot_link_name)
+    sensor_names = sensor.body_names
+    if len(names) != 4 or any(name not in sensor_names for name in names):
+        raise AssertionError('expected four feet in both robot and contact sensor')
+    sensor_ids = [sensor_names.index(name) for name in names]
+    heights = robot.data.body_pos_w[:, body_ids, 2] - env.scene.terrain.env_origins[:, 2, None]
+    forces = sensor.data.net_forces_w
+    if (forces.shape != (2, len(sensor_names), 3) or heights.shape != (2, 4)
+            or not torch.isfinite(heights).all() or not torch.isfinite(forces).all()):
+        raise AssertionError('invalid foot-height or contact-force telemetry')
+    return {'foot_names': names, 'foot_body_origin_height_above_tile_m': heights.cpu().tolist(),
+            'foot_net_contact_forces_w_N': forces[:, sensor_ids].cpu().tolist(),
+            'contact_sensor_body_names': sensor_names, 'net_contact_forces_w_N': forces.cpu().tolist(),
+            'collider_clearance_measured': False, 'pairwise_isolation_evidence': False}
 
 
 def check_scanners(env, *, flat_entry=False):
@@ -109,8 +115,10 @@ def check_shared_resets(env, seed, record):
 
 def run_shared_diagnostic(env, seed, journal_path, trace):
     """20 zero-action steps at identical spawns, ray occlusion probe, five resets."""
+    import carb.settings
     from omni.physx import get_physx_simulation_interface
-    from pxr import PhysicsSchemaTools, PhysxSchema, Usd, UsdPhysics
+    from omni.physx.bindings._physx import ContactEventType
+    from pxr import PhysicsSchemaTools, PhysxSchema, Usd, UsdPhysics, UsdUtils
 
     if env.num_envs != 2 or seed != SHARED_DIAGNOSTIC_SEED:
         raise ValueError("shared diagnostic requires two environments and seed 130196")
@@ -144,32 +152,15 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
             raise AssertionError("contact reporting must use a zero force threshold")
         reporting_bodies.extend(str(p.GetPath()) for p in bodies)
 
-    ground_contacts = Counter()
-    callback_errors = []
-    cross_contacts = []
     with journal_path.open('x', encoding='utf-8') as journal:
         def record(value):
             journal.write(json.dumps(value, allow_nan=False) + '\n')
             journal.flush()
 
-        def contacts(headers, _data):
-            # Callback exceptions may be swallowed by Kit; surface them after each step.
-            try:
-                for header in headers:
-                    paths = [str(PhysicsSchemaTools.intToSdfPath(p)) for p in (header.collider0, header.collider1)]
-                    kind, owner = classify_contact(*paths)
-                    count = int(header.num_contact_data)
-                    record({"phase": "contact", "colliders": paths, "kind": kind, "points": count})
-                    if kind == 'cross_environment':
-                        cross_contacts.append(paths)
-                    if kind == 'ground' and count > 0:
-                        ground_contacts[owner] += count
-            except Exception as error:
-                callback_errors.append(repr(error))
-
         record({"phase": "initial", "collision_groups": audit_shared_collision_groups(env.scene),
                 "assignments": [asdict(t) for t in assignments], "reporting_bodies": reporting_bodies,
-                "roots": robot.data.root_state_w.cpu().tolist(), "scanners": check_scanners(env, flat_entry=True)})
+                "roots": robot.data.root_state_w.cpu().tolist(), "scanners": check_scanners(env, flat_entry=True),
+                "contact_sensor": contact_sensor_snapshot(env)})
 
         # At a fixed env-0 pose, moving env-1 vertically through its ray paths
         # must not change env-0 ground hits. No physics integration in this probe.
@@ -194,16 +185,24 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
         env.sim.forward()
         env.scene.update(0.0)
 
-        subscription = get_physx_simulation_interface().subscribe_contact_report_events(contacts)
-        try:
+        interface = get_physx_simulation_interface()
+        capture = ContactCapture(
+            stage_id=UsdUtils.StageCache.Get().GetId(env.sim.stage).ToLongInt(),
+            reporting_bodies=reporting_bodies, decode_path=PhysicsSchemaTools.intToSdfPath,
+            event_types={ContactEventType.CONTACT_FOUND: 'found', ContactEventType.CONTACT_PERSIST: 'persist',
+                         ContactEventType.CONTACT_LOST: 'lost'}, record=record,
+            start_step=env._sim_step_counter, decimation=4, control_steps=SHARED_CONTROL_STEPS,
+        )
+        with capture_substeps(env, interface, capture,
+                              lambda: carb.settings.get_settings().get('/physics/disableContactProcessing')):
             for step in range(SHARED_CONTROL_STEPS):
                 obs, reward, terminated, truncated, _ = env.step(torch.zeros_like(env.action_manager.action))
+                capture.check_control(env, step + 1)
                 record({"phase": "control_step", "step": step + 1,
                         "roots": robot.data.root_state_w.cpu().tolist(),
-                        "ground_contact_points": dict(ground_contacts),
+                        "ground_contact_points": dict(capture.ground['poll']),
+                        "contact_sensor": contact_sensor_snapshot(env),
                         "terminated": terminated.cpu().tolist(), "truncated": truncated.cpu().tolist()})
-                if callback_errors or cross_contacts:
-                    raise AssertionError(f"cross-environment contacts or failed callback: {cross_contacts}, {callback_errors}")
                 if terminated.any() or truncated.any():
                     raise AssertionError("unexpected termination during shared overlap probe")
                 if not all(torch.isfinite(v).all() for v in [*obs.values(), reward, robot.data.root_state_w,
@@ -211,16 +210,14 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
                     raise AssertionError("nonfinite state during shared overlap probe")
                 check_scanners(env)
                 trace(f'shared-control-step-checked: {step + 1}')
-        finally:
-            subscription = None
-        if not all(ground_contacts[i] > 0 for i in (0, 1)):
-            raise AssertionError("contact-report positive control missing: both robots must touch ground")
+        ground_contacts = dict(capture.ground['poll'])
         resets = check_shared_resets(env, seed, record)
         record({"phase": "complete", "reset_checks": resets})
     return {"status": "shared_bank_smoke_passed", "num_envs": 2, "bank_rows": 1,
             "terrain_origin_shape": [1, 15, 3], "initial_assignments": [asdict(t) for t in assignments],
             "overlapping_spawn_checked": True, "cross_environment_contacts": 0,
-            "ground_contact_points": dict(ground_contacts), "zero_action_steps": SHARED_CONTROL_STEPS,
+            "ground_contact_points": ground_contacts, "contact_capture": capture.summary(),
+            "zero_action_steps": SHARED_CONTROL_STEPS,
             "vertical_occlusion_probe_passed": True, "reset_checks": resets,
             "collision_groups": audit_shared_collision_groups(env.scene),
             "journal": str(journal_path), "policy_loaded": False, "ppo_updates": 0,
@@ -243,6 +240,7 @@ def shared_report_passed(report):
         and report.get('cross_environment_contacts') == 0
         and all(type(contacts.get(str(i), contacts.get(i))) is int
                 and contacts.get(str(i), contacts.get(i, 0)) > 0 for i in (0, 1))
+        and contact_summary_passed(report.get('contact_capture'), contacts)
         and report.get('vertical_occlusion_probe_passed') is True
         and resets.get('assignment_count') == 8 and resets.get('reset_batch_count') == 5
         and resets.get('direct_reset_count') == 6

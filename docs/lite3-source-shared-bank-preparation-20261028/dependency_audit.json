@@ -58,6 +58,38 @@
     {
       "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/warp/ops.py",
       "sha256": "6202538ae05e3f424a0dfdd4df7e00cc272e4213827cceafa5a0a72df8baea84"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/managers/recorder_manager.py",
+      "sha256": "de72d0df517bd9c1487b0a902f215b15e1830e608079db538be32183b184328e"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/simulation_context.py",
+      "sha256": "d95f2eaa138b4fff845ac72439caa2eca5deab4f0d5609e06f163d20eef4df93"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physx/bindings/_physx.pyi",
+      "sha256": "ff13abb83480dcc707ac2ad60062306aef7a33f885d32ed4c8ee6dfea2008e79"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx-107.3.26+107.3.3.lx64.r.cp311.u353/docs/dev_guide/contact_reports.rst",
+      "sha256": "1ff86d93133cc834ed2bb54d82d9fb8b335a45f178ea4bec7f4b5cb344a09f88"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.tests-107.3.26+107.3.3.cp311.u353/omni/physxtests/tests/PhysxContactReportAPI.py",
+      "sha256": "bc6e92e7ce3538cc06d4b4f15374285f5838c92c576c9bd35f8820e5f744837d"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.tests-107.3.26+107.3.3.cp311.u353/omni/physxtests/utils/physicsBase.py",
+      "sha256": "6cd35a15b7c5678c988ff824e7f5f6b641ee14c06928cf63af1cf35a62d98a07"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.api/isaacsim/core/api/simulation_context/simulation_context.py",
+      "sha256": "ebafc6bcb30a454925fe21b96dcdbd4637c922a3fa9d5a6947308c9796ba5028"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.api/isaacsim/core/api/physics_context/physics_context.py",
+      "sha256": "7486ec315d2525bdef6e1cef294d67d419511e3367e7f40001a8324e2b6a7751"
     }
   ],
   "findings": {
@@ -65,7 +97,7 @@
     "inverted_filter": "physxScene:invertCollisionGroupFilter",
     "global_collider": "/World/ground",
     "scan_target": "one merged static ground mesh; local hit mesh index zero",
-    "contact_report": "subscribe_contact_report_events with collider ownership, zero threshold on all bodies; positive ground control required",
+    "contact_report": "Immediate get_contact_report after every completed physics substep; separate callback telemetry; validated pairwise positives required",
     "qualification": false
   },
   "mesh_id_contract_review": {
@@ -75,6 +107,17 @@
     "dtype": "int16",
     "miss_id": -1,
     "adapter": "rl_training.source_scan.source_ground_ray_caster.SourceGroundRayCaster",
+    "installed_dependencies_modified": false
+  },
+  "contact_capture_review": {
+    "date": "2026-10-28",
+    "immediate_report_lifetime": "one physics step",
+    "decimation": 4,
+    "control_steps": 20,
+    "expected_polls": 80,
+    "hook": "current empty recorder instance record_post_physics_decimation_step; restored in finally",
+    "event_enum": "ContactEventType.CONTACT_FOUND / CONTACT_PERSIST / CONTACT_LOST",
+    "prior_callback_silence_root_cause": "unproven",
     "installed_dependencies_modified": false
   }
 }
