@@ -198,6 +198,29 @@ def test_environment_terminal_metrics_are_captured_before_auto_reset(monkeypatch
     assert record["termination_terms"] == ["illegal_contact"]
 
 
+def test_sample_observer_receives_the_terminal_sample_before_episode_return(monkeypatch):
+    _install_adapter(monkeypatch)
+    env = _Env(terminal_term="illegal_contact")
+    wrapped = _WrappedEnv(env)
+    observed = []
+
+    record = runner._run_episode(
+        wrapped,
+        lambda _observation: torch.zeros((1, 12)),
+        _cell(),
+        geometry_seed=1,
+        initial_state_seed=2,
+        episode_index=1,
+        max_steps=10,
+        sample_observer=lambda step, sample: observed.append((step, sample)),
+    )
+
+    assert record["steps"] == 1
+    assert len(observed) == 1
+    assert observed[0][0] == 1
+    assert observed[0][1]["forward_progress_m"] == 1.0
+
+
 def test_single_environment_scan_has_only_registered_forward_command():
     command = SimpleNamespace(
         ranges=SimpleNamespace(
@@ -218,6 +241,34 @@ def test_single_environment_scan_has_only_registered_forward_command():
     assert command.rel_only_lin_y_envs == 0.0
     assert command.rel_only_lin_x_envs == 1.0
     assert command.rel_only_ang_z_envs == 0.0
+
+
+def test_slope_family_metrics_use_the_registered_completion_track():
+    cell = {
+        "terrain_family": "slope",
+        "direction_or_layout": "downhill",
+        "resolved_parameters": {
+            "geometry": {
+                "size": [12.0, 4.0],
+                "flat_length_m": 3.0,
+                "transition_length_m": 0.5,
+                "exit_flat_length_m": 2.0,
+                "slope_angle_deg": 5.0,
+            },
+            "track": {"start_x_m": 1.5, "completion_x_m": 10.5},
+        },
+    }
+
+    metrics = runner._family_metrics(
+        cell,
+        [0.0, 8.0, 8.5, 9.0, 10.0],
+        pitch=[0.0, 0.1],
+        roll=[0.0, 0.02],
+    )
+
+    assert metrics["exit_transition_progress_m"] == [0.0, 0.0, 0.5, 0.5, 0.5]
+    assert metrics["terminal_flat_progress_m"] == [0.0, 0.0, 0.0, 0.5, 1.5]
+    assert metrics.get("unavailable_metrics") is None
 
 
 def test_rsl_wrapper_is_seeded_then_reset_without_seed_keyword():

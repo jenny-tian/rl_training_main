@@ -114,12 +114,14 @@ def locked(tmp_path, draft):
         c.update(seed_pairing="zip_geometry_initial_state", dynamics_profile="deployment_matched_frozen")
         p = c.pop("candidate_parameters")
         family, direction, level = c["terrain_family"], c["direction_or_layout"], c["level"]
-        geometry = dict(size=[10.0, 4.0], flat_length_m=3.0, transition_length_m=0.5, grid_spacing_m=0.1)
+        geometry = dict(size=[12.0, 4.0], flat_length_m=3.0, transition_length_m=0.5, grid_spacing_m=0.1)
         if family in ("multi_scale_rough", "slope_plus_rough"):
             geometry.update(rough_peak_valley_m=p["local_peak_valley_difference_m"],
                             rough_audit_window_m=0.4, spatial_scales_m=[0.2, 0.4])
         if family in ("slope", "slope_plus_rough"):
             geometry["slope_angle_deg"] = p["slope_angle_deg"]
+        if family in ("multi_scale_rough", "slope", "slope_plus_rough"):
+            geometry["exit_flat_length_m"] = 2.0
         if family == "multi_step_stairs":
             geometry.update(step_count=(3, 5, 6)[level - 1], step_height_m=(0.02, 0.04, 0.05)[level - 1], tread_depth_m=0.5)
         if family == "friction_variation":
@@ -129,7 +131,7 @@ def locked(tmp_path, draft):
         c["resolved_parameters"] = {
             "geometry": geometry,
             "reset": {"profile_id": "synthetic_fixture_only", "config_sha256": artifacts["reset_config"]["sha256"]},
-            "track": {"start_x_m": 1.5, "completion_x_m": 9.5, "lateral_margin_m": 0.2},
+            "track": {"start_x_m": 1.5, "completion_x_m": 10.5, "lateral_margin_m": 0.2},
         }
     records = {"base_checkpoint": m["base_checkpoint"], **artifacts}
     for role, names in api.QUALIFICATION_BINDINGS.items():
@@ -348,6 +350,14 @@ def test_finishing_before_last_stair_is_rejected(locked):
 def test_slope_direction_cannot_disagree_with_geometry(locked):
     _cell(locked, "slope")["resolved_parameters"]["geometry"]["direction_or_layout"] = "downhill"
     assert "direction_mismatch" in _codes(locked)
+
+
+def test_slope_completion_must_be_after_exit_transition_with_hold_buffer(locked):
+    cell = _cell(locked, "slope")
+    cell["resolved_parameters"]["track"]["completion_x_m"] = 9.9
+    assert "slope_completion_before_flat" in _codes(locked)
+    cell["resolved_parameters"]["track"]["completion_x_m"] = 11.5
+    assert "slope_hold_buffer" in _codes(locked)
 
 
 def test_declared_reset_hash_and_metrics_are_enforced(locked):

@@ -1,0 +1,108 @@
+{
+  "schema": "lite3_source_parallel_g0_static_audit_v1",
+  "date": "2026-10-28",
+  "status": "static_review_passed_g1_startup_smoke_eligible",
+  "simulation_started": false,
+  "training_started": false,
+  "qualification_claim": false,
+  "code_snapshot": {
+    "head_revision": "68422199760f8856542ef921ffc0d3024e9f1b33",
+    "worktree_is_dirty": true,
+    "model_submodule_revision": "b452a1f404d37155400242f18e454fed8bcc51b8",
+    "component_sha256": {
+      "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py": "c018296e8cadcc49e169e6b90da35ea0fb58ca278835e1f1f713af5c5dfea0cd",
+      "source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py": "9015352e606c7744055d88fc89f37d4786250f5521f5cf152968a9d91a76f42c",
+      "source/rl_training/rl_training/source_scan/tile_bounds.py": "fbbff9e4722c148269fcabb1c544cbb321f9accaeaa0ce99509ed3d4c143d284",
+      "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/terminations.py": "a3cc0c85bf46f1dc506e1c8362c367a41f34bf2db29ea171d9ad25e895edde40",
+      "docs/lite3-source-scan-preparation-v0.2-2026-10-22/source_qualification_scan_manifest_v0.2_preparation.json": "0fce8c53e2e2c8537c8b048b2c5f718ebf74211bf2197e1da99eb3cecf6c1cb1",
+      "docs/lite3-usd-collision-geometry-audit-20261027.json": "bc9d5fc5abddc727eef53f0944ea58b59489e07b34841404bd7fc767b25fa276"
+    }
+  },
+  "map_contract": {
+    "num_envs_candidate": 120,
+    "num_rows": 120,
+    "num_cols": 15,
+    "tile_size_m": [
+      12.0,
+      4.0
+    ],
+    "grid_extent_m": [
+      1440.0,
+      60.0
+    ],
+    "terrain_rows_axis": "x_forward",
+    "terrain_columns_axis": "y_lateral",
+    "subterrain_order": [
+      "flat",
+      "multi_scale_rough",
+      "slope_uphill",
+      "slope_downhill",
+      "slope_cross_slope_left",
+      "slope_cross_slope_right",
+      "stairs_ascending",
+      "stairs_descending",
+      "slope_rough_uphill",
+      "slope_rough_downhill",
+      "slope_rough_cross_slope_left",
+      "slope_rough_cross_slope_right",
+      "friction_left_right_bands",
+      "friction_front_back_bands",
+      "friction_alternating_regions"
+    ],
+    "episode_tickets_per_120": {
+      "flat": 12,
+      "multi_scale_rough": 24,
+      "slope_uphill": 6,
+      "slope_downhill": 6,
+      "slope_cross_slope_left": 6,
+      "slope_cross_slope_right": 6,
+      "stairs_ascending": 15,
+      "stairs_descending": 15,
+      "slope_rough_uphill": 6,
+      "slope_rough_downhill": 6,
+      "slope_rough_cross_slope_left": 3,
+      "slope_rough_cross_slope_right": 3,
+      "friction_left_right_bands": 4,
+      "friction_front_back_bands": 4,
+      "friction_alternating_regions": 4
+    },
+    "parallel_map_proportion_per_column": 0.06666666666666667,
+    "unique_owner_row_per_environment": true,
+    "static_spawn_separation_supported": true,
+    "manifest_cells_checked": 45,
+    "manifest_geometry_matches_12x4_flat3_start1_5_completion10_5": true
+  },
+  "tile_guard": {
+    "enabled_in_source_environment_cfg": true,
+    "all_rigid_body_frames_selected_by_regex": true,
+    "collision_radius_m": 0.27,
+    "numerical_margin_m": 0.001,
+    "safe_body_center_bounds_relative_to_reset_origin_m": {
+      "x": [
+        -1.229,
+        10.229
+      ],
+      "y": [
+        -1.729,
+        1.729
+      ]
+    },
+    "nominal_completion_progress_m": 9.0,
+    "nominal_hold_steps": 50,
+    "command_speed_mps": 0.3,
+    "nominal_hold_travel_m": 0.3,
+    "root_progress_at_hold_end_m": 9.3,
+    "conservative_max_rigid_body_origin_reach_m": 0.6926570675830254,
+    "worst_case_forward_clearance_after_hold_and_articulation_m": 0.23634293241697257,
+    "worst_case_lateral_clearance_at_registered_root_offset_m": 0.8363429324169747,
+    "guard_compatible_with_nominal_completion_hold_and_link_workspace": true,
+    "lookahead": "current rigid-body center plus measured linear velocity times control period",
+    "dynamic_acceleration_or_max_step_displacement_proven": false
+  },
+  "remaining_gates": [
+    "Run a fresh 2-environment initialization/reset smoke against the current source hashes before scaling G1; the archived smoke predates the current guard integration.",
+    "G1 startup checks remain unrun at 8, 16, 32, 60, and 120 environments.",
+    "The linear lookahead does not bound acceleration or prove continuous-time isolation; qualify it during G3 with a frozen policy and measured per-step body motion.",
+    "The worktree is dirty; record a frozen patch/code hash before any simulator launch."
+  ]
+}

@@ -108,6 +108,7 @@ def generate_source_terrain_geometry(
         seed=instance_seed,
         flat_length_m=float(cfg.flat_length_m),
         transition_length_m=float(cfg.transition_length_m),
+        exit_flat_length_m=float(cfg.exit_flat_length_m),
         rough_peak_valley_m=float(cfg.rough_peak_valley_m),
         rough_audit_window_m=float(cfg.rough_audit_window_m),
         spatial_scales_m=tuple(float(value) for value in cfg.spatial_scales_m),
@@ -149,6 +150,7 @@ class SourceTerrainTrackCfg(SubTerrainBaseCfg):
     seed: int = 10_000
     flat_length_m: float = 3.0
     transition_length_m: float = 0.5
+    exit_flat_length_m: float = 0.0
     rough_peak_valley_m: float = 0.02
     rough_audit_window_m: float = 0.4
     spatial_scales_m: tuple[float, ...] = (0.2, 0.4)

@@ -29,7 +29,7 @@
 
 这是用地图规模换取简单、可验证的异步分配保证。1,800 不是所有可行设计的最小 tile 数，120 也不是已批准的环境数；如内存或建图耗时不合适，应在锁定预算前减少并行数或另审分配设计。不能因资源不足偷偷改为占用相关的重抽策略。
 
-原型：[parallel_terrain_allocation.py](../source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py)。模块只用 Python 标准库，不调用 Isaac、Torch、地形生成器或训练器。它返回分配记录，不写环境 buffers。
+调度核心：[parallel_terrain_allocation.py](../source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py) 中的 `ReservedRowTerrainAllocator` 只用 Python 标准库，不调用 Isaac、Torch、地形生成器或训练器。相同模块另提供可选的运行时适配函数，负责验证真实地形 importer buffers 并在 curriculum reset hook 写入新分配；离线假环境测试覆盖该写入路径。
 
 ## 3. 地图容量与回合配比分开
 
@@ -58,34 +58,35 @@
 3. 合法批次按 env ID 排序，只替换这些环境的分配；未 reset 环境的行列、episode 编号和分配记录保持不变。
 4. 分配不依赖其他环境是否结束，故“1 个环境反复结束、119 个环境持续运行”不会发生等待或换位。
 
-原型还没有 checkpoint 调度状态序列化。将来恢复 PPO 训练时必须恢复洗牌队列、游标、RNG、活动分配和 episode 计数，或从完整 reset 事件记录重建；仅重建同 seed 分配器会从第一块重新开始，不能声称无缝续训。
+原型 reset 适配已实现为默认关闭的可选配置：Importer 启动时先为每个环境绑定独立 row 和第一列 origin；ManagerBasedRLEnv 的 reset curriculum hook 随后在 `scene.reset` 与根状态 reset 事件前，只更新本次 reset 环境的列、row 和 origin。启用必须同时显式给出并行环境数与 sampler seed。每个地形行代表环境所有权，而非 difficulty level。
+
+Reset 调度器在写环境 buffers 前先验证新一批分配，并对后续分配使用候选调度副本；若写入失败，回滚目标 buffers 且不推进存活调度器。原型还没有 checkpoint 调度状态序列化。将来恢复 PPO 训练时必须恢复洗牌队列、游标、RNG、活动分配和 episode 计数，或从完整 reset 事件记录重建；仅重建同 seed 分配器会从第一块重新开始，不能声称无缝续训。
 
 ## 5. 离线证据与适用边界
 
 测试：[test_parallel_terrain_allocation.py](../tests/source_scan/test_parallel_terrain_allocation.py)。覆盖首次全环境分配、119 个环境持续占用时的 1,200 次单环境 reset、四个调度 seed 下各 300 个异步 reset 批次、每个完整块的家族/方向计数、复现、顺序与分批语义、非法批次原子拒绝，以及 1/7/240 环境与 120 回合块的独立性。测试还从真实 Source 配置提取纯配置工厂，核对 15 个实际名称和权重，不启动 Isaac Sim。
 
-验证结果：新原型 36 项测试与已有单环境 sampler 20 项测试，共 **56 passed**。格式、Python 语法、本地文档链接和草案状态检查通过。
+验证结果：并行分配器/importer-reset 辅助测试 **49 passed**。测试模拟 importer 初始 origin 布局、reset hook 更新、假 root-reset 消费新 origin、异步环境不动，以及无效地图拒绝。Python 语法与 `git diff --check` 通过。另完成一次 2 环境 Isaac Sim importer/reset smoke，运行记录见[结果 JSON](lite3-source-parallel-terrain-allocation-runtime-smoke-gpu0-2026-10-27.json)。
 
-离线断言验证的是**唯一地形索引和调度不变量**。尚未生成这张地图，也没有测量碰撞、GPU 显存或吞吐，不能据此称 120 环境训练已资格化。
+离线断言验证的是**唯一地形索引和调度不变量**。2 环境 smoke 生成了 `(2, 15, 3)` 地图，并检查启动 origin/root、一次零动作物理步、两个 height scanner 的有限输出及单环境异步 reset。尚未生成 120×15 地图，也没有测量该规模下的碰撞隔离、GPU 显存或吞吐，不能据此称 120 环境训练已资格化。
 
 验证命令（环境已有的 typeguard pytest 插件与 typing_extensions 不兼容，关闭自动加载第三方插件；保留 pytest 内置插件）：
 
 ```bash
 env PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training \
   /home/tjx/anaconda3/envs/env_isaaclab/bin/python -m pytest -q \
-  tests/source_scan/test_parallel_terrain_allocation.py \
-  tests/source_scan/test_source_terrain_reset_sampler.py
+  tests/source_scan/test_parallel_terrain_allocation.py
 ```
 
-## 6. 下一步：独立准备运行适配，随后另做仿真资格检查
+## 6. 下一步：扩大到独立的并行物理隔离与资源资格检查
 
-以下均未在本步实施；现有 `scene.num_envs=1` 和单环境 sampler 限制继续有效。
+Source 场景默认仍为 `scene.num_envs=1`，并行 sampler 默认关闭；并行适配只有在显式启用并给出环境数和 seed 后才会构建多行地图。以下运行资格仍未完成：
 
-- **初始化分配：** 当前 stock importer 在 `max_init_terrain_level=0` 时会把所有环境放在第 0 行，15 列会被复用。必须在任何物理推进前设置独立行号与 origins；只改 reset hook 太晚，不能掩盖启动时的重叠。
+- **启动时物理检查：** 2 环境 smoke 已在 GPU0 确认真实 root state 与各自 origin 对齐，首个零动作物理步及两类高度扫描输出有限。该结果只覆盖 2×15 地图，不证明 120×15 布局或高负载场景。
 - **地形和 origins 契约：** 验证实际 `(120, 15, 3)` origin grid、15 个等权列及固定 L1 几何，设置 `terrain_levels[env_id]=env_id`、`terrain_types[env_id]=column`、`env_origins`。关闭自动行难度课程。当前 Source adapter 只用 difficulty 派生几何 seed，多行会改变该派生分布，必须记录和审计；行号不代表晋级 L2。
-- **reset 与日志：** 先收集旧回合的指标和终止证据，再更新地形分配并执行根状态 reset；验证传感器缓存、命令、接触、foot histories 和新回合标签一并切换。故障不能消费票据后继续运行。
+- **reset 与日志：** 2 环境 smoke 已确认仅 reset 环境 0 会消费下一张全局票并更新其行列/origin/root，同时环境 1 的分配、origin 和 root 保持不变。仍须在独立 reset 生命周期检查传感器缓存、命令、接触、foot histories、新回合标签和失败后的完整审计日志。
 - **物理隔离：** 唯一 origin 不足以保证运动中不碰撞。须验证机器人活动范围、跨 tile 越界终止、reset 偏移、邻接几何、collision filtering 和所有高度扫描 mesh，包含首个 physics step 与异步 reset。当前 Source 配置禁用了 terrain-out-of-bounds termination，不能直接运行本布局。
 - **资源与预算：** 测量新地图生成和 ray-caster mesh 的内存、耗时、并行吞吐；只在实测后锁定环境数和 `num_envs × rollout_length` 预算。本设计没有启动 262,080-transition Pilot。
 - **继续训练：** 补齐调度状态保存/恢复、初态 seed 消费与完整审计日志；继续保留 Source 资格、安全桥和训练授权门。
 
-对应[执行锁定清单](lite3-stairs-l1-source-training-lock-checklist-v0.1-draft-2026-10-27.md)仍为草案。下一工作步骤建议先实现独立、默认关闭的地图/importer 适配，并以假环境检查启动和 reset；通过后再提交具体仿真资格检查方案。
+对应[执行锁定清单](lite3-stairs-l1-source-training-lock-checklist-v0.1-draft-2026-10-27.md)仍为草案。[并行 importer/reset smoke 方案](lite3-source-parallel-terrain-importer-smoke-plan-v0.1-draft-2026-10-27.md)已完成 2 环境诊断；下一步是单独准备并行物理隔离、地图资源和吞吐资格检查，不能直接扩大为 120 环境训练。

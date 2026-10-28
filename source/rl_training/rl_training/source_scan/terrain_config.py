@@ -34,6 +34,8 @@ def source_subterrain_from_cell(cell: dict[str, Any], *, seed: int):
         "transition_length_m": geometry["transition_length_m"],
         "grid_spacing_m": geometry["grid_spacing_m"],
     }
+    if family in ("multi_scale_rough", "slope", "slope_plus_rough"):
+        common["exit_flat_length_m"] = geometry["exit_flat_length_m"]
     if family in ("multi_scale_rough", "slope_plus_rough"):
         common.update(
             rough_peak_valley_m=geometry["rough_peak_valley_m"],

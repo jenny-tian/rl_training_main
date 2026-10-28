@@ -140,6 +140,27 @@ def test_slope_direction_angle_and_flat_transitions_from_mesh(angle, direction):
     assert _surface_height(mesh, cfg.flat_length_m, 0.3) == pytest.approx(0.0)
 
 
+@pytest.mark.parametrize("family", ["slope", "slope_plus_rough"])
+@pytest.mark.parametrize("direction", terrain.SLOPE_DIRECTIONS)
+def test_slope_exit_transition_joins_a_level_terminal_buffer(family, direction):
+    cfg = _cfg(
+        family,
+        size=(12.0, 4.0),
+        exit_flat_length_m=2.0,
+        direction=direction,
+        slope_angle_deg=5.0,
+    )
+    result = generate(cfg)
+    mesh = result.meshes[0]
+    assert result.metadata["exit_transition_x_m"] == pytest.approx([9.5, 10.0])
+    assert result.metadata["exit_flat_x_m"] == pytest.approx([10.0, 12.0])
+    for y in (0.2, 1.0, 2.0, 3.8):
+        flat_height = _surface_height(mesh, 10.0, y)
+        assert _surface_height(mesh, 10.5, y) == pytest.approx(flat_height, abs=1e-10)
+        assert _surface_height(mesh, 11.9, y) == pytest.approx(flat_height, abs=1e-10)
+    assert mesh.is_watertight and mesh.is_winding_consistent
+
+
 @pytest.mark.parametrize("direction", terrain.SLOPE_DIRECTIONS)
 def test_slope_plus_rough_is_exactly_the_sum_on_shared_grid(direction):
     combined = generate(_cfg("slope_plus_rough", direction=direction))
@@ -216,6 +237,9 @@ def test_single_material_result_contract(family):
     {"family": "multi_scale_rough", "rough_audit_window_m": 4.0},
     {"family": "slope", "slope_angle_deg": 45.0},
     {"family": "slope", "direction": "ascending"},
+    {"family": "slope", "exit_flat_length_m": -0.1},
+    {"family": "slope", "exit_flat_length_m": True},
+    {"family": "slope", "size": (4.5, 2.0), "flat_length_m": 1.5, "exit_flat_length_m": 2.0},
     {"family": "multi_step_stairs", "direction": "ascending", "step_count": 0},
     {"family": "multi_step_stairs", "direction": "ascending", "tread_depth_m": 4.0},
     {"family": "friction_variation", "friction_range": (1.0, 0.3)},

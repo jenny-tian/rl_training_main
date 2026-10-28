@@ -1,0 +1,95 @@
+{
+  "audit": "lite3_usd_collision_geometry",
+  "date": "2026-10-27",
+  "status": "static_candidate_supported_runtime_qualification_pending",
+  "scope": "Static audit of the physical collision payload used by the Lite3 Source configuration.",
+  "repository": {
+    "worktree": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+    "branch": "codex/lite3-source-parallel-qualification-20261027",
+    "parent_revision": "68422199760f8856542ef921ffc0d3024e9f1b33"
+  },
+  "model_submodule": {
+    "path": "deep_robotics_model",
+    "revision": "b452a1f404d37155400242f18e454fed8bcc51b8",
+    "revision_date": "2025-12-09"
+  },
+  "assets": {
+    "entry_usd": {
+      "path": "deep_robotics_model/Lite3/Lite3_usd/Lite3.usd",
+      "sha256": "1fad3d6a8b046a1a4818ec9007d437cc364d66dd5c613168ec7e71075867bec3"
+    },
+    "physics_payload": {
+      "path": "deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd",
+      "sha256": "efb49cf3750cf7a1cbab287b5afe93911dcff90a9bfb1512c876e5a93a58f3f6"
+    },
+    "base_geometry": {
+      "path": "deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd",
+      "sha256": "8ffc3357c75af4b04272141f042a2930841a4a6198ba7e55ad45f0872e5425d8"
+    },
+    "robot_payload": {
+      "path": "deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_robot.usd",
+      "sha256": "f6184cfbcf736e48d91ae4a0bc436b6e1152d1599ae23875c8a522b86b3cbe52"
+    },
+    "sensor_payload": {
+      "path": "deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_sensor.usd",
+      "sha256": "30696499cfe4cadd7a77057a8c017fd779221dc284ed3ae34689a6bb61b2536f"
+    },
+    "reference_urdf": {
+      "path": "deep_robotics_model/Lite3/Lite3_urdf/urdf/Lite3.urdf",
+      "sha256": "cb0889cfb37ed3a9b74a3534a172fb150e96a5a5619ff94dfabd1a88da7e6b7b"
+    }
+  },
+  "composed_stage": {
+    "default_prim": "/Lite3",
+    "meters_per_unit": 1.0,
+    "up_axis": "Z",
+    "variants": {
+      "Physics": "PhysX",
+      "Robot": "Robot",
+      "Sensor": "Sensors"
+    },
+    "physics_collision_shapes": 22,
+    "shape_type_counts": {
+      "Cube": 6,
+      "Capsule": 12,
+      "Sphere": 4
+    },
+    "collision_traversal": "Usd.TraverseInstanceProxies"
+  },
+  "method": {
+    "description": "Enumerated the 22 collision primitives in the composed Lite3.usd PhysX variant, including instance proxies. For each primitive, transformed its schema-defined geometric bound into the owning rigid body's local frame and computed a conservative Euclidean radius. Capsule bounds use the complete capsule axis half-length plus radius; the result is a per-rigid-body local envelope, not a whole-robot footprint.",
+    "joint_sweep_included": false,
+    "runtime_measurement_included": false
+  },
+  "per_body_max_local_envelope_m": {
+    "TORSO": 0.2643860811,
+    "FL_HIP": 0.1744276380,
+    "FR_HIP": 0.1744276380,
+    "HL_HIP": 0.1744276380,
+    "HR_HIP": 0.1744276380,
+    "FL_THIGH": 0.1847464480,
+    "FR_THIGH": 0.1847464480,
+    "HL_THIGH": 0.1847464480,
+    "HR_THIGH": 0.1847464480,
+    "FL_SHANK": 0.2076069260,
+    "FR_SHANK": 0.2076069260,
+    "HL_SHANK": 0.2076069260,
+    "HR_SHANK": 0.2076069260,
+    "FL_FOOT": 0.022,
+    "FR_FOOT": 0.022,
+    "HL_FOOT": 0.022,
+    "HR_FOOT": 0.022
+  },
+  "candidate_guard_parameters": {
+    "collision_radius_m": 0.27,
+    "numerical_margin_m": 0.001,
+    "total_static_guard_radius_m": 0.271,
+    "static_headroom_over_max_local_envelope_m": 0.0066139189
+  },
+  "qualification_limits": [
+    "The bound is rotation-invariant for each rigid body. It does not verify runtime body-ID resolution, runtime asset identity, or maximum body displacement/acceleration between guard evaluations.",
+    "The candidate radius is applied to every selected rigid-body position by the tile guard; it must not be interpreted as a single whole-robot root-centered footprint.",
+    "The composed stage emitted unresolved visual foot references while loading; the physical collision payload and its 22 collision primitives were still available for this audit.",
+    "Runtime qualification remains required before treating the candidate guard as proven."
+  ]
+}

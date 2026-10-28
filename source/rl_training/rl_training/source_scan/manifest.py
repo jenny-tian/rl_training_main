@@ -495,6 +495,8 @@ def _check_resolved_cell(v, c, path):
         extra |= {"rough_peak_valley_m", "rough_audit_window_m", "spatial_scales_m"}
     if family in ("slope", "slope_plus_rough"):
         extra.add("slope_angle_deg")
+    if family in ("multi_scale_rough", "slope", "slope_plus_rough"):
+        extra.add("exit_flat_length_m")
     if family == "multi_step_stairs":
         extra |= {"step_count", "step_height_m", "tread_depth_m"}
     if family == "friction_variation":
@@ -523,6 +525,8 @@ def _check_resolved_cell(v, c, path):
         angle = geometry.get("slope_angle_deg")
         if type(angle) in (int, float) and angle >= 45:
             v.issue(path + ".geometry.slope_angle_deg", "slope_range", "angle must be below 45 degrees")
+    if family in ("multi_scale_rough", "slope", "slope_plus_rough"):
+        v.number(geometry.get("exit_flat_length_m"), path + ".geometry.exit_flat_length_m", positive=True)
     if family == "multi_step_stairs":
         v.integer(geometry.get("step_count"), path + ".geometry.step_count", low=3, high=6)
         v.number(geometry.get("step_height_m"), path + ".geometry.step_height_m", positive=True)
@@ -565,6 +569,18 @@ def _check_resolved_cell(v, c, path):
                     stair_end = flat + transition + count * depth
                     if stair_end >= size[0] or end <= stair_end:
                         v.issue(path + ".track", "stairs_completion", "completion must follow all treads and leave an exit segment")
+            if family in ("slope", "slope_plus_rough"):
+                exit_flat = geometry.get("exit_flat_length_m")
+                if _finite_number(exit_flat) and exit_flat > 0:
+                    exit_start = size[0] - exit_flat - transition
+                    flat_start = size[0] - exit_flat
+                    if flat + transition >= exit_start:
+                        v.issue(path + ".geometry.exit_flat_length_m", "slope_exit_segment", "slope exit must leave a nonempty challenge segment")
+                    if end < flat_start:
+                        v.issue(path + ".track.completion_x_m", "slope_completion_before_flat", "completion must be on the terminal flat buffer after the slope exit transition")
+                    hold_distance = 50 * 0.02 * 0.3
+                    if size[0] - end < hold_distance + 0.4:
+                        v.issue(path + ".track.completion_x_m", "slope_hold_buffer", "terminal flat must fit the nominal stable hold distance and 0.4 m body-clearance margin")
             if family in ("multi_scale_rough", "slope_plus_rough"):
                 window = geometry.get("rough_audit_window_m")
                 if _finite_number(window) and window > min(size[1], size[0] - flat - transition):

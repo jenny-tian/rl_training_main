@@ -55,6 +55,7 @@ class SourceTerrainCfg:
     seed: int = 10_000
     flat_length_m: float = 3.0
     transition_length_m: float = 0.5
+    exit_flat_length_m: float = 0.0
     rough_peak_valley_m: float = 0.02
     rough_audit_window_m: float = 0.4
     spatial_scales_m: tuple[float, ...] = (0.2, 0.4)
@@ -76,14 +77,23 @@ class SourceTerrainCfg:
         _finite_positive(self.flat_length_m, "flat_length_m")
         _finite_positive(self.transition_length_m, "transition_length_m")
         _finite_positive(self.grid_spacing_m, "grid_spacing_m")
-        if self.flat_length_m + self.transition_length_m >= self.size[0]:
+        if (isinstance(self.exit_flat_length_m, bool)
+                or not isinstance(self.exit_flat_length_m, numbers.Real)
+                or not math.isfinite(float(self.exit_flat_length_m))):
+            raise ValueError("exit_flat_length_m must be a finite nonnegative number")
+        if float(self.exit_flat_length_m) < 0.0:
+            raise ValueError("exit_flat_length_m must be a finite nonnegative number")
+        exit_transition_start = (
+            self.size[0] - self.exit_flat_length_m - self.transition_length_m
+        )
+        challenge_start = self.flat_length_m + self.transition_length_m
+        if exit_transition_start <= challenge_start:
             raise ValueError("flat and transition lengths must leave a challenge segment")
         if self.family in {"multi_scale_rough", "slope_plus_rough"}:
             _validate_roughness(self.rough_peak_valley_m, self.spatial_scales_m)
             _finite_positive(self.rough_audit_window_m, "rough_audit_window_m")
-            if self.rough_audit_window_m > min(
-                self.size[1], self.size[0] - self.flat_length_m - self.transition_length_m
-            ):
+            challenge_length = exit_transition_start - challenge_start
+            if self.rough_audit_window_m > min(self.size[1], challenge_length):
                 raise ValueError("rough audit window must fit in the challenge segment")
         if self.family in {"slope", "slope_plus_rough"}:
             _finite_positive(self.slope_angle_deg, "slope_angle_deg")
@@ -202,6 +212,11 @@ def _generate_rough(cfg: SourceTerrainCfg) -> SourceTerrainGeometry:
             "track_width_m": width,
             "rough_start_x_m": cfg.flat_length_m,
             "fully_rough_start_x_m": cfg.flat_length_m + cfg.transition_length_m,
+            "rough_exit_transition_x_m": [
+                cfg.size[0] - cfg.exit_flat_length_m - cfg.transition_length_m,
+                cfg.size[0] - cfg.exit_flat_length_m,
+            ],
+            "rough_exit_flat_x_m": [cfg.size[0] - cfg.exit_flat_length_m, cfg.size[0]],
             "rough_lane_width_m": width,
             **rough_meta,
         },
@@ -215,7 +230,12 @@ def _generate_slope(cfg: SourceTerrainCfg) -> SourceTerrainGeometry:
         family=cfg.family,
         meshes=(_heightfield_prism(x, y, heights),),
         origin=(cfg.flat_length_m / 2.0, cfg.size[1] / 2.0, 0.0),
-        metadata={"track_length_m": cfg.size[0], "track_width_m": cfg.size[1], **slope_meta},
+        metadata={
+            "track_length_m": cfg.size[0],
+            "track_width_m": cfg.size[1],
+            "exit_flat_length_m": cfg.exit_flat_length_m,
+            **slope_meta,
+        },
     )
 
 
@@ -278,6 +298,7 @@ def _generate_slope_plus_rough(cfg: SourceTerrainCfg) -> SourceTerrainGeometry:
         metadata={
             "track_length_m": cfg.size[0],
             "track_width_m": cfg.size[1],
+            "exit_flat_length_m": cfg.exit_flat_length_m,
             **slope_meta,
             **rough_meta,
             "composition": "slope_heightfield_plus_tapered_multiscale_heightfield",
@@ -357,9 +378,11 @@ def _heightfield_axes(cfg: SourceTerrainCfg, scales: tuple[float, ...]) -> tuple
     spacing = min(cfg.grid_spacing_m, min(scales) / 4.0)
     if (math.ceil(length / spacing) + 4) * (math.ceil(width / spacing) + 1) > _MAX_HEIGHTFIELD_VERTICES:
         raise ValueError("source terrain heightfield exceeds the vertex budget")
+    exit_end = length - cfg.exit_flat_length_m
     x = _axis(0.0, length, spacing, (cfg.flat_length_m,
                                      cfg.flat_length_m + cfg.transition_length_m,
-                                     length - cfg.transition_length_m))
+                                     exit_end - cfg.transition_length_m,
+                                     exit_end))
     y = _axis(0.0, width, spacing)
     if len(x) * len(y) > _MAX_HEIGHTFIELD_VERTICES:
         raise ValueError("source terrain heightfield exceeds the vertex budget")
@@ -372,9 +395,10 @@ def _slope_heightfield(
     angle_rad = math.radians(cfg.slope_angle_deg)
     grade = math.tan(angle_rad)
     entry = cfg.flat_length_m
-    exit_start = cfg.size[0] - cfg.transition_length_m
+    exit_end = cfg.size[0] - cfg.exit_flat_length_m
+    exit_start = exit_end - cfg.transition_length_m
     ramp_in = _smoothstep((x - entry) / cfg.transition_length_m)
-    ramp_out = _smoothstep((cfg.size[0] - x) / cfg.transition_length_m)
+    ramp_out = _smoothstep((exit_end - x) / cfg.transition_length_m)
     envelope = ramp_in * ramp_out
     if cfg.direction == "uphill":
         sign = 1.0
@@ -387,7 +411,8 @@ def _slope_heightfield(
             "main_axis_grade_sign": sign,
             "max_x_grade": float(np.tan(np.radians(cfg.slope_angle_deg)) * np.max(envelope)),
             "entry_transition_x_m": [entry, entry + cfg.transition_length_m],
-            "exit_transition_x_m": [exit_start, cfg.size[0]],
+            "exit_transition_x_m": [exit_start, exit_end],
+            "exit_flat_x_m": [exit_end, cfg.size[0]],
         }
     elif cfg.direction == "downhill":
         sign = -1.0
@@ -400,7 +425,8 @@ def _slope_heightfield(
             "main_axis_grade_sign": sign,
             "max_x_grade": float(np.tan(np.radians(cfg.slope_angle_deg)) * np.max(envelope)),
             "entry_transition_x_m": [entry, entry + cfg.transition_length_m],
-            "exit_transition_x_m": [exit_start, cfg.size[0]],
+            "exit_transition_x_m": [exit_start, exit_end],
+            "exit_flat_x_m": [exit_end, cfg.size[0]],
         }
     else:
         sign = 1.0 if cfg.direction == "cross_slope_left" else -1.0
@@ -413,7 +439,8 @@ def _slope_heightfield(
             "positive_y_semantics": "left",
             "max_cross_grade": float(np.max(np.abs(transverse))),
             "entry_transition_x_m": [entry, entry + cfg.transition_length_m],
-            "exit_transition_x_m": [exit_start, cfg.size[0]],
+            "exit_transition_x_m": [exit_start, exit_end],
+            "exit_flat_x_m": [exit_end, cfg.size[0]],
         }
     metadata["slope_height_range_m"] = [float(np.min(heights)), float(np.max(heights))]
     return heights, metadata
@@ -435,13 +462,20 @@ def _rough_heightfield(
         band_rms.append(rms)
     signal /= math.sqrt(float(len(cfg.spatial_scales_m)))
     plateau_start = cfg.flat_length_m + cfg.transition_length_m
-    plateau_mask = x >= plateau_start
+    exit_end = cfg.size[0] - cfg.exit_flat_length_m
+    exit_start = exit_end - cfg.transition_length_m
+    if cfg.exit_flat_length_m > 0.0:
+        plateau_mask = (x >= plateau_start) & (x <= exit_start)
+    else:
+        plateau_mask = x >= plateau_start
     local_before = _local_rough_statistics(cfg, x, y, signal)
     peak_valley = local_before["sampled_local_peak_valley_max_m"]
     if not math.isfinite(peak_valley) or peak_valley <= 1.0e-12:
         raise ValueError("rough terrain produced a degenerate height field")
     signal *= cfg.rough_peak_valley_m / peak_valley
     taper = _smoothstep((x - cfg.flat_length_m) / cfg.transition_length_m)
+    if cfg.exit_flat_length_m > 0.0:
+        taper *= _smoothstep((exit_end - x) / cfg.transition_length_m)
     heights = signal * taper[None, :]
     measured = float(np.max(heights[:, plateau_mask]) - np.min(heights[:, plateau_mask]))
     metadata = {
@@ -454,6 +488,10 @@ def _rough_heightfield(
         "rough_height_range_m": [float(np.min(heights[:, plateau_mask])),
                                  float(np.max(heights[:, plateau_mask]))],
         "rough_transition_x_m": [cfg.flat_length_m, plateau_start],
+        "rough_exit_transition_x_m": (
+            [exit_start, exit_end] if cfg.exit_flat_length_m > 0.0 else None
+        ),
+        "rough_exit_flat_x_m": [exit_end, cfg.size[0]],
     }
     return heights, metadata
 
@@ -471,7 +509,10 @@ def _local_rough_statistics(
 
     window = cfg.rough_audit_window_m
     start = cfg.flat_length_m + cfg.transition_length_m
-    xs = _axis(start, cfg.size[0] - window, window / 2.0)
+    end = cfg.size[0]
+    if cfg.exit_flat_length_m > 0.0:
+        end -= cfg.exit_flat_length_m + cfg.transition_length_m
+    xs = _axis(start, end - window, window / 2.0)
     ys = _axis(0.0, cfg.size[1] - window, window / 2.0)
     ranges = []
     for y0 in ys:

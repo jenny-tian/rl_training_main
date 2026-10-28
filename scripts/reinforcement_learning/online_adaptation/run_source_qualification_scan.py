@@ -86,6 +86,7 @@ def _build_env_cfg(
     generator = env_cfg.scene.terrain.terrain_generator
     generator.seed = geometry_seed
     generator.curriculum = True
+    generator.size = tuple(cell["resolved_parameters"]["geometry"]["size"])
     generator.num_rows = 1
     generator.num_cols = 1
     generator.difficulty_range = (0.0, 0.0)
@@ -183,6 +184,8 @@ def _runtime_sample(
     """Copy metrics while the requested (possibly terminal) state is current."""
     import torch
 
+    from rl_training.lite3_joint_conventions import LITE3_POLICY_JOINT_NAMES
+
     signals = adapter.reward_signals()
     state = adapter.safety_state(
         torch.zeros((1, 1), dtype=torch.bool, device=unwrapped.device)
@@ -214,7 +217,7 @@ def _runtime_sample(
             selected_foot_forces = net_forces[0, adapter.reward_foot_ids]
             foot_force_n = torch.linalg.vector_norm(selected_foot_forces, dim=-1)
             foot_horizontal_force_n = torch.linalg.vector_norm(selected_foot_forces[:, :2], dim=-1)
-    adapter.observe_nonfoot_contact()
+    contact_peak = adapter.observe_nonfoot_contact()
     diagnostics = adapter.contact_diagnostics()
     tensors = (
         root,
@@ -241,6 +244,109 @@ def _runtime_sample(
         return {"invalid": True}
     qw, qx, qy, qz = root_quat[0].unbind()
     yaw = torch.atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz))
+    contact_event_snapshot = None
+    contact_peak_force_n = float(contact_peak["max_nonfoot_contact_force_n"])
+    contact_peak_body = contact_peak["max_nonfoot_contact_body"]
+    if contact_peak_body is not None and contact_peak_force_n > adapter.contact_threshold:
+        robot = adapter.robot
+        robot_body_names = [str(name) for name in getattr(robot, "body_names", ())]
+        robot_index_by_name = {name: index for index, name in enumerate(robot_body_names)}
+        sensor_body_names = [str(name) for name in adapter.contact_sensor.body_names]
+        sensor_index_by_name = {name: index for index, name in enumerate(sensor_body_names)}
+        body_index = robot_index_by_name.get(str(contact_peak_body))
+        sensor_index = sensor_index_by_name.get(str(contact_peak_body))
+        body_position = None
+        body_velocity = None
+        if body_index is not None:
+            body_position = [
+                float(value) for value in robot.data.body_pos_w[0, body_index].detach().cpu().tolist()
+            ]
+            body_velocity = [
+                float(value) for value in robot.data.body_lin_vel_w[0, body_index].detach().cpu().tolist()
+            ]
+        contact_force_history = None
+        if sensor_index is not None:
+            raw_history = getattr(adapter.contact_sensor.data, "net_forces_w_history", None)
+            if isinstance(raw_history, torch.Tensor):
+                contact_force_history = [
+                    [float(value) for value in vector]
+                    for vector in raw_history[0, :, sensor_index].flip(0).detach().cpu().tolist()
+                ]
+        episode_step = int(unwrapped.episode_length_buf[0].item())
+        phase_time_s = episode_step * float(unwrapped.step_dt)
+        cycle_time_s = 0.425
+        phase_offsets = (0.0, 1.0, 1.0, 0.0)
+        phase_values = [
+            float((2.0 * phase_time_s / cycle_time_s + offset) % 2.0)
+            for offset in phase_offsets
+        ]
+        joint_names = [str(name) for name in LITE3_POLICY_JOINT_NAMES]
+        joint_positions = [float(value) for value in state.joint_pos[0].detach().cpu().tolist()]
+        joint_velocities = [float(value) for value in state.joint_vel[0].detach().cpu().tolist()]
+        default_joint_positions = [
+            float(value) for value in state.default_joint_pos[0].detach().cpu().tolist()
+        ]
+        root_position = [float(value) for value in root[0].detach().cpu().tolist()]
+        root_orientation = [
+            float(value) for value in root_quat[0].detach().cpu().tolist()
+        ]
+        contact_event_snapshot = {
+            "episode_step": episode_step,
+            "episode_time_s": phase_time_s,
+            "contact_body_name": str(contact_peak_body),
+            "contact_force_peak_n_in_sensor_history": contact_peak_force_n,
+            "contact_threshold_n": float(adapter.contact_threshold),
+            "contact_sensor_history_force_vectors_w_n_oldest_to_newest": contact_force_history,
+            "contact_sensor_history_update_period_s": (
+                None if getattr(adapter.contact_sensor.cfg, "update_period", None) is None
+                else float(adapter.contact_sensor.cfg.update_period)
+            ),
+            "contact_body_position_w_m_at_control_sample_end": body_position,
+            "contact_body_linear_velocity_w_mps_at_control_sample_end": body_velocity,
+            "root_position_w_m": root_position,
+            "root_quaternion_w": root_orientation,
+            "root_angular_velocity_b_rps": [
+                float(value) for value in robot.data.root_ang_vel_b[0].detach().cpu().tolist()
+            ],
+            "projected_gravity_b": [float(value) for value in gravity[0].detach().cpu().tolist()],
+            "gait_phase": {
+                "cycle_time_s": cycle_time_s,
+                "phase_0_to_2_by_foot": {
+                    str(name): phase_values[index]
+                    for index, name in enumerate(adapter.robot_foot_names)
+                },
+                "phase_source": "episode_length_buf and Lite3 phase_foot_trajectory_exp configured cycle/offsets; reference clock, not measured foot phase",
+            },
+            "feet": [
+                {
+                    "body_name": str(name),
+                    "position_w_m": (
+                        [float(value) for value in foot_positions_w[index].tolist()]
+                        if isinstance(foot_positions_w, torch.Tensor) else None
+                    ),
+                    "linear_velocity_w_mps": [
+                        float(value) for value in robot.data.body_lin_vel_w[
+                            0, adapter.robot_foot_ids[index]
+                        ].detach().cpu().tolist()
+                    ],
+                    "contact": bool(contacting_feet[0, index].item()),
+                    "contact_force_n": (
+                        float(foot_force_n[index].item())
+                        if isinstance(foot_force_n, torch.Tensor) else None
+                    ),
+                }
+                for index, name in enumerate(adapter.robot_foot_names)
+            ],
+            "policy_joint_names": joint_names,
+            "policy_joint_position_rad": joint_positions,
+            "policy_joint_velocity_rad_s": joint_velocities,
+            "policy_joint_default_position_rad": default_joint_positions,
+            "policy_joint_position_error_rad": [
+                position - default
+                for position, default in zip(joint_positions, default_joint_positions, strict=True)
+            ],
+            "joint_state_semantics": "state at end of control sample; contact force peak lies within the contact sensor history, whose pose samples are not exposed by ContactSensor",
+        }
     return {
         "root_position_w_m": [float(value) for value in root[0].tolist()],
         "root_yaw_rad": float(yaw.item()),
@@ -285,6 +391,9 @@ def _runtime_sample(
             diagnostics["episode_max_nonfoot_contact_force_n"]
         ),
         "max_nonfoot_contact_body": diagnostics["episode_max_nonfoot_contact_body"],
+        "sample_nonfoot_contact_peak_force_n": contact_peak_force_n,
+        "sample_nonfoot_contact_peak_body": contact_peak_body,
+        "contact_event_snapshot": contact_event_snapshot,
         "max_projected_gravity_xy": float(
             torch.linalg.vector_norm(state.projected_gravity_xy, dim=-1)[0].item()
         ),
@@ -630,7 +739,9 @@ def _finalize_friction_observations(observations: dict[str, dict[str, Any]]) -> 
 def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
                  initial_state_seed: int, episode_index: int, *,
                  max_steps: int = MAX_STEPS, bounded_smoke: bool = False,
-                 termination_capture_test: bool = False) -> dict[str, Any]:
+                 termination_capture_test: bool = False,
+                 pre_reset_observer: Any | None = None,
+                 sample_observer: Any | None = None) -> dict[str, Any]:
     import torch
 
     from rl_training.online_adaptation.isaaclab_adapter import Lite3IsaacLabAdapter
@@ -718,6 +829,8 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
             termination_reason=reason,
             active_termination_terms=active_terms,
         )
+        if pre_reset_observer is not None:
+            pre_reset_observer(env_ids, steps + 1)
 
     callback_adder = getattr(unwrapped, "add_pre_reset_callback", None)
     if not callable(callback_adder):
@@ -812,6 +925,8 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
             termination_reason = terminal_snapshot["termination_reason"]
         else:
             sample = _runtime_sample(adapter, unwrapped, origins)
+        if sample_observer is not None:
+            sample_observer(steps, sample)
         if sample.get("invalid"):
             invalid_state_count += 1
             termination_reason = "safety_termination"
@@ -1073,11 +1188,15 @@ def _family_metrics(
 
     family = cell["terrain_family"]
     geometry = cell["resolved_parameters"]["geometry"]
+    track = cell["resolved_parameters"]["track"]
     result: dict[str, Any] = {}
     unavailable: list[str] = []
     if family in {"slope", "slope_plus_rough"}:
         transition_start = float(geometry["flat_length_m"]) / 2.0
         transition_length = float(geometry["transition_length_m"])
+        exit_flat_start = float(geometry["size"][0]) - float(geometry["exit_flat_length_m"])
+        exit_transition_start = exit_flat_start - transition_length
+        reset_x = float(track["start_x_m"])
         result.update(
             direction=cell["direction_or_layout"],
             slope_angle_deg=geometry["slope_angle_deg"],
@@ -1087,7 +1206,19 @@ def _family_metrics(
                 max(0.0, min(float(value) - transition_start, transition_length))
                 for value in progress
             ],
-            transition_progress_semantics="reset-relative root progress clipped to the entry transition window",
+            exit_transition_progress_m=[
+                max(0.0, min(float(value) - (exit_transition_start - reset_x), transition_length))
+                for value in progress
+            ],
+            terminal_flat_progress_m=[
+                max(0.0, min(float(value) - (exit_flat_start - reset_x),
+                             float(geometry["exit_flat_length_m"])))
+                for value in progress
+            ],
+            transition_progress_semantics=(
+                "reset-relative root progress clipped to entry transition; separate exit-transition "
+                "and terminal-flat progress arrays use their registered local-x intervals"
+            ),
         )
         if result["pitch_response"] is None:
             unavailable.append("pitch_response")

@@ -163,7 +163,7 @@
     "partial_progress_is_success": false
   },
   "completion_and_termination": {
-    "complete": "robot reaches the registered full-track endpoint, has no safety violation, and remains stable for the registered completion hold; partial progress is insufficient",
+    "complete": "robot reaches the registered completion point at local x=10.5 m on the 12.0 m track, has no safety violation, and remains stable for the registered 50-step hold; the terminal flat begins at local x=10.0 m and leaves 1.5 m after the completion point for nominal hold travel plus body clearance; partial progress is insufficient",
     "stable_completion_hold_steps": 50,
     "fall": "environment fall/orientation termination or registered unsafe body state",
     "body_contact": "any non-foot contact is recorded separately and termination follows the registered contact rule",
@@ -312,7 +312,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -325,7 +325,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -349,7 +349,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -362,7 +362,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -386,7 +386,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -399,7 +399,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -423,7 +423,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -434,7 +434,8 @@
             "spatial_scales_m": [
               0.2,
               0.4
-            ]
+            ],
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -442,7 +443,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -466,7 +467,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -477,7 +478,8 @@
             "spatial_scales_m": [
               0.2,
               0.4
-            ]
+            ],
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -485,7 +487,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -509,7 +511,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -520,7 +522,8 @@
             "spatial_scales_m": [
               0.2,
               0.4
-            ]
+            ],
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -528,7 +531,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -552,14 +555,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "uphill"
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -567,7 +571,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -591,14 +595,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "downhill"
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -606,7 +611,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -630,14 +635,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "cross_slope_left"
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -645,7 +651,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -669,14 +675,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "cross_slope_right"
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -684,7 +691,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -708,14 +715,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "uphill"
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -723,7 +731,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -747,14 +755,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "downhill"
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -762,7 +771,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -786,14 +795,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "cross_slope_left"
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -801,7 +811,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -825,14 +835,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "cross_slope_right"
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -840,7 +851,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -864,14 +875,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 12.0,
-            "direction_or_layout": "uphill"
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -879,7 +891,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -903,14 +915,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 12.0,
-            "direction_or_layout": "downhill"
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -918,7 +931,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -942,14 +955,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 12.0,
-            "direction_or_layout": "cross_slope_left"
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -957,7 +971,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -981,14 +995,15 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
             "transition_length_m": 0.5,
             "grid_spacing_m": 0.1,
             "slope_angle_deg": 12.0,
-            "direction_or_layout": "cross_slope_right"
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -996,7 +1011,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1020,7 +1035,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1037,7 +1052,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1061,7 +1076,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1078,7 +1093,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1102,7 +1117,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1119,7 +1134,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1143,7 +1158,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1160,7 +1175,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1184,7 +1199,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1201,7 +1216,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1225,7 +1240,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1242,7 +1257,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1266,7 +1281,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1279,7 +1294,8 @@
               0.4
             ],
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "uphill"
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1287,7 +1303,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1311,7 +1327,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1324,7 +1340,8 @@
               0.4
             ],
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "downhill"
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1332,7 +1349,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1356,7 +1373,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1369,7 +1386,8 @@
               0.4
             ],
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "cross_slope_left"
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1377,7 +1395,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1401,7 +1419,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1414,7 +1432,8 @@
               0.4
             ],
             "slope_angle_deg": 5.0,
-            "direction_or_layout": "cross_slope_right"
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1422,7 +1441,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1446,7 +1465,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1459,7 +1478,8 @@
               0.4
             ],
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "uphill"
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1467,7 +1487,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1491,7 +1511,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1504,7 +1524,8 @@
               0.4
             ],
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "downhill"
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1512,7 +1533,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1536,7 +1557,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1549,7 +1570,8 @@
               0.4
             ],
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "cross_slope_left"
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1557,7 +1579,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1581,7 +1603,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1594,7 +1616,8 @@
               0.4
             ],
             "slope_angle_deg": 8.0,
-            "direction_or_layout": "cross_slope_right"
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1602,7 +1625,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1626,7 +1649,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1639,7 +1662,8 @@
               0.4
             ],
             "slope_angle_deg": 10.0,
-            "direction_or_layout": "uphill"
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1647,7 +1671,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1671,7 +1695,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1684,7 +1708,8 @@
               0.4
             ],
             "slope_angle_deg": 10.0,
-            "direction_or_layout": "downhill"
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1692,7 +1717,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1716,7 +1741,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1729,7 +1754,8 @@
               0.4
             ],
             "slope_angle_deg": 10.0,
-            "direction_or_layout": "cross_slope_left"
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1737,7 +1763,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1761,7 +1787,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1774,7 +1800,8 @@
               0.4
             ],
             "slope_angle_deg": 10.0,
-            "direction_or_layout": "cross_slope_right"
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
           },
           "reset": {
             "profile_id": "source_scan_nominal_reset_v0",
@@ -1782,7 +1809,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1806,7 +1833,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1825,7 +1852,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1849,7 +1876,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1868,7 +1895,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1892,7 +1919,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1911,7 +1938,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1935,7 +1962,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1954,7 +1981,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -1978,7 +2005,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -1997,7 +2024,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -2021,7 +2048,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -2040,7 +2067,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -2064,7 +2091,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -2083,7 +2110,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -2107,7 +2134,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -2126,7 +2153,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -2150,7 +2177,7 @@
         "resolved_parameters": {
           "geometry": {
             "size": [
-              10.0,
+              12.0,
               4.0
             ],
             "flat_length_m": 3.0,
@@ -2169,7 +2196,7 @@
           },
           "track": {
             "start_x_m": 1.5,
-            "completion_x_m": 9.5,
+            "completion_x_m": 10.5,
             "lateral_margin_m": 0.2
           }
         }
@@ -2193,19 +2220,19 @@
     "artifacts": {
       "environment_config": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py",
-        "sha256": "7de8f403227b9f1c09846312b090d6d335b639c206eddd1017a02f239ac711da"
+        "sha256": "cb6fff709a618f1243f4fb640b25e80dbb6069efc3c4847520b4f6d41c99c0a1"
       },
       "geometry_generator": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py",
-        "sha256": "58305a01d16c39e6dc531ace03ba4bad42a1413b098989da8cf6946dcb7dd1d4"
+        "sha256": "54febda2f79e1f8bce142d37261bb649002bf4d5df36c1798c8503a338bf6c0d"
       },
       "manifest_validator": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/source_scan/manifest.py",
-        "sha256": "d977a5e6155210d90842ee78a2e3a35cd4ad3aef35692862ff29ef4b24d6939a"
+        "sha256": "3d2980a5cf52225f992e54525f4afef01908c6f34c533c24f4ea4baed51b219a"
       },
       "scan_runner": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/scripts/reinforcement_learning/online_adaptation/run_source_qualification_scan.py",
-        "sha256": "a3b98895f5b2ff4e22fbd8ad5a5f29b4c5ddc6437a7651a16f3901b3e9167ccd"
+        "sha256": "cfacd050949f6fc34f45267ec955a794754949db96d4940cf5b1792e838bedf1"
       },
       "safety_filter": {
         "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/online_adaptation/safety.py",
@@ -2334,6 +2361,10 @@
     {
       "component": "classification_cutoffs",
       "finding": "Numeric classification values remain a proposal and must be reviewed before any execution lock."
+    },
+    {
+      "component": "terminal_contact_diagnostics",
+      "finding": "Bounded downhill diagnostics now preserve sensor-to-body mapping, contact force history, foot positions/forces, gait phase, root state, and joint state before auto-reset; these fields remain diagnostic evidence and are not a qualification metric until reviewed."
     }
   ],
   "bounded_smoke_evidence": {
@@ -2359,6 +2390,8 @@
   },
   "preparation_notes": [
     "This preparation manifest is intentionally draft_not_for_run and execution_authorized=false.",
+    "Source slope, slope-plus-rough, and multi-scale rough tracks now use a 12.0 m length with a 2.0 m terminal flat buffer; completion is at local x=10.5 m, leaving 1.5 m for the 50-step hold and body clearance. Other Source families use the same 12.0 m track and endpoint without the slope exit parameter.",
+    "Completion is registered at local x=10.5 m on a 12.0 m Source track. Slope and Slope + Rough exit from the transition into a terminal flat at x=10.0 m; the 1.5 m post-completion buffer supports the 50-step stable hold and body clearance.",
     "Source safety height now uses conservative terrain-relative clearance from the nine-ray base scan; historical world-Z diagnostic results do not qualify this revised implementation. Full runtime qualification remains outstanding.",
     "The Isaac bridge smoke verified geometry loading, height-scan mesh coverage, and friction-region material binding; it did not load model_1998.pt or run a policy episode.",
     "Later bounded Flat policy and injected-timeout smokes are registered separately in bounded_smoke_evidence; they do not promote policy_safety_bridge_passed or authorize the 225-episode scan.",

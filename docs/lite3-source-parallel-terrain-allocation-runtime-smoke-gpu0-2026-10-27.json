@@ -1,0 +1,51 @@
+{
+  "schema_version": "source_parallel_terrain_reset_smoke_v1",
+  "status": "diagnostic_smoke_passed",
+  "task": "SourceTerrain-Deeprobotics-Lite3-v0",
+  "seed": 130001,
+  "device": "cuda:0",
+  "num_envs": 2,
+  "terrain_origin_shape": [
+    2,
+    15,
+    3
+  ],
+  "initial_assignments": [
+    {
+      "env_id": 0,
+      "row": 0,
+      "column": 4,
+      "subterrain": "slope_cross_slope_left",
+      "assignment_index": 0
+    },
+    {
+      "env_id": 1,
+      "row": 1,
+      "column": 1,
+      "subterrain": "multi_scale_rough",
+      "assignment_index": 1
+    }
+  ],
+  "async_reset_assignment": {
+    "env_id": 0,
+    "row": 0,
+    "column": 0,
+    "subterrain": "flat",
+    "assignment_index": 2
+  },
+  "action_dim": 12,
+  "zero_action_steps": 1,
+  "reset_info_keys": [
+    "log"
+  ],
+  "step_info_keys": [
+    "log"
+  ],
+  "startup_origins_match_rows_and_columns": true,
+  "robot_roots_match_assigned_origins": true,
+  "height_scanners_finite": true,
+  "asynchronous_reset_preserved_other_environment": true,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "qualification_claim": false
+}

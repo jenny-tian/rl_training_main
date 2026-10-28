@@ -38,7 +38,6 @@ import rl_training.tasks.manager_based.locomotion.velocity.mdp as mdp
 ##
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: skip
 
-
 ##
 # Scene definition
 ##
@@ -88,7 +87,9 @@ class MySceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
-    contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
+    contact_forces = ContactSensorCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True
+    )
     # lights
     sky_light = AssetBaseCfg(
         prim_path="/World/skyLight",
@@ -117,7 +118,10 @@ class CommandsCfg:
         heading_control_stiffness=0.5,
         debug_vis=True,
         ranges=mdp.UniformThresholdVelocityCommandCfg.Ranges(
-            lin_vel_x=(-1.0, 1.0), lin_vel_y=(-1.0, 1.0), ang_vel_z=(-1.0, 1.0), heading=(-math.pi, math.pi)
+            lin_vel_x=(-1.0, 1.0),
+            lin_vel_y=(-1.0, 1.0),
+            ang_vel_z=(-1.0, 1.0),
+            heading=(-math.pi, math.pi),
         ),
     )
 
@@ -127,7 +131,12 @@ class ActionsCfg:
     """Action specifications for the MDP."""
 
     joint_pos = mdp.JointPositionActionCfg(
-        asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True, clip=None, preserve_order=True
+        asset_name="robot",
+        joint_names=[".*"],
+        scale=0.5,
+        use_default_offset=True,
+        clip=None,
+        preserve_order=True,
     )
 
 
@@ -166,14 +175,22 @@ class ObservationsCfg:
         )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot", joint_names=".*", preserve_order=True
+                )
+            },
             noise=Unoise(n_min=-0.01, n_max=0.01),
             clip=(-100.0, 100.0),
             scale=1.0,
         )
         joint_vel = ObsTerm(
             func=mdp.joint_vel_rel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot", joint_names=".*", preserve_order=True
+                )
+            },
             noise=Unoise(n_min=-1.5, n_max=1.5),
             clip=(-100.0, 100.0),
             scale=1.0,
@@ -233,13 +250,21 @@ class ObservationsCfg:
         )
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot", joint_names=".*", preserve_order=True
+                )
+            },
             clip=(-100.0, 100.0),
             scale=1.0,
         )
         joint_vel = ObsTerm(
             func=mdp.joint_vel_rel,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*", preserve_order=True)},
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot", joint_names=".*", preserve_order=True
+                )
+            },
             clip=(-100.0, 100.0),
             scale=1.0,
         )
@@ -431,36 +456,49 @@ class RewardsCfg:
 
     # Joint penalties
     joint_torques_l2 = RewTerm(
-        func=mdp.joint_torques_l2, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")}
+        func=mdp.joint_torques_l2,
+        weight=0.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_vel_l2 = RewTerm(
-        func=mdp.joint_vel_l2, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")}
+        func=mdp.joint_vel_l2,
+        weight=0.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_acc_l2 = RewTerm(
-        func=mdp.joint_acc_l2, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")}
+        func=mdp.joint_acc_l2,
+        weight=0.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
 
     joint_deviation_l1 = RewTerm(
-            func=mdp.joint_deviation_l1,
-            weight=0.0,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
-        )
-    
+        func=mdp.joint_deviation_l1,
+        weight=0.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
+    )
+
     def create_joint_deviation_l1_rewterm(self, attr_name, weight, joint_names_pattern):
         rew_term = RewTerm(
             func=mdp.joint_deviation_l1,
             weight=weight,
-            params={"asset_cfg": SceneEntityCfg("robot", joint_names=joint_names_pattern)},
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_names=joint_names_pattern)
+            },
         )
         setattr(self, attr_name, rew_term)
 
     joint_pos_limits = RewTerm(
-        func=mdp.joint_pos_limits, weight=0.0, params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")}
+        func=mdp.joint_pos_limits,
+        weight=0.0,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*")},
     )
     joint_vel_limits = RewTerm(
         func=mdp.joint_vel_limits,
         weight=0.0,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*"), "soft_ratio": 1.0},
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*"),
+            "soft_ratio": 1.0,
+        },
     )
     joint_power = RewTerm(
         func=mdp.joint_power,
@@ -528,9 +566,6 @@ class RewardsCfg:
         },
     )
 
-
-
-
     wheel_vel_penalty = RewTerm(
         func=mdp.wheel_vel_penalty,
         weight=0.0,
@@ -568,7 +603,12 @@ class RewardsCfg:
             "asset_cfg": SceneEntityCfg("robot"),
             "joint_groups": [
                 ["FR_hip_joint", "FL_hip_joint", "RL_hip_joint", "RR_hip_joint"],
-                ["FR_thigh_joint", "FL_thigh_joint", "RL_thigh_joint", "RR_thigh_joint"],
+                [
+                    "FR_thigh_joint",
+                    "FL_thigh_joint",
+                    "RL_thigh_joint",
+                    "RR_thigh_joint",
+                ],
                 ["FR_calf_joint", "FL_calf_joint", "RL_calf_joint", "RR_calf_joint"],
             ],
         },
@@ -600,7 +640,10 @@ class RewardsCfg:
     contact_forces = RewTerm(
         func=mdp.contact_forces,
         weight=0.0,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=""), "threshold": 100.0},
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+            "threshold": 100.0,
+        },
     )
 
     foot_impact_velocity = RewTerm(
@@ -610,15 +653,19 @@ class RewardsCfg:
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
             "speed_threshold": 0.10,
-        }
+        },
     )
 
     # Velocity-tracking rewards
     track_lin_vel_xy_exp = RewTerm(
-        func=mdp.track_lin_vel_xy_exp, weight=0.0, params={"command_name": "base_velocity", "std": math.sqrt(0.5)}
+        func=mdp.track_lin_vel_xy_exp,
+        weight=0.0,
+        params={"command_name": "base_velocity", "std": math.sqrt(0.5)},
     )
     track_ang_vel_z_exp = RewTerm(
-        func=mdp.track_ang_vel_z_exp, weight=0.0, params={"command_name": "base_velocity", "std": math.sqrt(0.5)}
+        func=mdp.track_ang_vel_z_exp,
+        weight=0.0,
+        params={"command_name": "base_velocity", "std": math.sqrt(0.5)},
     )
 
     # Others
@@ -720,13 +767,13 @@ class RewardsCfg:
             "command_threshold": 0.1,
             "cycle_time": 0.425,  # 一个完整步态周期时长（秒）
             "phase_offsets": (0.0, 1.0, 1.0, 0.0),
-            "gait_span": -0.00,    # x 方向摆动半跨度（米），符号决定前后扫动方向
-            "gait_psi": 0.05,   # 摆动抬脚高度尺度（米）
-            "gait_delta": 0.02, # z 方向轨迹偏置（米）
-            "x_offset": 0.0,    # 轨迹整体 x 偏移（米）
-            "stance_span": 0.0, # 支撑相在 S∈[0,2) 中占据的长度
-            "stand_ref_z_offset": -0.0, # 基准站立足端参考在 body-z 的偏置（米）
-            "velocity_weight": 0.0, # 速度误差在总误差中的权重
+            "gait_span": -0.00,  # x 方向摆动半跨度（米），符号决定前后扫动方向
+            "gait_psi": 0.05,  # 摆动抬脚高度尺度（米）
+            "gait_delta": 0.02,  # z 方向轨迹偏置（米）
+            "x_offset": 0.0,  # 轨迹整体 x 偏移（米）
+            "stance_span": 0.0,  # 支撑相在 S∈[0,2) 中占据的长度
+            "stand_ref_z_offset": -0.0,  # 基准站立足端参考在 body-z 的偏置（米）
+            "velocity_weight": 0.0,  # 速度误差在总误差中的权重
         },
     )
 
@@ -853,7 +900,7 @@ class RewardsCfg:
             "decay_steps": 100_000,
         },
     )
-    
+
     feet_contact = RewTerm(
         func=mdp.feet_contact,
         weight=0.0,
@@ -909,7 +956,7 @@ class RewardsCfg:
             "command_name": "base_velocity",
             "asset_cfg": SceneEntityCfg("robot", joint_names=""),
         },
-    ) # negetive
+    )  # negetive
 
     feet_height = RewTerm(
         func=mdp.feet_height,
@@ -1002,6 +1049,7 @@ class RewardsCfg:
         params={"asset_cfg": SceneEntityCfg("robot")},
     )
 
+
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
@@ -1018,13 +1066,19 @@ class TerminationsCfg:
     # Contact sensor
     illegal_contact = DoneTerm(
         func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=""), "threshold": 1.0},
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=""),
+            "threshold": 1.0,
+        },
     )
 
-    bad_orientation_2 = DoneTerm(func=mdp.bad_orientation_2, params={"max_xy_norm": None})
-    
+    bad_orientation_2 = DoneTerm(
+        func=mdp.bad_orientation_2, params={"max_xy_norm": None}
+    )
 
-
+    # Source configs opt in to a per-environment tile guard after resolving
+    # their tile geometry and collision envelope.
+    source_terrain_tile_bounds: DoneTerm | None = None
 
 
 @configclass
@@ -1033,6 +1087,9 @@ class CurriculumCfg:
 
     terrain_levels = CurrTerm(func=mdp.terrain_levels_vel)
     gait_level = CurrTerm(func=mdp.gait_level_curve)
+    # Disabled by default; Source Terrain configs opt in with a recorded seed.
+    source_terrain_reset_sampler = None
+    source_terrain_parallel_reset_sampler = None
 
     command_levels = CurrTerm(
         func=mdp.command_levels_vel,
@@ -1102,11 +1159,17 @@ class LocomotionVelocityRoughEnvCfg(ManagerBasedRLEnvCfg):
         for attr in dir(self.rewards):
             if not attr.startswith("__"):
                 reward_attr = getattr(self.rewards, attr)
-                if not callable(reward_attr) and attr not in preserved and reward_attr.weight == 0:
+                if (
+                    not callable(reward_attr)
+                    and attr not in preserved
+                    and reward_attr.weight == 0
+                ):
                     setattr(self.rewards, attr, None)
 
 
-def create_obsgroup_class(class_name, terms, enable_corruption=False, concatenate_terms=True):
+def create_obsgroup_class(
+    class_name, terms, enable_corruption=False, concatenate_terms=True
+):
     """
     Dynamically create and register a ObsGroup class based on the given configuration terms.
 
