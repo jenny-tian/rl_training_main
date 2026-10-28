@@ -2,6 +2,8 @@
 
 状态：`offline_geometry_optimized_shared_bank_prototype_runtime_pending`。
 
+后续更新：用户批准后，固定提交 `e15e8aa` 的 **60 环境真实启动复测已通过**，网格路径/数量与本离线预测一致。结果见[运行记录](../lite3-source-g1-60env-tilemesh-20261028/README.md)。本文件其余离线验证结论保留为当时记录，共享 bank 仍未接入真实运行。
+
 本阶段依据用户对[扩展诊断](../lite3-source-logging-scaling-audit-20261028/README.md)后续优化的同意，完成底面精简、按 tile 导入碰撞网格、共享地形分配器离线原型和相应验证。没有启动 Isaac Sim、PhysX、GPU 训练或新一轮 G1 检查。历史 Source 启动检查最大通过规模仍为 32；新拓扑和新 collider 布局尚未运行验证。
 
 ## 已接入 Source 配置的几何优化
@@ -73,4 +75,4 @@
   --run-dir /tmp/lite3_g1_60env_tilemesh_20261028
 ```
 
-本命令尚未执行；依照原对话的逐步确认约定，下一次真实仿真检查需用户确认。
+上述命令已在用户确认后执行一次并通过，运行目录现已存在。不能直接重用目录或据此自动执行下一阶段；后续仍按原对话的逐步确认约定推进。
