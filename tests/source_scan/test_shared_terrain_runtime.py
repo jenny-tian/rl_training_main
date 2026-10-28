@@ -255,6 +255,18 @@ def test_shared_report_rejects_missing_coverage(diagnostic):
                       ground_contact_points={'0': 1, '1': 1}, errors=[], cross_environment_contacts=0),
                   reset_checks=dict(assignment_count=8, reset_batch_count=5, direct_reset_count=6),
                   policy_loaded=False, ppo_updates=0)
+    assert not diagnostic.shared_report_passed(report)  # old CPU report evidence is no longer sufficient
+    bodies = [f'/World/envs/env_{i}/Robot/FOOT' for i in (0, 1)]
+    ground = ['/World/ground/terrain/mesh']
+    capture = report['contact_capture']
+    capture.pop('channels')
+    capture.update(schema='shared_tensor_contact_capture_v1', evidence='gpu_pair_tensor',
+                   tensor_topology=dict(sensor_paths=bodies, filter_paths=[bodies + ground] * 2,
+                                        ground_colliders=ground, sensor_count=2, filter_count=3, capacity=16384),
+                   samples=80, peak_used=2, physics_dt=.005, max_pair_residual_N=0., max_net_residual_N=0.,
+                   force_atol_N=1e-4, force_rtol=1e-4)
+    capture['runtime_state'].update(backend_unchanged=True, backend_state=dict(
+        suppress_readback_setting=True, readback_suppressed=True, tensor_device='cuda:0'))
     assert diagnostic.shared_report_passed(report)
     for field in report:
         changed = dict(report)

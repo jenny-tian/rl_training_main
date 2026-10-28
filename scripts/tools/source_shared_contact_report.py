@@ -41,18 +41,20 @@ def _point(data):
 class ContactRuntime:
     """Read the existing Lab/USD lifecycle without attaching or rebuilding physics."""
 
-    def __init__(self, env, *, stage_id_for, usd_context_stage_id, get_disabled):
+    def __init__(self, env, *, stage_id_for, usd_context_stage_id, get_disabled, get_backend_state=None):
         self.env = env
         self.stage_id_for, self.usd_context_stage_id = stage_id_for, usd_context_stage_id
         self.get_disabled = get_disabled
         self.physics_view = env.sim.physics_sim_view
         self.stage_in_memory = env.sim.cfg.create_stage_in_memory
+        self.get_backend_state = get_backend_state
+        self.initial_backend_state = None if get_backend_state is None else dict(get_backend_state())
 
     def __call__(self):
         sim = self.env.sim
         view = sim.physics_sim_view
         in_memory = sim.cfg.create_stage_in_memory
-        return {
+        state = {
             'environment_stage_id': self.stage_id_for(sim.stage),
             'initial_stage_id': self.stage_id_for(sim.get_initial_stage()),
             'scene_stage_id': self.stage_id_for(self.env.scene.stage),
@@ -65,6 +67,10 @@ class ContactRuntime:
             'timeline_playing': sim.is_playing(),
             'disable_contact_processing': self.get_disabled(),
         }
+        if self.get_backend_state is not None:
+            state['backend_state'] = dict(self.get_backend_state())
+            state['backend_unchanged'] = state['backend_state'] == self.initial_backend_state
+        return state
 
 
 def contact_runtime_passed(state, stage_id):
@@ -91,6 +97,8 @@ def contact_runtime_passed(state, stage_id):
 
 class ContactCapture:
     """Keep callback telemetry separate; only validated immediate points count."""
+
+    uses_contact_events = True
 
     def __init__(self, *, stage_id, reporting_bodies, decode_path, event_types, record,
                  start_step, decimation, control_steps):
@@ -241,10 +249,11 @@ def capture_substeps(env, interface, capture, get_runtime):
             capture.poll(env, interface, get_runtime)
             return original()
 
-        subscription = interface.subscribe_contact_report_events(
-            lambda headers, data: capture.callback(headers, data, env._sim_step_counter))
-        if subscription is None:
-            raise AssertionError('contact report subscription missing')
+        if capture.uses_contact_events:
+            subscription = interface.subscribe_contact_report_events(
+                lambda headers, data: capture.callback(headers, data, env._sim_step_counter))
+            if subscription is None:
+                raise AssertionError('contact report subscription missing')
         setattr(manager, name, after_physics)
         installed = True
         yield capture

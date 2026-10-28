@@ -102,3 +102,5 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training \
 **最新离线修复（2026-10-28）：** 已按用户批准修正 stage 校验，区分普通 USD 与显式附加的 memory stage，并核对同一有效物理 view、context 与生命周期状态。接触 header 和阳性对照要求保留。362 项回归通过，依赖审计扩展为 29 项；本阶段未仿真，真实报告恢复未验证。详见 [stage 生命周期修复与待批准复测](../lite3-source-shared-bank-stage-offline-repair-20261028/README.md)。
 
 **后续实测（2026-10-28）：** `5d93b74` 上用户批准的一次复测完成 81 次生命周期校验和 20 步／80 次接触采集，但 80 次报告均为空、回调调用 0 次，虽有非零足端 tensor 力，仍缺地面阳性对照，未进入 reset。监督器自动收尾且 GPU0 已释放；未改运行代码或重试。下一步具体核查 GPU 回读模式与报告接口，见 [实测证据与下一阶段建议](../lite3-source-shared-bank-2env-stage-repair-20261028/README.md)。
+
+**2026-10-28 GPU 成对接触离线修复完成：** 用户批准后，依据 Direct GPU 的 CPU 接触报告限制，将两环境验收切换到现有物理 view 上的成对 tensor 接口；显式覆盖全部刚体／静态地面对端，增加运行时回读状态、容量与接触点／成对力／净力一致性检查，监督器拒绝接触丢弃日志。394 项离线回归通过，32 项依赖与 6 项资产哈希核对一致；未启动仿真或修改 GPU 配置。上次实际回读开关未记录，历史因果关系不可追认；真实 tensor 数据与共享物理隔离仍待复测。一次 GPU0 两环境 120/240 秒检查等待逐阶段确认，详见 [修复、测试边界与命令](../lite3-source-shared-bank-tensor-offline-repair-20261028/README.md)。

@@ -331,12 +331,11 @@ def test_report_validator_rejects_incomplete_corrupt_or_callback_only_evidence(c
     assert not contact.contact_summary_passed(summary, {0: 2, 1: 1})
 
 
-@pytest.mark.parametrize('fault', [None, 'no_contacts', 'callback_cross'])
+@pytest.mark.parametrize('fault', [None, 'no_contacts', 'tensor_cross'])
 def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact, monkeypatch, tmp_path, fault):
     import source_shared_terrain_diagnostic as diagnostic
     from test_shared_terrain_runtime import scanner_env
-    env, interface, events = stepping_env(callback_mode='cross' if fault == 'callback_cross' else 'silent',
-                                           fault=fault)
+    env, interface, events = stepping_env()
     env.num_envs = 2
     env.cfg.foot_link_name = '.*FOOT'
     env.sim.stage.GetPrimAtPath = lambda path: path
@@ -373,20 +372,45 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
     class ReportAPI:
         def __init__(self, prim): pass
         def GetThresholdAttr(self): return NS(Get=lambda: 0.)
-    settings = NS(get_settings=lambda: NS(get=lambda key: False))
+        def GetCollisionEnabledAttr(self): return NS(Get=lambda: True)
+    settings = NS(get_settings=lambda: NS(get=lambda key: key == '/physics/suppressReadback'))
     usd = NS(get_context=lambda: NS(get_stage_id=lambda: env._usd_context_stage_id))
     fake_modules = {
         'carb': NS(settings=settings), 'carb.settings': settings,
         'omni': NS(usd=usd), 'omni.usd': usd,
-        'omni.physx': NS(get_physx_simulation_interface=lambda: interface),
+        'omni.physx': NS(get_physx_simulation_interface=lambda: interface,
+                         get_physx_interface=lambda: NS(is_readback_suppressed=lambda: True)),
         'omni.physx.bindings': NS(), 'omni.physx.bindings._physx': NS(
             ContactEventType=NS(CONTACT_FOUND=0, CONTACT_PERSIST=2, CONTACT_LOST=1)),
         'pxr': NS(PhysicsSchemaTools=NS(intToSdfPath=str), PhysxSchema=NS(PhysxContactReportAPI=ReportAPI),
                   Usd=NS(PrimRange=lambda path: [Prim(path + '/' + name) for name in names]),
-                  UsdPhysics=NS(RigidBodyAPI=object),
+                  UsdPhysics=NS(RigidBodyAPI=object, CollisionAPI=ReportAPI),
                   UsdUtils=NS(StageCache=NS(Get=lambda: NS(GetId=lambda stage: NS(ToLongInt=lambda: stage.stage_id))))),
     }
     for name, module in fake_modules.items(): monkeypatch.setitem(sys.modules, name, module)
+    class TensorView:
+        def __init__(self, patterns, filter_patterns, max_contact_data_count):
+            self.sensor_paths, self.filter_paths = patterns, filter_patterns
+            self.sensor_count, self.filter_count = len(patterns), len(filter_patterns[0])
+            self.max_contact_data_count = max_contact_data_count
+        def payload(self):
+            n, f, c = self.sensor_count, self.filter_count, self.max_contact_data_count
+            matrix, counts, starts = torch.zeros(n, f, 3), torch.zeros(n, f, dtype=torch.int32), torch.zeros(n, f, dtype=torch.int32)
+            forces, points, normals, distances = torch.zeros(c, 1), torch.zeros(c, 3), torch.zeros(c, 3), torch.zeros(c, 1)
+            for i in range(n):
+                j = next(j for j, path in enumerate(self.filter_paths[i]) if path.startswith('/World/ground/'))
+                if fault == 'tensor_cross' and i == 0:
+                    j = next(j for j, path in enumerate(self.filter_paths[i]) if path.startswith('/World/envs/env_1/'))
+                if fault != 'no_contacts':
+                    counts[i, j], starts[i, j], forces[i, 0], normals[i, 2], matrix[i, j, 2] = 1, i, 60, 1, 60
+            return matrix, (forces, points, normals, distances, counts, starts)
+        def get_net_contact_forces(self, dt): return self.payload()[0].sum(dim=1)
+        def get_contact_force_matrix(self, dt): return self.payload()[0]
+        def get_contact_data(self, dt): return self.payload()[1]
+    env.sim.physics_sim_view.device = 'cuda:0'
+    env.sim.physics_sim_view.create_rigid_contact_view = TensorView
+    interface.get_contact_report = lambda: pytest.fail('diagnostic must use tensor contacts')
+    interface.subscribe_contact_report_events = lambda _: pytest.fail('diagnostic must use tensor contacts')
     monkeypatch.setattr(diagnostic, 'audit_shared_collision_groups', lambda scene: {'fixture': True})
     reset_calls = []
     def resets(*args):
@@ -398,7 +422,7 @@ def test_diagnostic_integration_gates_resets_and_records_sensor_evidence(contact
         with pytest.raises(AssertionError):
             diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None)
         assert reset_calls == []
-        assert interface.simulations == (1 if fault == 'callback_cross' else 80)
+        assert interface.simulations == (1 if fault == 'tensor_cross' else 80)
     else:
         report = diagnostic.run_shared_diagnostic(env, 130196, journal, lambda message: None)
         assert diagnostic.shared_report_passed(json.loads(json.dumps(report)))

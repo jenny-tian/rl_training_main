@@ -118,6 +118,18 @@
     {
       "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.usd-1.13.10+69cbf6ad.lx64.r.cp311/omni/usd/_usd.pyi",
       "sha256": "5745acb624a5bbde82b697339c7192df4d359805926abd6d4e04a155afd9acdd"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/utils.py",
+      "sha256": "66e0aa81e6ae33aba16317845537b02eba87684a9ae8cd832323c9bab4481afb"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/bin/libomni.physx.tensors.plugin.so",
+      "sha256": "8c9b7160c63b66e94c407dcd6bd550079e84c502796415f3658afd11b564f1a6"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx-107.3.26+107.3.3.lx64.r.cp311.u353/bin/libomni.physx.plugin.so",
+      "sha256": "03fbf17e6f0dc3f9006c8c00aa0ca572a72fd69498874df6dd900dac726c9909"
     }
   ],
   "findings": {
@@ -125,7 +137,7 @@
     "inverted_filter": "physxScene:invertCollisionGroupFilter",
     "global_collider": "/World/ground",
     "scan_target": "one merged static ground mesh; local hit mesh index zero",
-    "contact_report": "Immediate get_contact_report after every completed physics substep; separate callback telemetry; validated pairwise positives required",
+    "contact_report": "GPU pair tensor view: exact body sensors and full per-sensor body/ground filter lists; immediate CPU contact reports are not an acceptance source",
     "qualification": false
   },
   "mesh_id_contract_review": {
@@ -156,5 +168,25 @@
     "per_header_stage_validation": "unchanged: must equal positive canonical stage ID",
     "real_retest": "pending",
     "prior_callback_silence_root_cause": "unproven"
+  },
+  "tensor_contact_review": {
+    "date": "2026-10-28",
+    "schema": "shared_tensor_contact_capture_v1",
+    "capacity": 16384,
+    "physics_dt": 0.005,
+    "force_atol_N": 0.0001,
+    "force_rtol": 0.0001,
+    "cartesian_filters": "explicit path list for every sensor; all robot bodies and enabled static terrain collider paths",
+    "overflow_checks": [
+      "used count below capacity",
+      "valid disjoint ranges",
+      "point-force sum agrees with pair matrix",
+      "pair matrix sum agrees with net force",
+      "native overflow and dropped-contact log rejection"
+    ],
+    "backend_settings": "read and record setting and runtime suppression; do not change",
+    "real_retest": "pending",
+    "historical_actual_suppress_readback": "not recorded; do not retroactively assert",
+    "installed_dependencies_modified": false
   }
 }

@@ -24,6 +24,32 @@ sys.modules[SPEC.name] = supervisor_module
 SPEC.loader.exec_module(supervisor_module)
 
 
+@pytest.mark.parametrize('marker', [
+    '[Error] PhysX contact buffer overflow',
+    '[Warning] contact data count exceeded max_contact_data_count',
+    '[Error] increase gpuMaxRigidPatchCount',
+    '[Error] PxgDynamicsMemoryConfig::foundLostPairsCapacity insufficient',
+    'Dropping contacts in solver because we exceeded limit of 32 friction patches.',
+    'Dropping contacts in contact reduction due to full contact buffer.',
+    'Reached limit set by PxSceneDesc::maxNbContactDataBlocks - ran out of buffer space for narrow phase. '
+    'Either accept dropped contacts or increase buffer size allocated for narrow phase.',
+])
+def test_contact_capacity_failure_cannot_be_reported_as_success(marker):
+    assert supervisor_module.find_fatal_exception(marker) == marker
+    assert supervisor_module.find_fatal_exception('contact buffer capacity configured to 16384') is None
+
+
+def test_supervisor_stops_on_contact_capacity_loss(tmp_path):
+    marker = '[Error] contact data buffer overflow'
+    result = supervisor_module.run_monitored_process(
+        [sys.executable, '-u', '-c', f'import time; print({marker!r}, flush=True); time.sleep(10)'],
+        console_path=tmp_path / 'console.log', trace_path=tmp_path / 'trace.log',
+        startup_timeout_s=5, total_timeout_s=10, poll_interval_s=.02, terminate_grace_s=.5,
+    )
+    assert result['stop_reason'] == 'fatal_exception'
+    assert result['elapsed_s'] < 3
+
+
 def test_cooking_failure_parser_matches_terrain_collider_and_ignores_other_meshes():
     assert supervisor_module.find_collision_cooking_failure(
         "[Warning] [omni.physx.cooking.plugin] UjitsoMeshCookingContext: "

@@ -9,8 +9,9 @@ from rl_training.source_scan.parallel_terrain_allocation import SOURCE_RESET_BLO
 from rl_training.source_scan.shared_terrain_bank import SharedBankTerrainAllocator, audit_shared_collision_groups
 from source_parallel_reset_lifecycle import snapshot, check_transition, summarize_tickets, _digest
 from source_shared_contact_report import (
-    ContactCapture, ContactRuntime, capture_substeps, classify_contact, contact_summary_passed,
+    ContactRuntime, capture_substeps, classify_contact,
 )
+from source_shared_tensor_contact import TensorContactCapture, tensor_summary_passed
 
 SHARED_DIAGNOSTIC_SEED = 130196
 SHARED_CONTROL_STEPS = 20
@@ -117,9 +118,8 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
     """20 zero-action steps at identical spawns, ray occlusion probe, five resets."""
     import carb.settings
     import omni.usd
-    from omni.physx import get_physx_simulation_interface
-    from omni.physx.bindings._physx import ContactEventType
-    from pxr import PhysicsSchemaTools, PhysxSchema, Usd, UsdPhysics, UsdUtils
+    from omni.physx import get_physx_interface, get_physx_simulation_interface
+    from pxr import PhysxSchema, Usd, UsdPhysics, UsdUtils
 
     if env.num_envs != 2 or seed != SHARED_DIAGNOSTIC_SEED:
         raise ValueError("shared diagnostic requires two environments and seed 130196")
@@ -152,6 +152,10 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
         if any(PhysxSchema.PhysxContactReportAPI(p).GetThresholdAttr().Get() != 0.0 for p in bodies):
             raise AssertionError("contact reporting must use a zero force threshold")
         reporting_bodies.extend(str(p.GetPath()) for p in bodies)
+    ground_colliders = [str(p.GetPath()) for p in Usd.PrimRange(env.sim.stage.GetPrimAtPath('/World/ground'))
+                        if p.HasAPI(UsdPhysics.CollisionAPI) and UsdPhysics.CollisionAPI(p).GetCollisionEnabledAttr().Get()]
+    if not ground_colliders:
+        raise AssertionError('no enabled static ground colliders for tensor contact filters')
 
     with journal_path.open('x', encoding='utf-8') as journal:
         def record(value):
@@ -160,6 +164,7 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
 
         record({"phase": "initial", "collision_groups": audit_shared_collision_groups(env.scene),
                 "assignments": [asdict(t) for t in assignments], "reporting_bodies": reporting_bodies,
+                "ground_colliders": ground_colliders,
                 "roots": robot.data.root_state_w.cpu().tolist(), "scanners": check_scanners(env, flat_entry=True),
                 "contact_sensor": contact_sensor_snapshot(env)})
 
@@ -191,12 +196,16 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
             env, stage_id_for=lambda stage: UsdUtils.StageCache.Get().GetId(stage).ToLongInt(),
             usd_context_stage_id=lambda: omni.usd.get_context().get_stage_id(),
             get_disabled=lambda: carb.settings.get_settings().get('/physics/disableContactProcessing'),
+            get_backend_state=lambda: {
+                'suppress_readback_setting': carb.settings.get_settings().get('/physics/suppressReadback'),
+                'readback_suppressed': get_physx_interface().is_readback_suppressed(),
+                'tensor_device': str(env.sim.physics_sim_view.device),
+            },
         )
-        capture = ContactCapture(
+        capture = TensorContactCapture(
             stage_id=UsdUtils.StageCache.Get().GetId(env.sim.get_initial_stage()).ToLongInt(),
-            reporting_bodies=reporting_bodies, decode_path=PhysicsSchemaTools.intToSdfPath,
-            event_types={ContactEventType.CONTACT_FOUND: 'found', ContactEventType.CONTACT_PERSIST: 'persist',
-                         ContactEventType.CONTACT_LOST: 'lost'}, record=record,
+            reporting_bodies=reporting_bodies, ground_colliders=ground_colliders,
+            physics_view=env.sim.physics_sim_view, physics_dt=env.physics_dt, record=record,
             start_step=env._sim_step_counter, decimation=4, control_steps=SHARED_CONTROL_STEPS,
         )
         with capture_substeps(env, interface, capture, runtime):
@@ -245,7 +254,7 @@ def shared_report_passed(report):
         and report.get('cross_environment_contacts') == 0
         and all(type(contacts.get(str(i), contacts.get(i))) is int
                 and contacts.get(str(i), contacts.get(i, 0)) > 0 for i in (0, 1))
-        and contact_summary_passed(report.get('contact_capture'), contacts)
+        and tensor_summary_passed(report.get('contact_capture'), contacts)
         and report.get('vertical_occlusion_probe_passed') is True
         and resets.get('assignment_count') == 8 and resets.get('reset_batch_count') == 5
         and resets.get('direct_reset_count') == 6

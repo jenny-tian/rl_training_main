@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_ground_ray_caster.py",
+    "tests/source_scan/test_shared_terrain_runtime.py",
+    "tests/source_scan/test_shared_contact_report.py",
+    "tests/source_scan/test_shared_terrain_bank.py",
+    "tests/source_scan/test_parallel_terrain_allocation.py",
+    "tests/source_scan/test_source_parallel_reset_lifecycle.py",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py",
+    "tests/source_scan/test_source_terrain_importer_chunking.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_source_mesh_chunking.py",
+    "tests/source_scan/test_shared_tensor_contact.py"
+  ],
+  "environment": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "source/rl_training"
+  },
+  "started_at_utc": "2026-10-28T13:55:38.094416+00:00",
+  "source_sha256": {
+    "scripts/tools/source_parallel_terrain_startup_supervisor.py": "35b226c8d2b4fa2cd94edba567a03ce36ff606d4d9c99c5598175a62f73124f0",
+    "scripts/tools/source_shared_contact_report.py": "a22f0870d3950a08892e5372735310c988537c550ae33c692bf3b2aa4b6271ec",
+    "scripts/tools/source_shared_terrain_diagnostic.py": "1adf85b55c60e492557047e1cab28fd6bb8f61344fa62116163b91617b987f6f",
+    "tests/source_scan/test_shared_contact_report.py": "ea4445ebbe3ccc1ddf9902c341e85733004154d925dc0bb8d5e585e4c6dc82d6",
+    "tests/source_scan/test_shared_terrain_runtime.py": "bbf9724e223acb7d7674092145f3642dda606477ad793fc8012ce12757589802",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py": "8d443c1aad29e839c5554c92efad019ea7c6761c6ea252b9210687068dfbe10a",
+    "scripts/tools/source_shared_tensor_contact.py": "54a667e894acec722b1913a13b8d9e161642f4be831f4168ef98cbc6833219ea",
+    "tests/source_scan/test_shared_tensor_contact.py": "c16c247e17171dfeed1008e3a4a96f4bec815dbd5a5a53a474fe9f95a7a2c990"
+  },
+  "dependency_audit_sha256": "7ceb957a1fb776f72dad85f78fb0657abbba96d08652615dc183197507feb9e5",
+  "completed_at_utc": "2026-10-28T13:56:07.904908+00:00",
+  "exit_code": 0,
+  "source_hashes_unchanged_during_tests": true,
+  "regression_log_sha256": "2551c998b7d2625032cee716afb490c60262fe97a64e58ef480ea45d1c19f8d5"
+}

@@ -42,8 +42,23 @@ def find_collision_cooking_failure(text: str) -> str | None:
 
 
 def find_fatal_exception(text: str) -> str | None:
-    """Match the diagnostic's explicit fatal markers, not arbitrary log prose."""
-    return next((line.strip() for line in text.splitlines() if line.strip() in _FATAL_TRACE_LINES), None)
+    """Reject explicit diagnostic failures and PhysX contact-capacity loss."""
+    for line in text.splitlines():
+        if line.strip() in _FATAL_TRACE_LINES:
+            return line.strip()
+        lowered = line.casefold()
+        if 'dropping contacts' in lowered or 'dropped contacts' in lowered:
+            return line.strip()
+        capacity = any(word in lowered for word in (
+            'contact buffer', 'contact data buffer', 'patch buffer', 'contactbuffercapacity',
+            'patchbuffercapacity', 'foundlostpairscapacity', 'gpumaxrigidcontactcount',
+            'gpumaxrigidpatchcount', 'max_contact_data_count', 'contact data count',
+            'maxnbcontactdatablocks',
+        ))
+        failure = any(word in lowered for word in ('overflow', 'exceed', 'increase', 'insufficient', 'buffer is full'))
+        if capacity and failure:
+            return line.strip()
+    return None
 
 
 def _fatal_exception_record(console_text: str, trace_path: Path, phase: str, started: float) -> dict | None:
@@ -435,6 +450,7 @@ def main() -> int:
         supervisor_path.with_name("source_parallel_reset_lifecycle.py"),
         supervisor_path.with_name("source_shared_terrain_diagnostic.py"),
         supervisor_path.with_name("source_shared_contact_report.py"),
+        supervisor_path.with_name("source_shared_tensor_contact.py"),
         supervisor_path,
         asset_audit_path,
     ]
