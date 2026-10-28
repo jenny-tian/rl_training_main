@@ -1,0 +1,91 @@
+{
+  "reviewed_at_utc": "2026-10-28T14:40:26.421611+00:00",
+  "status": "simulation_evidence_passed_supervisor_finalization_incomplete",
+  "runtime_revision": "93f1cd46278e5a0c0bf7882c0df93a20d6b8bb71",
+  "run_count_this_phase": 1,
+  "simulation_rerun_during_review": false,
+  "shared_report_predicate_passed_via_ast": true,
+  "original_supervisor_outcome_present": false,
+  "original_supervisor_exit_code": null,
+  "simulation_child_exit_code": 0,
+  "supervisor_import_failure_reproduced": "ModuleNotFoundError: No module named 'pxr'",
+  "original_supervisor_stderr_retained": false,
+  "source_hashes_verified": 142,
+  "dependency_hashes_verified": 32,
+  "asset_hashes_verified": 6,
+  "journal_phase_counts": {
+    "initial": 1,
+    "vertical_occlusion_probe": 1,
+    "contact_runtime": 81,
+    "tensor_contact_topology": 1,
+    "contact_poll_attempt": 80,
+    "tensor_contact_sample": 80,
+    "tensor_contact": 596,
+    "control_step": 20,
+    "contact_summary": 1,
+    "before_reset": 5,
+    "assignment_comparison": 5,
+    "reset_checked": 5,
+    "reset_scanners": 5,
+    "complete": 1
+  },
+  "contact_samples": 80,
+  "ground_contact_points": {
+    "0": 276,
+    "1": 268
+  },
+  "cross_environment_contacts": 0,
+  "contact_peak_used": 8,
+  "contact_capacity": 16384,
+  "backend_state": {
+    "suppress_readback_setting": true,
+    "readback_suppressed": true,
+    "tensor_device": "cuda:0"
+  },
+  "reset_checks": {
+    "assignment_count": 8,
+    "blocks": [
+      {
+        "block_index": 0,
+        "size": 8,
+        "counts": {
+          "flat": 3,
+          "slope_rough_uphill": 1,
+          "slope_downhill": 1,
+          "stairs_descending": 3
+        },
+        "complete": false
+      }
+    ],
+    "complete_blocks": 0,
+    "reset_batch_count": 5,
+    "direct_reset_count": 6,
+    "history_buffers": [],
+    "automatic_reset_tested": false
+  },
+  "elapsed_s": 18.600588803179562,
+  "sampled_gpu_peak_mib": 2820,
+  "gpu0_after": [
+    "0",
+    "GPU-044ddc24-86ef-a67d-7e14-9358300bc3dc",
+    "18 MiB",
+    "0 %"
+  ],
+  "test_processes_remaining": false,
+  "log_review": {
+    "console.log": {
+      "errors": [],
+      "warning_count": 16
+    },
+    "kit.log": {
+      "errors": [],
+      "warning_count": 16
+    },
+    "isaaclab.log": {
+      "errors": [],
+      "warning_count": 0
+    }
+  },
+  "training_started": false,
+  "full_qualification_claim": false
+}
