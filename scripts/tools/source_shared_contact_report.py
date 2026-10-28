@@ -38,6 +38,57 @@ def _point(data):
     return result
 
 
+class ContactRuntime:
+    """Read the existing Lab/USD lifecycle without attaching or rebuilding physics."""
+
+    def __init__(self, env, *, stage_id_for, usd_context_stage_id, get_disabled):
+        self.env = env
+        self.stage_id_for, self.usd_context_stage_id = stage_id_for, usd_context_stage_id
+        self.get_disabled = get_disabled
+        self.physics_view = env.sim.physics_sim_view
+        self.stage_in_memory = env.sim.cfg.create_stage_in_memory
+
+    def __call__(self):
+        sim = self.env.sim
+        view = sim.physics_sim_view
+        in_memory = sim.cfg.create_stage_in_memory
+        return {
+            'environment_stage_id': self.stage_id_for(sim.stage),
+            'initial_stage_id': self.stage_id_for(sim.get_initial_stage()),
+            'scene_stage_id': self.stage_id_for(self.env.scene.stage),
+            'scene_recorded_stage_id': self.env.scene.stage_id,
+            'usd_context_stage_id': self.usd_context_stage_id(),
+            'stage_in_memory': in_memory,
+            'stage_mode_unchanged': in_memory is self.stage_in_memory,
+            'physics_view_valid': view is not None and view.is_valid,
+            'physics_view_unchanged': view is self.physics_view,
+            'timeline_playing': sim.is_playing(),
+            'disable_contact_processing': self.get_disabled(),
+        }
+
+
+def contact_runtime_passed(state, stage_id):
+    """Zero explicit attachment is allowed only for a verified ordinary USD stage."""
+    if not isinstance(state, dict) or type(stage_id) is not int or stage_id <= 0:
+        return False
+    for key in ('environment_stage_id', 'initial_stage_id', 'scene_stage_id', 'scene_recorded_stage_id'):
+        if type(state.get(key)) is not int or state[key] != stage_id:
+            return False
+    if any(state.get(key) is not True for key in (
+        'stage_mode_unchanged', 'physics_view_valid', 'physics_view_unchanged', 'timeline_playing',
+    )) or state.get('disable_contact_processing') is not False:
+        return False
+    attached, usd_id, in_memory = (state.get(key) for key in (
+        'attached_stage', 'usd_context_stage_id', 'stage_in_memory'))
+    if type(attached) is not int or type(usd_id) is not int or usd_id < 0:
+        return False
+    if in_memory is True:
+        return attached == stage_id
+    if in_memory is False:
+        return usd_id == stage_id and attached in (0, stage_id)
+    return False
+
+
 class ContactCapture:
     """Keep callback telemetry separate; only validated immediate points count."""
 
@@ -54,16 +105,18 @@ class ContactCapture:
         self.ground = {channel: Counter() for channel in self.counts}
         self.cross_contacts = []
         self.runtime_checked = False
+        self.runtime_check_count = 0
+        self.runtime_state = None
         self.positive_controls_validated = False
 
-    def runtime(self, interface, get_disabled):
-        attached = _integer(interface.get_attached_stage())
-        disabled = get_disabled()
-        self.record({'phase': 'contact_runtime', 'stage_id': self.stage_id, 'attached_stage': attached,
-                     'disable_contact_processing': disabled})
-        if self.stage_id <= 0 or attached != self.stage_id or disabled is not False:
-            raise AssertionError('contact runtime stage mismatch or processing disabled/unknown')
+    def runtime(self, interface, get_runtime):
+        self.runtime_state = {**get_runtime(), 'attached_stage': _integer(interface.get_attached_stage())}
+        self.record({'phase': 'contact_runtime', 'stage_id': self.stage_id, **self.runtime_state})
+        if not contact_runtime_passed(self.runtime_state, self.stage_id):
+            raise AssertionError(f'contact runtime stage/lifecycle mismatch or processing disabled/unknown: '
+                                 f'{self.runtime_state}')
         self.runtime_checked = True
+        self.runtime_check_count += 1
 
     def _owner(self, actor, collider):
         if actor in self.bodies and (collider == actor or collider.startswith(actor + '/')):
@@ -129,10 +182,10 @@ class ContactCapture:
         except Exception as error:
             self.error(error, 'callback')
 
-    def poll(self, env, interface, get_disabled):
+    def poll(self, env, interface, get_runtime):
         step = _integer(env._sim_step_counter)
         self.record({'phase': 'contact_poll_attempt', 'sim_step': step})
-        self.runtime(interface, get_disabled)
+        self.runtime(interface, get_runtime)
         if step != self.start_step + len(self.poll_steps) + 1:
             raise AssertionError('nonconsecutive contact poll step')
         headers, data = interface.get_contact_report()
@@ -157,8 +210,9 @@ class ContactCapture:
         self.positive_controls_validated = True
 
     def summary(self):
-        return {'schema': 'shared_contact_capture_v1', 'stage_id': self.stage_id,
+        return {'schema': 'shared_contact_capture_v2', 'stage_id': self.stage_id,
                 'runtime_checked': self.runtime_checked, 'start_sim_step': self.start_step,
+                'runtime_check_count': self.runtime_check_count, 'runtime_state': self.runtime_state,
                 'decimation': self.decimation, 'control_steps': self.control_steps,
                 'poll_steps': list(self.poll_steps), 'control_poll_counts': list(self.control_poll_counts),
                 'channels': {k: dict(v) for k, v in self.counts.items()},
@@ -169,7 +223,7 @@ class ContactCapture:
 
 
 @contextmanager
-def capture_substeps(env, interface, capture, get_disabled):
+def capture_substeps(env, interface, capture, get_runtime):
     """Temporarily wrap one empty recorder instance, without adding recorder terms."""
     manager = env.recorder_manager
     name = 'record_post_physics_decimation_step'
@@ -179,12 +233,12 @@ def capture_substeps(env, interface, capture, get_disabled):
     subscription = None
     installed = False
     try:
-        capture.runtime(interface, get_disabled)
+        capture.runtime(interface, get_runtime)
         if len(manager.active_terms) or env.cfg.decimation != capture.decimation:
             raise AssertionError('contact probe requires an empty recorder and expected decimation')
 
         def after_physics():
-            capture.poll(env, interface, get_disabled)
+            capture.poll(env, interface, get_runtime)
             return original()
 
         subscription = interface.subscribe_contact_report_events(
@@ -231,9 +285,11 @@ def contact_summary_passed(summary, ground_contacts, *, control_steps=20, decima
                for i in (0, 1)):
         return False
     total = control_steps * decimation
-    return (summary.get('schema') == 'shared_contact_capture_v1'
+    return (summary.get('schema') == 'shared_contact_capture_v2'
             and type(summary.get('stage_id')) is int and summary['stage_id'] > 0
             and summary.get('runtime_checked') is True
+            and type(summary.get('runtime_check_count')) is int and summary['runtime_check_count'] == total + 1
+            and contact_runtime_passed(summary.get('runtime_state'), summary['stage_id'])
             and summary.get('positive_controls_validated') is True
             and summary.get('decimation') == decimation and summary.get('control_steps') == control_steps
             and summary.get('poll_steps') == list(range(start + 1, start + total + 1))

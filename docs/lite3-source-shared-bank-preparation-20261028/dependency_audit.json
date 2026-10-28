@@ -90,6 +90,34 @@
     {
       "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.api/isaacsim/core/api/physics_context/physics_context.py",
       "sha256": "7486ec315d2525bdef6e1cef294d67d419511e3367e7f40001a8324e2b6a7751"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/simulation_cfg.py",
+      "sha256": "d8035df355c576ad7c876789bba54be4ebb361f5c16786a4ec8578143eebc118"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/utils/stage.py",
+      "sha256": "17aff7672bddcfdda55d3f6f9c94c95f5469d1ff941e5740bba48161df2be65d"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_env.py",
+      "sha256": "74d495925e264521b05a92296bbaf98adcabb7d94f3787ab3ed61f4d0680a198"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.simulation_manager/isaacsim/core/simulation_manager/impl/simulation_manager.py",
+      "sha256": "9f608b061c7aa4285a4a722806d3858e7e44ab82d907309635c6295a272dd659"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.utils/isaacsim/core/utils/stage.py",
+      "sha256": "3b8b97384d6ead29ab3c48383f7947ea840941272eb94dbd1cace68898ca4bd9"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py",
+      "sha256": "5dd16f8a37eccc94ac82338d6c1127e785cccf761cae1f6f18ef03d55b0f325f"
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.usd-1.13.10+69cbf6ad.lx64.r.cp311/omni/usd/_usd.pyi",
+      "sha256": "5745acb624a5bbde82b697339c7192df4d359805926abd6d4e04a155afd9acdd"
     }
   ],
   "findings": {
@@ -119,5 +147,14 @@
     "event_enum": "ContactEventType.CONTACT_FOUND / CONTACT_PERSIST / CONTACT_LOST",
     "prior_callback_silence_root_cause": "unproven",
     "installed_dependencies_modified": false
+  },
+  "contact_stage_review": {
+    "date": "2026-10-28",
+    "ordinary_usd": "match initial/sim/scene/USD context IDs; keep same valid physics view and playing timeline; explicit attached stage may be zero or the matching ID",
+    "memory_stage": "require matching explicit attached stage; still require same valid physics view and sim/scene IDs",
+    "stage_mutation_performed": false,
+    "per_header_stage_validation": "unchanged: must equal positive canonical stage ID",
+    "real_retest": "pending",
+    "prior_callback_silence_root_cause": "unproven"
   }
 }

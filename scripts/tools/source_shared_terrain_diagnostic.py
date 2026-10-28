@@ -9,7 +9,7 @@ from rl_training.source_scan.parallel_terrain_allocation import SOURCE_RESET_BLO
 from rl_training.source_scan.shared_terrain_bank import SharedBankTerrainAllocator, audit_shared_collision_groups
 from source_parallel_reset_lifecycle import snapshot, check_transition, summarize_tickets, _digest
 from source_shared_contact_report import (
-    ContactCapture, capture_substeps, classify_contact, contact_summary_passed,
+    ContactCapture, ContactRuntime, capture_substeps, classify_contact, contact_summary_passed,
 )
 
 SHARED_DIAGNOSTIC_SEED = 130196
@@ -116,6 +116,7 @@ def check_shared_resets(env, seed, record):
 def run_shared_diagnostic(env, seed, journal_path, trace):
     """20 zero-action steps at identical spawns, ray occlusion probe, five resets."""
     import carb.settings
+    import omni.usd
     from omni.physx import get_physx_simulation_interface
     from omni.physx.bindings._physx import ContactEventType
     from pxr import PhysicsSchemaTools, PhysxSchema, Usd, UsdPhysics, UsdUtils
@@ -186,15 +187,19 @@ def run_shared_diagnostic(env, seed, journal_path, trace):
         env.scene.update(0.0)
 
         interface = get_physx_simulation_interface()
+        runtime = ContactRuntime(
+            env, stage_id_for=lambda stage: UsdUtils.StageCache.Get().GetId(stage).ToLongInt(),
+            usd_context_stage_id=lambda: omni.usd.get_context().get_stage_id(),
+            get_disabled=lambda: carb.settings.get_settings().get('/physics/disableContactProcessing'),
+        )
         capture = ContactCapture(
-            stage_id=UsdUtils.StageCache.Get().GetId(env.sim.stage).ToLongInt(),
+            stage_id=UsdUtils.StageCache.Get().GetId(env.sim.get_initial_stage()).ToLongInt(),
             reporting_bodies=reporting_bodies, decode_path=PhysicsSchemaTools.intToSdfPath,
             event_types={ContactEventType.CONTACT_FOUND: 'found', ContactEventType.CONTACT_PERSIST: 'persist',
                          ContactEventType.CONTACT_LOST: 'lost'}, record=record,
             start_step=env._sim_step_counter, decimation=4, control_steps=SHARED_CONTROL_STEPS,
         )
-        with capture_substeps(env, interface, capture,
-                              lambda: carb.settings.get_settings().get('/physics/disableContactProcessing')):
+        with capture_substeps(env, interface, capture, runtime):
             for step in range(SHARED_CONTROL_STEPS):
                 obs, reward, terminated, truncated, _ = env.step(torch.zeros_like(env.action_manager.action))
                 capture.check_control(env, step + 1)
