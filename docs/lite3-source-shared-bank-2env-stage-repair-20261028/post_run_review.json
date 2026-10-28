@@ -1,0 +1,181 @@
+{
+  "reviewed_at_utc": "2026-10-28T11:48:04.772735+00:00",
+  "status": "shared_bank_smoke_failed_empty_reports_after_full_substep_capture",
+  "runtime_revision": "5d93b74c090780eb34eeda7d69907b69b16397e5",
+  "model_revision": "b452a1f404d37155400242f18e454fed8bcc51b8",
+  "supervisor_exit_code": 1,
+  "run_count_this_phase": 1,
+  "runtime_code_modified": false,
+  "installed_dependencies_modified": false,
+  "automatic_retry": false,
+  "manual_stop": false,
+  "training_started": false,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "source_hash_count": 141,
+  "dependency_hash_count": 29,
+  "asset_hash_count": 6,
+  "source_hashes_unchanged": true,
+  "dependency_hashes_unchanged": true,
+  "asset_hashes_unchanged": true,
+  "model_clean": true,
+  "journal_phase_counts": {
+    "initial": 1,
+    "vertical_occlusion_probe": 1,
+    "contact_runtime": 81,
+    "contact_poll_attempt": 80,
+    "contact_batch": 80,
+    "control_step": 20,
+    "contact_error": 1,
+    "contact_summary": 1
+  },
+  "journal_record_count": 265,
+  "initial_reset_completed": true,
+  "overlapping_initial_roots_checked": true,
+  "reporting_body_count": 34,
+  "vertical_occlusion_probe_passed": true,
+  "runtime_guard_passed": true,
+  "runtime_checks": 81,
+  "distinct_runtime_states": 1,
+  "runtime_state": {
+    "environment_stage_id": 9223001,
+    "initial_stage_id": 9223001,
+    "scene_stage_id": 9223001,
+    "scene_recorded_stage_id": 9223001,
+    "usd_context_stage_id": 9223001,
+    "stage_in_memory": false,
+    "stage_mode_unchanged": true,
+    "physics_view_valid": true,
+    "physics_view_unchanged": true,
+    "timeline_playing": true,
+    "disable_contact_processing": false,
+    "attached_stage": 0
+  },
+  "control_steps_completed": 20,
+  "physics_substeps_polled": 80,
+  "control_dt_s": 0.02,
+  "physics_dt_s": 0.005,
+  "diagnostic_control_duration_s": 0.4,
+  "contact_subscription_installed": true,
+  "contact_poll_count": 80,
+  "empty_poll_count": 80,
+  "contact_callback_count": 0,
+  "contact_headers": 0,
+  "contact_data": 0,
+  "ground_positive_controls_passed": false,
+  "unexpected_termination_seen": false,
+  "reset_batches_checked": 0,
+  "result_json_produced": false,
+  "foot_force_telemetry": [
+    {
+      "env_id": 0,
+      "first_nonzero_foot_force_control_step": 4,
+      "maximum_foot_force_norm_N": 55.41470718383793,
+      "last_control_step": {
+        "step": 20,
+        "max_foot_force_norm_N": 45.15738677978575,
+        "sum_foot_vertical_force_N": 120.53486347198486
+      },
+      "last_foot_body_origin_heights_m": [
+        0.02199689671397209,
+        0.021996960043907166,
+        0.021994318813085556,
+        0.02199702337384224
+      ]
+    },
+    {
+      "env_id": 1,
+      "first_nonzero_foot_force_control_step": 4,
+      "maximum_foot_force_norm_N": 73.99410247802744,
+      "last_control_step": {
+        "step": 20,
+        "max_foot_force_norm_N": 46.12364959716831,
+        "sum_foot_vertical_force_N": 121.5741081237793
+      },
+      "last_foot_body_origin_heights_m": [
+        0.02203933149576187,
+        0.021977975964546204,
+        0.02199668064713478,
+        0.02199433371424675
+      ]
+    }
+  ],
+  "foot_force_telemetry_proves_pairwise_isolation": false,
+  "physical_isolation_qualified": false,
+  "contact_report_root_cause_confirmed": false,
+  "execution_elapsed_s": 15.876461578998715,
+  "stop_to_execution_end_s": 0.8642041427083313,
+  "fatal_exception": {
+    "marker": "[parallel-terrain-smoke] fatal-exception-recorded",
+    "stream": "console",
+    "detected_phase": "monitor",
+    "detected_elapsed_s": 15.012242918368429
+  },
+  "simulation_app_close_complete_marker": false,
+  "gpu_sample_count": 15,
+  "sampled_gpu_peak_mib": 2820,
+  "cpu_peak_rss_available": false,
+  "gpu0_after_memory_mib": 18,
+  "gpu0_after_utilization_percent": 0,
+  "gpu0_after_compute_process_count": 0,
+  "test_processes_remaining": false,
+  "unrelated_gpu_tasks_modified_by_this_task": false,
+  "log_review": {
+    "console.log": {
+      "explicit_error_lines": [],
+      "cooking_failure_lines": [],
+      "traceback_lines": [
+        "Traceback (most recent call last):",
+        "AssertionError: contact-report positive control missing: both robots must touch ground"
+      ]
+    },
+    "kit.log": {
+      "explicit_error_lines": [],
+      "cooking_failure_lines": [],
+      "traceback_lines": []
+    },
+    "isaaclab.log": {
+      "explicit_error_lines": [],
+      "cooking_failure_lines": [],
+      "traceback_lines": []
+    }
+  },
+  "read_only_followup_sources_sha256": {
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.simulation_manager/isaacsim/core/simulation_manager/impl/simulation_manager.py": "9f608b061c7aa4285a4a722806d3858e7e44ab82d907309635c6295a272dd659",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/exts/isaacsim.core.api/isaacsim/core/api/simulation_context/simulation_context.py": "ebafc6bcb30a454925fe21b96dcdbd4637c922a3fa9d5a6947308c9796ba5028",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py": "5dd16f8a37eccc94ac82338d6c1127e785cccf761cae1f6f18ef03d55b0f325f",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physx-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physx/bindings/_physx.pyi": "ff13abb83480dcc707ac2ad60062306aef7a33f885d32ed4c8ee6dfea2008e79",
+    "/home/tjx/IsaacLab/apps/isaaclab.python.headless.kit": "d3c8dffa428fffb9511da127d20008451169933201279c0882d6a225643b9bed",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/contact_sensor/contact_sensor.py": "5bf3b77d2159850526e3833bf50253dbce06cb78b850eae13fb4088dc233760d"
+  },
+  "followup_source_findings": [
+    "SimulationManager.set_physics_sim_device sets /physics/suppressReadback true for CUDA and false for CPU; this run did not record that setting or is_readback_suppressed().",
+    "Tensor contact view provides the nonzero force data through a separate API; current net force output does not identify collision counterparts.",
+    "Next investigation should check GPU readback and report-generation support before choosing an event-report repair or pair-filtered tensor evidence; do not treat the readback hypothesis as proven."
+  ],
+  "archive_source_paths": {
+    "console.log": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/console.log",
+    "execution.json": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/execution.json",
+    "gpu_samples.jsonl": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/gpu_samples.jsonl",
+    "manifest.json": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/manifest.json",
+    "outcome.json": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/outcome.json",
+    "result.shared.jsonl": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/result.shared.jsonl",
+    "trace.log": "/tmp/lite3_shared_bank_2env_stage_repair_20261028/trace.log",
+    "kit.log": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261028_193845.log",
+    "isaaclab.log": "/tmp/isaaclab/logs/isaaclab_2026-10-28_19-38-55.log"
+  },
+  "archived_artifact_sha256": {
+    "console.log": "6c8a9f83195932552c8e9c8b7418a9a48420d9e68a6e3c6eda4655064c85769a",
+    "execution.json": "532068c12eaf17ffc0533665723ed8dc1bf7015725cbdb53cbe6f7a1182ccc40",
+    "gpu_after.csv": "830bbab9f7f753fd2c4c04fe432c25bd4d9e1499bc43febcdcf2b0dbe8fee031",
+    "gpu_compute_after.csv": "470844826f989644deb4440e1c3d7c6c092c8bb95ecce94b6e60e1a5b4ffacc5",
+    "gpu_samples.jsonl": "be114cea0ea2ccfecafa968ba62a233daee862342610421e525f30220b1455c7",
+    "isaaclab.log": "69da5743ff6a34a3fa5b7c97a328653defda2a1f09d2919952d8e00645c0c4e3",
+    "kit.log": "d2a166e9dbab29fa60c27c099334c9bd545127c3ea57f1cd674da22c345425e5",
+    "manifest.json": "d20d5f3080c75054de614eb0fff7bf3bae44e9a907843a8ae9b47ad851b76260",
+    "outcome.json": "dc1b0a02889a2a11fabe7c63a99f2c92cb5ce521728585fcc2b912a49885fbbf",
+    "result.shared.jsonl": "6d7273540bdc7232b91186d23feeeae540c973b3f9b335aa6cc27223d82e9859",
+    "test_processes_after.json": "044ba8ef17ded051dffdd7478a429a9b702b36a0eadc0a27a125731af3cecde3",
+    "trace.log": "9d9966da8867a7ea42ac83eb2271c83a58ac0a88bbcaba4c8d8df40b36778a8d"
+  }
+}

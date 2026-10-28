@@ -100,3 +100,5 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training \
 **后续真实复测（2026-10-28）：** 用户批准的一次接触链路复测从 `e5c29d8` 运行，初始化与扫描探针完成后，在接触采集前 stage 校验失败：USD ID `9223001`、PhysX attached ID `0`，接触处理已开启。订阅、20 步控制及五批 reset 均未开始，不能验证采集修复或共享隔离。监督器自动结束，GPU0 已释放；没有修改运行代码或重试。原始证据及下一阶段离线核对建议见 [stage 校验失败记录](../lite3-source-shared-bank-2env-contact-repair-20261028/README.md)。
 
 **最新离线修复（2026-10-28）：** 已按用户批准修正 stage 校验，区分普通 USD 与显式附加的 memory stage，并核对同一有效物理 view、context 与生命周期状态。接触 header 和阳性对照要求保留。362 项回归通过，依赖审计扩展为 29 项；本阶段未仿真，真实报告恢复未验证。详见 [stage 生命周期修复与待批准复测](../lite3-source-shared-bank-stage-offline-repair-20261028/README.md)。
+
+**后续实测（2026-10-28）：** `5d93b74` 上用户批准的一次复测完成 81 次生命周期校验和 20 步／80 次接触采集，但 80 次报告均为空、回调调用 0 次，虽有非零足端 tensor 力，仍缺地面阳性对照，未进入 reset。监督器自动收尾且 GPU0 已释放；未改运行代码或重试。下一步具体核查 GPU 回读模式与报告接口，见 [实测证据与下一阶段建议](../lite3-source-shared-bank-2env-stage-repair-20261028/README.md)。
