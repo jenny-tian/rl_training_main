@@ -1,0 +1,46 @@
+{
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "stage": {
+    "stage_id": "shared_bank_g2_8env",
+    "num_envs": 8,
+    "minimum_free_mib": 12288,
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true,
+    "prerequisites": [
+      "new phase approval",
+      "clean committed worktree",
+      "input and dependency hashes verified",
+      "current-revision 2-env G2 passed and reviewed"
+    ],
+    "expected_assignment_count": 129,
+    "expected_reset_batch_count": 33,
+    "direct_reset_count": 120,
+    "direct_reset_batch_count": 32,
+    "automatic_timeout_env_id": 7,
+    "contact_control_steps": 20,
+    "contact_physics_substeps": 80,
+    "lifecycle_control_steps": 2,
+    "command": [
+      "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+      "scripts/tools/source_parallel_terrain_startup_supervisor.py",
+      "--shared-bank",
+      "--reset-lifecycle",
+      "--num-envs",
+      "8",
+      "--seed",
+      "130196",
+      "--gpu-index",
+      "0",
+      "--startup-timeout-s",
+      "120",
+      "--total-timeout-s",
+      "240",
+      "--run-dir",
+      "/tmp/lite3_shared_bank_g2_8env_height_recheck_20261029"
+    ]
+  },
+  "prerequisite_result": "docs/lite3-source-shared-bank-g2-2env-recheck-20261029/post_run_review.json",
+  "runtime_source_reference_revision": "401ea45d758f03c575abecc8ac4615773678fb4d",
+  "rule": "Use the clean archive commit only if runtime input hashes remain equal; run once with no retries or PPO."
+}

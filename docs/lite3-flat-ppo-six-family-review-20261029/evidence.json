@@ -1,0 +1,390 @@
+{
+  "schema": "lite3_flat_ppo_six_family_evidence_review_v1",
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "new_policy_runs": 0,
+  "training_started": false,
+  "formal_six_family_success_rates_available": false,
+  "untested_families_in_available_policy_reports": [
+    "multi_scale_rough",
+    "slope_plus_rough",
+    "friction_variation"
+  ],
+  "evidence": [
+    {
+      "source_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261024/slope_L1_downhill_headless_diagnostic_retry3.json",
+      "source_sha256": "00a5bfde3d077e9f25b650a071ba9a87e998721264804b29c1acde1869e5b76c",
+      "archive_file": "slope_L1_downhill_headless_diagnostic_retry3.json.gz",
+      "finished_at_utc": "2026-10-24T16:30:11.353806+00:00",
+      "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "cell": {
+        "cell_id": "slope_L1_downhill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10070,
+          10074
+        ],
+        "initial_state_seed_range": [
+          20070,
+          20074
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      "record": {
+        "cell_id": "slope_L1_downhill",
+        "geometry_seed": 10070,
+        "initial_state_seed": 20070,
+        "episode_index": 1,
+        "steps": 1008,
+        "completed": true,
+        "termination_reason": "completion",
+        "termination_terms": [],
+        "forward_progress_m": 9.31201171875,
+        "lateral_offset_peak_m": 0.12983006238937378,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.04411764705882353
+      },
+      "stair_metrics": {},
+      "scope": "Historical bounded diagnostic; not a current bank-matched safety qualification."
+    },
+    {
+      "source_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L1_ascending_headless_diagnostic_retry1.json",
+      "source_sha256": "57b04c14c83f4bb45d0f619b49461a06488aaa02bbf604aece516b21cf98f933",
+      "archive_file": "multi_step_stairs_L1_ascending_headless_diagnostic_retry1.json.gz",
+      "finished_at_utc": "2026-10-25T02:33:47.591497+00:00",
+      "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "cell": {
+        "cell_id": "multi_step_stairs_L1_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "ascending",
+        "geometry_seed_range": [
+          10180,
+          10184
+        ],
+        "initial_state_seed_range": [
+          20180,
+          20184
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 3,
+            "step_height_m": 0.02,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "ascending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      "record": {
+        "cell_id": "multi_step_stairs_L1_ascending",
+        "geometry_seed": 10180,
+        "initial_state_seed": 20180,
+        "episode_index": 1,
+        "steps": 1600,
+        "completed": false,
+        "termination_reason": "smoke_step_limit",
+        "termination_terms": [],
+        "forward_progress_m": 8.579214096069336,
+        "lateral_offset_peak_m": 0.9286351203918457,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.020251778872468526
+      },
+      "stair_metrics": {
+        "step_count": 3,
+        "completed_step_index": 3,
+        "front_foot_collision_count": 0,
+        "stuck_or_catch_step_count": 0
+      },
+      "scope": "Historical bounded diagnostic; not a current bank-matched safety qualification."
+    },
+    {
+      "source_path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/multi_step_stairs_L1_descending_headless_diagnostic_retry1.json",
+      "source_sha256": "621fbd74b7abbd2c67a758645f8202e470ce62664ceac2b6160fb67c4217ff54",
+      "archive_file": "multi_step_stairs_L1_descending_headless_diagnostic_retry1.json.gz",
+      "finished_at_utc": "2026-10-25T02:45:49.807481+00:00",
+      "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "cell": {
+        "cell_id": "multi_step_stairs_L1_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "descending",
+        "geometry_seed_range": [
+          10190,
+          10194
+        ],
+        "initial_state_seed_range": [
+          20190,
+          20194
+        ],
+        "episodes": 5,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 3,
+            "step_height_m": 0.02,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "descending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        }
+      },
+      "record": {
+        "cell_id": "multi_step_stairs_L1_descending",
+        "geometry_seed": 10190,
+        "initial_state_seed": 20190,
+        "episode_index": 1,
+        "steps": 1433,
+        "completed": true,
+        "termination_reason": "completion",
+        "termination_terms": [],
+        "forward_progress_m": 9.301992416381836,
+        "lateral_offset_peak_m": 0.6618529558181763,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.02569727358194923
+      },
+      "stair_metrics": {
+        "step_count": 3,
+        "completed_step_index": 3,
+        "front_foot_collision_count": 1,
+        "stuck_or_catch_step_count": 0
+      },
+      "scope": "Historical bounded diagnostic; not a current bank-matched safety qualification."
+    },
+    {
+      "source_path": "docs/lite3-source-policy-prequalification-flat-20261029/result.json",
+      "source_sha256": "31663ec1057f50ec74bae347a8468e2683f9cac17b99c05189a1cfb4ee5ec70b",
+      "record": {
+        "cell_id": "flat_L1_forward_flat",
+        "geometry_seed": 10000,
+        "initial_state_seed": 20000,
+        "episode_index": 1,
+        "steps": 1514,
+        "completed": true,
+        "termination_reason": "completion",
+        "termination_terms": [],
+        "forward_progress_m": 9.295169830322266,
+        "lateral_offset_peak_m": 0.719968855381012,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.010376519418914912
+      },
+      "stair_metrics": {},
+      "scope": "Current isolated Flat safety evidence"
+    },
+    {
+      "source_path": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261023/slope_L1_uphill.json",
+      "source_sha256": "2a3ba4b4e4789d97f0ffc41145c653edeee471b8938f884255b036e9fdda0c6b",
+      "record": {
+        "cell_id": "slope_L1_uphill",
+        "geometry_seed": 10060,
+        "initial_state_seed": 20060,
+        "episode_index": 1,
+        "steps": 1154,
+        "completed": false,
+        "termination_reason": "lateral_out_of_bounds",
+        "termination_terms": [],
+        "forward_progress_m": 4.148247718811035,
+        "lateral_offset_peak_m": 1.803303837776184,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.014835747085835394
+      },
+      "stair_metrics": {},
+      "scope": "Historical bounded diagnostic"
+    },
+    {
+      "source_path": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/l2_ascending_multiseed_retry1/episode_01_geometry_10200_state_20200.json",
+      "source_sha256": "0c2e350a2b7a66d6f7bce993d69c7faa7d3978afe1b5939951cf6cea677f8ee4",
+      "record": {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "geometry_seed": 10200,
+        "initial_state_seed": 20200,
+        "episode_index": 1,
+        "steps": 630,
+        "completed": false,
+        "termination_reason": "fall",
+        "termination_terms": [
+          "bad_orientation_2"
+        ],
+        "forward_progress_m": 2.150324821472168,
+        "lateral_offset_peak_m": 0.2699187994003296,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.016991818753933293
+      },
+      "stair_metrics": {
+        "step_count": 5,
+        "completed_step_index": 0,
+        "front_foot_collision_count": 0,
+        "stuck_or_catch_step_count": 0
+      },
+      "scope": "Historical bounded diagnostic"
+    },
+    {
+      "source_path": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/l2_ascending_multiseed_retry1/episode_02_geometry_10201_state_20201.json",
+      "source_sha256": "a3dc3fc12f7211a835ebc78622a2b5ffdd7f0113a193abf3666569b8d81cdac0",
+      "record": {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "geometry_seed": 10201,
+        "initial_state_seed": 20201,
+        "episode_index": 1,
+        "steps": 1102,
+        "completed": false,
+        "termination_reason": "fall",
+        "termination_terms": [
+          "bad_orientation_2"
+        ],
+        "forward_progress_m": 2.242464542388916,
+        "lateral_offset_peak_m": 0.18225634098052979,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.01282483968950388
+      },
+      "stair_metrics": {
+        "step_count": 5,
+        "completed_step_index": 0,
+        "front_foot_collision_count": 0,
+        "stuck_or_catch_step_count": 1
+      },
+      "scope": "Historical bounded diagnostic"
+    },
+    {
+      "source_path": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/l2_ascending_multiseed_retry1/episode_03_geometry_10202_state_20202.json",
+      "source_sha256": "d66d14dd00663224b50acb6ca14e7c405e5fded5639efc1c0faccd350767c667",
+      "record": {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "geometry_seed": 10202,
+        "initial_state_seed": 20202,
+        "episode_index": 1,
+        "steps": 1600,
+        "completed": false,
+        "termination_reason": "smoke_step_limit",
+        "termination_terms": [],
+        "forward_progress_m": 2.127609968185425,
+        "lateral_offset_peak_m": 0.23969916999340057,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.00317516316810725
+      },
+      "stair_metrics": {
+        "step_count": 5,
+        "completed_step_index": 0,
+        "front_foot_collision_count": 1,
+        "stuck_or_catch_step_count": 1
+      },
+      "scope": "Historical bounded diagnostic"
+    },
+    {
+      "source_path": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/l2_ascending_multiseed_retry1/episode_04_geometry_10203_state_20203.json",
+      "source_sha256": "9f1c932c209c1b29d4d8a3cdfad4497a33d1de20b643ae75968bef3d53143450",
+      "record": {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "geometry_seed": 10203,
+        "initial_state_seed": 20203,
+        "episode_index": 1,
+        "steps": 1600,
+        "completed": false,
+        "termination_reason": "smoke_step_limit",
+        "termination_terms": [],
+        "forward_progress_m": 2.127609968185425,
+        "lateral_offset_peak_m": 0.23969916999340057,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.00317516316810725
+      },
+      "stair_metrics": {
+        "step_count": 5,
+        "completed_step_index": 0,
+        "front_foot_collision_count": 1,
+        "stuck_or_catch_step_count": 1
+      },
+      "scope": "Historical bounded diagnostic"
+    },
+    {
+      "source_path": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261025/l2_ascending_multiseed_retry1/episode_05_geometry_10204_state_20204.json",
+      "source_sha256": "65b8f463f286a45c6a40004638cefa95ef3aba9ed01cf8eb71835acbafc84d2c",
+      "record": {
+        "cell_id": "multi_step_stairs_L2_ascending",
+        "geometry_seed": 10204,
+        "initial_state_seed": 20204,
+        "episode_index": 1,
+        "steps": 1600,
+        "completed": false,
+        "termination_reason": "smoke_step_limit",
+        "termination_terms": [],
+        "forward_progress_m": 2.1217691898345947,
+        "lateral_offset_peak_m": 0.2255539447069168,
+        "nonfoot_contact_count": 0,
+        "foot_slip_contact_fraction": 0.003184150008844861
+      },
+      "stair_metrics": {
+        "step_count": 5,
+        "completed_step_index": 0,
+        "front_foot_collision_count": 0,
+        "stuck_or_catch_step_count": 1
+      },
+      "scope": "Historical bounded diagnostic"
+    }
+  ],
+  "limitations": [
+    "Do not pool diagnostic retries as independent capability trials.",
+    "Historical 10 m and later 12 m tracks and 1600-step caps differ; honor each original result.",
+    "The latest isolated Flat archive passed on revision 3b79cdd; the remaining current bank-matched cases are unrun.",
+    "Mesh, collider and zero-action shared-bank G2 checks do not measure policy traversability."
+  ]
+}

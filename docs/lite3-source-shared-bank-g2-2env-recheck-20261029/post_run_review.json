@@ -1,0 +1,47 @@
+{
+  "status": "passed_with_documented_limitations",
+  "revision": "401ea45d758f03c575abecc8ac4615773678fb4d",
+  "source_hash_count": 144,
+  "dependency_hash_count": 34,
+  "original_runtime_files_verified": 9,
+  "elapsed_s": 21.473602577112615,
+  "sampled_gpu_peak_mib": 2820,
+  "environment_construction_s": 2.6342633003368974,
+  "cpu_peak_rss_kib": 4087232,
+  "contact_phase_counts": {
+    "initial": 1,
+    "vertical_occlusion_probe": 1,
+    "contact_runtime": 81,
+    "tensor_contact_topology": 1,
+    "contact_poll_attempt": 80,
+    "tensor_contact_sample": 80,
+    "tensor_contact": 596,
+    "control_step": 20,
+    "contact_summary": 1,
+    "complete": 1
+  },
+  "ground_contact_points": {
+    "0": 276,
+    "1": 268
+  },
+  "cross_environment_contacts": 0,
+  "contact_matrices_reconstructed": 80,
+  "contact_capacity": 16384,
+  "contact_peak_used": 8,
+  "reset_assignments": 123,
+  "reset_batches": 91,
+  "deterministic_reset_replay_passed": true,
+  "automatic_timeout_env": 0,
+  "post_automatic_reset_step_passed": true,
+  "unresolved_visual_reference_warnings": 8,
+  "policy_loaded": false,
+  "ppo_updates": 0,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "limitations": [
+    "Zero-action contact and reset checks only; no policy motion.",
+    "Untouched-state equality excludes physics integration; history buffers were empty.",
+    "No per-substep sensor timestamp or throughput qualification.",
+    "Missing foot visual references remain unresolved."
+  ]
+}
