@@ -1,0 +1,68 @@
+{
+  "schema": "lite3_rough_l1_policy_prequalification_post_run_review_v1",
+  "review_result": "single_condition_safety_passed_with_scope_limits",
+  "revision": "75589cb07f72dfe6758c070963b2d9708561a632",
+  "input_hashes_verified": 225,
+  "raw_files_verified": 9,
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "control_steps": 1493,
+  "simulated_control_time_s": 29.86,
+  "action_trace_rows": 1493,
+  "first_goal_step": 1444,
+  "reconstructed_final_hold_steps": 50,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 9.313488960266113,
+    "min_base_height_m": 0.3071431815624237,
+    "max_projected_gravity_xy": 0.05173371732234955,
+    "max_joint_speed_rad_s": 17.30000877380371,
+    "lateral_offset_peak_m": 0.3258877992630005,
+    "mean_velocity_error_mps": 0.03786003797392099
+  },
+  "invalid_states": 0,
+  "nonfoot_contact_events": 0,
+  "safety_rejections": 0,
+  "projections": 0,
+  "kinematics": {
+    "rows_verified": 1493,
+    "max_quaternion_norm_error": 1.0430233476910189e-07,
+    "max_body_to_world_velocity_error_mps": 2.857172015646725e-08,
+    "max_projected_gravity_error": 2.9782105670506098e-08,
+    "full_command_verified": true,
+    "pre_reset_rows": 0
+  },
+  "bank_geometry": {
+    "bank_row": 0,
+    "bank_column": 1,
+    "subterrain": "multi_scale_rough",
+    "geometry_difficulty": 0.6294702331215974,
+    "mesh_fingerprint": "26669dc0be4a41ba1cd6c542fa49d906397e16b2c561274f704b33b4bbe6e495"
+  },
+  "root_yaw_end_rad": -0.25633907318115234,
+  "foot_slip_fraction": 0.023388305847076463,
+  "foot_slip_numerator": 78,
+  "foot_slip_denominator": 3335,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "execution_elapsed_s": 92.80992849124596,
+  "sampled_gpu_peak_mib": 2750,
+  "gpu_sample_count": 88,
+  "gpu0_after_mib": 18,
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "One pinned multi-scale rough L1 geometry and one state seed; no general success-rate or six-family qualification.",
+    "This is transfer by the unchanged flat actor, not a learned Source skill or a training result.",
+    "Lateral drift and yaw deviation remain motion-quality observations; no straight-line quality gate was added retrospectively.",
+    "Completion caused no manager termination or automatic reset; terminal kinematic capture is not exercised here.",
+    "No pairwise physics-substep contact or full rigid-body trace; shared-bank motion and full G3/G4 remain unqualified.",
+    "Foot-slip fractions are thresholded world-horizontal foot-speed proxies, not a direct friction measurement.",
+    "Device-enumeration and foot visual-reference warnings remain in the raw log."
+  ]
+}
