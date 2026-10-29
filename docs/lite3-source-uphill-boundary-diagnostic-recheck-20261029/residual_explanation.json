@@ -1,0 +1,30 @@
+{
+  "schema": "lite3_uphill_residual_explanation_v1",
+  "simulation_started": false,
+  "samples_sha256": "63a5d906fce2e0b6c95c0a2b116816b924229a8ce065db5b42d8b0c7134d0d84",
+  "current_and_previous_samples_byte_identical": true,
+  "integration_interval_s": [
+    0.02,
+    21.18
+  ],
+  "sampling_period_s": 0.02,
+  "physics_period_s": 0.005,
+  "observed_displacement_m": 1.5069433471981029,
+  "quaternion_velocity_integral_m": 1.5065935093172118,
+  "direct_world_velocity_trapezoid_m": 1.5065935206272114,
+  "direct_minus_quaternion_integral_m": 1.1309999603525966e-08,
+  "reported_residual_m": 0.0003498378808910463,
+  "direct_world_velocity_residual_m": 0.00034982657089144276,
+  "residual_percent_of_displacement": 0.02321506522070047,
+  "left_rectangle_residual_m": 0.0023281524030609457,
+  "right_rectangle_residual_m": -0.0016284992612780602,
+  "interpretation": "The 0.35 mm difference is a position-versus-sampled-velocity integration residual. Rotation roundoff accounts for only about 1.13e-8 m of it.",
+  "limitations": [
+    "Both quantities start at the same first sample. The absent reset-to-first-sample interval is not an explanation for this residual.",
+    "The 50 Hz trapezoidal rule approximates the evolving velocity; it does not reproduce all 200 Hz physics updates or solver position corrections.",
+    "Rectangle-rule differences demonstrate quadrature sensitivity; they do not measure the exact trapezoid error.",
+    "Sampling, integration/constraint-solver updates and state precision cannot be separately quantified from these logs.",
+    "The reference-point audit must be read separately: torso authored COM offset is zero, unlike the triggered thigh. No actual runtime COM readback was captured.",
+    "A small kinematic residual does not isolate the causal source of drift or establish prediction safety."
+  ]
+}

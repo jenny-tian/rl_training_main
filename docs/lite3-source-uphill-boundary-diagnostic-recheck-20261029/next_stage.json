@@ -1,0 +1,77 @@
+{
+  "schema": "lite3_boundary_reference_point_offline_proposal_v1",
+  "stage_id": "link_origin_velocity_alignment_offline_correction",
+  "status": "awaiting_user_phase_approval",
+  "offline_stage_authorized": false,
+  "runtime_authorized": false,
+  "simulation_run": false,
+  "ppo_authorized": false,
+  "evidence_sha256": {
+    "docs/lite3-source-uphill-boundary-diagnostic-recheck-20261029/post_run_review.json": "adc4ca7b1103f230278b4da12dd10b93bb76234bab6ccfb561c073ba85c77aef",
+    "docs/lite3-source-uphill-boundary-diagnostic-recheck-20261029/reference_point_audit.json": "d862488084f4ddc17c50497f389501296bbbfc16812a272375fdcdc252bb60c0",
+    "docs/lite3-source-uphill-boundary-diagnostic-recheck-20261029/residual_explanation.json": "b986db78ba701f212931a7547b70d6ee254fbf5ddb11721f7cdba17c13ea1423"
+  },
+  "problem": "The boundary wrapper combines link-frame origin positions with CoM velocities. The triggered FL_THIGH has a nonzero authored COM offset, so this is not a point-consistent prediction during rotation.",
+  "proposed_work": [
+    {
+      "step": "align_boundary_inputs",
+      "scope": "Use explicit body link-origin positions and the velocities of those same origins; retain the collision envelopes, limits, comparison operators and one-control-step horizon.",
+      "formula": "v_link_w = v_com_w - omega_w cross (R_link_w * r_com_in_link)",
+      "missing_api_rule": "Fail explicitly if required point-consistent state is unavailable; do not silently fall back to CoM velocity."
+    },
+    {
+      "step": "reference_point_telemetry",
+      "scope": "Label the velocity reference point; prepare capture of actual COM offsets, body link quaternions, world angular velocities and both link/CoM velocities at the same pre-reset predicate evaluation. Use explicit root link/CoM quantities for future residual accounting.",
+      "dependency_freeze": "Add ArticulationData and package-resolution source hashes to the next preparation; do not rewrite prior manifests."
+    },
+    {
+      "step": "cpu_validation",
+      "scope": "Test zero COM offsets, pure translation, nonzero COM during rotation, current/predicted branches, invalid inputs, all-body mapping and reset snapshot preservation.",
+      "comparison_rule": "Original and corrected flags should agree for zero-offset/pure-translation cases. Differences with rotational COM offsets must match an independent geometric oracle; blanket equivalence to the mixed-point implementation is not required."
+    },
+    {
+      "step": "future_protocol",
+      "scope": "Review the corrected evidence contract and freeze a later single-case runtime proposal for separate user approval. No GPU run is included in this offline phase."
+    }
+  ],
+  "unchanged": {
+    "policy_weights": true,
+    "rewards": true,
+    "command_b": [
+      0.3,
+      0.0,
+      0.0
+    ],
+    "geometry_seed": 10001,
+    "initial_state_seed": 20060,
+    "geometry_difficulty": 0.3384848514104325,
+    "terrain_size_m": [
+      12.0,
+      4.0
+    ],
+    "slope_angle_deg": 5.0,
+    "collision_radius_m": 0.27,
+    "numerical_margin_m": 0.001,
+    "control_period_s": 0.02,
+    "height_limit_m": 0.2,
+    "max_projected_gravity_xy": 0.65,
+    "max_joint_speed_rad_s": 30.0
+  },
+  "prohibited_in_phase": [
+    "GPU simulation or retries",
+    "Other-terrain runs",
+    "PPO initialization or policy/reward updates",
+    "Retrospective changes to historical failure results or frozen hashes"
+  ],
+  "acceptance": [
+    "Position and velocity refer to the same geometric point and the conversion is independently verified.",
+    "Diagnostic reference points and newly discovered dependencies are explicit and frozen.",
+    "Relevant CPU checks pass; changed predictions are explained.",
+    "Report offline results before proposing another runtime phase."
+  ],
+  "limitations": [
+    "Current logs cannot reconstruct exact point-corrected terminal thigh velocity because full body angular velocities/orientations were not captured.",
+    "Root integration residual components remain unisolated without suitable physics-substep observations."
+  ],
+  "authorization_rule": "This is the next phase proposal only, pending the user’s per-phase confirmation."
+}

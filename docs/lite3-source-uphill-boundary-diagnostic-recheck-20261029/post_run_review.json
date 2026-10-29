@@ -1,0 +1,160 @@
+{
+  "schema": "lite3_uphill_boundary_diagnostic_recheck_post_run_review_v1",
+  "review_result": "failed_condition_complete_predicate_evidence_verified",
+  "condition_passed": false,
+  "revision": "8944b0ec416a26831b02cfa02a1453a0fe00e042",
+  "input_hashes_verified": 232,
+  "raw_files_verified": 11,
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "control_steps": 1059,
+  "simulated_control_time_s": 21.18,
+  "action_trace_rows": 1059,
+  "first_goal_step": null,
+  "reconstructed_final_hold_steps": 0,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 3.9348526000976562,
+    "min_base_height_m": 0.3019450902938843,
+    "max_projected_gravity_xy": 0.14014367759227753,
+    "max_joint_speed_rad_s": 17.300012588500977,
+    "lateral_offset_peak_m": 1.506996989250183,
+    "mean_velocity_error_mps": 0.12296405812502048
+  },
+  "invalid_states": 0,
+  "nonfoot_contact_events": 0,
+  "safety_rejections": 0,
+  "projections": 0,
+  "kinematics": {
+    "rows_verified": 1059,
+    "max_quaternion_norm_error": 1.0473394818077963e-07,
+    "max_body_to_world_velocity_error_mps": 2.8275330909988128e-08,
+    "max_projected_gravity_error": 3.059418784978618e-08,
+    "full_command_verified": true,
+    "pre_reset_rows": 1
+  },
+  "bank_geometry": {
+    "bank_row": 0,
+    "bank_column": 2,
+    "subterrain": "slope_uphill",
+    "geometry_difficulty": 0.3384848514104325,
+    "mesh_fingerprint": "5f1922584b9f8d24f68c759fdaaa234df42c567a3d2235e12d87fb563dee7cd8"
+  },
+  "supervisor_exit_code": 1,
+  "worker_exit_code": 0,
+  "terminal_state_review": {
+    "step": 1059,
+    "termination_terms": [
+      "source_terrain_tile_bounds"
+    ],
+    "root_position_w_m": [
+      -0.5651474595069885,
+      1.506996989250183,
+      0.5012022852897644
+    ],
+    "post_reset_root_position_w_m": [
+      -4.5,
+      0.0,
+      0.375
+    ],
+    "max_pre_post_reset_root_difference_m": 3.9348525404930115,
+    "root_yaw_rad": 0.46617698669433594,
+    "root_yaw_degrees": 26.709973843711783,
+    "body_velocity_mps": [
+      0.20453733205795288,
+      0.1225530132651329,
+      -0.030517658218741417
+    ],
+    "world_velocity_mps": [
+      0.13077916204929352,
+      0.20062756538391113,
+      -0.02077205665409565
+    ],
+    "safe_body_center_lower_xy_w_m": [
+      -5.729,
+      -1.729
+    ],
+    "safe_body_center_upper_xy_w_m": [
+      5.729,
+      1.729
+    ],
+    "logged_root_and_four_feet_inside_instantaneous_safe_box": true,
+    "max_logged_foot_lateral_center_m": 1.6898599863052368,
+    "exact_triggering_body_and_now_vs_prediction_branch": "recorded_in_tile_bounds_jsonl"
+  },
+  "predicate_diagnostic_review": {
+    "schema": "lite3_tile_bounds_trace_review_v1",
+    "status": "complete_predicate_evidence",
+    "evaluations_verified": 1059,
+    "body_count": 17,
+    "terminal_boundary_flag": true,
+    "terminal_geometric_hits": [
+      {
+        "branch": "prediction",
+        "body_id": 5,
+        "body_name": "FL_THIGH",
+        "axis": "y"
+      }
+    ],
+    "terminal_invalid_state": false,
+    "terminal_valid_indices": true,
+    "condition_completed": false
+  },
+  "exact_implemented_trigger": {
+    "branch": "prediction",
+    "body_id": 5,
+    "body_name": "FL_THIGH",
+    "axis": "y",
+    "link_position_w_m": [
+      -0.47862333059310913,
+      1.7263942956924438,
+      0.4917813539505005
+    ],
+    "logged_com_velocity_w_mps": [
+      0.11661865562200546,
+      0.1870189607143402,
+      -0.06681882590055466
+    ],
+    "implemented_predicted_xy_w_m": [
+      -0.4762909710407257,
+      1.7301347255706787
+    ],
+    "safe_upper_y_w_m": 1.7289999723434448,
+    "current_link_y_clearance_m": 0.0026056766510009766,
+    "implemented_prediction_y_excess_m": 0.0011347532272338867,
+    "point_consistent_geometric_prediction_verified": false
+  },
+  "previous_run_comparison": {
+    "samples_byte_identical": true,
+    "action_values_identical": true,
+    "scope": "same pinned geometry and seed; no statistical success-rate estimate"
+  },
+  "reference_point_alignment": "needs_offline_correction_before_another_runtime_proposal",
+  "root_yaw_end_rad": 0.46617698669433594,
+  "foot_slip_fraction": 0.014632268001540239,
+  "foot_slip_numerator": 38,
+  "foot_slip_denominator": 2597,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "execution_elapsed_s": 74.86930017499253,
+  "sampled_gpu_peak_mib": 2750,
+  "gpu_sample_count": 71,
+  "gpu0_after_mib": 18,
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "The condition failed; successful evidence validation does not make the episode a safety pass.",
+    "One pinned 5-degree uphill L1 geometry and one state seed; no general success-rate estimate.",
+    "The unchanged flat actor was tested; no Source training or policy update occurred.",
+    "All predicate inputs were recorded and replayed. The implementation mixes link positions with CoM velocities; point-consistent geometric prediction remains unverified.",
+    "Kinematic drift and the recorded termination term do not isolate policy, contact dynamics or initialization causes.",
+    "The last sample preserves pre-reset root/velocity state; it does not qualify all reset or motion-isolation behavior.",
+    "Worker exit code zero is not a success criterion: result and supervisor acceptance correctly record failure.",
+    "Foot-slip fractions are thresholded speed proxies; visual-reference and device-enumeration warnings remain in the raw log."
+  ]
+}

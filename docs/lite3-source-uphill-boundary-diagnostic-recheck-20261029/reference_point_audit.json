@@ -1,0 +1,60 @@
+{
+  "schema": "lite3_link_com_reference_point_static_audit_v1",
+  "simulation_started": false,
+  "source_dependency": {
+    "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/assets/articulation/articulation_data.py",
+    "sha256": "d69495c66c409fb20823e4e467f9d90e63163b2050b77d2ac8e433221d1d208a",
+    "included_in_original_run_hash_inventory": false
+  },
+  "editable_package_mapping": {
+    "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/__editable___isaaclab_0_54_3_finder.py",
+    "sha256": "a787025e267e1a61b739c7d864577b3eaafa3e1380afeac5971b1324849f41b9",
+    "isaaclab_root": "/home/tjx/IsaacLab/source/isaaclab/isaaclab"
+  },
+  "api_method_source": {
+    "root_link_vel_w": "def root_link_vel_w(self) -> torch.Tensor:\n        \"\"\"Root link velocity ``[lin_vel, ang_vel]`` in simulation world frame. Shape is (num_instances, 6).\n\n        This quantity contains the linear and angular velocities of the articulation root's actor frame\n        relative to the world.\n        \"\"\"\n        if self._root_link_vel_w.timestamp < self._sim_timestamp:\n            # read the CoM velocity\n            vel = self.root_com_vel_w.clone()\n            # adjust linear velocity to link from center of mass\n            vel[:, :3] += torch.linalg.cross(\n                vel[:, 3:], math_utils.quat_apply(self.root_link_quat_w, -self.body_com_pos_b[:, 0]), dim=-1\n            )\n            # set the buffer data and timestamp\n            self._root_link_vel_w.data = vel\n            self._root_link_vel_w.timestamp = self._sim_timestamp\n\n        return self._root_link_vel_w.data",
+    "body_link_vel_w": "def body_link_vel_w(self) -> torch.Tensor:\n        \"\"\"Body link velocity ``[lin_vel, ang_vel]`` in simulation world frame.\n        Shape is (num_instances, num_bodies, 6).\n\n        This quantity contains the linear and angular velocities of the articulation links' actor frame\n        relative to the world.\n        \"\"\"\n        if self._body_link_vel_w.timestamp < self._sim_timestamp:\n            # read data from simulation\n            velocities = self.body_com_vel_w.clone()\n            # adjust linear velocity to link from center of mass\n            velocities[..., :3] += torch.linalg.cross(\n                velocities[..., 3:], math_utils.quat_apply(self.body_link_quat_w, -self.body_com_pos_b), dim=-1\n            )\n            # set the buffer data and timestamp\n            self._body_link_vel_w.data = velocities\n            self._body_link_vel_w.timestamp = self._sim_timestamp\n\n        return self._body_link_vel_w.data",
+    "root_pos_w": "def root_pos_w(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`root_link_pos_w`.\"\"\"\n        return self.root_link_pos_w",
+    "root_lin_vel_w": "def root_lin_vel_w(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`root_com_lin_vel_w`.\"\"\"\n        return self.root_com_lin_vel_w",
+    "root_lin_vel_b": "def root_lin_vel_b(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`root_com_lin_vel_b`.\"\"\"\n        return self.root_com_lin_vel_b",
+    "body_pos_w": "def body_pos_w(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`body_link_pos_w`.\"\"\"\n        return self.body_link_pos_w",
+    "body_lin_vel_w": "def body_lin_vel_w(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`body_com_lin_vel_w`.\"\"\"\n        return self.body_com_lin_vel_w"
+  },
+  "usd_sha256": {
+    "deep_robotics_model/Lite3/Lite3_usd/Lite3.usd": "1fad3d6a8b046a1a4818ec9007d437cc364d66dd5c613168ec7e71075867bec3",
+    "deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd": "efb49cf3750cf7a1cbab287b5afe93911dcff90a9bfb1512c876e5a93a58f3f6",
+    "deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd": "8ffc3357c75af4b04272141f042a2930841a4a6198ba7e55ad45f0872e5425d8"
+  },
+  "physics_variant": "PhysX",
+  "static_body_properties": {
+    "TORSO": {
+      "prim_path": "/Lite3/TORSO",
+      "center_of_mass_in_link_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mass_kg": 5.605599880218506
+    },
+    "FL_THIGH": {
+      "prim_path": "/Lite3/FL_THIGH",
+      "center_of_mass_in_link_m": [
+        -0.003924500197172165,
+        -0.014631999656558037,
+        -0.0251460000872612
+      ],
+      "mass_kg": 0.8600000143051147
+    }
+  },
+  "source_com_randomization_disabled": true,
+  "guard_input_definition": "body_pos_w is the link-frame origin; body_lin_vel_w is the CoM linear velocity.",
+  "point_consistent_formula": "v_link_w = v_com_w - omega_w cross (R_link_w * r_com_in_link)",
+  "conclusion": "The recorded predicate replay is complete, but its position/velocity reference points are mixed. Correct the inputs offline before another GPU proposal.",
+  "limitations": [
+    "ArticulationData and editable-finder hashes were first captured after this run; do not retroactively add them to its frozen manifest.",
+    "USD values and disabled COM randomization are static evidence; actual runtime COM offsets were not read back.",
+    "Full body angular velocities and orientations were not captured, so the point-consistent final thigh prediction cannot be exactly reconstructed from this run.",
+    "TORSO has zero authored COM offset. The nonzero thigh offset does not itself explain the torso lateral integration residual.",
+    "No false-positive or true physical-edge-crossing claim follows from the recorded mixed-point prediction."
+  ]
+}
