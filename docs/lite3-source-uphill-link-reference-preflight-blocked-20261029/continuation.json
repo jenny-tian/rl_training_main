@@ -1,0 +1,52 @@
+{
+  "status": "awaiting_gpu0_availability",
+  "authorization_already_granted": true,
+  "new_scope_approval_required": false,
+  "runtime_started": false,
+  "approved_proposal_path": "docs/lite3-source-link-reference-offline-correction-20261029/next_stage.json",
+  "approved_proposal_sha256": "597bdbcd7460f08d4e614cc1749f2b6e3be100619b8e41389c615ec3b1aea5b9",
+  "preparation_path": "docs/lite3-source-link-reference-offline-correction-20261029/preparation.json",
+  "preparation_sha256": "7c7ee150b632a07e07f97f1ac7db5c7010249d1b005dfb7dbb8395c5ae32a1d0",
+  "case_id": "slope_L1_uphill",
+  "geometry_seed": 10001,
+  "initial_state_seed": 20060,
+  "geometry_difficulty": 0.3384848514104325,
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_policy_prequalification.py",
+    "--case-id",
+    "slope_L1_uphill",
+    "--run-dir",
+    "/tmp/lite3_source_policy_uphill_link_reference_20261029"
+  ],
+  "environment": {
+    "PYTHONPATH": "source/rl_training"
+  },
+  "run_directory": "/tmp/lite3_source_policy_uphill_link_reference_20261029",
+  "runtime": {
+    "gpu_index": 0,
+    "minimum_free_mib": 12288,
+    "num_envs": 1,
+    "terrain_grid": [
+      1,
+      1
+    ],
+    "shared_bank": false,
+    "physics_dt_s": 0.005,
+    "control_dt_s": 0.02,
+    "max_control_steps": 2000,
+    "episode_cap_s": 40.0,
+    "goal_progress_m": 9.0,
+    "stable_hold_steps": 50,
+    "startup_timeout_s": 120,
+    "total_timeout_s": 240,
+    "cleanup_grace_s": 10,
+    "automatic_retries": 0,
+    "ppo_initialization": false,
+    "weight_updates": false
+  },
+  "condition": "GPU0 must have no compute process and at least 12288 MiB available. The other users’ processes were not modified.",
+  "automatic_retry_started": false,
+  "episode_budget_unused": true,
+  "stop_after_one_episode_or_failure": true
+}

@@ -1,0 +1,136 @@
+{
+  "schema": "lite3_approved_runtime_preflight_blocked_v1",
+  "status": "blocked_gpu0_occupied_runtime_not_started",
+  "diagnostic_snapshot_utc": "2026-10-29T10:35:58.698068+00:00",
+  "revision_checked": "00a422f56ec377a4c2b51adc4b62dce8829cee81",
+  "worktree_clean_at_preflight": true,
+  "robot_submodule_clean_at_preflight": true,
+  "authorization": "User agreed to one same-condition 5-degree uphill recheck after the offline correction; authorization remains valid for the unchanged scope.",
+  "runtime_authorized": true,
+  "simulation_started": false,
+  "worker_launched": false,
+  "supervisor_run_launched": false,
+  "episodes_executed": 0,
+  "ppo_initialized": false,
+  "policy_updated": false,
+  "initial_preflight_error": "GPU 0 already has a compute process",
+  "diagnostic_snapshot_note": "Captured after the initial live preflight exception. This is a separate resource observation, not a claim to reproduce the exact instant of the first query.",
+  "resource_admission": {
+    "gpu_index": 0,
+    "gpu_uuid": "GPU-044ddc24-86ef-a67d-7e14-9358300bc3dc",
+    "memory_used_mib": 4235,
+    "memory_total_mib": 24576,
+    "available_by_frozen_rule_mib": 20341,
+    "minimum_available_mib": 12288,
+    "memory_check_passed": true,
+    "no_compute_process_check_passed": false,
+    "gpu0_pids": [
+      920159,
+      920158,
+      920157,
+      920160
+    ],
+    "gpu0_process_count": 4,
+    "owner_evidence": "process_owners.txt"
+  },
+  "preparation_path": "docs/lite3-source-link-reference-offline-correction-20261029/preparation.json",
+  "preparation_sha256": "7c7ee150b632a07e07f97f1ac7db5c7010249d1b005dfb7dbb8395c5ae32a1d0",
+  "proposal_path": "docs/lite3-source-link-reference-offline-correction-20261029/next_stage.json",
+  "proposal_sha256": "597bdbcd7460f08d4e614cc1749f2b6e3be100619b8e41389c615ec3b1aea5b9",
+  "input_hashes_verified": 237,
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "case": {
+    "case_id": "slope_L1_uphill",
+    "bank_row": 0,
+    "bank_column": 2,
+    "subterrain": "slope_uphill",
+    "geometry_seed": 10001,
+    "initial_state_seed": 20060,
+    "cell": {
+      "cell_id": "slope_L1_uphill",
+      "terrain_family": "slope",
+      "level": 1,
+      "direction_or_layout": "uphill",
+      "geometry_seed_range": [
+        10001,
+        10001
+      ],
+      "initial_state_seed_range": [
+        20060,
+        20060
+      ],
+      "episodes": 1,
+      "seed_pairing": "zip_geometry_initial_state",
+      "dynamics_profile": "deployment_matched_frozen",
+      "resolved_parameters": {
+        "geometry": {
+          "size": [
+            12.0,
+            4.0
+          ],
+          "flat_length_m": 3.0,
+          "transition_length_m": 0.5,
+          "grid_spacing_m": 0.1,
+          "slope_angle_deg": 5.0,
+          "direction_or_layout": "uphill",
+          "exit_flat_length_m": 2.0
+        },
+        "reset": {
+          "profile_id": "source_scan_nominal_reset_v0",
+          "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+        },
+        "track": {
+          "start_x_m": 1.5,
+          "completion_x_m": 10.5,
+          "lateral_margin_m": 0.2
+        }
+      },
+      "qualification_geometry_difficulty": 0.3384848514104325
+    },
+    "geometry_difficulty": 0.3384848514104325,
+    "mesh_fingerprint": "5f1922584b9f8d24f68c759fdaaa234df42c567a3d2235e12d87fb563dee7cd8",
+    "isolated_mesh_matches_bank": true,
+    "reference_registered_geometry_seed_range": [
+      10060,
+      10064
+    ],
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true
+  },
+  "run_directory": "/tmp/lite3_source_policy_uphill_link_reference_20261029",
+  "run_directory_created": false,
+  "raw_snapshot_commands": {
+    "gpu_snapshot.csv": [
+      "nvidia-smi",
+      "--id=0",
+      "--query-gpu=index,uuid,name,memory.used,memory.total,utilization.gpu",
+      "--format=csv,noheader"
+    ],
+    "gpu_compute_snapshot.csv": [
+      "nvidia-smi",
+      "--id=0",
+      "--query-compute-apps=gpu_uuid,pid,process_name,used_gpu_memory",
+      "--format=csv,noheader"
+    ],
+    "process_owners.txt": [
+      "ps",
+      "-p",
+      "920157,920158,920159,920160",
+      "-o",
+      "pid,ppid,user,lstart,etime,comm"
+    ]
+  },
+  "archived_preflight_replay_error": "GPU 0 already has a compute process",
+  "archived_preflight_replay_inputs": [
+    "gpu_snapshot.csv",
+    "gpu_compute_snapshot.csv"
+  ],
+  "processes_signalled": [],
+  "other_gpu_used": false,
+  "runtime_retries": 0,
+  "baseline_episode_count_changed": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "completion": "Only preflight completed. The approved runtime check remains outstanding because GPU0 is occupied.",
+  "continuation_rule": "End this attempt at preflight per the frozen stop rule. On a later continuation, keep the existing authorization and exact case/output path, verify clean committed input hashes and GPU0 admission again; do not silently change device or thresholds."
+}
