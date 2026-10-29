@@ -1,0 +1,180 @@
+{
+  "schema": "lite3_cross_slope_left_l1_post_run_review_v1",
+  "review_result": "single_condition_safety_failed_complete_reference_evidence",
+  "condition_passed": false,
+  "revision": "2e6527707ddc876b7a9fd7c2b9112cd3e2d8c190",
+  "input_hashes_verified": 237,
+  "raw_files_verified": 12,
+  "control_steps": 882,
+  "simulated_control_time_s": 17.64,
+  "first_goal_step": null,
+  "reconstructed_final_hold_steps": 0,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 5.6554484367370605,
+    "max_forward_progress_m": 5.6554484367370605,
+    "min_base_height_m": 0.30590930581092834,
+    "max_projected_gravity_xy": 0.10334125906229019,
+    "max_joint_speed_rad_s": 17.295928955078125,
+    "lateral_offset_peak_m": 1.547183632850647,
+    "mean_velocity_error_mps": 0.09709896592216359,
+    "rms_velocity_error_mps": 0.10848487573661289,
+    "mean_base_velocity_x_mps": 0.32956603284747826,
+    "mean_command_velocity_x_mps": 0.30000001192092896
+  },
+  "root_yaw_end_degrees": -7.6001999376042475,
+  "action_trace_rows": 882,
+  "lateral_offset_signed_m": {
+    "minimum": -1.547183632850647,
+    "maximum": 0.1371263563632965,
+    "end": -1.547183632850647
+  },
+  "mean_body_velocity_y_mps": -0.06740082803173329,
+  "mean_world_velocity_y_mps": -0.08793454032010914,
+  "terminal_trigger": {
+    "branch": "prediction",
+    "body_id": 6,
+    "body_name": "FR_THIGH",
+    "axis": "y",
+    "boundary_side": "lower",
+    "link_position_w_m": [
+      1.3079917430877686,
+      -1.726004719734192,
+      0.17113791406154633
+    ],
+    "link_velocity_w_mps": [
+      0.31659457087516785,
+      -0.22547097504138947,
+      0.24650312960147858
+    ],
+    "com_velocity_w_mps": [
+      0.40157198905944824,
+      -0.24256379902362823,
+      0.05079131945967674
+    ],
+    "com_offset_link_m": [
+      -0.003924500197172165,
+      0.014631999656558037,
+      -0.0251460000872612
+    ],
+    "link_quaternion_wxyz": [
+      0.9046224355697632,
+      0.12109249085187912,
+      0.408369243144989,
+      -0.015146181918680668
+    ],
+    "world_angular_velocity_rad_s": [
+      -4.371756553649902,
+      -5.684085369110107,
+      -1.4017730951309204
+    ],
+    "implemented_predicted_xy_w_m": [
+      1.3143236637115479,
+      -1.7305141687393188
+    ],
+    "safe_lower_y_w_m": -1.7289999723434448,
+    "current_link_y_clearance_m": 0.0029952526092529297,
+    "implemented_prediction_y_excess_m": 0.0015141963958740234,
+    "point_consistent_geometric_prediction_verified": true
+  },
+  "terminal_state": {
+    "pre_reset_capture_observed": true,
+    "root_position_w_m": [
+      1.155448317527771,
+      -1.547183632850647,
+      0.19323864579200745
+    ],
+    "post_reset_root_position_w_m": [
+      -4.5,
+      0.0,
+      0.375
+    ],
+    "max_pre_post_reset_difference_m": 5.655448317527771
+  },
+  "action_projection_count": 0,
+  "safety_rejection_count": 0,
+  "invalid_state_count": 0,
+  "nonfoot_contact_count": 0,
+  "predicate_diagnostic_review": {
+    "schema": "lite3_tile_bounds_trace_review_v2",
+    "status": "complete_predicate_evidence",
+    "evaluations_verified": 882,
+    "body_count": 17,
+    "terminal_boundary_flag": true,
+    "terminal_geometric_hits": [
+      {
+        "branch": "prediction",
+        "body_id": 6,
+        "body_name": "FR_THIGH",
+        "axis": "y"
+      }
+    ],
+    "terminal_invalid_state": false,
+    "terminal_valid_indices": true,
+    "condition_completed": false,
+    "reference_conversion": {
+      "status": "verified",
+      "bodies_verified": 14994,
+      "unverifiable_evaluations": [],
+      "atol": 2e-06,
+      "rtol": 2e-06,
+      "quaternion_norm_atol": 1e-05,
+      "com_position_max_abs_error": 2.438992900977155e-07,
+      "link_velocity_max_abs_error": 1.1340474959098401e-07
+    }
+  },
+  "root_reference_evaluations_verified": 882,
+  "actual_root_com_offset_m": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "kinematic_errors": {
+    "quaternion_norm": 1.0408281969631616e-07,
+    "body_to_world_velocity_mps": 2.9159638315068293e-08,
+    "projected_gravity": 2.990884517828363e-08
+  },
+  "foot_slip_fraction": 0.011139240506329114,
+  "foot_slip_numerator": 22,
+  "foot_slip_denominator": 1975,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "supervisor_exit_code": 1,
+  "worker_exit_code": 0,
+  "execution_elapsed_s": 109.96667515486479,
+  "sampled_gpu_peak_whole_device_mib": 6966,
+  "gpu_sample_count": 104,
+  "gpu0_before_mib": 4235,
+  "gpu0_after_mib": 4235,
+  "existing_gpu0_pids_before": [
+    920157,
+    920158,
+    920159,
+    920160
+  ],
+  "existing_gpu0_pids_after": [
+    920157,
+    920158,
+    920159,
+    920160
+  ],
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "This is one fixed left-high/right-low cross-slope instance and one seed, not a family success rate or learned gait.",
+    "Safety acceptance has no tight actual-speed tracking threshold: observed mean forward speed exceeds the 0.3 m/s command.",
+    "The actor is unchanged; this failure measures existing transfer capability, not a Source training change.",
+    "The terminal pre-reset snapshot is verified; this one reset does not qualify shared-bank or general sensor/reset timing.",
+    "Linear link-origin prediction crossing the safety envelope is not proof of a physical body crossing the terrain edge or its actual next-step position.",
+    "Downslope drift direction alone does not establish gravity, foot slipping or policy asymmetry as its sole cause.",
+    "Foot-slip contact fraction counts contacting-foot horizontal-speed proxies above 0.35 m/s; it is not a measured slip distance.",
+    "Whole-GPU resource samples include other users; timing and memory are not exclusive-task measurements."
+  ]
+}
