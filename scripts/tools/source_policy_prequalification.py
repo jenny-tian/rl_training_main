@@ -23,7 +23,7 @@ from scripts.tools.source_parallel_terrain_startup_supervisor import (
     _capture, _gpu_preflight, _sha256, run_monitored_process,
 )
 
-PREPARATION = ROOT / "docs/lite3-source-uphill-drift-boundary-offline-20261029/preparation.json"
+PREPARATION = ROOT / "docs/lite3-source-link-reference-offline-correction-20261029/preparation.json"
 
 
 def select_case(preparation, case_id):
@@ -53,8 +53,10 @@ def make_run_manifest(preparation, case, *, revision, gpu, processes, preparatio
     # Never expand the preparation dict into an execution manifest: its status,
     # simulation flags and multi-case registration fields describe another stage.
     return {
-        "schema": "lite3_single_condition_run_spec_v3", "manifest_kind": "immutable_run_spec",
+        "schema": "lite3_single_condition_run_spec_v4", "manifest_kind": "immutable_run_spec",
         "tile_bounds_diagnostics_required": True,
+        "tile_bounds_schema": "lite3_tile_bounds_predicate_v2",
+        "link_reference_verification_required": True,
         "revision": revision, "preparation_sha256": preparation_sha256,
         "case_id": case["case_id"], "cell": case["cell"],
         "geometry_seed": case["geometry_seed"], "initial_state_seed": case["initial_state_seed"],
@@ -71,8 +73,17 @@ def make_run_manifest(preparation, case, *, revision, gpu, processes, preparatio
 
 
 def capture_kinematics(env):
+    from rl_training.source_scan.rigid_body_reference import capture_root_reference_state
+    from rl_training.source_scan.tile_bounds_diagnostics import json_state
     data = env.scene["robot"].data
     return {
+        "schema": "lite3_root_kinematics_v2",
+        "root_reference_state": json_state(capture_root_reference_state(data)),
+        "legacy_field_semantics": {
+            "root_quat_w_wxyz": "root_link_orientation_world",
+            "root_lin_vel_w_mps": "root_com_velocity_world",
+            "root_lin_vel_b_mps": "root_com_velocity_in_link_axes",
+        },
         "root_quat_w_wxyz": data.root_quat_w[0].detach().cpu().tolist(),
         "root_lin_vel_w_mps": data.root_lin_vel_w[0].detach().cpu().tolist(),
         "root_lin_vel_b_mps": data.root_lin_vel_b[0].detach().cpu().tolist(),
@@ -156,6 +167,11 @@ def episode_passed(record):
 
 
 def runtime_readback(env, expected_body_names):
+    import torch
+    from rl_training.source_scan.rigid_body_reference import (
+        BODY_APIS, capture_body_reference_state, capture_root_reference_state, validate_body_reference_state,
+    )
+    from rl_training.source_scan.tile_bounds_diagnostics import json_state
     body_names = list(env.scene["robot"].body_names)
     manager = env.termination_manager
     expected_terms = {"source_terrain_tile_bounds", "illegal_contact", "bad_orientation_2"}
@@ -164,7 +180,7 @@ def runtime_readback(env, expected_body_names):
     params = manager.get_term_cfg("source_terrain_tile_bounds").params
     guard = params["asset_cfg"]
     ids = list(range(len(body_names)))[guard.body_ids] if isinstance(guard.body_ids, slice) else list(guard.body_ids)
-    if body_names != expected_body_names or sorted(ids) != list(range(17)):
+    if body_names != expected_body_names or ids != list(range(17)):
         raise ValueError("runtime guard does not cover the pinned 17-body mapping")
     if env.num_envs != 1 or not math.isclose(env.step_dt, 0.02) or not math.isclose(env.cfg.sim.dt, 0.005):
         raise ValueError("runtime batch/control interval differs from the frozen condition")
@@ -178,7 +194,21 @@ def runtime_readback(env, expected_body_names):
     tilt = manager.get_term_cfg("bad_orientation_2").params
     if contact["threshold"] != 5.0 or contact["consecutive_steps"] != 3 or tilt["max_xy_norm"] != 0.65:
         raise ValueError("runtime safety termination thresholds changed")
+    data = env.scene["robot"].data
+    reference = capture_body_reference_state(data)
+    reference["state_dtype"] = str(reference["body_positions_w"].dtype)
+    root_reference = capture_root_reference_state(data)
+    conversion = validate_body_reference_state(reference)
+    root_conversion = validate_body_reference_state(root_reference)
+    if conversion["status"] != "verified" or root_conversion["status"] != "verified":
+        raise ValueError("runtime link/COM reference state must be finite and verified")
+    if any(not torch.allclose(root_reference[key], reference[key][:, :1], atol=2e-6, rtol=2e-6)
+           for key in BODY_APIS):
+        raise ValueError("runtime root reference differs from body index zero")
     return {
+        "explicit_body_apis": dict(BODY_APIS),
+        "body_reference_state": json_state(reference), "body_reference_review": conversion,
+        "root_reference_state": json_state(root_reference), "root_reference_review": root_conversion,
         "body_names": body_names, "guard_body_ids": [int(i) for i in ids],
         "num_envs": env.num_envs, "step_dt": env.step_dt,
         "base_scan_update_period": env.cfg.scene.height_scanner_base.update_period,
@@ -245,8 +275,10 @@ def run_worker(run_dir):
             })
             from rl_training.source_scan.tile_bounds_diagnostics import validate_tile_bounds_trace
             diagnostic_review = validate_tile_bounds_trace(
-                run_dir / "tile_bounds.jsonl", record, manifest["expected_body_names"])
+                run_dir / "tile_bounds.jsonl", record, manifest["expected_body_names"], require_link_reference=True)
             write_json(run_dir / "tile_bounds_review.json", diagnostic_review)
+            if diagnostic_review["reference_conversion"]["status"] != "verified":
+                raise ValueError("nonfinite link-reference evidence is not verified")
             return 0 if passed else 1
         finally:
             wrapped.close()
@@ -307,7 +339,9 @@ def supervise(run_dir, case_id=None):
         record = result["record"]
         from rl_training.source_scan.tile_bounds_diagnostics import validate_tile_bounds_trace
         diagnostic_review = validate_tile_bounds_trace(
-            run_dir / "tile_bounds.jsonl", record, manifest["expected_body_names"])
+            run_dir / "tile_bounds.jsonl", record, manifest["expected_body_names"], require_link_reference=True)
+        if diagnostic_review["reference_conversion"]["status"] != "verified":
+            errors.append("nonfinite_link_reference_unverifiable")
         if diagnostic_review != json.loads((run_dir / "tile_bounds_review.json").read_text()):
             errors.append("tile_bounds_review_mismatch")
         if result["case_id"] != case_id or result["bank_geometry"] != manifest["bank_geometry"] or any(record[key] != expected for key, expected in (

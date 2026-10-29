@@ -122,7 +122,7 @@ def test_changed_or_missing_frozen_inputs_block_before_launch(tmp_path):
         qualification.verify_hashes({})
 
 
-def runtime_env():
+def runtime_env(reference_data):
     terms = {
         "source_terrain_tile_bounds": NS(params={
             "asset_cfg": NS(body_ids=slice(None)), "size": (12.0, 4.0),
@@ -132,7 +132,7 @@ def runtime_env():
         "bad_orientation_2": NS(params={"max_xy_norm": 0.65}),
     }
     return NS(
-        scene={"robot": NS(body_names=[str(i) for i in range(17)])},
+        scene={"robot": NS(body_names=[str(i) for i in range(17)], data=reference_data())},
         termination_manager=NS(active_terms=list(terms), get_term_cfg=terms.__getitem__),
         num_envs=1, step_dt=0.02,
         cfg=NS(sim=NS(dt=0.005), scene=NS(height_scanner_base=NS(update_period=0.005))),
@@ -162,6 +162,8 @@ def test_run_manifest_contains_only_one_execution_spec_and_no_preparation_state(
     assert result["manifest_kind"] == "immutable_run_spec"
     assert result["episode_count"] == result["cell"]["episodes"] == 1
     assert result["cell"]["geometry_seed_range"] == [10001, 10001]
+    assert result["link_reference_verification_required"] is True
+    assert result["tile_bounds_schema"] == "lite3_tile_bounds_predicate_v2"
 
 
 @pytest.mark.parametrize("fault", ["missing_id", "duplicate", "l2", "old_count", "seed_range", "wrong_bank_seed", "flat_column", "geometry", "mesh", "already_run"])
@@ -193,9 +195,9 @@ def test_case_selection_rejects_unprepared_or_ambiguous_execution(fault):
         qualification.select_case(prep, case_id)
 
 
-def test_sample_kinematics_keep_terminal_state_before_auto_reset(tmp_path):
-    data = NS(root_quat_w=torch.tensor([[1., 0., 0., 0.]]), root_lin_vel_w=torch.tensor([[0.3, 0.1, 0.]]),
-              root_lin_vel_b=torch.tensor([[0.3, 0.1, 0.]]), projected_gravity_b=torch.tensor([[0., 0., -1.]]))
+def test_sample_kinematics_keep_terminal_state_before_auto_reset(tmp_path, reference_data):
+    data = reference_data()
+    data.root_link_lin_vel_w[:] = data.root_com_lin_vel_w[:] = torch.tensor([[0.3, 0.1, 0.]])
     command = torch.tensor([[0.3, 0., 0.]])
     env = NS(scene={"robot": NS(data=data)}, command_manager=NS(get_command=lambda _: command))
     before, observe = qualification.sample_callbacks(env, tmp_path)
@@ -211,19 +213,21 @@ def test_sample_kinematics_keep_terminal_state_before_auto_reset(tmp_path):
         observe(4, {})
 
 
-def test_runtime_readback_accepts_only_complete_mapping_and_frozen_thresholds():
-    env = runtime_env()
+def test_runtime_readback_accepts_only_complete_mapping_and_frozen_thresholds(reference_data):
+    env = runtime_env(reference_data)
     names = env.scene["robot"].body_names
     assert qualification.runtime_readback(env, names)["guard_body_ids"] == list(range(17))
 
 
-@pytest.mark.parametrize("fault", ["mapping", "term", "dt", "scanner", "margin", "contact", "tilt"])
-def test_runtime_config_drift_stops_before_policy_steps(fault):
-    env = runtime_env()
+@pytest.mark.parametrize("fault", ["mapping", "permuted_mapping", "term", "dt", "scanner", "margin", "contact", "tilt", "reference", "root_reference", "nan"])
+def test_runtime_config_drift_stops_before_policy_steps(fault, reference_data):
+    env = runtime_env(reference_data)
     names = env.scene["robot"].body_names
     term = env.termination_manager.get_term_cfg
     if fault == "mapping":
         term("source_terrain_tile_bounds").params["asset_cfg"].body_ids = [0]
+    elif fault == "permuted_mapping":
+        term("source_terrain_tile_bounds").params["asset_cfg"].body_ids = list(reversed(range(17)))
     elif fault == "term":
         env.termination_manager.active_terms.remove("illegal_contact")
     elif fault == "dt":
@@ -234,14 +238,20 @@ def test_runtime_config_drift_stops_before_policy_steps(fault):
         term("source_terrain_tile_bounds").params["collision_radius_m"] = 0.1
     elif fault == "contact":
         term("illegal_contact").params["threshold"] = 50
-    else:
+    elif fault == "tilt":
         term("bad_orientation_2").params["max_xy_norm"] = 0.9
+    elif fault == "reference":
+        env.scene["robot"].data.body_link_lin_vel_w[0, 5, 1] = 1
+    elif fault == "root_reference":
+        env.scene["robot"].data.root_link_pos_w = torch.ones((1, 3), dtype=torch.float64)
+    else:
+        env.scene["robot"].data.body_com_pos_b[0, 5, 2] = float("nan")
     with pytest.raises(ValueError):
         qualification.runtime_readback(env, names)
 
 
-@pytest.mark.parametrize("fault", [None, "timeout", "missing_result", "unsafe_episode", "changed_input", "missing_trace", "corrupt_trace"])
-def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, monkeypatch, fault):
+@pytest.mark.parametrize("fault", [None, "timeout", "missing_result", "unsafe_episode", "changed_input", "missing_trace", "corrupt_trace", "legacy_trace", "reference_mismatch", "nonfinite_reference"])
+def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, monkeypatch, fault, reference_data):
     source = tmp_path / "source.py"
     source.write_text("frozen input")
     prep = tmp_path / "preparation.json"
@@ -273,6 +283,7 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
             if fault != "missing_trace":
                 from rl_training.source_scan.tile_bounds import source_tile_bounds_terminated
                 from rl_training.source_scan.tile_bounds_diagnostics import TileBoundsRecorder, validate_tile_bounds_trace
+                from rl_training.source_scan.rigid_body_reference import capture_body_reference_state
                 capture = TileBoundsRecorder(run_dir / "tile_bounds.jsonl")
                 for step in range(1, 51):
                     details = {}
@@ -282,11 +293,21 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
                         numerical_margin_m=0.001, control_period_s=0.02, diagnostics=details)
                     details.update(body_ids=list(range(17)), body_names=list(map(str, range(17))),
                                    common_step_counter=step, episode_steps=torch.tensor([step]))
+                    if fault != "legacy_trace":
+                        data = reference_data(dtype=torch.float32)
+                        if fault == "nonfinite_reference":
+                            data.body_com_pos_b[0, 5, 2] = float("nan")
+                        details.update(capture_body_reference_state(data))
                     capture(details)
                 review = validate_tile_bounds_trace(run_dir / "tile_bounds.jsonl", record, list(map(str, range(17))))
                 qualification.write_json(run_dir / "tile_bounds_review.json", review)
                 if fault == "corrupt_trace":
                     (run_dir / "tile_bounds.jsonl").write_text("")
+                elif fault == "reference_mismatch":
+                    path = run_dir / "tile_bounds.jsonl"
+                    rows = [json.loads(line) for line in path.read_text().splitlines()]
+                    rows[-1]["body_com_linear_velocities_w"][0][5][1] = 3
+                    path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
         if fault == "changed_input":
             source.write_text("changed")
         return {"exit_code": 0, "stop_reason": "total_timeout" if fault == "timeout" else None,

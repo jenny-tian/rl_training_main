@@ -1,0 +1,62 @@
+{
+  "schema": "lite3_explicit_reference_dependency_audit_v1",
+  "simulation_started": false,
+  "dependencies": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/assets/articulation/articulation_data.py",
+      "sha256": "d69495c66c409fb20823e4e467f9d90e63163b2050b77d2ac8e433221d1d208a",
+      "included_in_prior_inventory": false,
+      "included_in_new_inventory": true
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/math.py",
+      "sha256": "881ab27758816475e26d6721bab22c934fd70d0c064392266a90b06f5bbe4149",
+      "included_in_prior_inventory": false,
+      "included_in_new_inventory": true
+    },
+    {
+      "path": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/__editable___isaaclab_0_54_3_finder.py",
+      "sha256": "a787025e267e1a61b739c7d864577b3eaafa3e1380afeac5971b1324849f41b9",
+      "included_in_prior_inventory": false,
+      "included_in_new_inventory": true
+    }
+  ],
+  "api_method_source": {
+    "root_link_vel_w": "def root_link_vel_w(self) -> torch.Tensor:\n        \"\"\"Root link velocity ``[lin_vel, ang_vel]`` in simulation world frame. Shape is (num_instances, 6).\n\n        This quantity contains the linear and angular velocities of the articulation root's actor frame\n        relative to the world.\n        \"\"\"\n        if self._root_link_vel_w.timestamp < self._sim_timestamp:\n            # read the CoM velocity\n            vel = self.root_com_vel_w.clone()\n            # adjust linear velocity to link from center of mass\n            vel[:, :3] += torch.linalg.cross(\n                vel[:, 3:], math_utils.quat_apply(self.root_link_quat_w, -self.body_com_pos_b[:, 0]), dim=-1\n            )\n            # set the buffer data and timestamp\n            self._root_link_vel_w.data = vel\n            self._root_link_vel_w.timestamp = self._sim_timestamp\n\n        return self._root_link_vel_w.data",
+    "body_link_vel_w": "def body_link_vel_w(self) -> torch.Tensor:\n        \"\"\"Body link velocity ``[lin_vel, ang_vel]`` in simulation world frame.\n        Shape is (num_instances, num_bodies, 6).\n\n        This quantity contains the linear and angular velocities of the articulation links' actor frame\n        relative to the world.\n        \"\"\"\n        if self._body_link_vel_w.timestamp < self._sim_timestamp:\n            # read data from simulation\n            velocities = self.body_com_vel_w.clone()\n            # adjust linear velocity to link from center of mass\n            velocities[..., :3] += torch.linalg.cross(\n                velocities[..., 3:], math_utils.quat_apply(self.body_link_quat_w, -self.body_com_pos_b), dim=-1\n            )\n            # set the buffer data and timestamp\n            self._body_link_vel_w.data = velocities\n            self._body_link_vel_w.timestamp = self._sim_timestamp\n\n        return self._body_link_vel_w.data",
+    "root_link_lin_vel_w": "def root_link_lin_vel_w(self) -> torch.Tensor:\n        \"\"\"Root linear velocity in simulation world frame. Shape is (num_instances, 3).\n\n        This quantity is the linear velocity of the root rigid body's actor frame relative to the world.\n        \"\"\"\n        return self.root_link_vel_w[:, :3]",
+    "body_link_pos_w": "def body_link_pos_w(self) -> torch.Tensor:\n        \"\"\"Positions of all bodies in simulation world frame. Shape is (num_instances, num_bodies, 3).\n\n        This quantity is the position of the articulation bodies' actor frame relative to the world.\n        \"\"\"\n        return self.body_link_pose_w[..., :3]",
+    "body_link_quat_w": "def body_link_quat_w(self) -> torch.Tensor:\n        \"\"\"Orientation (w, x, y, z) of all bodies in simulation world frame. Shape is (num_instances, num_bodies, 4).\n\n        This quantity is the orientation of the articulation bodies' actor frame relative to the world.\n        \"\"\"\n        return self.body_link_pose_w[..., 3:7]",
+    "body_link_lin_vel_w": "def body_link_lin_vel_w(self) -> torch.Tensor:\n        \"\"\"Linear velocity of all bodies in simulation world frame. Shape is (num_instances, num_bodies, 3).\n\n        This quantity is the linear velocity of the articulation bodies' center of mass frame relative to the world.\n        \"\"\"\n        return self.body_link_vel_w[..., :3]",
+    "body_link_ang_vel_w": "def body_link_ang_vel_w(self) -> torch.Tensor:\n        \"\"\"Angular velocity of all bodies in simulation world frame. Shape is (num_instances, num_bodies, 3).\n\n        This quantity is the angular velocity of the articulation bodies' center of mass frame relative to the world.\n        \"\"\"\n        return self.body_link_vel_w[..., 3:6]",
+    "body_com_pos_w": "def body_com_pos_w(self) -> torch.Tensor:\n        \"\"\"Positions of all bodies in simulation world frame. Shape is (num_instances, num_bodies, 3).\n\n        This quantity is the position of the articulation bodies' actor frame.\n        \"\"\"\n        return self.body_com_pose_w[..., :3]",
+    "body_com_lin_vel_w": "def body_com_lin_vel_w(self) -> torch.Tensor:\n        \"\"\"Linear velocity of all bodies in simulation world frame. Shape is (num_instances, num_bodies, 3).\n\n        This quantity is the linear velocity of the articulation bodies' center of mass frame.\n        \"\"\"\n        return self.body_com_vel_w[..., :3]",
+    "body_com_pos_b": "def body_com_pos_b(self) -> torch.Tensor:\n        \"\"\"Center of mass position of all of the bodies in their respective link frames.\n        Shape is (num_instances, num_bodies, 3).\n\n        This quantity is the center of mass location relative to its body'slink frame.\n        \"\"\"\n        return self.body_com_pose_b[..., :3]",
+    "body_pos_w": "def body_pos_w(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`body_link_pos_w`.\"\"\"\n        return self.body_link_pos_w",
+    "body_lin_vel_w": "def body_lin_vel_w(self) -> torch.Tensor:\n        \"\"\"Same as :attr:`body_com_lin_vel_w`.\"\"\"\n        return self.body_com_lin_vel_w"
+  },
+  "misleading_docstring": "body_link_lin_vel_w docstring says COM; actual property returns body_link_vel_w, which applies the COM-to-link correction. Implementation governs this audit.",
+  "static_usd_evidence": "docs/lite3-source-uphill-boundary-diagnostic-recheck-20261029/reference_point_audit.json",
+  "static_usd_properties": {
+    "TORSO": {
+      "prim_path": "/Lite3/TORSO",
+      "center_of_mass_in_link_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mass_kg": 5.605599880218506
+    },
+    "FL_THIGH": {
+      "prim_path": "/Lite3/FL_THIGH",
+      "center_of_mass_in_link_m": [
+        -0.003924500197172165,
+        -0.014631999656558037,
+        -0.0251460000872612
+      ],
+      "mass_kg": 0.8600000143051147
+    }
+  },
+  "runtime_com_offsets": "not measured in this offline phase; required startup/per-step fields are now implemented",
+  "velocity_relation": "v_link_w = v_com_w - omega_w cross (R_link_w @ r_com_link)"
+}

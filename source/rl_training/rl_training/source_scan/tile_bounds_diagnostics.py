@@ -9,6 +9,7 @@ from pathlib import Path
 import torch
 
 from .tile_bounds import source_tile_bounds_terminated
+from .rigid_body_reference import validate_body_reference_state
 
 
 def json_state(value):
@@ -34,7 +35,7 @@ class TileBoundsRecorder:
     def __call__(self, snapshot):
         self.evaluations += 1
         row = {
-            "schema": "lite3_tile_bounds_predicate_v1",
+            "schema": "lite3_tile_bounds_predicate_v2" if "reference_points" in snapshot else "lite3_tile_bounds_predicate_v1",
             "evaluation_index": self.evaluations,
             "phase": "termination_predicate_pre_reset",
             "environment_ids": list(range(len(snapshot["terminated"]))),
@@ -50,7 +51,7 @@ def _float_tree(value):
     return float(value)
 
 
-def validate_tile_bounds_trace(path: Path, record: dict, expected_body_names: list[str]):
+def validate_tile_bounds_trace(path: Path, record: dict, expected_body_names: list[str], *, require_link_reference=False):
     """Reconstruct every captured predicate, preserving the original dtype.
 
     Diagnostic completeness is separate from policy/episode acceptance: a
@@ -63,8 +64,12 @@ def validate_tile_bounds_trace(path: Path, record: dict, expected_body_names: li
     rows = [json.loads(line) for line in path.read_text().splitlines()]
     require(len(rows) == record["steps"], "missing or extra predicate evaluations")
     previous_counter = None
+    reference_reviews = []
+    schemas = {row.get("schema") for row in rows}
+    require(len(schemas) <= 1, "mixed schemas")
     for step, row in enumerate(rows, 1):
-        require(row["schema"] == "lite3_tile_bounds_predicate_v1", "schema")
+        require(row["schema"] in ("lite3_tile_bounds_predicate_v1", "lite3_tile_bounds_predicate_v2"), "schema")
+        require(not require_link_reference or row["schema"] == "lite3_tile_bounds_predicate_v2", "explicit link reference required")
         require(row["phase"] == "termination_predicate_pre_reset", "sampling phase")
         require(row["evaluation_index"] == step and row["episode_steps"] == [step], "step/reset alignment")
         counter = row["common_step_counter"]
@@ -78,6 +83,8 @@ def validate_tile_bounds_trace(path: Path, record: dict, expected_body_names: li
         positions = torch.tensor(_float_tree(row["body_positions_w"]), dtype=dtype)
         velocities = torch.tensor(_float_tree(row["body_linear_velocities_w"]), dtype=dtype)
         require(positions.shape == velocities.shape == (1, 17, 3), "body state shape")
+        if row["schema"] == "lite3_tile_bounds_predicate_v2":
+            reference_reviews.append(validate_body_reference_state(row))
         origins = torch.tensor(_float_tree(row["terrain_origins_w"]), dtype=dtype)
         parameters = row["parameters"]
         require(parameters == dict(size_x=12.0, size_y=4.0, flat_length_m=3.0,
@@ -105,8 +112,8 @@ def validate_tile_bounds_trace(path: Path, record: dict, expected_body_names: li
                     if hit:
                         hits.append(dict(branch=branch, body_id=body_id,
                                          body_name=terminal["body_names"][body_id], axis=axis))
-    return {
-        "schema": "lite3_tile_bounds_trace_review_v1",
+    review = {
+        "schema": "lite3_tile_bounds_trace_review_v2" if reference_reviews else "lite3_tile_bounds_trace_review_v1",
         "status": "complete_predicate_evidence",
         "evaluations_verified": len(rows),
         "body_count": len(expected_body_names),
@@ -116,3 +123,14 @@ def validate_tile_bounds_trace(path: Path, record: dict, expected_body_names: li
         "terminal_valid_indices": terminal["valid_indices"][0] if terminal else None,
         "condition_completed": record["completed"],
     }
+    if reference_reviews:
+        review["reference_conversion"] = {
+            "status": "verified" if all(r["status"] == "verified" for r in reference_reviews) else "nonfinite_reference_unverifiable",
+            "bodies_verified": sum(r["bodies_verified"] for r in reference_reviews),
+            "unverifiable_evaluations": [i for i, r in enumerate(reference_reviews, 1) if r["status"] != "verified"],
+            "atol": reference_reviews[0]["atol"], "rtol": reference_reviews[0]["rtol"],
+            "quaternion_norm_atol": reference_reviews[0]["quaternion_norm_atol"],
+            **{key: max((r[key] for r in reference_reviews if r[key] is not None), default=None)
+               for key in ("com_position_max_abs_error", "link_velocity_max_abs_error")},
+        }
+    return review
