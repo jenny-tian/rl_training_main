@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_policy_prequalification.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_tile_bounds_diagnostics.py",
+    "tests/source_scan/test_source_geometry_realization.py",
+    "--junitxml=docs/lite3-source-downhill-preparation-20261029/focused.junit.xml"
+  ],
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONPATH": ".:source/rl_training",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  },
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027"
+}

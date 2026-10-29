@@ -1,0 +1,192 @@
+{
+  "schema": "lite3_pinned_policy_baseline_progress_v1",
+  "date": "2026-10-29",
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "entries": [
+    {
+      "case_id": "flat_L1_forward_flat",
+      "bank_column": 0,
+      "status": "historical_isolated_safety_pass_geometry_matches_bank",
+      "geometry_seed": 10000,
+      "initial_state_seed": 20000,
+      "geometry_difficulty": 0.0,
+      "evidence": "docs/lite3-source-policy-prequalification-flat-20261029/result.json",
+      "runtime_revision": "3b79cdda6574d9c7936437243f980166b65e2614",
+      "observed_episodes": 1
+    },
+    {
+      "case_id": "multi_scale_rough_L1_forward_lane",
+      "bank_column": 1,
+      "status": "single_condition_safety_passed",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20030,
+      "geometry_difficulty": 0.6294702331215974,
+      "evidence": "docs/lite3-source-policy-prequalification-rough-l1-20261029/result.json",
+      "runtime_revision": "75589cb07f72dfe6758c070963b2d9708561a632",
+      "observed_episodes": 1
+    },
+    {
+      "case_id": "slope_L1_uphill",
+      "bank_column": 2,
+      "status": "single_condition_safety_failed",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20060,
+      "geometry_difficulty": 0.3384848514104325,
+      "evidence": "docs/lite3-source-uphill-link-reference-recheck-20261029/result.json",
+      "runtime_revision": "84819d753bb32a0d6c719015e7aafe1265d2512a",
+      "observed_episodes": 3,
+      "prior_evidence": [
+        {
+          "evidence": "docs/lite3-source-policy-prequalification-uphill-l1-20261029/result.json",
+          "runtime_revision": "cb46b1313735adc0904e0287fd3b9b5bfb2587cb",
+          "observed_episodes": 1
+        },
+        {
+          "evidence": "docs/lite3-source-uphill-boundary-diagnostic-recheck-20261029/result.json",
+          "runtime_revision": "8944b0ec416a26831b02cfa02a1453a0fe00e042",
+          "observed_episodes": 2
+        }
+      ],
+      "same_seed_diagnostic_repeat": true,
+      "diagnostic_evidence_status": "complete_link_reference_predicate_evidence",
+      "geometric_prediction_status": "link_reference_conversion_verified_prediction_branch_failed"
+    },
+    {
+      "case_id": "slope_L1_downhill",
+      "bank_column": 3,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20070,
+      "geometry_difficulty": 0.3636354823034158,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "slope_L1_cross_slope_left",
+      "bank_column": 4,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20080,
+      "geometry_difficulty": 0.30318197031305205,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "slope_L1_cross_slope_right",
+      "bank_column": 5,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20090,
+      "geometry_difficulty": 0.2751071764368547,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "multi_step_stairs_L1_ascending",
+      "bank_column": 6,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20180,
+      "geometry_difficulty": 0.02844575462330101,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "multi_step_stairs_L1_descending",
+      "bank_column": 7,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20190,
+      "geometry_difficulty": 0.9917839285729633,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "slope_plus_rough_L1_uphill",
+      "bank_column": 8,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20240,
+      "geometry_difficulty": 0.6540093430223354,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "slope_plus_rough_L1_downhill",
+      "bank_column": 9,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20250,
+      "geometry_difficulty": 0.7852916736578777,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "slope_plus_rough_L1_cross_slope_left",
+      "bank_column": 10,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20260,
+      "geometry_difficulty": 0.9256251464646599,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "slope_plus_rough_L1_cross_slope_right",
+      "bank_column": 11,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20270,
+      "geometry_difficulty": 0.4893918379161446,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "friction_variation_L1_left_right_bands",
+      "bank_column": 12,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20360,
+      "geometry_difficulty": 0.8649016238617524,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "friction_variation_L1_front_back_bands",
+      "bank_column": 13,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20370,
+      "geometry_difficulty": 0.7265883240717208,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    },
+    {
+      "case_id": "friction_variation_L1_alternating_regions",
+      "bank_column": 14,
+      "status": "not_run",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20380,
+      "geometry_difficulty": 0.5308660894597165,
+      "evidence": null,
+      "runtime_revision": null,
+      "observed_episodes": 0
+    }
+  ],
+  "remaining_prepared_unrun_cases": 12,
+  "statistical_success_rate_estimated": false,
+  "source_training_started": false,
+  "scope": "Evidence index only. Frozen preparation runtime_status fields remain the original preparation snapshot; this index records subsequent runs without rewriting historical artifacts.",
+  "historical_diagnostics": "docs/lite3-flat-ppo-six-family-review-20261029/README.md"
+}
