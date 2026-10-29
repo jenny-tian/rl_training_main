@@ -1,0 +1,163 @@
+{
+  "schema": "lite3_stairs_ascending_l1_post_run_review_v1",
+  "review_result": "single_condition_safety_pass_complete_reference_evidence",
+  "condition_passed": true,
+  "revision": "9c0e6451d0325006a55ea4c818b862cec530d9ba",
+  "input_hashes_verified": 237,
+  "raw_files_verified": 12,
+  "control_steps": 1720,
+  "simulated_control_time_s": 34.4,
+  "first_goal_step": 1671,
+  "reconstructed_final_hold_steps": 50,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 9.30717658996582,
+    "max_forward_progress_m": 9.30717658996582,
+    "min_base_height_m": 0.29647886753082275,
+    "max_projected_gravity_xy": 0.12799973785877228,
+    "max_joint_speed_rad_s": 17.301115036010742,
+    "lateral_offset_peak_m": 0.9291722178459167,
+    "mean_velocity_error_mps": 0.05271933669952654,
+    "rms_velocity_error_mps": 0.0730449032989366,
+    "mean_base_velocity_x_mps": 0.2708843401286664,
+    "mean_command_velocity_x_mps": 0.30000001192092896
+  },
+  "root_yaw_end_degrees": -5.90522659647623,
+  "action_trace_rows": 1720,
+  "lateral_offset_signed_m": {
+    "minimum": -0.0030098415445536375,
+    "maximum": 0.9291722178459167,
+    "end": 0.9229598641395569
+  },
+  "mean_body_velocity_y_mps": 0.027013169963022447,
+  "mean_world_velocity_y_mps": 0.026837787796399046,
+  "stair_specific_review": {
+    "completed_treads": 3,
+    "per_step_progress_m": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "milestones": [
+      {
+        "riser_index": 1,
+        "riser_progress_m": 2.0,
+        "tread_exit_progress_m": 2.5,
+        "first_root_at_or_beyond_riser_step": 352,
+        "first_root_at_or_beyond_tread_exit_step": 500,
+        "first_all_foot_centers_beyond_riser_step": 421
+      },
+      {
+        "riser_index": 2,
+        "riser_progress_m": 2.5,
+        "tread_exit_progress_m": 3.0,
+        "first_root_at_or_beyond_riser_step": 500,
+        "first_root_at_or_beyond_tread_exit_step": 634,
+        "first_all_foot_centers_beyond_riser_step": 556
+      },
+      {
+        "riser_index": 3,
+        "riser_progress_m": 3.0,
+        "tread_exit_progress_m": 3.5,
+        "first_root_at_or_beyond_riser_step": 634,
+        "first_root_at_or_beyond_tread_exit_step": 757,
+        "first_all_foot_centers_beyond_riser_step": 696
+      }
+    ],
+    "front_foot_collision_count": 0,
+    "stuck_or_catch_step_count": 0,
+    "swing_clearance_proxy_m": {
+      "mean": 0.028647853342588372,
+      "rms": 0.03161066475396162,
+      "peak": 0.07266913682222367,
+      "minimum": 1.2665987014770508e-07,
+      "maximum": 0.07266913682222367,
+      "sample_count": 2951,
+      "unit": "m"
+    },
+    "proxy_definitions": {
+      "front_collision": "Rising edge (excluding initial sample) of front-foot horizontal force >=20 N within 0.08 m of a riser.",
+      "stuck": "A tread containing a 25-sample window with abs(body vx)<=0.05 m/s and progress range<=0.05 m.",
+      "swing_clearance": "Noncontact foot-center height minus registered surface height minus the upper median of that foot's contact offsets observed so far."
+    },
+    "milestone_limit": "Geometric position crossings do not identify physical toe/riser contacts or continuous-time clearance."
+  },
+  "terminal_state": {
+    "pre_reset_capture_observed": false,
+    "root_position_w_m": [
+      4.807176113128662,
+      0.9229598641395569,
+      0.3754555881023407
+    ],
+    "post_reset_root_position_w_m": null
+  },
+  "action_projection_count": 0,
+  "safety_rejection_count": 0,
+  "invalid_state_count": 0,
+  "nonfoot_contact_count": 0,
+  "predicate_diagnostic_review": {
+    "schema": "lite3_tile_bounds_trace_review_v2",
+    "status": "complete_predicate_evidence",
+    "evaluations_verified": 1720,
+    "body_count": 17,
+    "terminal_boundary_flag": false,
+    "terminal_geometric_hits": [],
+    "terminal_invalid_state": false,
+    "terminal_valid_indices": true,
+    "condition_completed": true,
+    "reference_conversion": {
+      "status": "verified",
+      "bodies_verified": 29240,
+      "unverifiable_evaluations": [],
+      "atol": 2e-06,
+      "rtol": 2e-06,
+      "quaternion_norm_atol": 1e-05,
+      "com_position_max_abs_error": 2.4627799000143114e-07,
+      "link_velocity_max_abs_error": 1.2749345723594985e-07
+    }
+  },
+  "root_reference_evaluations_verified": 1720,
+  "actual_root_com_offset_m": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "kinematic_errors": {
+    "quaternion_norm": 1.042571287079852e-07,
+    "body_to_world_velocity_mps": 2.9214662244925194e-08,
+    "projected_gravity": 2.9858446048969256e-08
+  },
+  "foot_slip_fraction": 0.02039775624681285,
+  "foot_slip_numerator": 80,
+  "foot_slip_denominator": 3922,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "supervisor_exit_code": 0,
+  "worker_exit_code": 0,
+  "execution_elapsed_s": 111.92206069687381,
+  "sampled_gpu_peak_whole_device_mib": 2750,
+  "gpu_sample_count": 106,
+  "gpu0_before_mib": 18,
+  "gpu0_after_mib": 18,
+  "existing_gpu0_pids_before": [],
+  "existing_gpu0_pids_after": [],
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "One fixed L1 ascending-stair instance and one seed does not estimate a family success rate or learned gait.",
+    "Safety completion has no tight velocity-error threshold; mean forward speed is below the 0.3 m/s command and lateral deviation remains.",
+    "The actor is unchanged; this pass measures existing transfer capability, not a Source training improvement.",
+    "No automatic reset occurred, so this run does not add pre-reset or general sensor/reset timing coverage.",
+    "Root/tread progress and foot-center positions are geometric observations, not continuous-time contact or toe-clearance proof.",
+    "Front-foot collision, stuck and swing-clearance values are sampled proxies with the detailed definitions in stair_specific_review.",
+    "Foot-slip fraction counts contacting-foot horizontal-speed proxies above 0.35 m/s; it is not measured slip distance.",
+    "GPU resource samples cover the whole device; do not infer isolated performance from a single run."
+  ]
+}
