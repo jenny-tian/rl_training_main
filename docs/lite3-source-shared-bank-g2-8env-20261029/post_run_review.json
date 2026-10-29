@@ -1,0 +1,141 @@
+{
+  "schema_version": "lite3_shared_bank_g2_8env_post_run_review_v1",
+  "review_date": "2026-10-29",
+  "review_result": "passed_with_documented_limitations",
+  "scope": {
+    "stage": "G2",
+    "num_envs": 8,
+    "bank_rows": 1,
+    "terrain_columns": 15,
+    "seed": 130196,
+    "gpu_index": 0,
+    "device": "cuda:0",
+    "revision": "a34b1b7e03e16bf61512be67555e1ba3bf269988",
+    "model_revision": "b452a1f404d37155400242f18e454fed8bcc51b8"
+  },
+  "execution": {
+    "outcome_status": "diagnostic_smoke_passed",
+    "report_status": "shared_bank_g2_passed",
+    "supervisor_exit_code": 0,
+    "stop_reason": null,
+    "failure_marker": null,
+    "fatal_exception": null,
+    "finalization_error": null,
+    "elapsed_seconds": 44.76467574201524,
+    "startup_timeout_seconds": 120.0,
+    "total_timeout_seconds": 240.0,
+    "sampled_gpu_peak_mib": 2822,
+    "environment_construction_seconds": 2.6373036736622453,
+    "cpu_peak_rss_kib": 4080644,
+    "gpu0_after_mib": 18,
+    "code_hashes_unchanged": true,
+    "policy_loaded": false,
+    "ppo_updates": 0
+  },
+  "offline_review": {
+    "shared_report_passed": true,
+    "shared_lifecycle_passed": true,
+    "tensor_summary_passed": true,
+    "contact_jsonl_phase_counts": {
+      "initial": 1,
+      "vertical_occlusion_probe": 1,
+      "contact_runtime": 81,
+      "tensor_contact_topology": 1,
+      "contact_poll_attempt": 80,
+      "tensor_contact": 2785,
+      "tensor_contact_sample": 80,
+      "control_step": 20,
+      "contact_summary": 1,
+      "complete": 1
+    },
+    "contact": {
+      "positive_ground_contact_controls_validated": true,
+      "ground_contact_points_by_env": {
+        "0": 276,
+        "1": 268,
+        "2": 273,
+        "3": 272,
+        "4": 274,
+        "5": 274,
+        "6": 276,
+        "7": 272
+      },
+      "cross_environment_contacts": 0,
+      "errors": [],
+      "sensor_bodies": 136,
+      "sensor_bodies_per_env": 17,
+      "ground_colliders": 24,
+      "unique_filter_targets_per_sensor": 160,
+      "capacity": 65536,
+      "peak_used": 61,
+      "max_pair_residual_n": 0.00000762939453125,
+      "max_net_residual_n": 0.0
+    },
+    "reset": {
+      "initial_assignments": 8,
+      "direct_reset_count": 120,
+      "automatic_reset_ids": [
+        7
+      ],
+      "assignment_count": 129,
+      "assignment_index_range": [
+        0,
+        128
+      ],
+      "assignment_indices_contiguous_unique": true,
+      "complete_blocks": 1,
+      "complete_block_ticket_count": 120,
+      "tail_ticket_count": 9,
+      "reset_batches": 33,
+      "direct_batch_distribution": {
+        "size_1": 8,
+        "size_3": 16,
+        "size_8": 8
+      },
+      "actual_matches_deterministic_replay": true,
+      "untouched_assignments_preserved": true,
+      "all_boundary_checks_passed": true,
+      "nonempty_history_buffers": false,
+      "automatic_reset_output_valid": true,
+      "post_automatic_reset_physics_step_passed": true
+    },
+    "console_log": {
+      "unresolved_visual_usd_reference_warnings": 32,
+      "python_tracebacks": 0,
+      "fatal_exception_markers": 0,
+      "cuda_error_markers": 0,
+      "physx_error_markers": 0,
+      "cooking_failure_markers": 0,
+      "timeout": false,
+      "other_warning_families": [
+        "optional MaterialX extension",
+        "PhysX plugin dependency and deprecation",
+        "IOMMU/P2P bandwidth and latency notice",
+        "external-force update configuration",
+        "inactive heading command configuration"
+      ]
+    }
+  },
+  "limitations": [
+    "Reset boundary checks compare immediately around _reset_idx and exclude physics integration steps.",
+    "No nonempty observation history buffers were present in this run.",
+    "The zero-action contact probe does not establish motion isolation or dynamic boundary behavior.",
+    "G4 throughput and full resource-budget criteria were not assessed; no throughput target was pre-registered.",
+    "The 32 unresolved foot visual USD references leave visual asset completeness unverified.",
+    "This result does not qualify 120 environments or authorize PPO."
+  ],
+  "artifact_files": [
+    "console.log",
+    "execution.json",
+    "gpu_after.csv",
+    "gpu_compute_after.csv",
+    "gpu_samples.jsonl",
+    "manifest.json",
+    "outcome.json",
+    "result.json",
+    "result.shared.jsonl",
+    "result.shared.resets.jsonl",
+    "test_processes_after.txt",
+    "trace.log"
+  ]
+}
