@@ -1,0 +1,7 @@
+{
+  "initial_review_exit_code": 1,
+  "cause": "New archive-only posture check incorrectly assumed roll_rad was a standard Euler roll. Runtime defines roll_rad=asin(projected_gravity_y), pitch_rad=asin(projected_gravity_x).",
+  "correction": "Reconstruct those exact reported proxies from recorded gravity, whose quaternion/world conversion is independently checked. Preserve failed-review log.",
+  "runtime_code_changed": false,
+  "simulation_repeated": false
+}

@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-policy-prequalification-slope-rough-uphill-l1-20261029/review_run.py", line 290, in <module>
+    result = review()
+             ^^^^^^^^
+  File "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-policy-prequalification-slope-rough-uphill-l1-20261029/review_run.py", line 236, in review
+    require(np.allclose(expected_roll, [s["roll_rad"] for s in values], atol=1e-6, rtol=0), "roll from quaternion")
+  File "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-policy-prequalification-slope-rough-uphill-l1-20261029/review_run.py", line 28, in require
+    raise ValueError(message)
+ValueError: roll from quaternion
