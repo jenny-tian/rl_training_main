@@ -1,0 +1,181 @@
+{
+  "schema": "lite3_uphill_drift_offline_audit_v1",
+  "simulation_run": false,
+  "runtime_revision": "cb46b1313735adc0904e0287fd3b9b5bfb2587cb",
+  "source_sha256": {
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/samples.jsonl": "63a5d906fce2e0b6c95c0a2b116816b924229a8ce065db5b42d8b0c7134d0d84",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/result.json": "8981934f927ea5c22d2ba6158642aa16bb09a33c38f06fd7d380b84eb5dd9af1",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/manifest.json": "8c1565e93b1b99ed2b4853d2a04d142a5101e0690ad21de28534a036519c3905",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/runtime_readback.json": "303bdafa46eb2d94c87ed8694075092d0615bdef585d150b7f0bb10fc0afd44d"
+  },
+  "control_samples": 1059,
+  "integration_interval_s": [
+    0.02,
+    21.18
+  ],
+  "sample_interval_s": 0.02,
+  "observed_lateral_displacement_m": 1.5069433471981029,
+  "body_xyz_world_y_contribution_m": [
+    0.4152831794162322,
+    1.0920950457588743,
+    -0.0007847158578945664
+  ],
+  "world_velocity_integral_m": 1.506593520627212,
+  "integration_residual_m": 0.0003498378808910463,
+  "max_abs_integration_residual_m": 0.0003603121789294006,
+  "max_rotation_error_mps": 1.6205204206309887e-08,
+  "quaternion_norm_max_error": 1.0473394818077963e-07,
+  "segments": [
+    {
+      "section": "entry_flat",
+      "progress_interval_m": [
+        0.0012106895446777344,
+        1.5
+      ],
+      "interpolated_time_interval_s": [
+        0.02,
+        4.841028162036507
+      ],
+      "yaw_start_end_deg": [
+        0.030938645851415272,
+        -2.2932436446391273
+      ],
+      "lateral_start_end_m": [
+        5.3642052080249414e-05,
+        0.0838175420314136
+      ],
+      "mean_body_vx_vy_mps": [
+        0.3096527814680387,
+        0.02212765181403401
+      ],
+      "mean_world_vx_vy_mps": [
+        0.310176321667088,
+        0.0173263722795691
+      ],
+      "lateral_displacement_m": 0.08376389997933335,
+      "body_xyz_contribution_m": [
+        -0.021866580040585032,
+        0.10694996920094066,
+        -0.0012255008840910454
+      ],
+      "integration_residual_m": -9.39882969312168e-05
+    },
+    {
+      "section": "entry_transition",
+      "progress_interval_m": [
+        1.5,
+        2.0
+      ],
+      "interpolated_time_interval_s": [
+        4.841028162036507,
+        7.262520400307929
+      ],
+      "yaw_start_end_deg": [
+        -2.2932436446391273,
+        -2.17154107070255
+      ],
+      "lateral_start_end_m": [
+        0.0838175420314136,
+        0.12422545171408032
+      ],
+      "mean_body_vx_vy_mps": [
+        0.2047770065832729,
+        0.02695343354986288
+      ],
+      "mean_world_vx_vy_mps": [
+        0.20595811529100433,
+        0.016788694176479907
+      ],
+      "lateral_displacement_m": 0.04040790968266672,
+      "body_xyz_contribution_m": [
+        -0.024184002106594847,
+        0.06510080182698882,
+        -0.0003759903565178893
+      ],
+      "integration_residual_m": -0.00013289968120939875
+    },
+    {
+      "section": "slope",
+      "progress_interval_m": [
+        2.0,
+        3.9348525404930115
+      ],
+      "interpolated_time_interval_s": [
+        7.262520400307929,
+        21.18
+      ],
+      "yaw_start_end_deg": [
+        -2.17154107070255,
+        26.709973843711783
+      ],
+      "lateral_start_end_m": [
+        0.12422545171408032,
+        1.506996989250183
+      ],
+      "mean_body_vx_vy_mps": [
+        0.16018284753435988,
+        0.06874640442393506
+      ],
+      "mean_world_vx_vy_mps": [
+        0.13910547127925801,
+        0.0994353063478825
+      ],
+      "lateral_displacement_m": 1.3827715375361027,
+      "body_xyz_contribution_m": [
+        0.4613337615634121,
+        0.9200442747309447,
+        0.0008167753827143683
+      ],
+      "integration_residual_m": 0.0005767258590316618
+    }
+  ],
+  "descriptive_crossings": [
+    {
+      "metric": "abs_yaw_deg",
+      "descriptive_threshold": 5,
+      "step": 563,
+      "time_s": 11.26,
+      "progress_m": 2.593756318092346
+    },
+    {
+      "metric": "abs_yaw_deg",
+      "descriptive_threshold": 10,
+      "step": 677,
+      "time_s": 13.540000000000001,
+      "progress_m": 2.9229848384857178
+    },
+    {
+      "metric": "abs_yaw_deg",
+      "descriptive_threshold": 20,
+      "step": 898,
+      "time_s": 17.96,
+      "progress_m": 3.5326115489006042
+    },
+    {
+      "metric": "abs_lateral_m",
+      "descriptive_threshold": 0.5,
+      "step": 660,
+      "time_s": 13.200000000000001,
+      "progress_m": 2.8770968914031982
+    },
+    {
+      "metric": "abs_lateral_m",
+      "descriptive_threshold": 1.0,
+      "step": 886,
+      "time_s": 17.72,
+      "progress_m": 3.5031598806381226
+    }
+  ],
+  "terminal_phase": "pre_reset",
+  "termination_terms": [
+    "source_terrain_tile_bounds"
+  ],
+  "limitations": [
+    "Kinematic accounting cannot identify policy, initialization or contact-dynamics causes.",
+    "Segments use root position and registered geometry, not measured first foot contact with the slope.",
+    "Trapezoidal integration starts at the first 0.02 s sample; the reset-to-first-sample interval is not reconstructed.",
+    "Section crossings use linear interpolation between 50 Hz samples; reported descriptive thresholds are not new safety criteria.",
+    "The exact historical 17-body boundary predicate inputs and current-versus-prediction branch remain unrecorded.",
+    "A heading contribution is a coordinate rotation of velocity, not evidence for a particular controller defect."
+  ]
+}

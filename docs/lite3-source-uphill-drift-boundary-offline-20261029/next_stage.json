@@ -1,0 +1,122 @@
+{
+  "schema": "lite3_uphill_boundary_diagnostic_runtime_proposal_v1",
+  "stage_id": "single_uphill_boundary_diagnostic_recheck",
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "simulation_run": false,
+  "ppo_authorized": false,
+  "case": {
+    "case_id": "slope_L1_uphill",
+    "bank_row": 0,
+    "bank_column": 2,
+    "subterrain": "slope_uphill",
+    "geometry_seed": 10001,
+    "initial_state_seed": 20060,
+    "cell": {
+      "cell_id": "slope_L1_uphill",
+      "terrain_family": "slope",
+      "level": 1,
+      "direction_or_layout": "uphill",
+      "geometry_seed_range": [
+        10001,
+        10001
+      ],
+      "initial_state_seed_range": [
+        20060,
+        20060
+      ],
+      "episodes": 1,
+      "seed_pairing": "zip_geometry_initial_state",
+      "dynamics_profile": "deployment_matched_frozen",
+      "resolved_parameters": {
+        "geometry": {
+          "size": [
+            12.0,
+            4.0
+          ],
+          "flat_length_m": 3.0,
+          "transition_length_m": 0.5,
+          "grid_spacing_m": 0.1,
+          "slope_angle_deg": 5.0,
+          "direction_or_layout": "uphill",
+          "exit_flat_length_m": 2.0
+        },
+        "reset": {
+          "profile_id": "source_scan_nominal_reset_v0",
+          "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+        },
+        "track": {
+          "start_x_m": 1.5,
+          "completion_x_m": 10.5,
+          "lateral_margin_m": 0.2
+        }
+      },
+      "qualification_geometry_difficulty": 0.3384848514104325
+    },
+    "geometry_difficulty": 0.3384848514104325,
+    "mesh_fingerprint": "5f1922584b9f8d24f68c759fdaaa234df42c567a3d2235e12d87fb563dee7cd8",
+    "isolated_mesh_matches_bank": true,
+    "reference_registered_geometry_seed_range": [
+      10060,
+      10064
+    ],
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true
+  },
+  "automatic_retries": 0,
+  "run_directory": "/tmp/lite3_source_policy_uphill_boundary_diagnostic_20261029",
+  "preparation_path": "docs/lite3-source-uphill-drift-boundary-offline-20261029/preparation.json",
+  "purpose": "Capture all-body boundary predicate inputs and exact geometric/invalid branches in one separately approved same-case run. A repeated safety failure stays failed.",
+  "runtime": {
+    "gpu_index": 0,
+    "minimum_free_mib": 12288,
+    "num_envs": 1,
+    "terrain_grid": [
+      1,
+      1
+    ],
+    "shared_bank": false,
+    "physics_dt_s": 0.005,
+    "control_dt_s": 0.02,
+    "max_control_steps": 2000,
+    "episode_cap_s": 40.0,
+    "goal_progress_m": 9.0,
+    "stable_hold_steps": 50,
+    "startup_timeout_s": 120,
+    "total_timeout_s": 240,
+    "cleanup_grace_s": 10,
+    "automatic_retries": 0,
+    "ppo_initialization": false,
+    "weight_updates": false
+  },
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_policy_prequalification.py",
+    "--case-id",
+    "slope_L1_uphill",
+    "--run-dir",
+    "/tmp/lite3_source_policy_uphill_boundary_diagnostic_20261029"
+  ],
+  "environment": {
+    "PYTHONPATH": "source/rl_training"
+  },
+  "preflight": [
+    "Clean committed worktree and model submodule; all frozen input/checkpoint hashes match.",
+    "GPU0 only, >=12288 MiB free, no conflicting runtime process.",
+    "New output directory; one attempt, 120 s startup and 240 s total budgets, 10 s cleanup grace."
+  ],
+  "report_separately": {
+    "condition_passed": "Original 9 m + 50 stable-step acceptance, unchanged SafetyFilter and termination thresholds.",
+    "diagnostic_evidence_complete": "One original-dtype predicate snapshot per executed step, full 17-body mapping, exact replay of flags, valid step/reset alignment and final flag/termination-term agreement."
+  },
+  "stop_rule": "Stop after the one episode or any failure. Preserve the result and all diagnostics; do not retry, alter seeds/thresholds, move to another terrain, or initialize PPO.",
+  "limitations": [
+    "CPU equivalence does not establish live simulator capture correctness or overhead.",
+    "Even a complete diagnostic trace does not by itself isolate policy or contact-dynamics causes."
+  ],
+  "authorization_rule": "Current approval covers only completed offline analysis and preparation; request the next phase approval before running this command.",
+  "preparation_sha256": "04febaf669c5af082f7ac8ac922aecfcac88c0d84f3ebf505b5dcbcc7269a100",
+  "known_validation_limitations": [
+    "Initial related regression: 614 passed, one signal-resistant descendant cleanup test failed. Subsequent supervisor 64/64 and related regression 615/615 passed. Cause of the initial failure is unisolated; supervisor code unchanged; not claimed fixed."
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_ground_ray_caster.py",
+    "tests/source_scan/test_shared_terrain_runtime.py",
+    "tests/source_scan/test_shared_contact_report.py",
+    "tests/source_scan/test_shared_terrain_bank.py",
+    "tests/source_scan/test_parallel_terrain_allocation.py",
+    "tests/source_scan/test_source_parallel_reset_lifecycle.py",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py",
+    "tests/source_scan/test_source_terrain_importer_chunking.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_source_mesh_chunking.py",
+    "tests/source_scan/test_shared_tensor_contact.py",
+    "tests/source_scan/test_bridge.py",
+    "tests/source_scan/test_runner_smoke.py",
+    "tests/source_scan/test_source_policy_prequalification.py",
+    "tests/online_adaptation/test_isaaclab_adapter.py",
+    "tests/online_adaptation/test_safety.py",
+    "tests/online_adaptation/test_lite3_stability_contract.py",
+    "tests/source_scan/test_source_geometry_realization.py",
+    "tests/source_scan/test_source_terrain_generator.py",
+    "tests/source_scan/test_tile_bounds_diagnostics.py",
+    "tests/source_scan/test_uphill_drift_audit.py",
+    "--junitxml=docs/lite3-source-uphill-drift-boundary-offline-20261029/regression.junit.xml"
+  ],
+  "environment": {
+    "PYTHONPATH": ".:source/rl_training",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "CUDA_VISIBLE_DEVICES": ""
+  },
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027"
+}

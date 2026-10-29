@@ -1,0 +1,98 @@
+{
+  "schema": "lite3_uphill_historical_context_v1",
+  "current_archives": [
+    {
+      "label": "flat",
+      "runtime_revision": "3b79cdda6574d9c7936437243f980166b65e2614",
+      "geometry_seed": 10000,
+      "initial_state_seed": 20000,
+      "steps": 1514,
+      "completed": true,
+      "forward_progress_m": 9.295169830322266,
+      "lateral_offset_peak_m": 0.719968855381012,
+      "yaw_end_deg": -16.399494225517593,
+      "mean_body_vx_mps": 0.30901048557594163,
+      "mean_velocity_error_mps": 0.029396355468312294,
+      "source_sha256": {
+        "docs/lite3-source-policy-prequalification-flat-20261029/manifest.json": "b9d1bc973458b9be003cfe84e572fc7cf67c78daa3c37700368cf79832c1364e",
+        "docs/lite3-source-policy-prequalification-flat-20261029/result.json": "31663ec1057f50ec74bae347a8468e2683f9cac17b99c05189a1cfb4ee5ec70b",
+        "docs/lite3-source-policy-prequalification-flat-20261029/samples.jsonl": "8a58f8fc7df2e9199d1034e9e40387a3d41e9cf50040527de2424efa29612a40"
+      }
+    },
+    {
+      "label": "rough-l1",
+      "runtime_revision": "75589cb07f72dfe6758c070963b2d9708561a632",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20030,
+      "steps": 1493,
+      "completed": true,
+      "forward_progress_m": 9.313488960266113,
+      "lateral_offset_peak_m": 0.3258877992630005,
+      "yaw_end_deg": -14.687147017575178,
+      "mean_body_vx_mps": 0.31179145516981155,
+      "mean_velocity_error_mps": 0.03786003797392099,
+      "source_sha256": {
+        "docs/lite3-source-policy-prequalification-rough-l1-20261029/manifest.json": "215070f1823e425ef9bb711ac11ba1cf55c0885df3f7316ffee18089b636384b",
+        "docs/lite3-source-policy-prequalification-rough-l1-20261029/result.json": "a410241cfa7a2f8b5933b027e02e863d373a498da907f52a1dbbff540e05e748",
+        "docs/lite3-source-policy-prequalification-rough-l1-20261029/samples.jsonl": "bba4b86decd87e8a2478612005a2a7a998bf1f330721898e315cba283e050cd7"
+      }
+    },
+    {
+      "label": "uphill-l1",
+      "runtime_revision": "cb46b1313735adc0904e0287fd3b9b5bfb2587cb",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20060,
+      "steps": 1059,
+      "completed": false,
+      "forward_progress_m": 3.9348526000976562,
+      "lateral_offset_peak_m": 1.506996989250183,
+      "yaw_end_deg": 26.709973843711783,
+      "mean_body_vx_mps": 0.19943461076086483,
+      "mean_velocity_error_mps": 0.12296405812502048,
+      "source_sha256": {
+        "docs/lite3-source-policy-prequalification-uphill-l1-20261029/manifest.json": "8c1565e93b1b99ed2b4853d2a04d142a5101e0690ad21de28534a036519c3905",
+        "docs/lite3-source-policy-prequalification-uphill-l1-20261029/result.json": "8981934f927ea5c22d2ba6158642aa16bb09a33c38f06fd7d380b84eb5dd9af1",
+        "docs/lite3-source-policy-prequalification-uphill-l1-20261029/samples.jsonl": "63a5d906fce2e0b6c95c0a2b116816b924229a8ce065db5b42d8b0c7134d0d84"
+      }
+    }
+  ],
+  "older_uphill": {
+    "source": "docs/lite3-source-scan-preparation-v0.2-2026-10-22/family_runtime_20261023/slope_L1_uphill.json",
+    "sha256": "2a3ba4b4e4789d97f0ffc41145c653edeee471b8938f884255b036e9fdda0c6b",
+    "source_code_sha256": {
+      "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/scripts/tools/source_family_runtime_smoke.py": "7f46c2fde98140da438b7d7424ad3834e888fcb6fbb75ba4bcf7031a7d16b281",
+      "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/scripts/reinforcement_learning/online_adaptation/run_source_qualification_scan.py": "c4df6ddb05d1a1334a13a5719bdd4c35147342fd92123fa03d8f497cb95532a0",
+      "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/online_adaptation/isaaclab_adapter.py": "8e1553b099f7b0199f4ede3cf50f73ef63b52be9d9a9d0ed9d5ed28898236763",
+      "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_isaac.py": "3dbcde42f99de74c01bfbf01a49ece88259fec8cecf903666d46804250c2e058"
+    },
+    "runtime_revision": "not_recorded_in_report",
+    "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "geometry": {
+      "size": [
+        10.0,
+        4.0
+      ],
+      "flat_length_m": 3.0,
+      "transition_length_m": 0.5,
+      "grid_spacing_m": 0.1,
+      "slope_angle_deg": 5.0,
+      "direction_or_layout": "uphill"
+    },
+    "record": {
+      "geometry_seed": 10060,
+      "initial_state_seed": 20060,
+      "steps": 1154,
+      "completed": false,
+      "forward_progress_m": 4.148247718811035,
+      "lateral_offset_peak_m": 1.803303837776184,
+      "root_yaw_end_rad": 0.5418196320533752,
+      "mean_base_velocity_x_mps": 0.19770030792240872,
+      "termination_reason": "lateral_out_of_bounds"
+    }
+  },
+  "limitations": [
+    "Different terrain/state seeds and runtime revisions; no matched causal comparison or pooled success rate.",
+    "Older uphill used a 10 m track, a different geometry seed and root lateral termination; the current run uses a 12 m track and the full-body predictive guard.",
+    "Flat lacks ordinary-step full quaternion/world-velocity telemetry; only recorded summary metrics are compared here."
+  ]
+}

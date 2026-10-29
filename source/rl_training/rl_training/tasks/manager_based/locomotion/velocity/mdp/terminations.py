@@ -34,7 +34,9 @@ def source_terrain_tile_bounds(
     if asset_cfg.body_ids is None:
         raise RuntimeError("Source tile guard requires resolved IDs for every robot rigid body")
 
-    return source_tile_bounds_terminated(
+    observer = getattr(env, "_source_tile_bounds_observer", None)
+    diagnostics = {} if observer is not None else None
+    terminated = source_tile_bounds_terminated(
         robot.data.body_pos_w[:, asset_cfg.body_ids],
         robot.data.body_lin_vel_w[:, asset_cfg.body_ids],
         terrain.terrain_origins,
@@ -45,7 +47,18 @@ def source_terrain_tile_bounds(
         collision_radius_m=collision_radius_m,
         numerical_margin_m=numerical_margin_m,
         control_period_s=float(env.step_dt),
+        diagnostics=diagnostics,
     )
+    if observer is not None:
+        ids = list(range(len(robot.body_names)))[asset_cfg.body_ids] if isinstance(asset_cfg.body_ids, slice) else list(asset_cfg.body_ids)
+        diagnostics.update(
+            body_ids=ids,
+            body_names=[robot.body_names[index] for index in ids],
+            common_step_counter=int(env.common_step_counter),
+            episode_steps=env.episode_length_buf.detach().clone(),
+        )
+        observer(diagnostics)
+    return terminated
 
 
 __all__ = ["source_terrain_tile_bounds"]

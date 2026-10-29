@@ -412,6 +412,7 @@ def _termination_reason_before_reset(unwrapped: Any) -> tuple[str, list[str]]:
     for term_name, reason in (
         ("bad_orientation_2", "fall"),
         ("illegal_contact", "body_contact_termination"),
+        ("source_terrain_tile_bounds", "source_terrain_tile_bounds"),
         ("terrain_out_of_bounds", "lateral_out_of_bounds"),
         ("time_out", "timeout"),
     ):

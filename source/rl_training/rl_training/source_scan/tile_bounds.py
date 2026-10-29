@@ -19,6 +19,7 @@ def source_tile_bounds_terminated(
     collision_radius_m: float,
     numerical_margin_m: float,
     control_period_s: float,
+    diagnostics: dict | None = None,
 ) -> torch.Tensor:
     """Return one fail-closed tile-bound termination flag per environment.
 
@@ -116,18 +117,47 @@ def source_tile_bounds_terminated(
     lower_per_body = safe_lower.unsqueeze(1)
     upper_per_body = safe_upper.unsqueeze(1)
 
-    outside_now = (
+    outside_now_by_axis = (
         (positions < lower_per_body) | (positions > upper_per_body)
-    ).any(dim=(1, 2))
-    outside_prediction = (
+    )
+    outside_prediction_by_axis = (
         (next_positions < lower_per_body) | (next_positions > upper_per_body)
-    ).any(dim=(1, 2))
+    )
+    outside_now = outside_now_by_axis.any(dim=(1, 2))
+    outside_prediction = outside_prediction_by_axis.any(dim=(1, 2))
     invalid_state = (
         ~torch.isfinite(positions).all(dim=(1, 2))
         | ~torch.isfinite(velocities).all(dim=(1, 2))
         | ~torch.isfinite(reset_origins).all(dim=1)
     )
-    return ~valid_indices | invalid_state | outside_now | outside_prediction
+    terminated = ~valid_indices | invalid_state | outside_now | outside_prediction
+    if diagnostics is not None:
+        # Opt-in, same-evaluation evidence. Copies must survive automatic reset
+        # and later physics-buffer mutation, including when tensors are on CPU.
+        tensors_to_capture = {
+            "body_positions_w": body_positions_w,
+            "body_linear_velocities_w": body_linear_velocities_w,
+            "terrain_origins_w": origins,
+            "terrain_levels": levels, "terrain_types": types,
+            "indexed_levels": safe_levels, "indexed_types": safe_types,
+            "indexed_origin_xy_w": reset_origins,
+            "valid_indices": valid_indices,
+            "safe_lower_xy_w": safe_lower, "safe_upper_xy_w": safe_upper,
+            "predicted_positions_xy_w": next_positions,
+            "outside_now_by_axis": outside_now_by_axis,
+            "outside_prediction_by_axis": outside_prediction_by_axis,
+            "nonfinite_position_xy": ~torch.isfinite(positions),
+            "nonfinite_velocity_xy": ~torch.isfinite(velocities),
+            "nonfinite_origin_xy": ~torch.isfinite(reset_origins),
+            "invalid_state": invalid_state,
+            "outside_now": outside_now, "outside_prediction": outside_prediction,
+            "terminated": terminated,
+        }
+        diagnostics.clear()
+        diagnostics.update({name: value.detach().clone() for name, value in tensors_to_capture.items()})
+        diagnostics["parameters"] = dict(scalars)
+        diagnostics["state_dtype"] = str(body_positions_w.dtype)
+    return terminated
 
 
 __all__ = ["source_tile_bounds_terminated"]

@@ -23,7 +23,7 @@ from scripts.tools.source_parallel_terrain_startup_supervisor import (
     _capture, _gpu_preflight, _sha256, run_monitored_process,
 )
 
-PREPARATION = ROOT / "docs/lite3-source-followup-preparation-20261029/preparation.json"
+PREPARATION = ROOT / "docs/lite3-source-uphill-drift-boundary-offline-20261029/preparation.json"
 
 
 def select_case(preparation, case_id):
@@ -53,7 +53,8 @@ def make_run_manifest(preparation, case, *, revision, gpu, processes, preparatio
     # Never expand the preparation dict into an execution manifest: its status,
     # simulation flags and multi-case registration fields describe another stage.
     return {
-        "schema": "lite3_single_condition_run_spec_v2", "manifest_kind": "immutable_run_spec",
+        "schema": "lite3_single_condition_run_spec_v3", "manifest_kind": "immutable_run_spec",
+        "tile_bounds_diagnostics_required": True,
         "revision": revision, "preparation_sha256": preparation_sha256,
         "case_id": case["case_id"], "cell": case["cell"],
         "geometry_seed": case["geometry_seed"], "initial_state_seed": case["initial_state_seed"],
@@ -80,8 +81,13 @@ def capture_kinematics(env):
     }
 
 
-def sample_callbacks(env, run_dir):
+def sample_callbacks(env, run_dir, *, capture_tile_bounds=False):
     terminal = {}
+    if capture_tile_bounds:
+        from rl_training.source_scan.tile_bounds_diagnostics import TileBoundsRecorder
+        if env.num_envs != 1 or getattr(env, "_source_tile_bounds_observer", None) is not None:
+            raise ValueError("tile-bound diagnostics require one environment and no existing observer")
+        env._source_tile_bounds_observer = TileBoundsRecorder(run_dir / "tile_bounds.jsonl")
 
     def before_reset(_ids, step):
         terminal[step] = capture_kinematics(env)
@@ -217,7 +223,7 @@ def run_worker(run_dir):
             readback["geometry_seed"] = generator.seed
             readback["geometry_difficulty_range"] = list(generator.difficulty_range)
             write_json(run_dir / "runtime_readback.json", readback)
-            before_reset, observe = sample_callbacks(env, run_dir)
+            before_reset, observe = sample_callbacks(env, run_dir, capture_tile_bounds=True)
 
             # The runner seeds and resets again before the first policy decision.
             wrapped.seed(initial_seed)
@@ -237,6 +243,10 @@ def run_worker(run_dir):
                 "ppo_initialized": False, "actor_sha256_before": before,
                 "actor_sha256_after": after, "record": record,
             })
+            from rl_training.source_scan.tile_bounds_diagnostics import validate_tile_bounds_trace
+            diagnostic_review = validate_tile_bounds_trace(
+                run_dir / "tile_bounds.jsonl", record, manifest["expected_body_names"])
+            write_json(run_dir / "tile_bounds_review.json", diagnostic_review)
             return 0 if passed else 1
         finally:
             wrapped.close()
@@ -295,6 +305,11 @@ def supervise(run_dir, case_id=None):
                 or result["actor_sha256_before"] != result["actor_sha256_after"]):
             errors.append("episode_or_actor_failed")
         record = result["record"]
+        from rl_training.source_scan.tile_bounds_diagnostics import validate_tile_bounds_trace
+        diagnostic_review = validate_tile_bounds_trace(
+            run_dir / "tile_bounds.jsonl", record, manifest["expected_body_names"])
+        if diagnostic_review != json.loads((run_dir / "tile_bounds_review.json").read_text()):
+            errors.append("tile_bounds_review_mismatch")
         if result["case_id"] != case_id or result["bank_geometry"] != manifest["bank_geometry"] or any(record[key] != expected for key, expected in (
             ("cell_id", case_id), ("geometry_seed", case["geometry_seed"]),
             ("initial_state_seed", case["initial_state_seed"]), ("episode_index", 1),

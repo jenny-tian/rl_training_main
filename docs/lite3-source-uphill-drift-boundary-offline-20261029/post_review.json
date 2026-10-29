@@ -1,0 +1,55 @@
+{
+  "status": "offline_review_passed_runtime_not_run",
+  "simulation_run": false,
+  "ppo_initialized": false,
+  "input_hashes_verified": 232,
+  "prior_archive_files_unchanged": 51,
+  "original_preparation_unchanged": true,
+  "guard_equivalence": {
+    "original_revision": "73c10116072dc2fca2c4b4dc5f6c5b2ebc1b4af9",
+    "original_guard_sha256": "fbbff9e4722c148269fcabb1c544cbb321f9accaeaa0ce99509ed3d4c143d284",
+    "cpu_environment_cases": 8192,
+    "mismatched_flags": 0,
+    "dtypes": [
+      "float32",
+      "float64"
+    ],
+    "body_counts": [
+      1,
+      17
+    ],
+    "comparison": "frozen original vs current, diagnostics both disabled and enabled"
+  },
+  "regression": {
+    "tests": 615,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  "regression_history": {
+    "regression_initial": {
+      "tests": 615,
+      "errors": 0,
+      "failures": 1,
+      "skipped": 0
+    },
+    "supervisor_recheck": {
+      "tests": 64,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    }
+  },
+  "initial_cleanup_test_failure": "Not reproduced in the supervisor and full-suite rechecks; cause unisolated, supervisor code unchanged. Not claimed fixed.",
+  "drift_reproduced": true,
+  "historical_comparison_reproduced": true,
+  "baseline_progress_unchanged": true,
+  "future_run_spec_checked": true,
+  "runtime_authorized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "limitations": [
+    "CPU fixtures cannot verify live PhysX tensors, logging overhead or actual reset timing.",
+    "The failed historical uphill case remains failed; new telemetry cannot recover its missing body/branch evidence."
+  ]
+}

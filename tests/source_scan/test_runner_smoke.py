@@ -9,7 +9,7 @@ from scripts.reinforcement_learning.online_adaptation import run_source_qualific
 
 
 class _TerminationManager:
-    active_terms = ["bad_orientation_2", "illegal_contact"]
+    active_terms = ["bad_orientation_2", "illegal_contact", "source_terrain_tile_bounds"]
 
     def __init__(self, env):
         self.env = env
@@ -219,6 +219,17 @@ def test_sample_observer_receives_the_terminal_sample_before_episode_return(monk
     assert len(observed) == 1
     assert observed[0][0] == 1
     assert observed[0][1]["forward_progress_m"] == 1.0
+
+
+def test_tile_guard_term_keeps_specific_reason_and_pre_reset_metrics(monkeypatch):
+    _install_adapter(monkeypatch)
+    env = _Env(terminal_term="source_terrain_tile_bounds")
+    record = runner._run_episode(_WrappedEnv(env), lambda _: torch.zeros((1, 12)), _cell(),
+                                 geometry_seed=1, initial_state_seed=2, episode_index=1, max_steps=10)
+    assert record["termination_reason"] == "source_terrain_tile_bounds"
+    assert record["termination_terms"] == ["source_terrain_tile_bounds"]
+    assert record["forward_progress_m"] == 1.0
+    assert record["post_reset_root_position_w_m"] == [0.0, 0.0, 0.0]
 
 
 def test_single_environment_scan_has_only_registered_forward_command():

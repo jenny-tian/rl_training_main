@@ -240,7 +240,7 @@ def test_runtime_config_drift_stops_before_policy_steps(fault):
         qualification.runtime_readback(env, names)
 
 
-@pytest.mark.parametrize("fault", [None, "timeout", "missing_result", "unsafe_episode", "changed_input"])
+@pytest.mark.parametrize("fault", [None, "timeout", "missing_result", "unsafe_episode", "changed_input", "missing_trace", "corrupt_trace"])
 def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, monkeypatch, fault):
     source = tmp_path / "source.py"
     source.write_text("frozen input")
@@ -270,6 +270,23 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
                 "policy_updated": False, "ppo_initialized": False, "g3_qualified": False,
                 "actor_sha256_before": "actor", "actor_sha256_after": "actor",
             })
+            if fault != "missing_trace":
+                from rl_training.source_scan.tile_bounds import source_tile_bounds_terminated
+                from rl_training.source_scan.tile_bounds_diagnostics import TileBoundsRecorder, validate_tile_bounds_trace
+                capture = TileBoundsRecorder(run_dir / "tile_bounds.jsonl")
+                for step in range(1, 51):
+                    details = {}
+                    source_tile_bounds_terminated(torch.zeros((1, 17, 3)), torch.zeros((1, 17, 3)),
+                        torch.zeros((1, 1, 3)), torch.tensor([0]), torch.tensor([0]),
+                        size=(12., 4.), flat_length_m=3., collision_radius_m=0.27,
+                        numerical_margin_m=0.001, control_period_s=0.02, diagnostics=details)
+                    details.update(body_ids=list(range(17)), body_names=list(map(str, range(17))),
+                                   common_step_counter=step, episode_steps=torch.tensor([step]))
+                    capture(details)
+                review = validate_tile_bounds_trace(run_dir / "tile_bounds.jsonl", record, list(map(str, range(17))))
+                qualification.write_json(run_dir / "tile_bounds_review.json", review)
+                if fault == "corrupt_trace":
+                    (run_dir / "tile_bounds.jsonl").write_text("")
         if fault == "changed_input":
             source.write_text("changed")
         return {"exit_code": 0, "stop_reason": "total_timeout" if fault == "timeout" else None,

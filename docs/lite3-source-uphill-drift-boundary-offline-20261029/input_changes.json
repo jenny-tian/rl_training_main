@@ -1,0 +1,45 @@
+{
+  "baseline_preparation_sha256": "a2199a7e558a0ba047adc671b941c68ac851c4d4ba3c198e609ab3e50e98f2b2",
+  "reviewed_changes": [
+    {
+      "path": "scripts/reinforcement_learning/online_adaptation/run_source_qualification_scan.py",
+      "before_sha256": "857e7530415b83d7cc410e1c9d292a2bf0f603625796f4809328206f09eefcd5",
+      "after_sha256": "5a611f8a98845c6ca118bd118426fb870078a163143a6ace849f18d74a912f99"
+    },
+    {
+      "path": "scripts/tools/source_policy_prequalification.py",
+      "before_sha256": "0846bf5c0bcb72ac723c16fa9c8b046c415cdc47320ab9869555964fa641f938",
+      "after_sha256": "451e45d0737d2d1096dbda1f265aaa4f87877103c32d04dceb84a86d72a6c6a3"
+    },
+    {
+      "path": "source/rl_training/rl_training/source_scan/tile_bounds.py",
+      "before_sha256": "fbbff9e4722c148269fcabb1c544cbb321f9accaeaa0ce99509ed3d4c143d284",
+      "after_sha256": "46e8f829e3c2ad11c7358134d37d037999599272f5d3629c3ea0db29178e3f8c"
+    },
+    {
+      "path": "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/terminations.py",
+      "before_sha256": "a3cc0c85bf46f1dc506e1c8362c367a41f34bf2db29ea171d9ad25e895edde40",
+      "after_sha256": "4dc6d6319a70aaef6d21fe824582c2746d475311ac4036b8195aa0e45c18e04a"
+    },
+    {
+      "path": "tests/source_scan/test_runner_smoke.py",
+      "before_sha256": "a290e3fd01171f427cf9b7d5c4d7ad5841c125245fa55951c05d0e36c9ce50d2",
+      "after_sha256": "86645c462b400b193150ba6067484233805a6bc2c74a6e4ded025cb3bc3d253d"
+    },
+    {
+      "path": "tests/source_scan/test_source_policy_prequalification.py",
+      "before_sha256": "c569982fa14b6ba8c077c24b55c1765c6c371b2386702248a2effa8dba940b72",
+      "after_sha256": "f76b745ff8a7bbd4536f0f9b61538963d52c77b71313778689e39347329076da"
+    }
+  ],
+  "added_inputs": [
+    "source/rl_training/rl_training/source_scan/tile_bounds_diagnostics.py",
+    "scripts/tools/source_uphill_drift_audit.py",
+    "tests/source_scan/test_tile_bounds_diagnostics.py",
+    "tests/source_scan/test_uphill_drift_audit.py",
+    "docs/lite3-source-uphill-drift-boundary-offline-20261029/review.py",
+    "docs/lite3-source-uphill-drift-boundary-offline-20261029/drift_analysis.json",
+    "docs/lite3-source-uphill-drift-boundary-offline-20261029/historical_comparison.json"
+  ],
+  "policy_reward_geometry_threshold_files_changed": false
+}

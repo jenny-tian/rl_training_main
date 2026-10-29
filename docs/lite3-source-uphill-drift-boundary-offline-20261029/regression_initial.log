@@ -1,0 +1,75 @@
+........................................................................ [ 11%]
+........................................................................ [ 23%]
+........................................................................ [ 35%]
+........................................................................ [ 46%]
+............................F........................................... [ 58%]
+........................................................................ [ 70%]
+........................................................................ [ 81%]
+........................................................................ [ 93%]
+.......................................                                  [100%]
+=================================== FAILURES ===================================
+_______ test_supervisor_kills_signal_resistant_descendants[cooking-True] _______
+
+tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-329/test_supervisor_kills_signal_r1')
+leader_exits = True, failure_kind = 'cooking'
+
+    @pytest.mark.skipif(sys.platform != "linux", reason="uses Linux process state")
+    @pytest.mark.parametrize("leader_exits", [False, True])
+    @pytest.mark.parametrize("failure_kind", ["cooking", "fatal"])
+    def test_supervisor_kills_signal_resistant_descendants(tmp_path, leader_exits, failure_kind):
+        ready_path = tmp_path / "child.pid"
+        child_code = (
+            "import os, pathlib, signal, time\n"
+            "signal.signal(signal.SIGTERM, signal.SIG_IGN)\n"
+            f"pathlib.Path({str(ready_path)!r}).write_text(str(os.getpid()))\n"
+            "time.sleep(20)\n"
+        )
+        marker = ("cooking failure for /World/ground/terrain/ordinary/mesh" if failure_kind == "cooking"
+                  else "[parallel-terrain-smoke] fatal-exception-recorded")
+        leader_code = (
+            "import pathlib, subprocess, sys, time\n"
+            f"subprocess.Popen([sys.executable, '-c', {child_code!r}])\n"
+            f"while not pathlib.Path({str(ready_path)!r}).exists(): time.sleep(0.01)\n"
+            f"print({marker!r}, flush=True)\n"
+            + ("sys.exit(0)\n" if leader_exits else "time.sleep(20)\n")
+        )
+    
+        def child_running():
+            if not ready_path.exists():
+                return False
+            state_path = Path(f"/proc/{int(ready_path.read_text())}/stat")
+            try:
+                return state_path.read_text().split(") ", 1)[1].split()[0] != "Z"
+            except (FileNotFoundError, ProcessLookupError):
+                return False
+    
+        try:
+            result = supervisor_module.run_monitored_process(
+                [sys.executable, "-c", leader_code],
+                console_path=tmp_path / "console.log",
+                trace_path=tmp_path / "trace.log",
+                startup_timeout_s=5,
+                total_timeout_s=10,
+                poll_interval_s=0.02,
+                terminate_grace_s=0.1,
+            )
+            assert result["stop_reason"] == ("physx_cooking_failure" if failure_kind == "cooking" else "fatal_exception")
+            deadline = time.monotonic() + 2
+            while child_running() and time.monotonic() < deadline:
+                time.sleep(0.01)
+            assert ready_path.is_file()
+>           assert not child_running()
+E           assert not True
+E            +  where True = <function test_supervisor_kills_signal_resistant_descendants.<locals>.child_running at 0x7f4ce431f880>()
+
+tests/source_scan/test_source_parallel_terrain_startup_supervisor.py:204: AssertionError
+=============================== warnings summary ===============================
+tests/source_scan/test_shared_contact_report.py: 57 warnings
+tests/source_scan/test_shared_tensor_contact.py: 297 warnings
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_source_parallel_terrain_startup_supervisor.py::test_supervisor_kills_signal_resistant_descendants[cooking-True]
+1 failed, 614 passed, 354 warnings in 43.25s
