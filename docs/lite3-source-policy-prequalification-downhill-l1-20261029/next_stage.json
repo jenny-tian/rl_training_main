@@ -1,0 +1,99 @@
+{
+  "schema": "lite3_next_baseline_condition_proposal_v1",
+  "stage_id": "prepare_and_check_single_cross_slope_left_l1",
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "simulation_started": false,
+  "ppo_authorized": false,
+  "purpose": "Continue measuring the unchanged flat-policy baseline in registered bank order with one lateral-slope condition.",
+  "case": {
+    "case_id": "slope_L1_cross_slope_left",
+    "bank_row": 0,
+    "bank_column": 4,
+    "subterrain": "slope_cross_slope_left",
+    "geometry_seed": 10001,
+    "initial_state_seed": 20080,
+    "cell": {
+      "cell_id": "slope_L1_cross_slope_left",
+      "terrain_family": "slope",
+      "level": 1,
+      "direction_or_layout": "cross_slope_left",
+      "geometry_seed_range": [
+        10001,
+        10001
+      ],
+      "initial_state_seed_range": [
+        20080,
+        20080
+      ],
+      "episodes": 1,
+      "seed_pairing": "zip_geometry_initial_state",
+      "dynamics_profile": "deployment_matched_frozen",
+      "resolved_parameters": {
+        "geometry": {
+          "size": [
+            12.0,
+            4.0
+          ],
+          "flat_length_m": 3.0,
+          "transition_length_m": 0.5,
+          "grid_spacing_m": 0.1,
+          "slope_angle_deg": 5.0,
+          "direction_or_layout": "cross_slope_left",
+          "exit_flat_length_m": 2.0
+        },
+        "reset": {
+          "profile_id": "source_scan_nominal_reset_v0",
+          "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+        },
+        "track": {
+          "start_x_m": 1.5,
+          "completion_x_m": 10.5,
+          "lateral_margin_m": 0.2
+        }
+      },
+      "qualification_geometry_difficulty": 0.30318197031305205
+    },
+    "geometry_difficulty": 0.30318197031305205,
+    "mesh_fingerprint": "bb2ade97cc0096fa092632fb0ed676eefdcc575d1a0a659db8216e3a1df539af",
+    "isolated_mesh_matches_bank": true,
+    "reference_registered_geometry_seed_range": [
+      10080,
+      10084
+    ],
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true
+  },
+  "original_case_preparation": "docs/lite3-source-followup-preparation-20261029/preparation.json",
+  "original_case_preparation_sha256": "a2199a7e558a0ba047adc671b941c68ac851c4d4ba3c198e609ab3e50e98f2b2",
+  "gpu_admission": {
+    "gpu_index": 0,
+    "minimum_available_mib": 12288,
+    "allow_existing_compute_processes": true
+  },
+  "runtime": {
+    "num_envs": 1,
+    "episodes": 1,
+    "max_control_steps": 2000,
+    "startup_timeout_s": 120,
+    "total_timeout_s": 240,
+    "automatic_retries": 0,
+    "goal_progress_m": 9.0,
+    "stable_hold_steps": 50
+  },
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "command_b": [
+    0.3,
+    0.0,
+    0.0
+  ],
+  "candidate_run_directory": "/tmp/lite3_source_policy_cross_slope_left_link_reference_20261029",
+  "required_pre_execution_work": [
+    "Prepare a cross-slope-left-only manifest from the registered case; preserve policy, physical safety and reference diagnostics.",
+    "Rebind and freeze the single-case runner and check selection on CPU, then commit before launch.",
+    "Verify checkpoint/input hashes, unused output directory and GPU0 memory admission."
+  ],
+  "execution_readiness": "Proposal only. Current runner remains bound to completed downhill preparation. No lateral-slope command was launched.",
+  "stop_rule": "One episode or any failure, then stop and report; no retry, sweep, threshold change, policy update or PPO.",
+  "authorization_rule": "The current approval covered the completed downhill episode. The next single condition follows the per-phase approval agreement."
+}

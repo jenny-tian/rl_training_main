@@ -1,0 +1,102 @@
+{
+  "schema": "lite3_downhill_l1_post_run_review_v1",
+  "review_result": "single_condition_safety_pass_complete_reference_evidence",
+  "condition_passed": true,
+  "revision": "9828b361e1d9dbf2907cc8e8d3c40d15cd57abb8",
+  "input_hashes_verified": 237,
+  "raw_files_verified": 12,
+  "control_steps": 1008,
+  "simulated_control_time_s": 20.16,
+  "first_goal_step": 959,
+  "reconstructed_final_hold_steps": 50,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 9.312417984008789,
+    "min_base_height_m": 0.3060755431652069,
+    "max_projected_gravity_xy": 0.13895106315612793,
+    "max_joint_speed_rad_s": 17.30000877380371,
+    "lateral_offset_peak_m": 0.11651064455509186,
+    "mean_velocity_error_mps": 0.17312374700111197,
+    "mean_base_velocity_x_mps": 0.4610619350809545,
+    "mean_command_velocity_x_mps": 0.30000001192092896
+  },
+  "root_yaw_end_degrees": -8.816943496728658,
+  "action_trace_rows": 1008,
+  "action_projection_count": 0,
+  "safety_rejection_count": 0,
+  "invalid_state_count": 0,
+  "nonfoot_contact_count": 0,
+  "predicate_diagnostic_review": {
+    "schema": "lite3_tile_bounds_trace_review_v2",
+    "status": "complete_predicate_evidence",
+    "evaluations_verified": 1008,
+    "body_count": 17,
+    "terminal_boundary_flag": false,
+    "terminal_geometric_hits": [],
+    "terminal_invalid_state": false,
+    "terminal_valid_indices": true,
+    "condition_completed": true,
+    "reference_conversion": {
+      "status": "verified",
+      "bodies_verified": 17136,
+      "unverifiable_evaluations": [],
+      "atol": 2e-06,
+      "rtol": 2e-06,
+      "quaternion_norm_atol": 1e-05,
+      "com_position_max_abs_error": 2.43798150556529e-07,
+      "link_velocity_max_abs_error": 1.4498725708911309e-07
+    }
+  },
+  "root_reference_evaluations_verified": 1008,
+  "actual_root_com_offset_m": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "kinematic_errors": {
+    "quaternion_norm": 1.0426943819474843e-07,
+    "body_to_world_velocity_mps": 5.947941206230212e-08,
+    "projected_gravity": 3.0543256035464594e-08
+  },
+  "foot_slip_fraction": 0.03939122649955237,
+  "foot_slip_numerator": 88,
+  "foot_slip_denominator": 2234,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "supervisor_exit_code": 0,
+  "worker_exit_code": 0,
+  "execution_elapsed_s": 124.75300824502483,
+  "sampled_gpu_peak_whole_device_mib": 6966,
+  "gpu_sample_count": 118,
+  "gpu0_before_mib": 4235,
+  "gpu0_after_mib": 4235,
+  "existing_gpu0_pids_before": [
+    920157,
+    920158,
+    920159,
+    920160
+  ],
+  "existing_gpu0_pids_after": [
+    920157,
+    920158,
+    920159,
+    920160
+  ],
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "This is one fixed downhill instance and one seed, not a family success rate or learned gait.",
+    "Safety acceptance has no tight actual-speed tracking threshold: observed mean forward speed exceeds the 0.3 m/s command.",
+    "The actor is unchanged; this pass measures existing transfer capability, not a Source training improvement.",
+    "No automatic reset occurred; this episode does not add reset-timing coverage.",
+    "Linear link-origin prediction is not continuous-time boundary proof.",
+    "Whole-GPU resource samples include other users; timing and memory are not exclusive-task measurements."
+  ]
+}
