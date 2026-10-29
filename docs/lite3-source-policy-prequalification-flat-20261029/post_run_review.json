@@ -1,0 +1,49 @@
+{
+  "schema": "lite3_flat_policy_prequalification_post_run_review_v1",
+  "review_result": "single_condition_safety_passed_with_scope_limits",
+  "revision": "3b79cdda6574d9c7936437243f980166b65e2614",
+  "input_hashes_verified": 185,
+  "raw_files_verified": 9,
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "control_steps": 1514,
+  "simulated_control_time_s": 30.28,
+  "action_trace_rows": 1514,
+  "first_goal_step": 1465,
+  "reconstructed_final_hold_steps": 50,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 9.295169830322266,
+    "min_base_height_m": 0.30840426683425903,
+    "max_projected_gravity_xy": 0.06537572294473648,
+    "max_joint_speed_rad_s": 17.300004959106445,
+    "lateral_offset_peak_m": 0.719968855381012,
+    "mean_velocity_error_mps": 0.029396355468312294
+  },
+  "invalid_states": 0,
+  "nonfoot_contact_events": 0,
+  "safety_rejections": 0,
+  "projections": 0,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "execution_elapsed_s": 88.22870881296694,
+  "sampled_gpu_peak_mib": 2750,
+  "gpu_sample_count": 83,
+  "gpu0_after_mib": 18,
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "One Flat L1 condition only; does not qualify other terrains, shared-bank motion, full G3/G4 or PPO.",
+    "Peak lateral drift is 0.71997 m and final yaw is -0.28623 rad. These did not violate the registered safety gate; straight-line tracking quality has not been qualified.",
+    "Completion caused no manager termination or automatic reset; this episode does not exercise pre-reset capture or post-reset physics.",
+    "No physics-substep pairwise contact or full rigid-body dynamics trace was collected, so motion isolation is not established.",
+    "CUDA visibility/device enumeration and foot visual-reference warnings remain in the raw log; their general resolution is not established.",
+    "manifest.json inherits status/simulation_run and cell episode-range fields from preparation. Actual authorization is recorded in execution_receipt.json; result/outcome and this review describe the executed single episode. Raw manifest was not rewritten.",
+    "The updated base-scanner configuration still needs current-revision shared-bank startup/reset validation."
+  ]
+}

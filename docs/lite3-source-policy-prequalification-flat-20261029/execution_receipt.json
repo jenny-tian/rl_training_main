@@ -1,0 +1,37 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_policy_prequalification.py",
+    "--run-dir",
+    "/tmp/lite3_source_policy_prequalification_flat_20261029"
+  ],
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+  "frozen_revision": "3b79cdda6574d9c7936437243f980166b65e2614",
+  "supervisor_exit_code": 0,
+  "attempt_count": 1,
+  "user_approved": true,
+  "approval_context": "User agreed to the preceding single GPU0 Flat L1 2000-step 120/240-second stage.",
+  "sandbox_note": "Read-only nvidia-smi failed inside sandbox; host resource query succeeded before launching once outside sandbox.",
+  "post_run_process_check": {
+    "command": [
+      "pgrep",
+      "-af",
+      "[p]ython.*source_policy_prequalification.py"
+    ],
+    "host_execution": true,
+    "exit_code": 1,
+    "stdout": "",
+    "meaning": "no matching Python supervisor or worker process"
+  },
+  "archive_raw_sha256": {
+    "gpu_after.json": "054913c041011c9985e8f3fade868af8926a03da0e51e574bedd6ad7ef0fe665",
+    "runtime_readback.json": "b0260fbb559ff9b247fc7402de5f516ccc407ee1d8900a4e1cc558500c03f324",
+    "gpu_samples.jsonl": "4fed84f66c447754d6fc1c87d82008154ed4971b733222ed23f962b10bedb73c",
+    "result.json": "31663ec1057f50ec74bae347a8468e2683f9cac17b99c05189a1cfb4ee5ec70b",
+    "manifest.json": "b9d1bc973458b9be003cfe84e572fc7cf67c78daa3c37700368cf79832c1364e",
+    "console.log": "099ae6855f6fbbd723a7d0194ece5f938e3a1e4f134e3e96341c74e4ed91de16",
+    "samples.jsonl": "8a58f8fc7df2e9199d1034e9e40387a3d41e9cf50040527de2424efa29612a40",
+    "trace.log": "4cc35267dc7b86c7c00b7aa902bd9f28c769e009af0f3624e2f78a1a29eda310",
+    "outcome.json": "7d9c7a13ace62762c19271a886e4ee5be9304ee7822e71bcc1af7b2f5c101499"
+  }
+}
