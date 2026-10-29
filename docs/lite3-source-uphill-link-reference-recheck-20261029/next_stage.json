@@ -1,0 +1,99 @@
+{
+  "schema": "lite3_next_baseline_condition_proposal_v1",
+  "stage_id": "prepare_and_check_single_downhill_l1",
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "simulation_started": false,
+  "ppo_authorized": false,
+  "purpose": "Continue measuring the unchanged flat-policy baseline in the registered bank order. Do not tune the baseline to make the failed uphill pass.",
+  "case": {
+    "case_id": "slope_L1_downhill",
+    "bank_row": 0,
+    "bank_column": 3,
+    "subterrain": "slope_downhill",
+    "geometry_seed": 10001,
+    "initial_state_seed": 20070,
+    "cell": {
+      "cell_id": "slope_L1_downhill",
+      "terrain_family": "slope",
+      "level": 1,
+      "direction_or_layout": "downhill",
+      "geometry_seed_range": [
+        10001,
+        10001
+      ],
+      "initial_state_seed_range": [
+        20070,
+        20070
+      ],
+      "episodes": 1,
+      "seed_pairing": "zip_geometry_initial_state",
+      "dynamics_profile": "deployment_matched_frozen",
+      "resolved_parameters": {
+        "geometry": {
+          "size": [
+            12.0,
+            4.0
+          ],
+          "flat_length_m": 3.0,
+          "transition_length_m": 0.5,
+          "grid_spacing_m": 0.1,
+          "slope_angle_deg": 5.0,
+          "direction_or_layout": "downhill",
+          "exit_flat_length_m": 2.0
+        },
+        "reset": {
+          "profile_id": "source_scan_nominal_reset_v0",
+          "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+        },
+        "track": {
+          "start_x_m": 1.5,
+          "completion_x_m": 10.5,
+          "lateral_margin_m": 0.2
+        }
+      },
+      "qualification_geometry_difficulty": 0.3636354823034158
+    },
+    "geometry_difficulty": 0.3636354823034158,
+    "mesh_fingerprint": "53d0f16ac369195c853bbee2d98b3aa68b1a69b44aaa9e47c972dbcce6a82e77",
+    "isolated_mesh_matches_bank": true,
+    "reference_registered_geometry_seed_range": [
+      10070,
+      10074
+    ],
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true
+  },
+  "original_case_preparation": "docs/lite3-source-followup-preparation-20261029/preparation.json",
+  "original_case_preparation_sha256": "a2199a7e558a0ba047adc671b941c68ac851c4d4ba3c198e609ab3e50e98f2b2",
+  "gpu_admission": {
+    "gpu_index": 0,
+    "minimum_available_mib": 12288,
+    "allow_existing_compute_processes": true
+  },
+  "runtime": {
+    "num_envs": 1,
+    "episodes": 1,
+    "max_control_steps": 2000,
+    "startup_timeout_s": 120,
+    "total_timeout_s": 240,
+    "automatic_retries": 0,
+    "goal_progress_m": 9.0,
+    "stable_hold_steps": 50
+  },
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "command_b": [
+    0.3,
+    0.0,
+    0.0
+  ],
+  "required_pre_execution_work": [
+    "Create a new downhill-only preparation from the registered bank case and current link-reference diagnostics.",
+    "Rebind the single-case runner to that preparation, verify case selection on CPU, freeze changed hashes and a clean committed revision before launch.",
+    "Use a new output directory; verify original checkpoint, unchanged physical safety thresholds, and GPU0 memory availability."
+  ],
+  "candidate_run_directory": "/tmp/lite3_source_policy_downhill_link_reference_20261029",
+  "execution_readiness": "Proposal only: current runner remains pinned to the completed uphill preparation. No downhill command has been launched or is presented as immediately runnable.",
+  "stop_rule": "One episode or any failure, then stop and report. No automatic uphill retry, other-terrain sweep, threshold/reward changes, PPO or training.",
+  "authorization_rule": "The current uphill and memory-sharing authorization has been used for this one run. A different baseline condition requires the next per-phase approval."
+}

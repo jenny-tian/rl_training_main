@@ -1,0 +1,83 @@
+{
+  "schema": "lite3_paired_link_reference_run_comparison_v1",
+  "previous_runtime_revision": "8944b0ec416a26831b02cfa02a1453a0fe00e042",
+  "current_runtime_revision": "84819d753bb32a0d6c719015e7aafe1265d2512a",
+  "comparison": {
+    "first_action_value_difference_step": null,
+    "first_sample_value_difference_step": null,
+    "first_legacy_kinematics_difference_step": null,
+    "first_termination_flag_difference_step": null,
+    "samples_byte_identical": false,
+    "scope": "paired same-seed trajectories; current sample file adds explicit root fields, timings are excluded from action-value comparison",
+    "max_abs_prediction_coordinate_change_m": 0.03212118148803711,
+    "evaluations_with_changed_prediction_coordinates": 1059,
+    "evaluations_with_changed_geometric_branch_flags": 0,
+    "terminal_old_prediction_y_m": 1.7301347255706787,
+    "terminal_new_prediction_y_m": 1.7303106784820557,
+    "terminal_prediction_shift_m": 0.00017595291137695312
+  },
+  "terminal": {
+    "branch": "prediction",
+    "body_id": 5,
+    "body_name": "FL_THIGH",
+    "axis": "y",
+    "link_position_w_m": [
+      -0.47862333059310913,
+      1.7263942956924438,
+      0.4917813539505005
+    ],
+    "link_velocity_w_mps": [
+      0.1304224580526352,
+      0.19582131505012512,
+      -0.09562438726425171
+    ],
+    "com_velocity_w_mps": [
+      0.11661865562200546,
+      0.1870189607143402,
+      -0.06681882590055466
+    ],
+    "com_offset_link_m": [
+      -0.003924500197172165,
+      -0.014631999656558037,
+      -0.0251460000872612
+    ],
+    "link_quaternion_wxyz": [
+      0.9115831255912781,
+      -0.1752547323703766,
+      0.3313300907611847,
+      0.16888563334941864
+    ],
+    "world_angular_velocity_rad_s": [
+      -0.8693822026252747,
+      0.7261924743652344,
+      -0.1947043538093567
+    ],
+    "implemented_predicted_xy_w_m": [
+      -0.4760148823261261,
+      1.7303106784820557
+    ],
+    "safe_upper_y_w_m": 1.7289999723434448,
+    "current_link_y_clearance_m": 0.0026056766510009766,
+    "implemented_prediction_y_excess_m": 0.0013107061386108398,
+    "point_consistent_geometric_prediction_verified": true
+  },
+  "root_reference": {
+    "evaluations_verified": 1059,
+    "actual_com_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "link_position_and_velocity_same_point": true,
+    "net_lateral_displacement_m": 1.5069433471981029,
+    "world_link_velocity_trapezoid_integral_m": 1.5065935206272116,
+    "residual_m": 0.0003498265708912207,
+    "residual_scope": "50 Hz trapezoid between first and last sample; substep/solver components not isolated"
+  },
+  "conclusion": "Reference-aligned prediction still triggers the same FL_THIGH Y boundary branch at the same step. The failed outcome cannot be attributed solely to mixing link position with COM velocity.",
+  "limits": [
+    "Linear prediction crossing the safety envelope is not proof of actual subsequent physical crossing.",
+    "Unchanged sample/action trajectories do not isolate the cause of sustained lateral drift.",
+    "Root COM is now measured as zero and root link/COM velocities match. The 0.349827 mm trapezoid residual remains; substep integration/solver components have not been isolated."
+  ]
+}
