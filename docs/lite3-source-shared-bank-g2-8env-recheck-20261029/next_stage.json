@@ -1,0 +1,107 @@
+{
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "stage_id": "single_policy_safety_multi_scale_rough_L1",
+  "case": {
+    "case_id": "multi_scale_rough_L1_forward_lane",
+    "bank_row": 0,
+    "bank_column": 1,
+    "subterrain": "multi_scale_rough",
+    "geometry_seed": 10001,
+    "initial_state_seed": 20030,
+    "cell": {
+      "cell_id": "multi_scale_rough_L1_forward_lane",
+      "terrain_family": "multi_scale_rough",
+      "level": 1,
+      "direction_or_layout": "forward_lane",
+      "geometry_seed_range": [
+        10001,
+        10001
+      ],
+      "initial_state_seed_range": [
+        20030,
+        20030
+      ],
+      "episodes": 1,
+      "seed_pairing": "zip_geometry_initial_state",
+      "dynamics_profile": "deployment_matched_frozen",
+      "resolved_parameters": {
+        "geometry": {
+          "size": [
+            12.0,
+            4.0
+          ],
+          "flat_length_m": 3.0,
+          "transition_length_m": 0.5,
+          "grid_spacing_m": 0.1,
+          "rough_peak_valley_m": 0.02,
+          "rough_audit_window_m": 0.4,
+          "spatial_scales_m": [
+            0.2,
+            0.4
+          ],
+          "exit_flat_length_m": 2.0
+        },
+        "reset": {
+          "profile_id": "source_scan_nominal_reset_v0",
+          "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+        },
+        "track": {
+          "start_x_m": 1.5,
+          "completion_x_m": 10.5,
+          "lateral_margin_m": 0.2
+        }
+      },
+      "qualification_geometry_difficulty": 0.6294702331215974
+    },
+    "geometry_difficulty": 0.6294702331215974,
+    "mesh_fingerprint": "26669dc0be4a41ba1cd6c542fa49d906397e16b2c561274f704b33b4bbe6e495",
+    "isolated_mesh_matches_bank": true,
+    "reference_registered_geometry_seed_range": [
+      10030,
+      10034
+    ],
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true
+  },
+  "preparation_path": "docs/lite3-source-followup-preparation-20261029/preparation.json",
+  "preparation_sha256": "a2199a7e558a0ba047adc671b941c68ac851c4d4ba3c198e609ab3e50e98f2b2",
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "runtime": {
+    "gpu_index": 0,
+    "minimum_free_mib": 12288,
+    "num_envs": 1,
+    "terrain_grid": [
+      1,
+      1
+    ],
+    "shared_bank": false,
+    "physics_dt_s": 0.005,
+    "control_dt_s": 0.02,
+    "max_control_steps": 2000,
+    "episode_cap_s": 40.0,
+    "goal_progress_m": 9.0,
+    "stable_hold_steps": 50,
+    "startup_timeout_s": 120,
+    "total_timeout_s": 240,
+    "cleanup_grace_s": 10,
+    "automatic_retries": 0,
+    "ppo_initialization": false,
+    "weight_updates": false
+  },
+  "prerequisite_result": "docs/lite3-source-shared-bank-g2-8env-recheck-20261029/post_run_review.json",
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_policy_prequalification.py",
+    "--case-id",
+    "multi_scale_rough_L1_forward_lane",
+    "--run-dir",
+    "/tmp/lite3_source_policy_prequalification_multi_scale_rough_L1_forward_lane_bank_20261029"
+  ],
+  "environment": {
+    "PYTHONPATH": "source/rl_training"
+  },
+  "scope": "One pinned bank-equivalent single-environment episode with the frozen actor; no policy update, batch sweep or G3 motion-isolation claim.",
+  "rule": "Use a clean committed worktree, verify preparation input hashes, check GPU0 and execute once only after a new phase approval."
+}
