@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_parallel_terrain_startup_supervisor.py",
+    "-k",
+    "gpu",
+    "--junitxml=docs/lite3-source-uphill-memory-admission-preparation-20261029/focused.junit.xml"
+  ],
+  "environment": {
+    "PYTHONPATH": ".:source/rl_training",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "CUDA_VISIBLE_DEVICES": ""
+  },
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027"
+}

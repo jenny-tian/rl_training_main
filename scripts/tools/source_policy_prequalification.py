@@ -23,7 +23,7 @@ from scripts.tools.source_parallel_terrain_startup_supervisor import (
     _capture, _gpu_preflight, _sha256, run_monitored_process,
 )
 
-PREPARATION = ROOT / "docs/lite3-source-link-reference-offline-correction-20261029/preparation.json"
+PREPARATION = ROOT / "docs/lite3-source-uphill-memory-admission-preparation-20261029/preparation.json"
 
 
 def select_case(preparation, case_id):
@@ -66,6 +66,8 @@ def make_run_manifest(preparation, case, *, revision, gpu, processes, preparatio
         "bank_geometry": {key: case[key] for key in (
             "bank_row", "bank_column", "subterrain", "geometry_difficulty", "mesh_fingerprint")},
         "gpu_before": gpu, "processes_before": processes,
+        "gpu_admission": {"minimum_available_mib": 12288, "allow_existing_compute_processes": True,
+                          "memory_basis": "memory.total - memory.used"},
         "startup_timeout_s": 120, "total_timeout_s": 240, "max_control_steps": 2000,
         "num_envs": 1, "gpu_index": 0, "command_b": [0.3, 0.0, 0.0],
         "qualification_scope": "one exact L1 tile and one state seed; no shared-bank motion/G3 qualification",
@@ -295,7 +297,8 @@ def supervise(run_dir, case_id=None):
         raise ValueError("refusing a dirty worktree")
     if _capture(["git", "-C", str(ROOT / "deep_robotics_model"), "status", "--porcelain"], cwd=ROOT):
         raise ValueError("refusing a dirty robot-model submodule")
-    before_gpu, before_processes = _gpu_preflight(0, root=ROOT, minimum_available_mib=12288)
+    before_gpu, before_processes = _gpu_preflight(
+        0, root=ROOT, minimum_available_mib=12288, allow_existing_compute_processes=True)
     run_dir.mkdir(parents=True, exist_ok=False)
     manifest = make_run_manifest(preparation, case,
         revision=_capture(["git", "rev-parse", "HEAD"], cwd=ROOT),
@@ -352,7 +355,8 @@ def supervise(run_dir, case_id=None):
     except (OSError, KeyError, TypeError, ValueError) as error:
         errors.append(str(error))
     try:
-        after_gpu, after_processes = _gpu_preflight(0, root=ROOT, minimum_available_mib=12288)
+        after_gpu, after_processes = _gpu_preflight(
+            0, root=ROOT, minimum_available_mib=12288, allow_existing_compute_processes=True)
         write_json(run_dir / "gpu_after.json", {"gpu": after_gpu, "processes": after_processes})
     except Exception as error:
         errors.append(str(error))

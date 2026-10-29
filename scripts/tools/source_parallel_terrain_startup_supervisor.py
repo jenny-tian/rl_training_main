@@ -316,8 +316,10 @@ def minimum_gpu_available_mib(*, num_envs: int, shared_bank: bool) -> int:
 
 
 def _gpu_preflight(
-    gpu_index: int, *, root: Path, minimum_available_mib: int = DEFAULT_MINIMUM_GPU_AVAILABLE_MIB
+    gpu_index: int, *, root: Path, minimum_available_mib: int = DEFAULT_MINIMUM_GPU_AVAILABLE_MIB,
+    allow_existing_compute_processes: bool = False,
 ) -> tuple[str, str]:
+    """Check memory and record occupants; callers may explicitly allow sharing."""
     gpu_snapshot = _capture(
         [
             "nvidia-smi",
@@ -348,7 +350,9 @@ def _gpu_preflight(
         ],
         cwd=root,
     )
-    if any(line.split(", ", maxsplit=1)[0] == gpu_uuid for line in process_snapshot.splitlines()):
+    if not allow_existing_compute_processes and any(
+        line.split(", ", maxsplit=1)[0] == gpu_uuid for line in process_snapshot.splitlines()
+    ):
         raise RuntimeError(f"GPU {gpu_index} already has a compute process")
     return gpu_snapshot, process_snapshot
 

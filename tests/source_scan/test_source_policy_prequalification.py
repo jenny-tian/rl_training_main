@@ -164,6 +164,8 @@ def test_run_manifest_contains_only_one_execution_spec_and_no_preparation_state(
     assert result["cell"]["geometry_seed_range"] == [10001, 10001]
     assert result["link_reference_verification_required"] is True
     assert result["tile_bounds_schema"] == "lite3_tile_bounds_predicate_v2"
+    assert result["gpu_admission"] == dict(minimum_available_mib=12288, allow_existing_compute_processes=True,
+                                           memory_basis="memory.total - memory.used")
 
 
 @pytest.mark.parametrize("fault", ["missing_id", "duplicate", "l2", "old_count", "seed_range", "wrong_bank_seed", "flat_column", "geometry", "mesh", "already_run"])
@@ -260,8 +262,14 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
     monkeypatch.setattr(qualification, "PREPARATION", prep)
     monkeypatch.setattr(qualification, "_capture", lambda command, **k: (
         "" if "--porcelain" in command else "revision"))
-    monkeypatch.setattr(qualification, "_gpu_preflight", lambda *a, **k: (
-        "0, GPU-frozen-device, Test GPU, 0 MiB, 24000 MiB, 0 %", ""))
+    preflight_calls = []
+    def preflight(*a, **kwargs):
+        assert kwargs["minimum_available_mib"] == 12288
+        assert kwargs["allow_existing_compute_processes"] is True
+        preflight_calls.append(kwargs)
+        return ("0, GPU-frozen-device, Test GPU, 4096 MiB, 24000 MiB, 70 %",
+                "GPU-frozen-device, 1234, /other/user/python, 4096 MiB")
+    monkeypatch.setattr(qualification, "_gpu_preflight", preflight)
     run_dir = tmp_path / "run"
 
     def monitored(command, **kwargs):
@@ -318,3 +326,4 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
     outcome = json.loads((run_dir / "outcome.json").read_text())
     assert outcome["status"] == ("passed" if fault is None else "failed")
     assert outcome["g3_qualified"] is False
+    assert len(preflight_calls) == 2

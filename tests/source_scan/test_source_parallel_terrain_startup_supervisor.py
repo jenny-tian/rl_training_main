@@ -467,6 +467,28 @@ def test_fatal_parser_matches_only_explicit_diagnostic_lines():
         assert supervisor_module.find_fatal_exception(noise) is None
 
 
+@pytest.mark.parametrize("allow_sharing,available_mib,accepted", [
+    (False, 16384, False), (True, 16384, True),
+    (True, 12288, True), (True, 12287, False),
+])
+def test_gpu_memory_admission_can_allow_occupants_without_lowering_floor(
+    monkeypatch, allow_sharing, available_mib, accepted
+):
+    gpu = f"0, GPU-fixture, RTX fixture, {24576-available_mib} MiB, 24576 MiB, 70 %"
+    occupants = "GPU-fixture, 1234, /other/user/python, 4096 MiB"
+    snapshots = iter((gpu, occupants))
+    monkeypatch.setattr(supervisor_module, "_capture", lambda *a, **k: next(snapshots))
+    kwargs = dict(root=Path('/tmp'), minimum_available_mib=12288)
+    if allow_sharing:
+        kwargs["allow_existing_compute_processes"] = True
+    if accepted:
+        assert supervisor_module._gpu_preflight(0, **kwargs) == (gpu, occupants)
+    else:
+        message = "at least 12288 MiB" if available_mib < 12288 else "already has a compute process"
+        with pytest.raises(RuntimeError, match=message):
+            supervisor_module._gpu_preflight(0, **kwargs)
+
+
 @pytest.mark.skipif(os.name != "posix", reason="requires SIGTERM")
 @pytest.mark.parametrize("stream", ["console", "trace"])
 @pytest.mark.parametrize("ignore_sigterm", [False, True])
