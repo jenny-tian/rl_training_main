@@ -1,0 +1,96 @@
+{
+  "schema": "lite3_uphill_drift_boundary_offline_stage_proposal_v1",
+  "status": "awaiting_user_phase_approval",
+  "stage_id": "uphill_drift_and_boundary_diagnostics_offline_preparation",
+  "offline_stage_authorized": false,
+  "runtime_authorized": false,
+  "simulation_run": false,
+  "ppo_authorized": false,
+  "approval_basis": "User requested completion and reporting of each phase before approving the next phase.",
+  "trigger": {
+    "case_id": "slope_L1_uphill",
+    "result": "single_condition_safety_failed",
+    "runtime_revision": "cb46b1313735adc0904e0287fd3b9b5bfb2587cb",
+    "evidence": "docs/lite3-source-policy-prequalification-uphill-l1-20261029/result.json",
+    "termination_terms": [
+      "source_terrain_tile_bounds"
+    ],
+    "exact_triggering_body_and_branch": "not_recorded"
+  },
+  "input_sha256": {
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/manifest.json": "8c1565e93b1b99ed2b4853d2a04d142a5101e0690ad21de28534a036519c3905",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/result.json": "8981934f927ea5c22d2ba6158642aa16bb09a33c38f06fd7d380b84eb5dd9af1",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/outcome.json": "828cde5ff9302f110352fd63b7d2438ecc101abb5ae4b5c00abadbc2106408bd",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/samples.jsonl": "63a5d906fce2e0b6c95c0a2b116816b924229a8ce065db5b42d8b0c7134d0d84",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/runtime_readback.json": "303bdafa46eb2d94c87ed8694075092d0615bdef585d150b7f0bb10fc0afd44d",
+    "docs/lite3-source-policy-prequalification-uphill-l1-20261029/post_run_review.json": "125ad1a5b0147f195cede444291fd302612de64c5282a9487664b6aaace0f219"
+  },
+  "preparation_path": "docs/lite3-source-followup-preparation-20261029/preparation.json",
+  "preparation_sha256": "a2199a7e558a0ba047adc671b941c68ac851c4d4ba3c198e609ab3e50e98f2b2",
+  "frozen_constraints": {
+    "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+    "case_id": "slope_L1_uphill",
+    "bank_row": 0,
+    "bank_column": 2,
+    "geometry_seed": 10001,
+    "initial_state_seed": 20060,
+    "geometry_difficulty": 0.3384848514104325,
+    "command_b_vx_vy_wz": [
+      0.3,
+      0.0,
+      0.0
+    ],
+    "collision_radius_m": 0.27,
+    "numerical_margin_m": 0.001,
+    "control_period_s": 0.02,
+    "change_policy": false,
+    "change_rewards": false,
+    "change_safety_thresholds": false,
+    "change_case_seeds_or_geometry": false,
+    "gpu_runs": 0,
+    "retries": 0,
+    "ppo_initialization": false
+  },
+  "proposed_work": [
+    {
+      "step": "archived_drift_analysis",
+      "scope": "Analyze archived yaw/lateral displacement, full quaternion rotation and body/world velocity contributions, integration residuals and onset trends across the registered entry-flat, transition and slope portions.",
+      "comparison_rule": "Compare applicable Flat, rough and older uphill archives only with explicit revision, geometry, seed and telemetry differences; do not pool them into a success rate or infer causation from correlation.",
+      "deliverables": [
+        "reproducible CPU analysis script",
+        "analysis JSON and standalone plots",
+        "evidence limitations and unresolved causal questions"
+      ]
+    },
+    {
+      "step": "predicate_time_telemetry_preparation",
+      "scope": "Prepare diagnostic capture at the actual boundary predicate evaluation, before automatic reset, with no acceptance or geometry changes.",
+      "required_fields": [
+        "control step and sampling phase",
+        "all 17 body IDs and names",
+        "body world positions and linear velocities",
+        "one-control-step predicted positions",
+        "per-body/per-axis current and predicted out-of-bounds flags",
+        "environment ID, terrain row/column, index validity and selected origin",
+        "safe lower/upper limits, collision radius, margin and control period",
+        "nonfinite-input flags and final per-environment termination flag"
+      ],
+      "reset_rule": "Copy the exact evaluated inputs and flags before reset; preserve the terminal record across reset and distinguish subsequent state.",
+      "termination_reporting": "Expose the existing source_terrain_tile_bounds term and available branch attribution without inventing absent historical telemetry."
+    },
+    {
+      "step": "cpu_validation_and_followup_protocol",
+      "scope": "Check diagnostic flag equivalence to the unchanged guard, current/prediction/invalid branches, boundary equality, environment selection and pre/post-reset capture. Freeze any modified runtime inputs and prepare a separately reviewable future protocol.",
+      "runtime_rule": "No GPU run in this offline phase. Any later same-case runtime validation requires separate approval after offline results; no terrain sweep, seed search or training."
+    }
+  ],
+  "acceptance": [
+    "Original failed-run evidence, frozen preparation and prior archives remain unchanged.",
+    "Drift findings distinguish directly recorded facts, kinematic accounting and unresolved causal hypotheses.",
+    "New diagnostics faithfully expose the existing full predicate, including fail-closed cases, without relaxing it.",
+    "Relevant CPU checks pass and new source hashes and future protocol are reviewable.",
+    "No simulation, retry, other-terrain run, policy/reward/threshold change or PPO initialization occurs."
+  ],
+  "rule": "This file is a proposal only. Implement the offline work after the next user phase approval; report the result before seeking any later runtime approval."
+}
