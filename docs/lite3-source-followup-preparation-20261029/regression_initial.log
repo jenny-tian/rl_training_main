@@ -1,0 +1,81 @@
+........................................................................ [ 12%]
+........................................................................ [ 24%]
+........................................................................ [ 36%]
+........................................................................ [ 48%]
+........................................................................ [ 61%]
+........................................................................ [ 73%]
+........................................................................ [ 85%]
+........................................................................ [ 97%]
+............F                                                            [100%]
+=================================== FAILURES ===================================
+_________ test_complete_two_row_map_reaches_material_and_tile_importer _________
+
+    def test_complete_two_row_map_reaches_material_and_tile_importer():
+>       report = audit.audit_map(ROOT, ISAACLAB_ROOT, 2)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/source_scan/test_source_terrain_generator.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+root = PosixPath('/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027')
+isaaclab_root = PosixPath('/home/tjx/IsaacLab'), num_envs = 2
+
+    def audit_map(root: Path, isaaclab_root: Path, num_envs: int) -> dict:
+        factory, generator_type, importer_namespace, paths = load_offline_pipeline(root, isaaclab_root)
+        sub_terrains = factory("L1")
+        for cfg in sub_terrains.values():
+            cfg.proportion = 1.0 / len(sub_terrains)
+        cfg = SimpleNamespace(
+            seed=10001, num_rows=num_envs, num_cols=len(sub_terrains), size=(12.0, 4.0),
+            border_width=0.0, use_cache=False, cache_dir="/tmp/unused_source_mesh_audit_cache",
+            curriculum=True, difficulty_range=(0.0, 1.0), color_scheme="none", sub_terrains=sub_terrains,
+        )
+        started = time.monotonic()
+        generator = generator_type(cfg, device="cpu")
+        generation_s = time.monotonic() - started
+        mesh = generator.terrain_mesh
+        importer_type = importer_namespace["SourceTerrainImporter"]
+        importer = object.__new__(importer_type)
+        importer.cfg = SimpleNamespace(
+            prim_path="/World/ground", parallel_reset_sampler_enabled=True, terrain_generator=cfg,
+            physics_material=SimpleNamespace(static_friction=1.0), visual_material=None,
+        )
+        importer.terrain_prim_paths = []
+        importer._make_region_material = lambda coefficient: SimpleNamespace(static_friction=coefficient)
+        records = []
+    
+        def capture(path, part, **kwargs):
+            match = re.search(r"tile_r([0-9]+)_c([0-9]+)", path)
+            assert match is not None, path
+            row, col = map(int, match.groups())
+            lower = np.array([row * 12.0 - num_envs * 6.0, col * 4.0 - 30.0])
+            bounds = part.bounds
+            assert np.all(bounds[0, :2] >= lower - 1e-8), path
+            assert np.all(bounds[1, :2] <= lower + [12.0, 4.0] + 1e-8), path
+            assert 0 < len(part.faces) <= importer_namespace["MAX_SOURCE_TERRAIN_COLLIDER_TRIANGLES"]
+            assert part.is_watertight and part.is_winding_consistent and part.volume > 0, path
+            assert np.isfinite(part.vertices).all() and part.area_faces.min() > 1e-12, path
+            assert (np.asarray(part.visual.face_colors)[:, 3] == 255).all(), path
+            records.append({"path": path, "triangles": len(part.faces),
+                            "friction": kwargs["physics_material"].static_friction,
+                            "bounds": bounds.tolist()})
+    
+        importer_namespace["create_prim_from_mesh"] = capture
+        importer.import_mesh("terrain", mesh)
+        assert sum(item["triangles"] for item in records) == len(mesh.faces)
+        assert len(importer.terrain_prim_paths) == len(set(importer.terrain_prim_paths)) == len(records)
+        if any(name == "pxr" or name.startswith(("isaaclab", "isaacsim", "omni.")) for name in sys.modules):
+>           raise RuntimeError("offline mesh audit loaded a simulator module")
+E           RuntimeError: offline mesh audit loaded a simulator module
+
+scripts/tools/source_terrain_mesh_audit.py:167: RuntimeError
+=============================== warnings summary ===============================
+tests/source_scan/test_shared_contact_report.py: 57 warnings
+tests/source_scan/test_shared_tensor_contact.py: 297 warnings
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_source_terrain_generator.py::test_complete_two_row_map_reaches_material_and_tile_importer
+1 failed, 588 passed, 354 warnings in 40.75s

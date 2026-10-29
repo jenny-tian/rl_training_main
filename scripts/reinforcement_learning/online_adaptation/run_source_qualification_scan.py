@@ -75,7 +75,7 @@ def _build_env_cfg(
     from isaaclab_tasks.utils import parse_env_cfg
 
     import rl_training.tasks  # noqa: F401
-    from rl_training.source_scan.terrain_config import source_subterrain_from_cell
+    from rl_training.source_scan.terrain_config import source_subterrain_from_cell, source_geometry_difficulty
 
     env_cfg = parse_env_cfg(TASK, device=device, num_envs=1)
     env_cfg.seed = initial_state_seed
@@ -89,7 +89,8 @@ def _build_env_cfg(
     generator.size = tuple(cell["resolved_parameters"]["geometry"]["size"])
     generator.num_rows = 1
     generator.num_cols = 1
-    generator.difficulty_range = (0.0, 0.0)
+    geometry_difficulty = source_geometry_difficulty(cell)
+    generator.difficulty_range = (geometry_difficulty, geometry_difficulty)
     generator.use_cache = False
     generator.sub_terrains = {
         cell["cell_id"]: source_subterrain_from_cell(cell, seed=geometry_seed)
@@ -430,13 +431,13 @@ def _geometry_audit_for_cell(cell: dict, geometry_seed: int) -> dict[str, Any] |
     """
 
     try:
-        from rl_training.source_scan.terrain_config import source_subterrain_from_cell
+        from rl_training.source_scan.terrain_config import source_subterrain_from_cell, source_geometry_difficulty
         from rl_training.tasks.manager_based.locomotion.velocity.terrains.source_terrain_isaac import (
             generate_source_terrain_geometry,
         )
 
         cfg = source_subterrain_from_cell(cell, seed=geometry_seed)
-        geometry = generate_source_terrain_geometry(0.0, cfg)
+        geometry = generate_source_terrain_geometry(source_geometry_difficulty(cell), cfg)
     except (ImportError, KeyError, TypeError, ValueError, RuntimeError):
         return None
     regions = [

@@ -2,7 +2,11 @@
 
 import copy
 import importlib.util
+import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import numpy as np
@@ -57,7 +61,20 @@ def test_tile_metadata_preserves_stock_seed_stream_origins_and_triangle_order(mo
 
 
 def test_complete_two_row_map_reaches_material_and_tile_importer():
-    report = audit.audit_map(ROOT, ISAACLAB_ROOT, 2)
+    # audit_map deliberately rejects every simulator namespace in sys.modules.
+    # Other CPU tests use those names for stubs or attempted optional imports,
+    # so check the no-simulator contract in a fresh process as the CLI does.
+    code = (
+        "import json; from pathlib import Path; "
+        "from scripts.tools.source_terrain_mesh_audit import audit_map; "
+        f"print(json.dumps(audit_map(Path({str(ROOT)!r}), Path({str(ISAACLAB_ROOT)!r}), 2)))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=ROOT,
+        env={**os.environ, "CUDA_VISIBLE_DEVICES": ""},
+        capture_output=True, text=True, timeout=120, check=True,
+    )
+    report = json.loads(result.stdout)
     assert report["origin_shape"] == [2, 15, 3]
     assert report["tile_count"] == 30
     assert report["collision_parts"] == 48

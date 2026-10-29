@@ -1,0 +1,104 @@
+{
+  "schema": "lite3_updated_shared_bank_recheck_preparation_v1",
+  "runtime_authorized": false,
+  "next_proposal": "shared_bank_g2_2env",
+  "bank_geometry_seed": 10001,
+  "bank_grid": [
+    1,
+    15
+  ],
+  "environment_and_sampler_seed": 130196,
+  "gpu_index": 0,
+  "startup_timeout_s": 120,
+  "total_timeout_s": 240,
+  "automatic_retries": 0,
+  "ppo_initialization": false,
+  "policy_loading": false,
+  "reason": "Base scanner period changed from 0.02 to 0.005 s after the archived shared-bank G2 revision a34b1b7.",
+  "scope": "Startup/contact/reset compatibility of the updated configuration at each explicitly approved size.",
+  "limitations": [
+    "No policy motion, G3/G4 or 120-env qualification.",
+    "Existing scanner checks validate finite hits, ground attribution and reset refresh; they do not measure every physics-substep refresh timestamp.",
+    "Untouched-environment equality is compared immediately around _reset_idx, excluding physics integration.",
+    "Historical missing foot visual USD warnings remain documented; this is not a visual asset completeness check."
+  ],
+  "stages": [
+    {
+      "stage_id": "shared_bank_g2_2env",
+      "num_envs": 2,
+      "minimum_free_mib": 8192,
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true,
+      "prerequisites": [
+        "new phase approval",
+        "clean committed worktree",
+        "input and dependency hashes verified"
+      ],
+      "expected_assignment_count": 123,
+      "expected_reset_batch_count": 91,
+      "direct_reset_count": 120,
+      "direct_reset_batch_count": 90,
+      "automatic_timeout_env_id": 0,
+      "contact_control_steps": 20,
+      "contact_physics_substeps": 80,
+      "lifecycle_control_steps": 2,
+      "command": [
+        "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+        "scripts/tools/source_parallel_terrain_startup_supervisor.py",
+        "--shared-bank",
+        "--reset-lifecycle",
+        "--num-envs",
+        "2",
+        "--seed",
+        "130196",
+        "--gpu-index",
+        "0",
+        "--startup-timeout-s",
+        "120",
+        "--total-timeout-s",
+        "240",
+        "--run-dir",
+        "/tmp/lite3_shared_bank_g2_2env_height_recheck_20261029"
+      ]
+    },
+    {
+      "stage_id": "shared_bank_g2_8env",
+      "num_envs": 8,
+      "minimum_free_mib": 12288,
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true,
+      "prerequisites": [
+        "new phase approval",
+        "clean committed worktree",
+        "input and dependency hashes verified",
+        "current-revision 2-env G2 passed and reviewed"
+      ],
+      "expected_assignment_count": 129,
+      "expected_reset_batch_count": 33,
+      "direct_reset_count": 120,
+      "direct_reset_batch_count": 32,
+      "automatic_timeout_env_id": 7,
+      "contact_control_steps": 20,
+      "contact_physics_substeps": 80,
+      "lifecycle_control_steps": 2,
+      "command": [
+        "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+        "scripts/tools/source_parallel_terrain_startup_supervisor.py",
+        "--shared-bank",
+        "--reset-lifecycle",
+        "--num-envs",
+        "8",
+        "--seed",
+        "130196",
+        "--gpu-index",
+        "0",
+        "--startup-timeout-s",
+        "120",
+        "--total-timeout-s",
+        "240",
+        "--run-dir",
+        "/tmp/lite3_shared_bank_g2_8env_height_recheck_20261029"
+      ]
+    }
+  ]
+}

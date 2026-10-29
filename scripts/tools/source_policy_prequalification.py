@@ -1,4 +1,4 @@
-"""One separately approved Flat L1 safety episode; this does not run G3.
+"""One separately approved, pinned L1 safety episode; this does not run G3.
 
 The supervisor freezes hashes, checks GPU0, and enforces 120/240 s timeouts.
 The worker uses a deterministic actor without constructing a PPO runner.
@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import sys
 import traceback
+from copy import deepcopy
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -22,7 +23,81 @@ from scripts.tools.source_parallel_terrain_startup_supervisor import (
     _capture, _gpu_preflight, _sha256, run_monitored_process,
 )
 
-PREPARATION = ROOT / "docs/lite3-source-g3-offline-preparation-20261029/preparation.json"
+PREPARATION = ROOT / "docs/lite3-source-followup-preparation-20261029/preparation.json"
+
+
+def select_case(preparation, case_id):
+    """Only an explicit single case from the frozen plan may be executed."""
+    matches = [case for case in preparation["cases"] if case["case_id"] == case_id]
+    if not isinstance(case_id, str) or len(matches) != 1:
+        raise ValueError("select exactly one registered --case-id; automatic sweeps are not supported")
+    case = deepcopy(matches[0])
+    cell = case["cell"]
+    if cell["cell_id"] != case_id or type(cell["level"]) is not int or cell["level"] != 1:
+        raise ValueError("only the pinned L1 cell is allowed")
+    if case["isolated_mesh_matches_bank"] is not True or case["runtime_status"] != "not_run":
+        raise ValueError("case must be a prepared, unrun bank-equivalent candidate")
+    if (type(case["geometry_seed"]) is not int or case["geometry_seed"] != 10001
+            or type(case["initial_state_seed"]) is not int or case["initial_state_seed"] < 0
+            or case["bank_row"] != 0 or type(case["bank_column"]) is not int or not 1 <= case["bank_column"] <= 14):
+        raise ValueError("case must use the pinned one-row bank and a remaining L1 column")
+    if cell["episodes"] != 1 or cell["geometry_seed_range"] != [case["geometry_seed"]] * 2 or cell["initial_state_seed_range"] != [case["initial_state_seed"]] * 2:
+        raise ValueError("run case must specify exactly one paired seed and one episode")
+    from rl_training.source_scan.terrain_config import source_geometry_difficulty
+    if source_geometry_difficulty(cell) != case["geometry_difficulty"]:
+        raise ValueError("geometry realization differs from bank case")
+    return case
+
+
+def make_run_manifest(preparation, case, *, revision, gpu, processes, preparation_sha256):
+    # Never expand the preparation dict into an execution manifest: its status,
+    # simulation flags and multi-case registration fields describe another stage.
+    return {
+        "schema": "lite3_single_condition_run_spec_v2", "manifest_kind": "immutable_run_spec",
+        "revision": revision, "preparation_sha256": preparation_sha256,
+        "case_id": case["case_id"], "cell": case["cell"],
+        "geometry_seed": case["geometry_seed"], "initial_state_seed": case["initial_state_seed"],
+        "episode_count": 1, "checkpoint": preparation["checkpoint"],
+        "expected_body_names": preparation["expected_body_names"],
+        "input_sha256": preparation["input_sha256"],
+        "bank_geometry": {key: case[key] for key in (
+            "bank_row", "bank_column", "subterrain", "geometry_difficulty", "mesh_fingerprint")},
+        "gpu_before": gpu, "processes_before": processes,
+        "startup_timeout_s": 120, "total_timeout_s": 240, "max_control_steps": 2000,
+        "num_envs": 1, "gpu_index": 0, "command_b": [0.3, 0.0, 0.0],
+        "qualification_scope": "one exact L1 tile and one state seed; no shared-bank motion/G3 qualification",
+    }
+
+
+def capture_kinematics(env):
+    data = env.scene["robot"].data
+    return {
+        "root_quat_w_wxyz": data.root_quat_w[0].detach().cpu().tolist(),
+        "root_lin_vel_w_mps": data.root_lin_vel_w[0].detach().cpu().tolist(),
+        "root_lin_vel_b_mps": data.root_lin_vel_b[0].detach().cpu().tolist(),
+        "projected_gravity_b": data.projected_gravity_b[0].detach().cpu().tolist(),
+        "command_b_vx_vy_wz": env.command_manager.get_command("base_velocity")[0, :3].detach().cpu().tolist(),
+    }
+
+
+def sample_callbacks(env, run_dir):
+    terminal = {}
+
+    def before_reset(_ids, step):
+        terminal[step] = capture_kinematics(env)
+
+    def observe(step, sample):
+        captured_before_reset = step in terminal
+        kinematics = terminal.pop(step) if captured_before_reset else capture_kinematics(env)
+        if any(not math.isfinite(x) or abs(x - target) > 1e-6
+               for x, target in zip(kinematics["command_b_vx_vy_wz"], (0.3, 0.0, 0.0), strict=True)):
+            raise ValueError("runtime command changed outside the frozen range")
+        row = {"step": step, "sample": sample, "kinematics": kinematics,
+               "kinematics_phase": "pre_reset" if captured_before_reset else "post_control_step"}
+        with (run_dir / "samples.jsonl").open("a", encoding="utf-8") as stream:
+            stream.write(json.dumps(row, allow_nan=False) + "\n")
+
+    return before_reset, observe
 
 
 def write_json(path, value):
@@ -120,38 +195,44 @@ def run_worker(run_dir):
     if _sha256(PREPARATION) != manifest["preparation_sha256"]:
         raise ValueError("preparation changed before worker launch")
     verify_hashes(manifest["input_sha256"])
+    prepared_case = select_case(json.loads(PREPARATION.read_text()), manifest["case_id"])
+    if (manifest["cell"] != prepared_case["cell"]
+            or any(manifest[k] != prepared_case[k] for k in ("geometry_seed", "initial_state_seed"))
+            or manifest["bank_geometry"] != {k: prepared_case[k] for k in manifest["bank_geometry"]}):
+        raise ValueError("worker run specification differs from prepared case")
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=True, device="cuda:0", kit_args="--/log/flushStandardStreamOutput=true").app
     try:
         actor = load_frozen_source_actor(Path(manifest["checkpoint"]), device="cuda:0")
         before = _tensor_sha256(actor)
         cell = manifest["cell"]
-        wrapped, _ = _make_wrapped_env(cell, 10000, 20000, device="cuda:0")
+        geometry_seed, initial_seed = manifest["geometry_seed"], manifest["initial_state_seed"]
+        wrapped, _ = _make_wrapped_env(cell, geometry_seed, initial_seed, device="cuda:0")
         try:
             env = wrapped.unwrapped
-            write_json(run_dir / "runtime_readback.json", runtime_readback(env, manifest["expected_body_names"]))
-
-            def observe(step, sample):
-                # A terminal callback provides the sample before automatic reset.
-                command = env.command_manager.get_command("base_velocity")[0, :3]
-                if not torch.allclose(command, command.new_tensor([0.3, 0.0, 0.0]), atol=1e-6, rtol=0):
-                    raise ValueError("runtime command changed outside the frozen range")
-                with (run_dir / "samples.jsonl").open("a", encoding="utf-8") as stream:
-                    stream.write(json.dumps({"step": step, "sample": sample}, allow_nan=False) + "\n")
+            readback = runtime_readback(env, manifest["expected_body_names"])
+            generator = env.cfg.scene.terrain.terrain_generator
+            if generator.seed != geometry_seed or tuple(generator.difficulty_range) != (prepared_case["geometry_difficulty"],) * 2:
+                raise ValueError("runtime generator differs from frozen bank realization")
+            readback["geometry_seed"] = generator.seed
+            readback["geometry_difficulty_range"] = list(generator.difficulty_range)
+            write_json(run_dir / "runtime_readback.json", readback)
+            before_reset, observe = sample_callbacks(env, run_dir)
 
             # The runner seeds and resets again before the first policy decision.
-            wrapped.seed(20000)
+            wrapped.seed(initial_seed)
             wrapped.reset()
             (run_dir / "trace.log").write_text("initial-reset-complete\n")
-            record = _run_episode(wrapped, actor, cell, 10000, 20000, 1,
-                                  max_steps=2000, sample_observer=observe)
+            record = _run_episode(wrapped, actor, cell, geometry_seed, initial_seed, 1,
+                                  max_steps=2000, sample_observer=observe, pre_reset_observer=before_reset)
             record["episode_type"] = "g3_prerequisite_single_condition"
             after = _tensor_sha256(actor)
             unchanged = before == after and not any(p.requires_grad for p in actor.parameters())
             passed = unchanged and episode_passed(record)
             write_json(run_dir / "result.json", {
                 "status": "single_condition_safety_passed" if passed else "failed",
-                "scope": "one Flat L1 episode only; no shared-bank motion qualification",
+                "scope": "one pinned L1 episode only; no shared-bank motion qualification",
+                "case_id": manifest["case_id"], "bank_geometry": manifest["bank_geometry"],
                 "g3_qualified": False, "policy_updated": not unchanged,
                 "ppo_initialized": False, "actor_sha256_before": before,
                 "actor_sha256_after": after, "record": record,
@@ -163,8 +244,9 @@ def run_worker(run_dir):
         app.close()
 
 
-def supervise(run_dir):
+def supervise(run_dir, case_id=None):
     preparation = json.loads(PREPARATION.read_text())
+    case = select_case(preparation, case_id)
     hashes = preparation["input_sha256"]
     verify_hashes(hashes)
     if _capture(["git", "status", "--porcelain"], cwd=ROOT):
@@ -173,12 +255,9 @@ def supervise(run_dir):
         raise ValueError("refusing a dirty robot-model submodule")
     before_gpu, before_processes = _gpu_preflight(0, root=ROOT, minimum_available_mib=12288)
     run_dir.mkdir(parents=True, exist_ok=False)
-    manifest = {
-        **preparation, "revision": _capture(["git", "rev-parse", "HEAD"], cwd=ROOT),
-        "preparation_sha256": _sha256(PREPARATION),
-        "gpu_before": before_gpu, "processes_before": before_processes,
-        "startup_timeout_s": 120, "total_timeout_s": 240,
-    }
+    manifest = make_run_manifest(preparation, case,
+        revision=_capture(["git", "rev-parse", "HEAD"], cwd=ROOT),
+        gpu=before_gpu, processes=before_processes, preparation_sha256=_sha256(PREPARATION))
     write_json(run_dir / "manifest.json", manifest)
 
     def sample_gpu(elapsed):
@@ -215,6 +294,12 @@ def supervise(run_dir):
                 or result["ppo_initialized"] is not False or result["g3_qualified"] is not False
                 or result["actor_sha256_before"] != result["actor_sha256_after"]):
             errors.append("episode_or_actor_failed")
+        record = result["record"]
+        if result["case_id"] != case_id or result["bank_geometry"] != manifest["bank_geometry"] or any(record[key] != expected for key, expected in (
+            ("cell_id", case_id), ("geometry_seed", case["geometry_seed"]),
+            ("initial_state_seed", case["initial_state_seed"]), ("episode_index", 1),
+        )):
+            errors.append("case_provenance_mismatch")
     except (OSError, KeyError, TypeError, ValueError) as error:
         errors.append(str(error))
     try:
@@ -232,10 +317,13 @@ def supervise(run_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-dir", type=Path, required=True)
+    parser.add_argument("--case-id", help="exactly one frozen L1 case; no automatic sweep")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if not args.worker and args.case_id is None:
+        parser.error("--case-id is required for a separately approved single run")
     try:
-        return run_worker(args.run_dir.resolve()) if args.worker else supervise(args.run_dir.resolve())
+        return run_worker(args.run_dir.resolve()) if args.worker else supervise(args.run_dir.resolve(), args.case_id)
     except Exception:
         traceback.print_exc()
         print("[parallel-terrain-smoke] fatal-exception-recorded", flush=True)

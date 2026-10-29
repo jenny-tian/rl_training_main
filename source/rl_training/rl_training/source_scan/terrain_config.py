@@ -3,6 +3,15 @@
 from __future__ import annotations
 
 from typing import Any
+import math
+
+
+def source_geometry_difficulty(cell: dict[str, Any]) -> float:
+    """Resolve a pinned bank realization; ordinary scan cells retain zero."""
+    value = cell.get("qualification_geometry_difficulty", 0.0)
+    if type(value) not in (int, float) or not math.isfinite(value) or not 0.0 <= value <= 1.0:
+        raise ValueError("qualification_geometry_difficulty must be finite in [0, 1]")
+    return float(value)
 
 
 def source_subterrain_from_cell(cell: dict[str, Any], *, seed: int):
@@ -68,4 +77,4 @@ def source_subterrain_from_cell(cell: dict[str, Any], *, seed: int):
     return SourceTerrainTrackCfg(**common)
 
 
-__all__ = ["source_subterrain_from_cell"]
+__all__ = ["source_subterrain_from_cell", "source_geometry_difficulty"]

@@ -1,0 +1,934 @@
+{
+  "schema": "lite3_bank_equivalent_single_policy_cases_v1",
+  "simulator_started": false,
+  "bank_seed": 10001,
+  "bank_grid": [
+    1,
+    15
+  ],
+  "tile_size_m": [
+    12.0,
+    4.0
+  ],
+  "registration_manifest_sha256": "0fce8c53e2e2c8537c8b048b2c5f718ebf74211bf2197e1da99eb3cecf6c1cb1",
+  "historical_flat_geometry_matches_bank": true,
+  "sources_sha256": {
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/terrain_generator.py": "a364d85812a7713b21a94a450f40e8ef5d448bbe652bcb2ee36184b6300c409b",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py": "94fc416844afb28430d5ff8a889b7dfd93ee179b1a31d150fbab4d5255cd73cb",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py": "2f8c02c6b59db18ebaff8fc429803e58b8c11b81cd40902377da0f3106309a1c",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_isaac.py": "31df2b2c226e80735c83f0cd78235f709101646437ac6e64358b0b43321b4c9d",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_generator.py": "4a1c957080a971f1e957aedb904c087407d8e407bb0fec5acb8a9f3f65d89133",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer.py": "b0243bc92bb28e81ac87ef52a97bc556c446873a4bdcb07d0b0b8e680b218418",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/_mesh_chunking.py": "ea1fbff3610c0a4a5a9dd0a64d6ca0627e49dcaf44480f0ded3e3be592ff0104",
+    "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/terrain_config.py": "80a7efda47e07ac414e6f2c146fc9f2a8e25a7ecd70ad392fc2cb6acadbe954a"
+  },
+  "fingerprint_semantics": "Pre-transform mesh vertices, faces, face colors/material tags and local origin, exact float64 bytes; geometry only, no PhysX cooking.",
+  "cases": [
+    {
+      "case_id": "flat_L1_forward_flat",
+      "bank_row": 0,
+      "bank_column": 0,
+      "subterrain": "flat",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20000,
+      "cell": {
+        "cell_id": "flat_L1_forward_flat",
+        "terrain_family": "flat",
+        "level": 1,
+        "direction_or_layout": "forward_flat",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20000,
+          20000
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.7148064231614649
+      },
+      "geometry_difficulty": 0.7148064231614649,
+      "mesh_fingerprint": "f64716397957f74b514c27305817dd72e1b79adb28c9bf64ad784289096f1bfa",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10000,
+        10004
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "multi_scale_rough_L1_forward_lane",
+      "bank_row": 0,
+      "bank_column": 1,
+      "subterrain": "multi_scale_rough",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20030,
+      "cell": {
+        "cell_id": "multi_scale_rough_L1_forward_lane",
+        "terrain_family": "multi_scale_rough",
+        "level": 1,
+        "direction_or_layout": "forward_lane",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20030,
+          20030
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.02,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.6294702331215974
+      },
+      "geometry_difficulty": 0.6294702331215974,
+      "mesh_fingerprint": "26669dc0be4a41ba1cd6c542fa49d906397e16b2c561274f704b33b4bbe6e495",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10030,
+        10034
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_L1_uphill",
+      "bank_row": 0,
+      "bank_column": 2,
+      "subterrain": "slope_uphill",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20060,
+      "cell": {
+        "cell_id": "slope_L1_uphill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20060,
+          20060
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.3384848514104325
+      },
+      "geometry_difficulty": 0.3384848514104325,
+      "mesh_fingerprint": "5f1922584b9f8d24f68c759fdaaa234df42c567a3d2235e12d87fb563dee7cd8",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10060,
+        10064
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_L1_downhill",
+      "bank_row": 0,
+      "bank_column": 3,
+      "subterrain": "slope_downhill",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20070,
+      "cell": {
+        "cell_id": "slope_L1_downhill",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20070,
+          20070
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.3636354823034158
+      },
+      "geometry_difficulty": 0.3636354823034158,
+      "mesh_fingerprint": "53d0f16ac369195c853bbee2d98b3aa68b1a69b44aaa9e47c972dbcce6a82e77",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10070,
+        10074
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_L1_cross_slope_left",
+      "bank_row": 0,
+      "bank_column": 4,
+      "subterrain": "slope_cross_slope_left",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20080,
+      "cell": {
+        "cell_id": "slope_L1_cross_slope_left",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20080,
+          20080
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.30318197031305205
+      },
+      "geometry_difficulty": 0.30318197031305205,
+      "mesh_fingerprint": "bb2ade97cc0096fa092632fb0ed676eefdcc575d1a0a659db8216e3a1df539af",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10080,
+        10084
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_L1_cross_slope_right",
+      "bank_row": 0,
+      "bank_column": 5,
+      "subterrain": "slope_cross_slope_right",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20090,
+      "cell": {
+        "cell_id": "slope_L1_cross_slope_right",
+        "terrain_family": "slope",
+        "level": 1,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20090,
+          20090
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.2751071764368547
+      },
+      "geometry_difficulty": 0.2751071764368547,
+      "mesh_fingerprint": "50d8ddaa9b86aa0d3f93ec4189428528cc0a2e6ef1e46998ca71e3372106559f",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10090,
+        10094
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "multi_step_stairs_L1_ascending",
+      "bank_row": 0,
+      "bank_column": 6,
+      "subterrain": "stairs_ascending",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20180,
+      "cell": {
+        "cell_id": "multi_step_stairs_L1_ascending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "ascending",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20180,
+          20180
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 3,
+            "step_height_m": 0.02,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "ascending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.02844575462330101
+      },
+      "geometry_difficulty": 0.02844575462330101,
+      "mesh_fingerprint": "199d98fce01fd90d5cea32a720dfb17de93c90200d2e962f3e332700696b27e3",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10180,
+        10184
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "multi_step_stairs_L1_descending",
+      "bank_row": 0,
+      "bank_column": 7,
+      "subterrain": "stairs_descending",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20190,
+      "cell": {
+        "cell_id": "multi_step_stairs_L1_descending",
+        "terrain_family": "multi_step_stairs",
+        "level": 1,
+        "direction_or_layout": "descending",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20190,
+          20190
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "step_count": 3,
+            "step_height_m": 0.02,
+            "tread_depth_m": 0.5,
+            "direction_or_layout": "descending"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.9917839285729633
+      },
+      "geometry_difficulty": 0.9917839285729633,
+      "mesh_fingerprint": "3fdabe8b7c5af6df7cf6d0aaa08321ae8802a45a358ba94e831678e3fa371227",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10190,
+        10194
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_plus_rough_L1_uphill",
+      "bank_row": 0,
+      "bank_column": 8,
+      "subterrain": "slope_rough_uphill",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20240,
+      "cell": {
+        "cell_id": "slope_plus_rough_L1_uphill",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "uphill",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20240,
+          20240
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "uphill",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.6540093430223354
+      },
+      "geometry_difficulty": 0.6540093430223354,
+      "mesh_fingerprint": "0551d39749bb6e2da490e8cf14904c63b6e8e6d1d446716c0c00f7e3e181bb3f",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10240,
+        10244
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_plus_rough_L1_downhill",
+      "bank_row": 0,
+      "bank_column": 9,
+      "subterrain": "slope_rough_downhill",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20250,
+      "cell": {
+        "cell_id": "slope_plus_rough_L1_downhill",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "downhill",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20250,
+          20250
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "downhill",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.7852916736578777
+      },
+      "geometry_difficulty": 0.7852916736578777,
+      "mesh_fingerprint": "05a3a2a15fc1b61b0824f55b77f587d6b9402de44c1e928f833fce30c45bef0e",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10250,
+        10254
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_plus_rough_L1_cross_slope_left",
+      "bank_row": 0,
+      "bank_column": 10,
+      "subterrain": "slope_rough_cross_slope_left",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20260,
+      "cell": {
+        "cell_id": "slope_plus_rough_L1_cross_slope_left",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "cross_slope_left",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20260,
+          20260
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_left",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.9256251464646599
+      },
+      "geometry_difficulty": 0.9256251464646599,
+      "mesh_fingerprint": "3740a3a0b3276ce4c6a2ddef6ac1c575bf2a0992595549d7d7de542055e59b18",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10260,
+        10264
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "slope_plus_rough_L1_cross_slope_right",
+      "bank_row": 0,
+      "bank_column": 11,
+      "subterrain": "slope_rough_cross_slope_right",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20270,
+      "cell": {
+        "cell_id": "slope_plus_rough_L1_cross_slope_right",
+        "terrain_family": "slope_plus_rough",
+        "level": 1,
+        "direction_or_layout": "cross_slope_right",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20270,
+          20270
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "rough_peak_valley_m": 0.01,
+            "rough_audit_window_m": 0.4,
+            "spatial_scales_m": [
+              0.2,
+              0.4
+            ],
+            "slope_angle_deg": 5.0,
+            "direction_or_layout": "cross_slope_right",
+            "exit_flat_length_m": 2.0
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.4893918379161446
+      },
+      "geometry_difficulty": 0.4893918379161446,
+      "mesh_fingerprint": "1ed784f4ef3504aa8ef8463a17ac488ed88a450598c020dbe609b79bf5e9e27b",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10270,
+        10274
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "friction_variation_L1_left_right_bands",
+      "bank_row": 0,
+      "bank_column": 12,
+      "subterrain": "friction_left_right_bands",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20360,
+      "cell": {
+        "cell_id": "friction_variation_L1_left_right_bands",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "left_right_bands",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20360,
+          20360
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.7,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "left_right_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.8649016238617524
+      },
+      "geometry_difficulty": 0.8649016238617524,
+      "mesh_fingerprint": "dea043a7d92f8908e4fc8a0c99f882401ac2a713fa030083a33b8406f9e7f50f",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10360,
+        10364
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "friction_variation_L1_front_back_bands",
+      "bank_row": 0,
+      "bank_column": 13,
+      "subterrain": "friction_front_back_bands",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20370,
+      "cell": {
+        "cell_id": "friction_variation_L1_front_back_bands",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "front_back_bands",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20370,
+          20370
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.7,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "front_back_bands"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.7265883240717208
+      },
+      "geometry_difficulty": 0.7265883240717208,
+      "mesh_fingerprint": "4c367facb6973c6873dd7d19dc4b5b180c335fd7d068b935040fe93c60b2fa9c",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10370,
+        10374
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    },
+    {
+      "case_id": "friction_variation_L1_alternating_regions",
+      "bank_row": 0,
+      "bank_column": 14,
+      "subterrain": "friction_alternating_regions",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20380,
+      "cell": {
+        "cell_id": "friction_variation_L1_alternating_regions",
+        "terrain_family": "friction_variation",
+        "level": 1,
+        "direction_or_layout": "alternating_regions",
+        "geometry_seed_range": [
+          10001,
+          10001
+        ],
+        "initial_state_seed_range": [
+          20380,
+          20380
+        ],
+        "episodes": 1,
+        "seed_pairing": "zip_geometry_initial_state",
+        "dynamics_profile": "deployment_matched_frozen",
+        "resolved_parameters": {
+          "geometry": {
+            "size": [
+              12.0,
+              4.0
+            ],
+            "flat_length_m": 3.0,
+            "transition_length_m": 0.5,
+            "grid_spacing_m": 0.1,
+            "friction_range": [
+              0.7,
+              1.0
+            ],
+            "friction_region_count": 4,
+            "direction_or_layout": "alternating_regions"
+          },
+          "reset": {
+            "profile_id": "source_scan_nominal_reset_v0",
+            "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+          },
+          "track": {
+            "start_x_m": 1.5,
+            "completion_x_m": 10.5,
+            "lateral_margin_m": 0.2
+          }
+        },
+        "qualification_geometry_difficulty": 0.5308660894597165
+      },
+      "geometry_difficulty": 0.5308660894597165,
+      "mesh_fingerprint": "5a8d2b31524fe1c99429e834326f0b255b4695547d18164d95284ba43a880b6c",
+      "isolated_mesh_matches_bank": true,
+      "reference_registered_geometry_seed_range": [
+        10380,
+        10384
+      ],
+      "runtime_status": "not_run",
+      "independent_runtime_approval_required": true
+    }
+  ]
+}

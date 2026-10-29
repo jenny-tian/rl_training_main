@@ -2,6 +2,7 @@
 
 from types import SimpleNamespace as NS
 import json
+from copy import deepcopy
 
 import pytest
 import torch
@@ -138,6 +139,78 @@ def runtime_env():
     )
 
 
+def prepared_case():
+    return {"case_id": "multi_scale_rough_L1_forward_lane", "bank_row": 0, "bank_column": 1,
+            "subterrain": "multi_scale_rough", "geometry_seed": 10001, "initial_state_seed": 20030,
+            "geometry_difficulty": 0.25, "mesh_fingerprint": "a" * 64,
+            "isolated_mesh_matches_bank": True, "runtime_status": "not_run",
+            "cell": {"cell_id": "multi_scale_rough_L1_forward_lane", "level": 1, "episodes": 1,
+                     "geometry_seed_range": [10001, 10001], "initial_state_seed_range": [20030, 20030],
+                     "qualification_geometry_difficulty": 0.25}}
+
+
+def preparation(hashes):
+    return {"status": "offline_prepared", "simulation_run": False, "cases": [prepared_case()],
+            "input_sha256": hashes, "checkpoint": "registered-checkpoint", "expected_body_names": list(map(str, range(17)))}
+
+
+def test_run_manifest_contains_only_one_execution_spec_and_no_preparation_state():
+    prep = preparation({"source": "hash"})
+    result = qualification.make_run_manifest(prep, prepared_case(), revision="revision", gpu="gpu",
+                                             processes="", preparation_sha256="hash")
+    assert "status" not in result and "simulation_run" not in result and "cases" not in result
+    assert result["manifest_kind"] == "immutable_run_spec"
+    assert result["episode_count"] == result["cell"]["episodes"] == 1
+    assert result["cell"]["geometry_seed_range"] == [10001, 10001]
+
+
+@pytest.mark.parametrize("fault", ["missing_id", "duplicate", "l2", "old_count", "seed_range", "wrong_bank_seed", "flat_column", "geometry", "mesh", "already_run"])
+def test_case_selection_rejects_unprepared_or_ambiguous_execution(fault):
+    prep = preparation({"source": "hash"})
+    case = prep["cases"][0]
+    case_id = case["case_id"]
+    if fault == "missing_id":
+        case_id = None
+    elif fault == "duplicate":
+        prep["cases"].append(deepcopy(case))
+    elif fault == "l2":
+        case["cell"]["level"] = 2
+    elif fault == "old_count":
+        case["cell"]["episodes"] = 5
+    elif fault == "seed_range":
+        case["cell"]["initial_state_seed_range"] = [20030, 20034]
+    elif fault == "wrong_bank_seed":
+        case["geometry_seed"] = 10030
+    elif fault == "flat_column":
+        case["bank_column"] = 0
+    elif fault == "geometry":
+        case["cell"]["qualification_geometry_difficulty"] = 0.0
+    elif fault == "mesh":
+        case["isolated_mesh_matches_bank"] = False
+    else:
+        case["runtime_status"] = "passed"
+    with pytest.raises(ValueError):
+        qualification.select_case(prep, case_id)
+
+
+def test_sample_kinematics_keep_terminal_state_before_auto_reset(tmp_path):
+    data = NS(root_quat_w=torch.tensor([[1., 0., 0., 0.]]), root_lin_vel_w=torch.tensor([[0.3, 0.1, 0.]]),
+              root_lin_vel_b=torch.tensor([[0.3, 0.1, 0.]]), projected_gravity_b=torch.tensor([[0., 0., -1.]]))
+    command = torch.tensor([[0.3, 0., 0.]])
+    env = NS(scene={"robot": NS(data=data)}, command_manager=NS(get_command=lambda _: command))
+    before, observe = qualification.sample_callbacks(env, tmp_path)
+    before([0], 3)
+    data.root_lin_vel_w.zero_()
+    command[:, 2] = 99
+    observe(3, {"forward_progress_m": 4.0})
+    row = json.loads((tmp_path / "samples.jsonl").read_text())
+    assert row["kinematics_phase"] == "pre_reset"
+    assert row["kinematics"]["root_lin_vel_w_mps"][1] == pytest.approx(0.1)
+    assert row["kinematics"]["command_b_vx_vy_wz"][2] == 0.0
+    with pytest.raises(ValueError, match="command changed"):
+        observe(4, {})
+
+
 def test_runtime_readback_accepts_only_complete_mapping_and_frozen_thresholds():
     env = runtime_env()
     names = env.scene["robot"].body_names
@@ -172,7 +245,7 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
     source = tmp_path / "source.py"
     source.write_text("frozen input")
     prep = tmp_path / "preparation.json"
-    prep.write_text(json.dumps({"input_sha256": {str(source): qualification._sha256(source)}}))
+    prep.write_text(json.dumps(preparation({str(source): qualification._sha256(source)})))
     monkeypatch.setattr(qualification, "ROOT", tmp_path)
     monkeypatch.setattr(qualification, "PREPARATION", prep)
     monkeypatch.setattr(qualification, "_capture", lambda command, **k: (
@@ -187,10 +260,13 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
         assert "--worker" in command
         if fault != "missing_result":
             record = passing_record()
+            record.update(cell_id=prepared_case()["case_id"], geometry_seed=10001, initial_state_seed=20030, episode_index=1)
             if fault == "unsafe_episode":
                 record["nonfoot_contact_count"] = 1
             qualification.write_json(run_dir / "result.json", {
                 "status": "single_condition_safety_passed", "record": record,
+                "case_id": prepared_case()["case_id"],
+                "bank_geometry": json.loads((run_dir / "manifest.json").read_text())["bank_geometry"],
                 "policy_updated": False, "ppo_initialized": False, "g3_qualified": False,
                 "actor_sha256_before": "actor", "actor_sha256_after": "actor",
             })
@@ -200,7 +276,7 @@ def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, mo
                 "collision_cooking_failure": None, "fatal_exception": None}
 
     monkeypatch.setattr(qualification, "run_monitored_process", monitored)
-    assert qualification.supervise(run_dir) == (0 if fault is None else 1)
+    assert qualification.supervise(run_dir, prepared_case()["case_id"]) == (0 if fault is None else 1)
     outcome = json.loads((run_dir / "outcome.json").read_text())
     assert outcome["status"] == ("passed" if fault is None else "failed")
     assert outcome["g3_qualified"] is False

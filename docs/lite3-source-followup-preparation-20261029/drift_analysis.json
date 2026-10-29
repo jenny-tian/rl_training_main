@@ -1,0 +1,90 @@
+{
+  "schema": "lite3_flat_drift_offline_audit_v1",
+  "simulator_started": false,
+  "source_sha256": {
+    "samples.jsonl": "8a58f8fc7df2e9199d1034e9e40387a3d41e9cf50040527de2424efa29612a40",
+    "result.json": "31663ec1057f50ec74bae347a8468e2683f9cac17b99c05189a1cfb4ee5ec70b",
+    "runtime_readback.json": "b0260fbb559ff9b247fc7402de5f516ccc407ee1d8900a4e1cc558500c03f324"
+  },
+  "control_samples": 1514,
+  "sample_interval_s": 0.02,
+  "integration_interval_s": [
+    0.02,
+    30.28
+  ],
+  "observed_lateral_displacement_m": -0.7200038114388008,
+  "heading_rotated_forward_contribution_m": -1.3958328973985528,
+  "body_lateral_contribution_m": 0.6765575707702001,
+  "planar_reconstruction_residual_m": -0.0007284848104480712,
+  "planar_reconstruction_max_abs_residual_m": 0.0014928192082340752,
+  "mean_body_vx_mps": 0.30901048557594163,
+  "mean_body_vy_mps": 0.022658972074926672,
+  "yaw_change_rad": -0.2864404108840972,
+  "yaw_change_degrees": -16.41182662565194,
+  "mean_body_yaw_rate_rad_s": -0.010768349927453682,
+  "integral_body_wz_rad": -0.32630095276157817,
+  "windows": [
+    {
+      "start_s": 0,
+      "end_s": 5.0,
+      "samples": 250,
+      "yaw_start_rad": 0.00021524098701775074,
+      "yaw_end_rad": -0.06129004806280136,
+      "mean_body_yaw_rate_rad_s": -0.013122552969580283,
+      "lateral_end_m": 0.07291918992996216
+    },
+    {
+      "start_s": 5,
+      "end_s": 10.0,
+      "samples": 250,
+      "yaw_start_rad": -0.06149565055966377,
+      "yaw_end_rad": -0.11159826070070267,
+      "mean_body_yaw_rate_rad_s": -0.011420659296447411,
+      "lateral_end_m": 0.055369894951581955
+    },
+    {
+      "start_s": 10,
+      "end_s": 15.0,
+      "samples": 250,
+      "yaw_start_rad": -0.11254265159368515,
+      "yaw_end_rad": -0.14896813035011292,
+      "mean_body_yaw_rate_rad_s": -0.00909702188324809,
+      "lateral_end_m": -0.045659057796001434
+    },
+    {
+      "start_s": 15,
+      "end_s": 20.0,
+      "samples": 250,
+      "yaw_start_rad": -0.1487484872341156,
+      "yaw_end_rad": -0.1981820911169052,
+      "mean_body_yaw_rate_rad_s": -0.011183446113718673,
+      "lateral_end_m": -0.20185209810733795
+    },
+    {
+      "start_s": 20,
+      "end_s": 25.0,
+      "samples": 250,
+      "yaw_start_rad": -0.19702064990997314,
+      "yaw_end_rad": -0.22836831212043762,
+      "mean_body_yaw_rate_rad_s": -0.007671075950085651,
+      "lateral_end_m": -0.430317759513855
+    },
+    {
+      "start_s": 25,
+      "end_s": 30.28,
+      "samples": 264,
+      "yaw_start_rad": -0.22811762988567352,
+      "yaw_end_rad": -0.28622516989707947,
+      "mean_body_yaw_rate_rad_s": -0.01204391188217745,
+      "lateral_end_m": -0.719968855381012
+    }
+  ],
+  "interpretation": "Progressive heading drift and positive body-frame lateral velocity largely cancel; their planar integral explains the observed world-frame lateral displacement.",
+  "limitations": [
+    "Yaw-only planar rotation and 50 Hz trapezoidal integration; root vertical velocity and full quaternion were not logged for ordinary non-contact samples.",
+    "Body angular velocity z is not Euler yaw rate; its integral differs from the recorded yaw change and is not used as a heading estimator.",
+    "This is a kinematic accounting, not a causal test of policy, initial conditions, material asymmetry or contact dynamics.",
+    "The frozen command has heading_command=False and the policy has no absolute yaw/lateral-position observation; no heading controller or policy update is introduced.",
+    "The historical single-condition safety pass remains unchanged; this analysis does not qualify straight-line motion or G3."
+  ]
+}
