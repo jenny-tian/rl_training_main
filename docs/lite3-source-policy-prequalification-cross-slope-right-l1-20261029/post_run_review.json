@@ -1,0 +1,180 @@
+{
+  "schema": "lite3_cross_slope_right_l1_post_run_review_v1",
+  "review_result": "single_condition_safety_failed_complete_reference_evidence",
+  "condition_passed": false,
+  "revision": "271a0a6ce17893f75ae195f424be06f5b1cb6ecf",
+  "input_hashes_verified": 237,
+  "raw_files_verified": 12,
+  "control_steps": 767,
+  "simulated_control_time_s": 15.34,
+  "first_goal_step": null,
+  "reconstructed_final_hold_steps": 0,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 5.28129243850708,
+    "max_forward_progress_m": 5.28129243850708,
+    "min_base_height_m": 0.30342137813568115,
+    "max_projected_gravity_xy": 0.12206560373306274,
+    "max_joint_speed_rad_s": 17.30000877380371,
+    "lateral_offset_peak_m": 1.5620226860046387,
+    "mean_velocity_error_mps": 0.11622103498404726,
+    "rms_velocity_error_mps": 0.13352478340652363,
+    "mean_base_velocity_x_mps": 0.3445856915944714,
+    "mean_command_velocity_x_mps": 0.30000001192092896
+  },
+  "root_yaw_end_degrees": 3.298541248801516,
+  "action_trace_rows": 767,
+  "lateral_offset_signed_m": {
+    "minimum": -0.004689604975283146,
+    "maximum": 1.5620226860046387,
+    "end": 1.5620226860046387
+  },
+  "mean_body_velocity_y_mps": 0.10313668280287897,
+  "mean_world_velocity_y_mps": 0.10185973721881478,
+  "terminal_trigger": {
+    "branch": "prediction",
+    "body_id": 5,
+    "body_name": "FL_THIGH",
+    "axis": "y",
+    "boundary_side": "upper",
+    "link_position_w_m": [
+      0.9456340670585632,
+      1.7275067567825317,
+      0.1371956616640091
+    ],
+    "link_velocity_w_mps": [
+      0.36564338207244873,
+      0.1397005021572113,
+      -0.09191511571407318
+    ],
+    "com_velocity_w_mps": [
+      0.34921762347221375,
+      0.14243106544017792,
+      -0.05235590040683746
+    ],
+    "com_offset_link_m": [
+      -0.003924500197172165,
+      -0.014631999656558037,
+      -0.0251460000872612
+    ],
+    "link_quaternion_wxyz": [
+      0.8862268924713135,
+      -0.12861484289169312,
+      0.44407787919044495,
+      -0.02923736907541752
+    ],
+    "world_angular_velocity_rad_s": [
+      -0.550836980342865,
+      1.3686052560806274,
+      -0.32318606972694397
+    ],
+    "implemented_predicted_xy_w_m": [
+      0.9529469609260559,
+      1.730300784111023
+    ],
+    "safe_upper_y_w_m": 1.7289999723434448,
+    "current_link_y_clearance_m": 0.001493215560913086,
+    "implemented_prediction_y_excess_m": 0.001300811767578125,
+    "point_consistent_geometric_prediction_verified": true
+  },
+  "terminal_state": {
+    "pre_reset_capture_observed": true,
+    "root_position_w_m": [
+      0.7812924385070801,
+      1.5620226860046387,
+      0.17361846566200256
+    ],
+    "post_reset_root_position_w_m": [
+      -4.5,
+      0.0,
+      0.375
+    ],
+    "max_pre_post_reset_difference_m": 5.28129243850708
+  },
+  "action_projection_count": 0,
+  "safety_rejection_count": 0,
+  "invalid_state_count": 0,
+  "nonfoot_contact_count": 0,
+  "predicate_diagnostic_review": {
+    "schema": "lite3_tile_bounds_trace_review_v2",
+    "status": "complete_predicate_evidence",
+    "evaluations_verified": 767,
+    "body_count": 17,
+    "terminal_boundary_flag": true,
+    "terminal_geometric_hits": [
+      {
+        "branch": "prediction",
+        "body_id": 5,
+        "body_name": "FL_THIGH",
+        "axis": "y"
+      }
+    ],
+    "terminal_invalid_state": false,
+    "terminal_valid_indices": true,
+    "condition_completed": false,
+    "reference_conversion": {
+      "status": "verified",
+      "bodies_verified": 13039,
+      "unverifiable_evaluations": [],
+      "atol": 2e-06,
+      "rtol": 2e-06,
+      "quaternion_norm_atol": 1e-05,
+      "com_position_max_abs_error": 2.408971937484239e-07,
+      "link_velocity_max_abs_error": 1.9984410171147715e-07
+    }
+  },
+  "root_reference_evaluations_verified": 767,
+  "actual_root_com_offset_m": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "kinematic_errors": {
+    "quaternion_norm": 1.0426943819474843e-07,
+    "body_to_world_velocity_mps": 2.8827955855792453e-08,
+    "projected_gravity": 3.002077586522489e-08
+  },
+  "foot_slip_fraction": 0.030885780885780884,
+  "foot_slip_numerator": 53,
+  "foot_slip_denominator": 1716,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "supervisor_exit_code": 1,
+  "worker_exit_code": 0,
+  "execution_elapsed_s": 97.17222946602851,
+  "sampled_gpu_peak_whole_device_mib": 6966,
+  "gpu_sample_count": 92,
+  "gpu0_before_mib": 4235,
+  "gpu0_after_mib": 4235,
+  "existing_gpu0_pids_before": [
+    920157,
+    920158,
+    920159,
+    920160
+  ],
+  "existing_gpu0_pids_after": [
+    920157,
+    920158,
+    920159,
+    920160
+  ],
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "This is one fixed right-high/left-low cross-slope instance and one seed, not a family success rate or learned gait.",
+    "Safety acceptance has no tight actual-speed tracking threshold: observed mean forward speed exceeds the 0.3 m/s command.",
+    "The actor is unchanged; this failure measures existing transfer capability, not a Source training change.",
+    "The terminal pre-reset snapshot is verified; this one reset does not qualify shared-bank or general sensor/reset timing.",
+    "Linear link-origin prediction crossing the safety envelope is not proof of a physical body crossing the terrain edge or its actual next-step position.",
+    "Downslope drift direction alone does not establish gravity, foot slipping or policy asymmetry as its sole cause.",
+    "Foot-slip contact fraction counts contacting-foot horizontal-speed proxies above 0.35 m/s; it is not a measured slip distance.",
+    "Whole-GPU resource samples include other users; timing and memory are not exclusive-task measurements."
+  ]
+}

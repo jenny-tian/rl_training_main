@@ -1,0 +1,60 @@
+{
+  "status": "archive_consistency_verified",
+  "inputs_verified": 237,
+  "raw_files_verified": 12,
+  "raw_archive_matches_original_runtime": true,
+  "prior_archives": {
+    "docs/lite3-source-followup-preparation-20261029": {
+      "files_verified": 16,
+      "sha256sums_sha256": "172745b5671b083883a27de96f91da2bed04d3b24b09a88f373943a52730acf4"
+    },
+    "docs/lite3-source-cross-slope-right-preparation-20261029": {
+      "files_verified": 10,
+      "sha256sums_sha256": "7c675fbc1da4c0d4225e490c6113b9d844f109fe9670cbbdb66f5a06759c34c8"
+    },
+    "docs/lite3-source-policy-prequalification-cross-slope-left-l1-20261029": {
+      "files_verified": 24,
+      "sha256sums_sha256": "366e3455f080fe686b5ef72b82fe5393cb672d996f84f150d22ef6b2270b1c29"
+    }
+  },
+  "prior_files_unchanged": 50,
+  "only_right_cross_slope_episode_added": true,
+  "observed_episode_increment": 1,
+  "remaining_prepared_unrun_conditions": 9,
+  "cross_slope_comparison_sources_verified": 2,
+  "next_condition_registered_but_not_authorized": true,
+  "stairs_case_matches_original_bank_equivalence_record": true,
+  "geometry_source_hashes_verified": 8,
+  "stairs_preparation_and_run_directories_absent": true,
+  "current_runner_bound_to_completed_right_case": true,
+  "production_code_changed_after_run": false,
+  "cpu_archive_review_exit_code": 0,
+  "whitespace_review": {
+    "full_staged_diff_command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "exit_code": 2,
+    "findings": [
+      "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log:58: trailing whitespace.",
+      "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log:59: trailing whitespace.",
+      "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log:61: trailing whitespace.",
+      "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log:62: trailing whitespace.",
+      "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log:64: trailing whitespace.",
+      "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log:65: trailing whitespace."
+    ],
+    "authored_and_other_files_command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude)docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/console.log"
+    ],
+    "authored_and_other_files_exit_code": 0,
+    "disposition": "Preserve original simulator console trailing whitespace byte-for-byte; no authored file whitespace errors."
+  }
+}

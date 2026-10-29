@@ -1,0 +1,154 @@
+{
+  "schema": "lite3_cross_slope_directional_baseline_comparison_v1",
+  "conditions": [
+    {
+      "case_id": "slope_L1_cross_slope_left",
+      "terrain": "left high / right low",
+      "runtime_revision": "2e6527707ddc876b7a9fd7c2b9112cd3e2d8c190",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20080,
+      "result_path": "docs/lite3-source-policy-prequalification-cross-slope-left-l1-20261029/result.json",
+      "result_sha256": "dc64d2b12393dd6d9e11f46151f210fc36436e5ed156b7144a02ae45b519664c",
+      "post_run_review_path": "docs/lite3-source-policy-prequalification-cross-slope-left-l1-20261029/post_run_review.json",
+      "post_run_review_sha256": "9b345b233a2fae782cdf7aa367c5af0ae23a6af091ff469321830bbfcd60c409",
+      "status": "failed",
+      "steps": 882,
+      "forward_progress_m": 5.6554484367370605,
+      "terminal_lateral_offset_m": -1.547183632850647,
+      "lateral_offset_peak_m": 1.547183632850647,
+      "root_yaw_end_degrees": -7.6001999376042475,
+      "mean_velocity_x_mps": 0.32956603284747826,
+      "mean_xy_velocity_error_mps": 0.09709896592216359,
+      "foot_slip_fraction": 0.011139240506329114,
+      "foot_slip_numerator": 22,
+      "foot_slip_denominator": 1975,
+      "trigger": {
+        "branch": "prediction",
+        "body_id": 6,
+        "body_name": "FR_THIGH",
+        "axis": "y",
+        "boundary_side": "lower",
+        "link_position_w_m": [
+          1.3079917430877686,
+          -1.726004719734192,
+          0.17113791406154633
+        ],
+        "link_velocity_w_mps": [
+          0.31659457087516785,
+          -0.22547097504138947,
+          0.24650312960147858
+        ],
+        "com_velocity_w_mps": [
+          0.40157198905944824,
+          -0.24256379902362823,
+          0.05079131945967674
+        ],
+        "com_offset_link_m": [
+          -0.003924500197172165,
+          0.014631999656558037,
+          -0.0251460000872612
+        ],
+        "link_quaternion_wxyz": [
+          0.9046224355697632,
+          0.12109249085187912,
+          0.408369243144989,
+          -0.015146181918680668
+        ],
+        "world_angular_velocity_rad_s": [
+          -4.371756553649902,
+          -5.684085369110107,
+          -1.4017730951309204
+        ],
+        "implemented_predicted_xy_w_m": [
+          1.3143236637115479,
+          -1.7305141687393188
+        ],
+        "safe_lower_y_w_m": -1.7289999723434448,
+        "current_link_y_clearance_m": 0.0029952526092529297,
+        "implemented_prediction_y_excess_m": 0.0015141963958740234,
+        "point_consistent_geometric_prediction_verified": true
+      },
+      "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4"
+    },
+    {
+      "case_id": "slope_L1_cross_slope_right",
+      "terrain": "right high / left low",
+      "runtime_revision": "271a0a6ce17893f75ae195f424be06f5b1cb6ecf",
+      "geometry_seed": 10001,
+      "initial_state_seed": 20090,
+      "result_path": "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/result.json",
+      "result_sha256": "8ab3c05f9d698e9102d6309852d1761871e3ebe0b6b1741fc89abd14f85ef956",
+      "post_run_review_path": "docs/lite3-source-policy-prequalification-cross-slope-right-l1-20261029/post_run_review.json",
+      "post_run_review_sha256": "86836ee526f024aa90938a19c80b45921d42b7486195ed23f32ba2be987d5914",
+      "status": "failed",
+      "steps": 767,
+      "forward_progress_m": 5.28129243850708,
+      "terminal_lateral_offset_m": 1.5620226860046387,
+      "lateral_offset_peak_m": 1.5620226860046387,
+      "root_yaw_end_degrees": 3.298541248801516,
+      "mean_velocity_x_mps": 0.3445856915944714,
+      "mean_xy_velocity_error_mps": 0.11622103498404726,
+      "foot_slip_fraction": 0.030885780885780884,
+      "foot_slip_numerator": 53,
+      "foot_slip_denominator": 1716,
+      "trigger": {
+        "branch": "prediction",
+        "body_id": 5,
+        "body_name": "FL_THIGH",
+        "axis": "y",
+        "boundary_side": "upper",
+        "link_position_w_m": [
+          0.9456340670585632,
+          1.7275067567825317,
+          0.1371956616640091
+        ],
+        "link_velocity_w_mps": [
+          0.36564338207244873,
+          0.1397005021572113,
+          -0.09191511571407318
+        ],
+        "com_velocity_w_mps": [
+          0.34921762347221375,
+          0.14243106544017792,
+          -0.05235590040683746
+        ],
+        "com_offset_link_m": [
+          -0.003924500197172165,
+          -0.014631999656558037,
+          -0.0251460000872612
+        ],
+        "link_quaternion_wxyz": [
+          0.8862268924713135,
+          -0.12861484289169312,
+          0.44407787919044495,
+          -0.02923736907541752
+        ],
+        "world_angular_velocity_rad_s": [
+          -0.550836980342865,
+          1.3686052560806274,
+          -0.32318606972694397
+        ],
+        "implemented_predicted_xy_w_m": [
+          0.9529469609260559,
+          1.730300784111023
+        ],
+        "safe_upper_y_w_m": 1.7289999723434448,
+        "current_link_y_clearance_m": 0.001493215560913086,
+        "implemented_prediction_y_excess_m": 0.001300811767578125,
+        "point_consistent_geometric_prediction_verified": true
+      },
+      "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4"
+    }
+  ],
+  "frozen_inputs_differing": [
+    "scripts/tools/source_policy_prequalification.py"
+  ],
+  "production_change": "Only the runner preparation binding differs; original preparation and all raw evidence are retained.",
+  "observation": "Both recorded fixed transverse-slope episodes failed at the downslope Y safety prediction: right on the left-high case and left on the right-high case.",
+  "limitations": [
+    "Different registered initial-state seeds (20080 and 20090); not a paired-seed experiment, no statistical left/right performance or policy-asymmetry conclusion.",
+    "The unchanged actor has not been trained. These failures show room to improve the evaluated task; they do not demonstrate or guarantee a learned gait.",
+    "Foot-slip fractions use a 0.35 m/s contacting-foot horizontal-speed proxy; neither that metric nor drift direction identifies gravity/slip/policy as the sole cause.",
+    "Historical left CPU review is reused from its immutable archive; current CPU review independently checks all right episode records."
+  ]
+}
