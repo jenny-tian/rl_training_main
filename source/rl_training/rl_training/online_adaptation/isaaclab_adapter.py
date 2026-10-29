@@ -326,7 +326,7 @@ class Lite3IsaacLabAdapter:
             hits = self.env.scene.sensors["height_scanner_base"].data.ray_hits_w
             if not isinstance(hits, torch.Tensor) or hits.shape != (root.shape[0], 9, 3):
                 return unavailable
-            if hits.device != root.device:
+            if hits.device != root.device or not hits.is_floating_point():
                 return unavailable
             valid = torch.isfinite(hits).all(dim=(1, 2)) & torch.isfinite(root).all(dim=1)
             distance = torch.linalg.vector_norm(hits[:, :, :2] - root[:, None, :2], dim=-1)

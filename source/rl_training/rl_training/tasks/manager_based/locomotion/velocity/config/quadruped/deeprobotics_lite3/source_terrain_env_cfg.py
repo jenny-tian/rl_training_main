@@ -271,7 +271,10 @@ class DeeproboticsLite3SourceTerrainEnvCfg(DeeproboticsLite3RoughEnvCfg):
         )
         self.scene.height_scanner_base = MultiMeshRayCasterCfg(
             prim_path="{ENV_REGEX_NS}/Robot/" + self.base_link_name,
-            update_period=self.decimation * self.sim.dt,
+            # Substep rewards may consume this sensor before the next control
+            # decision. Keep the safety patch current in every Source entrypoint,
+            # including shared-bank runs that do not use the single-env runner.
+            update_period=self.sim.dt,
             offset=MultiMeshRayCasterCfg.OffsetCfg(pos=(0.0, 0.0, 20.0)),
             ray_alignment="yaw",
             pattern_cfg=patterns.GridPatternCfg(resolution=0.05, size=(0.1, 0.1)),

@@ -1076,6 +1076,8 @@ def _run_episode(wrapped_env: Any, policy: Any, cell: dict, geometry_seed: int,
         "initial_state_seed": initial_state_seed,
         "episode_index": episode_index,
         "completed": completed,
+        "stable_hold_steps_required": stable_hold_steps,
+        "stable_hold_steps_observed": hold_count,
         "termination_reason": termination_reason,
         "episode_type": (
             "termination_capture_test"

@@ -16,7 +16,7 @@ from typing import Any, Callable
 import torch
 
 from rl_training.lite3_joint_conventions import clip_lite3_policy_action
-from rl_training.online_adaptation.types import SafetyDecision
+from rl_training.online_adaptation.types import SafetyDecision, SafetyState
 
 
 @dataclass(frozen=True)
@@ -89,6 +89,37 @@ class FrozenPolicySafetyBridge:
         if not bool(torch.isfinite(value).all().item()):
             raise FloatingPointError(f"{name} contains a non-finite value")
 
+    def _validate_state(self, state: SafetyState, action: torch.Tensor) -> None:
+        """Reject invalid rows before comparisons or filter memory updates.
+
+        NaN comparisons are false, so relying on the filter thresholds alone
+        can let an invalid height, tilt or joint velocity through. Only the
+        fixed action scale may broadcast across environments.
+        """
+        batch = action.shape[0]
+        for name, width in (
+            ("projected_gravity_xy", 2), ("base_height", 1),
+            ("joint_pos", 12), ("joint_vel", 12), ("joint_lower", 12),
+            ("joint_upper", 12), ("default_joint_pos", 12), ("action_scale", 12),
+        ):
+            value = getattr(state, name)
+            self._require_finite(name, value)
+            allowed = {(batch, width)}
+            if name == "action_scale":
+                allowed.add((1, width))
+            if tuple(value.shape) not in allowed or value.device != action.device:
+                raise ValueError(f"{name} shape/device does not match the policy action")
+        for name in ("nonfoot_contact", "control_timed_out"):
+            value = getattr(state, name)
+            if not isinstance(value, torch.Tensor) or value.dtype != torch.bool:
+                raise TypeError(f"{name} must use torch.bool")
+            if value.shape != (batch, 1) or value.device != action.device:
+                raise ValueError(f"{name} shape/device does not match the policy action")
+        if bool((state.action_scale.abs() <= 1e-8).any().item()):
+            raise ValueError("action_scale must be nonzero for every joint")
+        if bool((state.joint_lower + 0.02 >= state.joint_upper - 0.02).any().item()):
+            raise ValueError("joint_lower/joint_upper leave no feasible safety margin")
+
     def step(self, observation: Any, control_timed_out: torch.Tensor) -> PolicySafetyTrace:
         started = perf_counter()
         with torch.inference_mode():
@@ -98,6 +129,8 @@ class FrozenPolicySafetyBridge:
             raise ValueError(f"Lite3 policy action must have 12 columns, got {raw_action.shape[1]}")
         base_action = self.action_clip(raw_action)
         self._require_finite("clipped policy action", base_action)
+        if base_action.shape != raw_action.shape or base_action.device != raw_action.device:
+            raise ValueError("action clipping changed the policy shape/device")
         if not isinstance(control_timed_out, torch.Tensor):
             raise TypeError("control_timed_out must be a tensor")
         if control_timed_out.shape != (base_action.shape[0], 1):
@@ -107,7 +140,10 @@ class FrozenPolicySafetyBridge:
             )
         if control_timed_out.dtype != torch.bool:
             raise TypeError("control_timed_out must use torch.bool")
+        if control_timed_out.device != base_action.device:
+            raise ValueError("control_timed_out device must match the policy action")
         state = self.adapter.safety_state(control_timed_out)
+        self._validate_state(state, base_action)
         requested_action = base_action.detach().clone()
         filter_state_before = self.safety_filter.temporal_snapshot(base_action)
         decision = self.safety_filter.project(

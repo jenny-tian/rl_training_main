@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 import torch
+from dataclasses import replace
 
 from rl_training.lite3_joint_conventions import clip_lite3_policy_action
 from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
@@ -71,3 +72,36 @@ def test_bridge_reports_safety_pause_for_caller_to_stop_before_execution():
     assert "tilt" in trace.decision.reasons
     # The caller can inspect paused before passing the candidate action to env.step().
     assert trace.executed_action.shape == (1, 12)
+
+
+@pytest.mark.parametrize("field", [
+    "projected_gravity_xy", "base_height", "joint_pos", "joint_vel",
+    "joint_lower", "joint_upper", "default_joint_pos", "action_scale",
+])
+def test_bridge_rejects_nonfinite_state_before_mutating_filter(field):
+    bridge = _bridge(lambda _: torch.zeros(8, 12))
+    timeout = torch.zeros(8, 1, dtype=torch.bool)
+    state = bridge.adapter.safety_state(timeout)
+    getattr(state, field)[-1, -1] = float("nan")
+    bridge.adapter.safety_state = lambda _: state
+    with pytest.raises(FloatingPointError, match=field):
+        bridge.step(torch.zeros(8, 45), timeout)
+    assert bridge.safety_filter._previous_residual is None
+
+
+@pytest.mark.parametrize("field,value", [
+    ("base_height", torch.ones(1, 1)),
+    ("joint_vel", torch.zeros(8, 1)),
+    ("nonfoot_contact", torch.zeros(8, 1)),
+    ("control_timed_out", torch.zeros(8, 1)),
+    ("action_scale", torch.zeros(1, 12)),
+    ("joint_lower", torch.full((8, 12), 10.0)),
+])
+def test_bridge_rejects_malformed_state_and_invalid_action_mapping(field, value):
+    bridge = _bridge(lambda _: torch.zeros(8, 12))
+    timeout = torch.zeros(8, 1, dtype=torch.bool)
+    state = replace(bridge.adapter.safety_state(timeout), **{field: value})
+    bridge.adapter.safety_state = lambda _: state
+    with pytest.raises((ValueError, TypeError), match=field):
+        bridge.step(torch.zeros(8, 45), timeout)
+    assert bridge.safety_filter._previous_residual is None

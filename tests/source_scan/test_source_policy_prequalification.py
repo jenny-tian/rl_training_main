@@ -1,0 +1,206 @@
+"""CPU faults and acceptance tests; no simulator or GPU is launched."""
+
+from types import SimpleNamespace as NS
+import json
+
+import pytest
+import torch
+
+from rl_training.source_scan.frozen_actor import FrozenSourceActor, LAYER_DIMS, load_frozen_source_actor
+from scripts.tools import source_policy_prequalification as qualification
+
+
+def actor_state():
+    state = {"distribution.log_std_param": torch.zeros(12)}
+    for index, (n_in, n_out) in enumerate(zip(LAYER_DIMS, LAYER_DIMS[1:])):
+        state[f"mlp.{2 * index}.weight"] = torch.full((n_out, n_in), 0.001)
+        state[f"mlp.{2 * index}.bias"] = torch.full((n_out,), -0.01)
+    return state
+
+
+def test_actor_is_frozen_deterministic_and_preserves_cpu_rng():
+    state = actor_state()
+    before_rng = torch.random.get_rng_state().clone()
+    actor = FrozenSourceActor(state)
+    assert torch.equal(before_rng, torch.random.get_rng_state())
+    assert not actor.training and not any(p.requires_grad for p in actor.parameters())
+    observations = torch.full((8, 45), 0.5, requires_grad=True)
+    expected = observations.detach()
+    for index in range(4):
+        expected = torch.nn.functional.linear(expected, state[f"mlp.{2*index}.weight"], state[f"mlp.{2*index}.bias"])
+        if index < 3:
+            expected = torch.nn.functional.elu(expected)
+    actual = actor({"policy": observations})
+    assert not actual.requires_grad
+    torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("fault", ["extra_normalizer", "shape", "nonfinite"])
+def test_actor_rejects_unregistered_layouts(fault):
+    state = actor_state()
+    if fault == "extra_normalizer":
+        state["obs_normalizer.mean"] = torch.zeros(45)
+    elif fault == "shape":
+        state["mlp.0.weight"] = torch.zeros(512, 44)
+    else:
+        state["mlp.0.weight"][0, 0] = float("nan")
+    with pytest.raises((ValueError, FloatingPointError)):
+        FrozenSourceActor(state)
+
+
+def test_checkpoint_hash_is_checked_before_deserialization(tmp_path, monkeypatch):
+    checkpoint = tmp_path / "candidate.pt"
+    checkpoint.write_bytes(b"not the approved checkpoint")
+    monkeypatch.setattr(torch, "load", lambda *a, **k: pytest.fail("must not deserialize"))
+    with pytest.raises(ValueError, match="hash"):
+        load_frozen_source_actor(checkpoint)
+
+
+def passing_record():
+    return {
+        "completed": True, "termination_reason": "completion", "termination_terms": [],
+        "stable_hold_steps_required": 50, "stable_hold_steps_observed": 50,
+        "termination_capture_test_injected": False, "steps": 50,
+        "invalid_state_count": 0, "safety_filter_rejection_or_emergency_count": 0,
+        "nonfoot_contact_count": 0, "forward_progress_m": 9.3,
+        "min_base_height_m": 0.30, "max_projected_gravity_xy": 0.1,
+        "max_joint_speed_rad_s": 5.0, "mean_command_velocity_x_mps": 0.3,
+        "action_trace": [{"step": i, "safety_paused": False,
+                          **{name: [0.0] * 12 for name in (
+                              "a_policy_raw", "a_base", "a_requested", "a_executed_command")}}
+                         for i in range(1, 51)],
+    }
+
+
+def test_complete_safe_episode_is_accepted_for_one_condition_only():
+    assert qualification.episode_passed(passing_record())
+
+
+@pytest.mark.parametrize("key,value", [
+    ("completed", False), ("termination_reason", "timeout"),
+    ("stable_hold_steps_observed", 49), ("stable_hold_steps_required", 20),
+    ("termination_terms", ["source_terrain_tile_bounds"]),
+    ("termination_capture_test_injected", True), ("steps", 2001),
+    ("invalid_state_count", 1), ("safety_filter_rejection_or_emergency_count", 1),
+    ("nonfoot_contact_count", 1), ("min_base_height_m", 0.19),
+    ("min_base_height_m", float("nan")), ("forward_progress_m", 8.9),
+    ("max_projected_gravity_xy", 0.66), ("max_joint_speed_rad_s", 31.0),
+    ("mean_command_velocity_x_mps", 0.0), ("action_trace", []),
+])
+def test_partial_or_unsafe_episode_is_rejected(key, value):
+    record = passing_record()
+    record[key] = value
+    assert not qualification.episode_passed(record)
+
+
+@pytest.mark.parametrize("fault", ["missing", "paused", "nan", "wrong_step", "candidate_not_executed"])
+def test_missing_evidence_and_bad_action_trace_are_rejected(fault):
+    record = passing_record()
+    if fault == "missing":
+        del record["invalid_state_count"]
+    elif fault == "paused":
+        record["action_trace"][-1]["safety_paused"] = True
+    elif fault == "nan":
+        record["action_trace"][-1]["a_executed_command"][0] = float("nan")
+    elif fault == "wrong_step":
+        record["action_trace"][-1]["step"] = 49
+    else:
+        del record["action_trace"][-1]["a_executed_command"]
+    assert not qualification.episode_passed(record)
+
+
+def test_changed_or_missing_frozen_inputs_block_before_launch(tmp_path):
+    item = tmp_path / "input.py"
+    item.write_text("version 1")
+    hashes = {str(item): qualification._sha256(item)}
+    qualification.verify_hashes(hashes)
+    item.write_text("version 2")
+    with pytest.raises(ValueError, match="frozen input changed"):
+        qualification.verify_hashes(hashes)
+    with pytest.raises(ValueError, match="empty"):
+        qualification.verify_hashes({})
+
+
+def runtime_env():
+    terms = {
+        "source_terrain_tile_bounds": NS(params={
+            "asset_cfg": NS(body_ids=slice(None)), "size": (12.0, 4.0),
+            "flat_length_m": 3.0, "collision_radius_m": 0.27, "numerical_margin_m": 0.001,
+        }),
+        "illegal_contact": NS(params={"threshold": 5.0, "consecutive_steps": 3}),
+        "bad_orientation_2": NS(params={"max_xy_norm": 0.65}),
+    }
+    return NS(
+        scene={"robot": NS(body_names=[str(i) for i in range(17)])},
+        termination_manager=NS(active_terms=list(terms), get_term_cfg=terms.__getitem__),
+        num_envs=1, step_dt=0.02,
+        cfg=NS(sim=NS(dt=0.005), scene=NS(height_scanner_base=NS(update_period=0.005))),
+    )
+
+
+def test_runtime_readback_accepts_only_complete_mapping_and_frozen_thresholds():
+    env = runtime_env()
+    names = env.scene["robot"].body_names
+    assert qualification.runtime_readback(env, names)["guard_body_ids"] == list(range(17))
+
+
+@pytest.mark.parametrize("fault", ["mapping", "term", "dt", "scanner", "margin", "contact", "tilt"])
+def test_runtime_config_drift_stops_before_policy_steps(fault):
+    env = runtime_env()
+    names = env.scene["robot"].body_names
+    term = env.termination_manager.get_term_cfg
+    if fault == "mapping":
+        term("source_terrain_tile_bounds").params["asset_cfg"].body_ids = [0]
+    elif fault == "term":
+        env.termination_manager.active_terms.remove("illegal_contact")
+    elif fault == "dt":
+        env.step_dt = 0.04
+    elif fault == "scanner":
+        env.cfg.scene.height_scanner_base.update_period = 0.02
+    elif fault == "margin":
+        term("source_terrain_tile_bounds").params["collision_radius_m"] = 0.1
+    elif fault == "contact":
+        term("illegal_contact").params["threshold"] = 50
+    else:
+        term("bad_orientation_2").params["max_xy_norm"] = 0.9
+    with pytest.raises(ValueError):
+        qualification.runtime_readback(env, names)
+
+
+@pytest.mark.parametrize("fault", [None, "timeout", "missing_result", "unsafe_episode", "changed_input"])
+def test_supervisor_acceptance_requires_complete_unchanged_evidence(tmp_path, monkeypatch, fault):
+    source = tmp_path / "source.py"
+    source.write_text("frozen input")
+    prep = tmp_path / "preparation.json"
+    prep.write_text(json.dumps({"input_sha256": {str(source): qualification._sha256(source)}}))
+    monkeypatch.setattr(qualification, "ROOT", tmp_path)
+    monkeypatch.setattr(qualification, "PREPARATION", prep)
+    monkeypatch.setattr(qualification, "_capture", lambda command, **k: (
+        "" if "--porcelain" in command else "revision"))
+    monkeypatch.setattr(qualification, "_gpu_preflight", lambda *a, **k: (
+        "0, GPU-frozen-device, Test GPU, 0 MiB, 24000 MiB, 0 %", ""))
+    run_dir = tmp_path / "run"
+
+    def monitored(command, **kwargs):
+        assert kwargs["startup_timeout_s"] == 120 and kwargs["total_timeout_s"] == 240
+        assert kwargs["env"]["CUDA_VISIBLE_DEVICES"] == "GPU-frozen-device"
+        assert "--worker" in command
+        if fault != "missing_result":
+            record = passing_record()
+            if fault == "unsafe_episode":
+                record["nonfoot_contact_count"] = 1
+            qualification.write_json(run_dir / "result.json", {
+                "status": "single_condition_safety_passed", "record": record,
+                "policy_updated": False, "ppo_initialized": False, "g3_qualified": False,
+                "actor_sha256_before": "actor", "actor_sha256_after": "actor",
+            })
+        if fault == "changed_input":
+            source.write_text("changed")
+        return {"exit_code": 0, "stop_reason": "total_timeout" if fault == "timeout" else None,
+                "collision_cooking_failure": None, "fatal_exception": None}
+
+    monkeypatch.setattr(qualification, "run_monitored_process", monitored)
+    assert qualification.supervise(run_dir) == (0 if fault is None else 1)
+    outcome = json.loads((run_dir / "outcome.json").read_text())
+    assert outcome["status"] == ("passed" if fault is None else "failed")
+    assert outcome["g3_qualified"] is False

@@ -323,6 +323,15 @@ def _construct_scene_config(*, shared=None, enabled=True, num_envs=2):
     return config
 
 
+@pytest.mark.parametrize('enabled,shared,num_envs', [(False, None, 1), (True, None, 2), (True, 1, 8)])
+def test_source_safety_patch_refreshes_every_physics_step(monkeypatch, enabled, shared, num_envs):
+    from test_source_ground_ray_caster import load_adapter
+    load_adapter(monkeypatch)
+    config = _construct_scene_config(enabled=enabled, shared=shared, num_envs=num_envs)
+    assert config.scene.height_scanner_base.update_period == config.sim.dt
+    assert config.scene.height_scanner.update_period == config.sim.dt * config.decimation
+
+
 def test_actual_config_construction_keeps_shared_opt_in_and_sets_explicit_filters(monkeypatch):
     from test_source_ground_ray_caster import load_adapter
     adapter, _ = load_adapter(monkeypatch)

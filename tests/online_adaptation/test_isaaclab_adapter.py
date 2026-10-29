@@ -73,6 +73,42 @@ def test_step_edge_uses_highest_surface_in_base_patch():
     assert adapter.safety_state(torch.zeros(1, 1, dtype=torch.bool)).base_height.item() == pytest.approx(0.26)
 
 
+@pytest.mark.parametrize("dtype", [torch.int64, torch.bool, torch.complex64])
+def test_safety_patch_rejects_non_real_floating_measurements(dtype):
+    adapter = _base_scan_adapter()
+    sensor = adapter.env.scene.sensors["height_scanner_base"]
+    sensor.data.ray_hits_w = sensor.data.ray_hits_w.to(dtype=dtype)
+    assert adapter._safety_base_height().tolist() == [[0.0]]
+
+
+@pytest.mark.parametrize("failure", ["nan", "stale_xy", "low_clearance", "invalid_root"])
+def test_eight_environment_safety_height_keeps_failures_local(failure):
+    from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
+    adapter = _base_scan_adapter()
+    robot = adapter.robot.data
+    for name, value in vars(robot).items():
+        if isinstance(value, torch.Tensor):
+            setattr(robot, name, value.repeat(8, *([1] * (value.ndim - 1))))
+    adapter.contact_sensor.data.net_forces_w = adapter.contact_sensor.data.net_forces_w.repeat(8, 1, 1)
+    translations = torch.tensor([[i * 12.0, i * 4.0, (i - 4) * 0.6] for i in range(8)])
+    robot.root_pos_w += translations
+    sensor = adapter.env.scene.sensors["height_scanner_base"]
+    sensor.data.ray_hits_w = sensor.data.ray_hits_w.repeat(8, 1, 1) + translations[:, None, :]
+    if failure == "nan":
+        sensor.data.ray_hits_w[7, 0, 2] = float("nan")
+    elif failure == "stale_xy":
+        sensor.data.ray_hits_w[7, :, 0] += 1.0
+    elif failure == "invalid_root":
+        robot.root_pos_w[7, 0] = float("nan")
+    else:
+        robot.root_pos_w[7, 2] -= 0.21
+    state = adapter.safety_state(torch.zeros(8, 1, dtype=torch.bool))
+    torch.testing.assert_close(state.base_height[:7], torch.full((7, 1), 0.31))
+    decision = SafetyFilter(SafetyLimits(residual_limits=torch.ones(12))).project(
+        torch.zeros(8, 12), torch.zeros(8, 12), state, force_zero_residual=True)
+    assert decision.paused[:, 0].tolist() == [False] * 7 + [True]
+
+
 def test_compose_proprio_frame_has_fixed_order_and_49_dimensions():
     terms = [
         torch.full((2, 3), 1.0),
