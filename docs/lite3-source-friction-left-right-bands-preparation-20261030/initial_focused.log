@@ -1,0 +1,55 @@
+........................................................................ [ 49%]
+.......................................................................F [ 98%]
+F.                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_exact_geometry_marker_and_importer_materials _______________
+
+    def test_exact_geometry_marker_and_importer_materials():
+>       inspect_material_path()
+
+docs/lite3-source-friction-left-right-bands-preparation-20261030/test_friction_contract.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def inspect_material_path():
+        case = json.loads((HERE / "preparation.json").read_text())["cases"][0]
+        factory, _, namespace, _ = load_offline_pipeline(ROOT, Path("/home/tjx/IsaacLab"))
+        cfg = factory("L1")[case["subterrain"]]
+        cfg.seed = case["geometry_seed"]
+        adapter = cfg.function.__globals__
+        geometry = adapter["generate_source_terrain_geometry"](case["geometry_difficulty"], cfg)
+        regions = [asdict(region) for region in geometry.friction_regions]
+>       assert [r["bounds_xy_m"] for r in regions] == [(0., 12., float(i), float(i + 1)) for i in range(4)]
+E       assert [(0.0, 10.0, ....0, 3.0, 4.0)] == [(0.0, 12.0, ....0, 3.0, 4.0)]
+E         
+E         At index 0 diff: (0.0, 10.0, 0.0, 1.0) != (0.0, 12.0, 0.0, 1.0)
+E         Use -v to get more diff
+
+docs/lite3-source-friction-left-right-bands-preparation-20261030/test_friction_contract.py:29: AssertionError
+____________________ test_per_foot_region_coverage_and_slip ____________________
+
+    def test_per_foot_region_coverage_and_slip():
+>       report = inspect_material_path()
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+
+docs/lite3-source-friction-left-right-bands-preparation-20261030/test_friction_contract.py:76: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def inspect_material_path():
+        case = json.loads((HERE / "preparation.json").read_text())["cases"][0]
+        factory, _, namespace, _ = load_offline_pipeline(ROOT, Path("/home/tjx/IsaacLab"))
+        cfg = factory("L1")[case["subterrain"]]
+        cfg.seed = case["geometry_seed"]
+        adapter = cfg.function.__globals__
+        geometry = adapter["generate_source_terrain_geometry"](case["geometry_difficulty"], cfg)
+        regions = [asdict(region) for region in geometry.friction_regions]
+>       assert [r["bounds_xy_m"] for r in regions] == [(0., 12., float(i), float(i + 1)) for i in range(4)]
+E       assert [(0.0, 10.0, ....0, 3.0, 4.0)] == [(0.0, 12.0, ....0, 3.0, 4.0)]
+E         
+E         At index 0 diff: (0.0, 10.0, 0.0, 1.0) != (0.0, 12.0, 0.0, 1.0)
+E         Use -v to get more diff
+
+docs/lite3-source-friction-left-right-bands-preparation-20261030/test_friction_contract.py:29: AssertionError
+=========================== short test summary info ============================
+FAILED docs/lite3-source-friction-left-right-bands-preparation-20261030/test_friction_contract.py::test_exact_geometry_marker_and_importer_materials
+FAILED docs/lite3-source-friction-left-right-bands-preparation-20261030/test_friction_contract.py::test_per_foot_region_coverage_and_slip
+2 failed, 144 passed in 2.91s
