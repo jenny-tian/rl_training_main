@@ -1,0 +1,50 @@
+{
+  "status": "friction_front_back_bands_preparation_verified_runtime_authorized",
+  "input_hashes_verified": 237,
+  "geometry_sources_unchanged": 8,
+  "registered_geometry_reused": true,
+  "mesh_fingerprint": "4c367facb6973c6873dd7d19dc4b5b180c335fd7d068b935040fe93c60b2fa9c",
+  "cpu_tests": {
+    "tests": 146,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "wrong_case_selection_rejected": [
+    null,
+    "flat_L1_forward_flat",
+    "multi_scale_rough_L1_forward_lane",
+    "slope_L1_uphill",
+    "slope_L1_downhill",
+    "slope_L1_cross_slope_left",
+    "slope_L1_cross_slope_right",
+    "multi_step_stairs_L1_ascending",
+    "multi_step_stairs_L1_descending",
+    "slope_plus_rough_L1_uphill",
+    "slope_plus_rough_L1_downhill",
+    "slope_plus_rough_L1_cross_slope_left",
+    "slope_plus_rough_L1_cross_slope_right",
+    "friction_variation_L1_left_right_bands",
+    "friction_variation_L1_alternating_regions"
+  ],
+  "physics_actor_rewards_thresholds_diagnostics_unchanged": true,
+  "prior_archive_files_unchanged": 39,
+  "simulation_started": false,
+  "runtime_authorized": true,
+  "ppo_authorized": false,
+  "geometry": {
+    "size": [
+      12.0,
+      4.0
+    ],
+    "flat_length_m": 3.0,
+    "transition_length_m": 0.5,
+    "grid_spacing_m": 0.1,
+    "friction_range": [
+      0.7,
+      1.0
+    ],
+    "friction_region_count": 4,
+    "direction_or_layout": "front_back_bands"
+  }
+}

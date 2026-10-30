@@ -23,7 +23,7 @@ from scripts.tools.source_parallel_terrain_startup_supervisor import (
     _capture, _gpu_preflight, _sha256, run_monitored_process,
 )
 
-PREPARATION = ROOT / "docs/lite3-source-friction-left-right-bands-preparation-20261030/preparation.json"
+PREPARATION = ROOT / "docs/lite3-source-friction-front-back-bands-preparation-20261030/preparation.json"
 
 
 def select_case(preparation, case_id):
