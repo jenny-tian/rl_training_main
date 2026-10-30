@@ -1,8 +1,8 @@
 # Lite3 Source 并行运行资格检查方案
 
 版本：v0.1 draft，2026-10-27
-状态：`rough_cross_slope_right_failed_friction_pending_approval`
-当前进度：粗糙右横坡唯一回合未通过：冻结提交 `e4d95ef`，820 步前进 5.380239 m，向左偏移 1.571583 m，yaw -0.767459 度。FL_THIGH 与 HL_THIGH 同时触发 Y 上界 prediction，当前余量分别 2.884746/2.643585 mm，预测超界 0.383377/0.344515 mm；当前位置均在界内、reset 前末步核验通过。平均前向速度 0.325480 m/s，滑移代理 33/1862（1.7723%），非足端接触、无效状态、过滤器拒绝、投影均零。237 项输入、12 原始文件、820 次谓词及 13940 个参考点换算复核通过；首次归档 reviewer 残留历史 revision 被拒绝，修正后通过，未改数据或重跑。actor 未变、无 PPO，运行 64.183 s，GPU0 峰值 2750 MiB、前后 18 MiB，无残留。台账仅新增本次，剩余 3 个摩擦条件未运行。见[报告](lite3-source-policy-prequalification-slope-rough-cross-slope-right-l1-20261030/README.md)。下一阶段仅提议平地左右摩擦带（10001/20360，四个纵向带，候选系数 0.7/0.8/0.9/1.0）；先核验材料路径和区域统计，完成 CPU 检查及冻结提交，再执行原单回合限制；待用户确认。候选材料系数不等于实测有效接触摩擦。
+状态：`friction_left_right_passed_front_back_pending_approval`
+当前进度：左右摩擦带唯一回合安全通过：冻结提交 `9416afd`，1516 步前进 9.299543 m，达到目标后稳定 50 步；向右偏移 1.152465 m，yaw -21.925889 度。实际接触区域 0/1/2（候选系数 0.9/0.7/0.8），未接触 1.0 带；滑移代理 73/3390（2.1534%）。146 项 CPU 检查、237 项输入、12 原始文件、1516 次边界谓词及 25772 个 link/COM 换算复核通过。有效接触摩擦和运行时 USD 材料绑定未读回，不能将候选值视为实测值。actor 未变、无 PPO；GPU0 峰值 2750 MiB、前后 18 MiB，无残留。剩余 2 个条件，下一阶段前后摩擦带（10001/20370）待用户确认。见[完整报告](lite3-source-policy-prequalification-friction-left-right-bands-l1-20261030/README.md)。
 
 ## 1. 目的与当前结论
 
