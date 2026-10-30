@@ -1,0 +1,169 @@
+{
+  "instance_seed": 2661637681,
+  "regions": [
+    {
+      "region_id": 0,
+      "mesh_index": 0,
+      "friction_coefficient_candidate": 0.7,
+      "bounds_xy_m": [
+        0.0,
+        6.0,
+        0.0,
+        2.0
+      ]
+    },
+    {
+      "region_id": 1,
+      "mesh_index": 1,
+      "friction_coefficient_candidate": 1.0,
+      "bounds_xy_m": [
+        6.0,
+        12.0,
+        0.0,
+        2.0
+      ]
+    },
+    {
+      "region_id": 2,
+      "mesh_index": 2,
+      "friction_coefficient_candidate": 0.7999999999999999,
+      "bounds_xy_m": [
+        0.0,
+        6.0,
+        2.0,
+        4.0
+      ]
+    },
+    {
+      "region_id": 3,
+      "mesh_index": 3,
+      "friction_coefficient_candidate": 0.9,
+      "bounds_xy_m": [
+        6.0,
+        12.0,
+        2.0,
+        4.0
+      ]
+    }
+  ],
+  "geometry_metadata": {
+    "track_length_m": 12.0,
+    "track_width_m": 4.0,
+    "layout": "alternating_regions",
+    "candidate_friction_range": [
+      0.7,
+      1.0
+    ],
+    "effective_friction_confirmed": false,
+    "material_binding_status": "not_implemented_geometry_only",
+    "region_count": 4
+  },
+  "origin_local": [
+    1.5,
+    2.0,
+    0.0
+  ],
+  "importer_material_calls": [
+    {
+      "path": "/World/ground/terrain/friction_00700000",
+      "bounds": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          6.0,
+          2.0,
+          0.0
+        ]
+      ],
+      "faces": 12,
+      "material": {
+        "static_friction": 0.7,
+        "dynamic_friction": 0.7,
+        "restitution": 0.0,
+        "friction_combine_mode": "multiply",
+        "restitution_combine_mode": "multiply",
+        "compliant_contact_stiffness": 0.0,
+        "compliant_contact_damping": 0.0
+      }
+    },
+    {
+      "path": "/World/ground/terrain/friction_00800000",
+      "bounds": [
+        [
+          0.0,
+          2.0,
+          -1.0
+        ],
+        [
+          6.0,
+          4.0,
+          0.0
+        ]
+      ],
+      "faces": 12,
+      "material": {
+        "static_friction": 0.8,
+        "dynamic_friction": 0.8,
+        "restitution": 0.0,
+        "friction_combine_mode": "multiply",
+        "restitution_combine_mode": "multiply",
+        "compliant_contact_stiffness": 0.0,
+        "compliant_contact_damping": 0.0
+      }
+    },
+    {
+      "path": "/World/ground/terrain/friction_00900000",
+      "bounds": [
+        [
+          6.0,
+          2.0,
+          -1.0
+        ],
+        [
+          12.0,
+          4.0,
+          0.0
+        ]
+      ],
+      "faces": 12,
+      "material": {
+        "static_friction": 0.9,
+        "dynamic_friction": 0.9,
+        "restitution": 0.0,
+        "friction_combine_mode": "multiply",
+        "restitution_combine_mode": "multiply",
+        "compliant_contact_stiffness": 0.0,
+        "compliant_contact_damping": 0.0
+      }
+    },
+    {
+      "path": "/World/ground/terrain/friction_01000000",
+      "bounds": [
+        [
+          6.0,
+          0.0,
+          -1.0
+        ],
+        [
+          12.0,
+          2.0,
+          0.0
+        ]
+      ],
+      "faces": 12,
+      "material": {
+        "static_friction": 1.0,
+        "dynamic_friction": 1.0,
+        "restitution": 0.0,
+        "friction_combine_mode": "multiply",
+        "restitution_combine_mode": "multiply",
+        "compliant_contact_stiffness": 0.0,
+        "compliant_contact_damping": 0.0
+      }
+    }
+  ],
+  "scope": "Actual geometry/face encoding/importer methods on CPU; material config and USD creation stubbed. No effective contact friction readback."
+}

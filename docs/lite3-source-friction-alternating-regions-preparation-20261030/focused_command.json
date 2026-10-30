@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_source_policy_prequalification.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_tile_bounds_diagnostics.py",
+    "tests/source_scan/test_source_geometry_realization.py",
+    "docs/lite3-source-friction-alternating-regions-preparation-20261030/test_friction_contract.py",
+    "--junitxml=docs/lite3-source-friction-alternating-regions-preparation-20261030/focused.junit.xml"
+  ],
+  "environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONPATH": ".:source/rl_training",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  },
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+  "started_at_utc": "2026-10-30T05:42:31.356558+00:00",
+  "elapsed_s": 4.997140410356224,
+  "exit_code": 0
+}
