@@ -1,0 +1,145 @@
+{
+  "schema": "lite3_next_baseline_condition_proposal_v2",
+  "stage_id": "prepare_and_check_single_slope_rough_cross_slope_right_l1",
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "simulation_started": false,
+  "ppo_authorized": false,
+  "purpose": "Measure unchanged actor safety, drift, speed tracking, posture and slip on the registered right-high/left-low 5-degree cross-slope with roughness.",
+  "case": {
+    "case_id": "slope_plus_rough_L1_cross_slope_right",
+    "bank_row": 0,
+    "bank_column": 11,
+    "subterrain": "slope_rough_cross_slope_right",
+    "geometry_seed": 10001,
+    "initial_state_seed": 20270,
+    "cell": {
+      "cell_id": "slope_plus_rough_L1_cross_slope_right",
+      "terrain_family": "slope_plus_rough",
+      "level": 1,
+      "direction_or_layout": "cross_slope_right",
+      "geometry_seed_range": [
+        10001,
+        10001
+      ],
+      "initial_state_seed_range": [
+        20270,
+        20270
+      ],
+      "episodes": 1,
+      "seed_pairing": "zip_geometry_initial_state",
+      "dynamics_profile": "deployment_matched_frozen",
+      "resolved_parameters": {
+        "geometry": {
+          "size": [
+            12.0,
+            4.0
+          ],
+          "flat_length_m": 3.0,
+          "transition_length_m": 0.5,
+          "grid_spacing_m": 0.1,
+          "rough_peak_valley_m": 0.01,
+          "rough_audit_window_m": 0.4,
+          "spatial_scales_m": [
+            0.2,
+            0.4
+          ],
+          "slope_angle_deg": 5.0,
+          "direction_or_layout": "cross_slope_right",
+          "exit_flat_length_m": 2.0
+        },
+        "reset": {
+          "profile_id": "source_scan_nominal_reset_v0",
+          "config_sha256": "fa17c3dfa7782a689761907f2b6f0556793805b37d8c163af1e87f82098ca10d"
+        },
+        "track": {
+          "start_x_m": 1.5,
+          "completion_x_m": 10.5,
+          "lateral_margin_m": 0.2
+        }
+      },
+      "qualification_geometry_difficulty": 0.4893918379161446
+    },
+    "geometry_difficulty": 0.4893918379161446,
+    "mesh_fingerprint": "1ed784f4ef3504aa8ef8463a17ac488ed88a450598c020dbe609b79bf5e9e27b",
+    "isolated_mesh_matches_bank": true,
+    "reference_registered_geometry_seed_range": [
+      10270,
+      10274
+    ],
+    "runtime_status": "not_run",
+    "independent_runtime_approval_required": true
+  },
+  "terrain_explanation": "12 x 4 m longitudinal track with 3 m entry flat, 0.5 m transition, right-high/left-low 5-degree cross-slope and 0.01 m local peak-to-valley roughness parameter (0.4 m audit window, 0.2/0.4 m spatial scales), plus 2 m exit flat.",
+  "comparison_limit": "The rough left/right cross-slopes have different geometry realizations and initial-state seeds. Descriptive differences do not isolate slope direction, roughness effects or policy asymmetry.",
+  "original_case_preparation": "docs/lite3-source-followup-preparation-20261029/preparation.json",
+  "original_case_preparation_sha256": "a2199a7e558a0ba047adc671b941c68ac851c4d4ba3c198e609ab3e50e98f2b2",
+  "gpu_admission": {
+    "gpu_index": 0,
+    "minimum_available_mib": 12288,
+    "allow_existing_compute_processes": true,
+    "memory_basis": "memory.total - memory.used"
+  },
+  "runtime": {
+    "num_envs": 1,
+    "episodes": 1,
+    "max_control_steps": 2000,
+    "control_dt_s": 0.02,
+    "physics_dt_s": 0.005,
+    "episode_cap_s": 40.0,
+    "startup_timeout_s": 120,
+    "total_timeout_s": 240,
+    "cleanup_grace_s": 10,
+    "automatic_retries": 0,
+    "goal_progress_m": 9.0,
+    "stable_hold_steps": 50
+  },
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "command_b": [
+    0.3,
+    0.0,
+    0.0
+  ],
+  "heading_controller_enabled": false,
+  "candidate_preparation_path": "docs/lite3-source-slope-rough-cross-slope-right-preparation-20261030/preparation.json",
+  "candidate_run_directory": "/tmp/lite3_source_policy_slope_rough_cross_slope_right_link_reference_20261030",
+  "required_pre_execution_work": [
+    "Create a dedicated preparation for slope_plus_rough_L1_cross_slope_right: row0/column11, seeds 10001/20270, difficulty 0.4893918379161446. Verify right-high/left-low 5-degree cross-slope with registered 0.01 m roughness parameter, 0.4 m audit window and 0.2/0.4 m spatial scales against bank geometry and source hashes.",
+    "Rebind only the runner preparation path; preserve actor, command, physics, rewards, safety thresholds and link/COM diagnostics. On CPU verify exact case selection and rejection of other cases, immutable single-episode spec, reference diagnostics, terminal pre-reset capture and supervisor limits.",
+    "Freeze all required source/dependency/checkpoint hashes (currently 237 inputs), document any change, commit and push the preparation, and verify a clean worktree and remote revision before execution.",
+    "Recheck the checkpoint and frozen hashes, unused output directory, GPU0 UUID and >=12288 MiB memory.total - memory.used. Existing compute processes are allowed and recorded; do not stop other users jobs or silently change device."
+  ],
+  "operation_after_approval": "Run the single-case supervisor once, with one environment and the registered case. Record every control-step action/state, full 17-body v2 boundary snapshot, root link/COM state, completion hold, actor hashes and shared-GPU resource snapshots. Stop after completion or any failure; no second episode.",
+  "candidate_command_after_preparation": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_policy_prequalification.py",
+    "--case-id",
+    "slope_plus_rough_L1_cross_slope_right",
+    "--run-dir",
+    "/tmp/lite3_source_policy_slope_rough_cross_slope_right_link_reference_20261030"
+  ],
+  "candidate_environment": {
+    "PYTHONPATH": "source/rl_training"
+  },
+  "acceptance": [
+    "Reach >=9 m forward progress and remain at/above the goal for 50 consecutive stable control steps within 2000 steps; retain the frozen completion upper bound of 10.5 m.",
+    "Use unchanged acceptance: terrain-relative base height >=0.20 m, projected-gravity XY norm <=0.65, joint speed <=30 rad/s; no invalid states, nonfoot contact, safety rejection/emergency or manager termination.",
+    "Keep command (0.3,0,0), actor hash unchanged, and require the original episode_passed checks. Replay all per-step 17-body boundary predicates and link/COM conversions independently on CPU.",
+    "Report safe completion separately from actual-speed tracking, yaw, lateral deviation, slip proxies and action projection. No new velocity-error pass threshold is introduced."
+  ],
+  "stop_conditions": [
+    "Failed preparation/hash/output-directory/GPU memory checks: do not launch.",
+    "Any original safety or termination condition, invalid/unverifiable diagnostic state, collision-cooking/fatal error, worker failure, startup timeout (120 s) or total timeout (240 s): stop and archive the observed result.",
+    "A completed episode or the 2000-step cap also ends this phase. No retry, seed change, sweep, policy/reward/threshold change, PPO or larger-environment launch."
+  ],
+  "report_outputs": [
+    "Pass/fail and reason, control step and simulated time, progress, first goal step and stable hold count; distinguish worker exit from supervisor outcome.",
+    "Combined slope/rough completion, contact safety, terrain-relative height, posture and joint-speed extrema; signed lateral drift, peak absolute deviation and final yaw.",
+    "Mean actual/command forward speed and XY error, foot-slip numerator/denominator and its 0.35 m/s speed-proxy definition; safety metrics, contacts and action projection.",
+    "Exact boundary body/axis/current-vs-prediction branch and safety-boundary clearance/excess if triggered, including pre-reset state verification.",
+    "Frozen input/actor hashes, CPU review, raw archive hashes, updated baseline ledger, shared-GPU peak/before/after resources, own-process cleanup, elapsed time, commit and verified remote revision."
+  ],
+  "execution_readiness": "Proposal only. Runner remains bound to completed rough left-cross-slope. Prepare and verify the dedicated next case, then freeze/push the commit before execution.",
+  "authorization_rule": "Current approval covered the completed rough left-cross-slope episode. Rough right-cross-slope requires separate user phase approval."
+}
