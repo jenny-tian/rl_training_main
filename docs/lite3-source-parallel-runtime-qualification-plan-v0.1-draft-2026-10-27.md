@@ -1,8 +1,8 @@
 # Lite3 Source 并行运行资格检查方案
 
 版本：v0.1 draft，2026-10-27
-状态：`friction_left_right_passed_front_back_pending_approval`
-当前进度：左右摩擦带唯一回合安全通过：冻结提交 `9416afd`，1516 步前进 9.299543 m，达到目标后稳定 50 步；向右偏移 1.152465 m，yaw -21.925889 度。实际接触区域 0/1/2（候选系数 0.9/0.7/0.8），未接触 1.0 带；滑移代理 73/3390（2.1534%）。146 项 CPU 检查、237 项输入、12 原始文件、1516 次边界谓词及 25772 个 link/COM 换算复核通过。有效接触摩擦和运行时 USD 材料绑定未读回，不能将候选值视为实测值。actor 未变、无 PPO；GPU0 峰值 2750 MiB、前后 18 MiB，无残留。剩余 2 个条件，下一阶段前后摩擦带（10001/20370）待用户确认。见[完整报告](lite3-source-policy-prequalification-friction-left-right-bands-l1-20261030/README.md)。
+状态：`friction_front_back_passed_alternating_pending_approval`
+当前进度：前后摩擦带唯一回合安全通过：冻结提交 `e1f643f`，1467 步前进 9.311953 m，第 1418 步达到目标后稳定 50 步。向右偏移 0.464844 m，yaw -15.092421 度。四足均接触四个区域（候选系数依次 0.8/0.7/1.0/0.9），滑移代理 59/3293（1.7917%）。146 项 CPU 检查、237 项输入、12 原始文件、1467 次边界谓词及 24939 个 link/COM 换算复核通过。有效接触摩擦及运行时 USD 材料绑定未读回。actor 未变、无 PPO；GPU0 整卡峰值 7270 MiB、前后 4539 MiB，原有进程未动，本次进程无残留。剩余 1 个条件，下一阶段交错摩擦区域（10001/20380，2×2 个 6×2 m 区域）待用户确认。见[完整报告](lite3-source-policy-prequalification-friction-front-back-bands-l1-20261030/README.md)。
 
 ## 1. 目的与当前结论
 
