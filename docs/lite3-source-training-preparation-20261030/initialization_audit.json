@@ -1,0 +1,718 @@
+{
+  "schema": "lite3_source_training_preflight_v1",
+  "status": "cpu_initialization_passed_runtime_pending",
+  "simulation_steps": 0,
+  "ppo_updates": 0,
+  "training_ready": false,
+  "runtime": {
+    "python": "3.11.15 (main, Mar 11 2026, 17:20:07) [GCC 14.3.0]",
+    "torch": "2.7.0+cu128",
+    "rsl_rl": "5.0.1",
+    "device": "cpu"
+  },
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "checkpoint_original_std": [
+    0.41239991784095764,
+    0.31498321890830994,
+    0.30774933099746704,
+    0.4118286669254303,
+    0.31518396735191345,
+    0.2974865138530731,
+    0.40851980447769165,
+    0.2883022129535675,
+    0.3272320330142975,
+    0.4235660135746002,
+    0.29552850127220154,
+    0.31504741311073303
+  ],
+  "cpu_fixture": {
+    "num_envs": 2,
+    "policy_width": 45,
+    "critic_width": 48,
+    "synthetic": true
+  },
+  "candidate": {
+    "num_envs": 120,
+    "rollout_length": 24,
+    "level": "L1_only",
+    "reset_block_counts": {
+      "flat": 12,
+      "multi_scale_rough": 24,
+      "slope_uphill": 6,
+      "slope_downhill": 6,
+      "slope_cross_slope_left": 6,
+      "slope_cross_slope_right": 6,
+      "stairs_ascending": 15,
+      "stairs_descending": 15,
+      "slope_rough_uphill": 6,
+      "slope_rough_downhill": 6,
+      "slope_rough_cross_slope_left": 3,
+      "slope_rough_cross_slope_right": 3,
+      "friction_left_right_bands": 4,
+      "friction_front_back_bands": 4,
+      "friction_alternating_regions": 4
+    },
+    "budget_nodes": {
+      "numerics": {
+        "ceiling": 262144,
+        "updates": 91,
+        "transitions": 262080,
+        "unused": 64
+      },
+      "midpoint": {
+        "ceiling": 1048576,
+        "updates": 364,
+        "transitions": 1048320,
+        "unused": 256
+      },
+      "pilot": {
+        "ceiling": 2097152,
+        "updates": 728,
+        "transitions": 2096640,
+        "unused": 512
+      }
+    },
+    "runner_config": {
+      "num_steps_per_env": 24,
+      "save_interval": 50,
+      "obs_groups": {
+        "actor": [
+          "policy"
+        ],
+        "critic": [
+          "critic"
+        ]
+      },
+      "actor": {
+        "class_name": "rsl_rl.models:MLPModel",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "activation": "elu",
+        "obs_normalization": false,
+        "distribution_cfg": {
+          "class_name": "rsl_rl.modules.distribution:GaussianDistribution",
+          "init_std": 1.0,
+          "std_type": "log"
+        }
+      },
+      "critic": {
+        "class_name": "rsl_rl.models:MLPModel",
+        "hidden_dims": [
+          512,
+          256,
+          128
+        ],
+        "activation": "elu",
+        "obs_normalization": false
+      },
+      "algorithm": {
+        "class_name": "rsl_rl.algorithms:PPO",
+        "value_loss_coef": 1.0,
+        "use_clipped_value_loss": true,
+        "clip_param": 0.2,
+        "entropy_coef": 0.01,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "learning_rate": 0.001,
+        "schedule": "adaptive",
+        "gamma": 0.99,
+        "lam": 0.95,
+        "desired_kl": 0.01,
+        "max_grad_norm": 1.0,
+        "rnd_cfg": null,
+        "symmetry_cfg": null
+      }
+    },
+    "runs": [
+      {
+        "run": 1,
+        "ppo_seed": 130001,
+        "terrain_generator_seed": 30000,
+        "reset_state_id": 40000,
+        "sampler_seed_candidate": 131001,
+        "initialization": {
+          "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+          "checkpoint_iteration_ignored": 1998,
+          "loaded": "actor_state_dict_only",
+          "critic_restored": false,
+          "optimizer_restored": false,
+          "iteration_restored": false,
+          "action_std": 1.0
+        },
+        "checks": {
+          "mean_exact_parity": true,
+          "critic_unchanged": true,
+          "optimizer_fresh_and_unchanged": true,
+          "iteration_zero": true,
+          "rollout_storage_empty": true,
+          "rng_unchanged_by_loading": true,
+          "std_reset_to_one": true,
+          "actor_trainable": true
+        },
+        "critic_sha256": "29d0001a02ac1296c77fd14b64862bfcc132932720d3f706ce3281db28eb1d12",
+        "probe_count": 257,
+        "max_mean_error": 0.0
+      },
+      {
+        "run": 2,
+        "ppo_seed": 130002,
+        "terrain_generator_seed": 33000,
+        "reset_state_id": 43000,
+        "sampler_seed_candidate": 131002,
+        "initialization": {
+          "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+          "checkpoint_iteration_ignored": 1998,
+          "loaded": "actor_state_dict_only",
+          "critic_restored": false,
+          "optimizer_restored": false,
+          "iteration_restored": false,
+          "action_std": 1.0
+        },
+        "checks": {
+          "mean_exact_parity": true,
+          "critic_unchanged": true,
+          "optimizer_fresh_and_unchanged": true,
+          "iteration_zero": true,
+          "rollout_storage_empty": true,
+          "rng_unchanged_by_loading": true,
+          "std_reset_to_one": true,
+          "actor_trainable": true
+        },
+        "critic_sha256": "8c5c56ba8efa131a79a16978ce9a6e7169ea9ae487396b50874ad41e86956075",
+        "probe_count": 257,
+        "max_mean_error": 0.0
+      },
+      {
+        "run": 3,
+        "ppo_seed": 130003,
+        "terrain_generator_seed": 36000,
+        "reset_state_id": 46000,
+        "sampler_seed_candidate": 131003,
+        "initialization": {
+          "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+          "checkpoint_iteration_ignored": 1998,
+          "loaded": "actor_state_dict_only",
+          "critic_restored": false,
+          "optimizer_restored": false,
+          "iteration_restored": false,
+          "action_std": 1.0
+        },
+        "checks": {
+          "mean_exact_parity": true,
+          "critic_unchanged": true,
+          "optimizer_fresh_and_unchanged": true,
+          "iteration_zero": true,
+          "rollout_storage_empty": true,
+          "rng_unchanged_by_loading": true,
+          "std_reset_to_one": true,
+          "actor_trainable": true
+        },
+        "critic_sha256": "ac766bd32ebfaf14421d72a5fa7085a479b686269813ae4f0ee9c58ae7f63fa3",
+        "probe_count": 257,
+        "max_mean_error": 0.0
+      }
+    ],
+    "validation_cells": [
+      {
+        "subterrain": "stairs_ascending",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50000,
+          50001,
+          50002,
+          50003,
+          50004
+        ],
+        "selection_state_ids": [
+          60000,
+          60001,
+          60002,
+          60003,
+          60004
+        ],
+        "confirmation_geometry_seeds": [
+          55000,
+          55001,
+          55002,
+          55003,
+          55004
+        ],
+        "confirmation_state_ids": [
+          65000,
+          65001,
+          65002,
+          65003,
+          65004
+        ]
+      },
+      {
+        "subterrain": "stairs_descending",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50005,
+          50006,
+          50007,
+          50008,
+          50009
+        ],
+        "selection_state_ids": [
+          60005,
+          60006,
+          60007,
+          60008,
+          60009
+        ],
+        "confirmation_geometry_seeds": [
+          55005,
+          55006,
+          55007,
+          55008,
+          55009
+        ],
+        "confirmation_state_ids": [
+          65005,
+          65006,
+          65007,
+          65008,
+          65009
+        ]
+      },
+      {
+        "subterrain": "flat",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50010,
+          50011,
+          50012,
+          50013,
+          50014
+        ],
+        "selection_state_ids": [
+          60010,
+          60011,
+          60012,
+          60013,
+          60014
+        ],
+        "confirmation_geometry_seeds": [
+          55010,
+          55011,
+          55012,
+          55013,
+          55014
+        ],
+        "confirmation_state_ids": [
+          65010,
+          65011,
+          65012,
+          65013,
+          65014
+        ]
+      },
+      {
+        "subterrain": "multi_scale_rough",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50015,
+          50016,
+          50017,
+          50018,
+          50019
+        ],
+        "selection_state_ids": [
+          60015,
+          60016,
+          60017,
+          60018,
+          60019
+        ],
+        "confirmation_geometry_seeds": [
+          55015,
+          55016,
+          55017,
+          55018,
+          55019
+        ],
+        "confirmation_state_ids": [
+          65015,
+          65016,
+          65017,
+          65018,
+          65019
+        ]
+      },
+      {
+        "subterrain": "slope_uphill",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50020,
+          50021,
+          50022,
+          50023,
+          50024
+        ],
+        "selection_state_ids": [
+          60020,
+          60021,
+          60022,
+          60023,
+          60024
+        ],
+        "confirmation_geometry_seeds": [
+          55020,
+          55021,
+          55022,
+          55023,
+          55024
+        ],
+        "confirmation_state_ids": [
+          65020,
+          65021,
+          65022,
+          65023,
+          65024
+        ]
+      },
+      {
+        "subterrain": "slope_downhill",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50025,
+          50026,
+          50027,
+          50028,
+          50029
+        ],
+        "selection_state_ids": [
+          60025,
+          60026,
+          60027,
+          60028,
+          60029
+        ],
+        "confirmation_geometry_seeds": [
+          55025,
+          55026,
+          55027,
+          55028,
+          55029
+        ],
+        "confirmation_state_ids": [
+          65025,
+          65026,
+          65027,
+          65028,
+          65029
+        ]
+      },
+      {
+        "subterrain": "slope_cross_slope_left",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50030,
+          50031,
+          50032,
+          50033,
+          50034
+        ],
+        "selection_state_ids": [
+          60030,
+          60031,
+          60032,
+          60033,
+          60034
+        ],
+        "confirmation_geometry_seeds": [
+          55030,
+          55031,
+          55032,
+          55033,
+          55034
+        ],
+        "confirmation_state_ids": [
+          65030,
+          65031,
+          65032,
+          65033,
+          65034
+        ]
+      },
+      {
+        "subterrain": "slope_cross_slope_right",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50035,
+          50036,
+          50037,
+          50038,
+          50039
+        ],
+        "selection_state_ids": [
+          60035,
+          60036,
+          60037,
+          60038,
+          60039
+        ],
+        "confirmation_geometry_seeds": [
+          55035,
+          55036,
+          55037,
+          55038,
+          55039
+        ],
+        "confirmation_state_ids": [
+          65035,
+          65036,
+          65037,
+          65038,
+          65039
+        ]
+      },
+      {
+        "subterrain": "slope_rough_uphill",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50040,
+          50041,
+          50042,
+          50043,
+          50044
+        ],
+        "selection_state_ids": [
+          60040,
+          60041,
+          60042,
+          60043,
+          60044
+        ],
+        "confirmation_geometry_seeds": [
+          55040,
+          55041,
+          55042,
+          55043,
+          55044
+        ],
+        "confirmation_state_ids": [
+          65040,
+          65041,
+          65042,
+          65043,
+          65044
+        ]
+      },
+      {
+        "subterrain": "slope_rough_downhill",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50045,
+          50046,
+          50047,
+          50048,
+          50049
+        ],
+        "selection_state_ids": [
+          60045,
+          60046,
+          60047,
+          60048,
+          60049
+        ],
+        "confirmation_geometry_seeds": [
+          55045,
+          55046,
+          55047,
+          55048,
+          55049
+        ],
+        "confirmation_state_ids": [
+          65045,
+          65046,
+          65047,
+          65048,
+          65049
+        ]
+      },
+      {
+        "subterrain": "slope_rough_cross_slope_left",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50050,
+          50051,
+          50052,
+          50053,
+          50054
+        ],
+        "selection_state_ids": [
+          60050,
+          60051,
+          60052,
+          60053,
+          60054
+        ],
+        "confirmation_geometry_seeds": [
+          55050,
+          55051,
+          55052,
+          55053,
+          55054
+        ],
+        "confirmation_state_ids": [
+          65050,
+          65051,
+          65052,
+          65053,
+          65054
+        ]
+      },
+      {
+        "subterrain": "slope_rough_cross_slope_right",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50055,
+          50056,
+          50057,
+          50058,
+          50059
+        ],
+        "selection_state_ids": [
+          60055,
+          60056,
+          60057,
+          60058,
+          60059
+        ],
+        "confirmation_geometry_seeds": [
+          55055,
+          55056,
+          55057,
+          55058,
+          55059
+        ],
+        "confirmation_state_ids": [
+          65055,
+          65056,
+          65057,
+          65058,
+          65059
+        ]
+      },
+      {
+        "subterrain": "friction_left_right_bands",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50060,
+          50061,
+          50062,
+          50063,
+          50064
+        ],
+        "selection_state_ids": [
+          60060,
+          60061,
+          60062,
+          60063,
+          60064
+        ],
+        "confirmation_geometry_seeds": [
+          55060,
+          55061,
+          55062,
+          55063,
+          55064
+        ],
+        "confirmation_state_ids": [
+          65060,
+          65061,
+          65062,
+          65063,
+          65064
+        ]
+      },
+      {
+        "subterrain": "friction_front_back_bands",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50065,
+          50066,
+          50067,
+          50068,
+          50069
+        ],
+        "selection_state_ids": [
+          60065,
+          60066,
+          60067,
+          60068,
+          60069
+        ],
+        "confirmation_geometry_seeds": [
+          55065,
+          55066,
+          55067,
+          55068,
+          55069
+        ],
+        "confirmation_state_ids": [
+          65065,
+          65066,
+          65067,
+          65068,
+          65069
+        ]
+      },
+      {
+        "subterrain": "friction_alternating_regions",
+        "level": 1,
+        "selection_geometry_seeds": [
+          50070,
+          50071,
+          50072,
+          50073,
+          50074
+        ],
+        "selection_state_ids": [
+          60070,
+          60071,
+          60072,
+          60073,
+          60074
+        ],
+        "confirmation_geometry_seeds": [
+          55070,
+          55071,
+          55072,
+          55073,
+          55074
+        ],
+        "confirmation_state_ids": [
+          65070,
+          65071,
+          65072,
+          65073,
+          65074
+        ]
+      }
+    ],
+    "validation_seed_reservation": "candidate_no_simulation_or_selection_performed",
+    "state_seed_semantics": "bookkeeping_only_current_reset_is_deterministic"
+  },
+  "remaining_runtime_work": [
+    "Implement PPO sampled-action safety wrapper without rewriting stored raw actions/log-probabilities.",
+    "Implement vector completion/50-step hold, bounded episodes and pre-reset terminal observation handling.",
+    "Wire explicit training generator seeds; default Source config still uses scan seed 10001.",
+    "Wire independent sampler RNG and reset/transition ledgers; define interrupted-run handling.",
+    "Complete moving-environment isolation and GPU throughput checks at the selected scale.",
+    "Lock six-family quality/selection rules and verify seed reservations before validation."
+  ],
+  "base_revision": "df933824fb5b02a5b358a8b6150a367a26e7b448",
+  "input_sha256": {
+    "scripts/tools/source_training_preflight.py": "75fd710c90a51d9415a4d29a2fcf4bece46266d6853e6b3b68be3e808133e70b",
+    "source/rl_training/rl_training/source_scan/source_training.py": "23e11f57fedfdccc1cb79a7c13e58adf8b10296b238bda6c9ad4ac59074dd4ba",
+    "source/rl_training/rl_training/source_scan/frozen_actor.py": "e9a791490d2fd99d89cf36a19dfe652ed7dacafe9ebd46f32411c75234840a18",
+    "source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py": "ad686af511a67ff9199d53c959d80e52519425a41e6892448a34a7f35881db4c"
+  }
+}

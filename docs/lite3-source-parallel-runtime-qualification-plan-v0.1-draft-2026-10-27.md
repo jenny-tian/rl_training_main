@@ -1,8 +1,8 @@
 # Lite3 Source 并行运行资格检查方案
 
 版本：v0.1 draft，2026-10-27
-状态：`fixed_l1_condition_coverage_complete_offline_review_pending_approval`
-当前进度：交错摩擦区域唯一回合安全通过：冻结提交 `91f450a`，1464 步前进 9.311933 m，第 1415 步达到目标后稳定 50 步。向右偏移 0.467991 m，yaw -14.796500 度；四个区域均有接触，候选系数 0.7/1.0/0.8/0.9，滑移代理 52/3286（1.5825%）。146 项 CPU 检查、237 项输入、12 原始文件、1464 次边界谓词及 24888 个 link/COM 换算复核通过。有效接触摩擦和运行时 USD 材料绑定未读回。actor 未变、无 PPO；GPU0 峰值 7270 MiB、前后 4539 MiB，原有进程未动，本次进程无残留。15 个登记条件均已有记录：9 个安全通过、6 个失败；不估计独立成功率，不自动进入 G3/G4 或训练。见[完整报告](lite3-source-policy-prequalification-friction-alternating-regions-l1-20261030/README.md)。下一阶段仅提议离线综合复核与失败分析，等待确认。
+状态：`source_training_preparation_in_progress_runtime_pending`
+当前进度：15 个登记 L1 条件均已有记录：9 个安全通过、6 个失败；这是固定条件覆盖，不估计独立成功率。用户已明确继续按主方案训练六类地形，旧平地策略的失败作为学习基线，不以全部通过为训练准入条件。本轮已实现 actor-only 初始化和 rollout 预算工具，真实 checkpoint 的三个 CPU runner 初始化核验通过，74 项针对性回归通过；尚无仿真或 PPO 更新。后续推进训练安全 wrapper、回合结束/预算/seed 接线及 G3/G4 必要运行检查，不另设广泛失败分析阶段。见[训练准备与下一步实现顺序](lite3-source-training-preparation-20261030/README.md)。交错摩擦区域及此前单条件运行的完整证据仍见[原始报告](lite3-source-policy-prequalification-friction-alternating-regions-l1-20261030/README.md)。
 
 ## 1. 目的与当前结论
 
