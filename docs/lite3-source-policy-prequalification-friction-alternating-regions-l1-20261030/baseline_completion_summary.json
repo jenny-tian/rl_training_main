@@ -1,0 +1,34 @@
+{
+  "schema": "lite3_fixed_condition_coverage_summary_v1",
+  "registered_conditions": 15,
+  "observed_conditions": 15,
+  "remaining_unrun_conditions": 0,
+  "passed_condition_count": 9,
+  "failed_condition_count": 6,
+  "passed_conditions": [
+    "flat_L1_forward_flat",
+    "multi_scale_rough_L1_forward_lane",
+    "slope_L1_downhill",
+    "multi_step_stairs_L1_ascending",
+    "multi_step_stairs_L1_descending",
+    "slope_plus_rough_L1_downhill",
+    "friction_variation_L1_left_right_bands",
+    "friction_variation_L1_front_back_bands",
+    "friction_variation_L1_alternating_regions"
+  ],
+  "failed_conditions": [
+    "slope_L1_uphill",
+    "slope_L1_cross_slope_left",
+    "slope_L1_cross_slope_right",
+    "slope_plus_rough_L1_uphill",
+    "slope_plus_rough_L1_cross_slope_left",
+    "slope_plus_rough_L1_cross_slope_right"
+  ],
+  "observed_episode_count_including_historical_diagnostic_repeats": 17,
+  "all_conditions_passed": false,
+  "statistical_success_rate_estimated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "scope": "Latest ledger status for each fixed condition; flat is historical and uphill includes diagnostic repeats. Counts are not independent-trial success probabilities."
+}

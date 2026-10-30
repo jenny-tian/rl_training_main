@@ -1,0 +1,286 @@
+{
+  "friction_review": {
+    "regions": [
+      {
+        "region_id": 0,
+        "world_xy_bounds_m": [
+          -6.0,
+          0.0,
+          -2.0,
+          0.0
+        ],
+        "candidate_coefficient": 0.7,
+        "contact_samples": 299,
+        "slipping_contact_samples": 15,
+        "slip_fraction": 0.05016722408026756,
+        "by_foot": [
+          {
+            "foot": "FL_FOOT",
+            "contact_samples": 0,
+            "slipping_contact_samples": 0,
+            "slip_fraction": null
+          },
+          {
+            "foot": "FR_FOOT",
+            "contact_samples": 207,
+            "slipping_contact_samples": 15,
+            "slip_fraction": 0.07246376811594203
+          },
+          {
+            "foot": "HL_FOOT",
+            "contact_samples": 0,
+            "slipping_contact_samples": 0,
+            "slip_fraction": null
+          },
+          {
+            "foot": "HR_FOOT",
+            "contact_samples": 92,
+            "slipping_contact_samples": 0,
+            "slip_fraction": 0.0
+          }
+        ]
+      },
+      {
+        "region_id": 1,
+        "world_xy_bounds_m": [
+          0.0,
+          6.0,
+          -2.0,
+          0.0
+        ],
+        "candidate_coefficient": 1.0,
+        "contact_samples": 1277,
+        "slipping_contact_samples": 9,
+        "slip_fraction": 0.007047768206734534,
+        "by_foot": [
+          {
+            "foot": "FL_FOOT",
+            "contact_samples": 267,
+            "slipping_contact_samples": 0,
+            "slip_fraction": 0.0
+          },
+          {
+            "foot": "FR_FOOT",
+            "contact_samples": 437,
+            "slipping_contact_samples": 7,
+            "slip_fraction": 0.016018306636155607
+          },
+          {
+            "foot": "HL_FOOT",
+            "contact_samples": 210,
+            "slipping_contact_samples": 2,
+            "slip_fraction": 0.009523809523809525
+          },
+          {
+            "foot": "HR_FOOT",
+            "contact_samples": 363,
+            "slipping_contact_samples": 0,
+            "slip_fraction": 0.0
+          }
+        ]
+      },
+      {
+        "region_id": 2,
+        "world_xy_bounds_m": [
+          -6.0,
+          0.0,
+          0.0,
+          2.0
+        ],
+        "candidate_coefficient": 0.7999999999999999,
+        "contact_samples": 1281,
+        "slipping_contact_samples": 26,
+        "slip_fraction": 0.02029664324746292,
+        "by_foot": [
+          {
+            "foot": "FL_FOOT",
+            "contact_samples": 402,
+            "slipping_contact_samples": 10,
+            "slip_fraction": 0.024875621890547265
+          },
+          {
+            "foot": "FR_FOOT",
+            "contact_samples": 181,
+            "slipping_contact_samples": 11,
+            "slip_fraction": 0.06077348066298342
+          },
+          {
+            "foot": "HL_FOOT",
+            "contact_samples": 401,
+            "slipping_contact_samples": 5,
+            "slip_fraction": 0.012468827930174564
+          },
+          {
+            "foot": "HR_FOOT",
+            "contact_samples": 297,
+            "slipping_contact_samples": 0,
+            "slip_fraction": 0.0
+          }
+        ]
+      },
+      {
+        "region_id": 3,
+        "world_xy_bounds_m": [
+          0.0,
+          6.0,
+          0.0,
+          2.0
+        ],
+        "candidate_coefficient": 0.9,
+        "contact_samples": 429,
+        "slipping_contact_samples": 2,
+        "slip_fraction": 0.004662004662004662,
+        "by_foot": [
+          {
+            "foot": "FL_FOOT",
+            "contact_samples": 210,
+            "slipping_contact_samples": 1,
+            "slip_fraction": 0.004761904761904762
+          },
+          {
+            "foot": "FR_FOOT",
+            "contact_samples": 0,
+            "slipping_contact_samples": 0,
+            "slip_fraction": null
+          },
+          {
+            "foot": "HL_FOOT",
+            "contact_samples": 193,
+            "slipping_contact_samples": 1,
+            "slip_fraction": 0.0051813471502590676
+          },
+          {
+            "foot": "HR_FOOT",
+            "contact_samples": 26,
+            "slipping_contact_samples": 0,
+            "slip_fraction": 0.0
+          }
+        ]
+      }
+    ],
+    "contacted_region_ids": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "uncontacted_region_ids": [],
+    "unassigned_contact_samples": 0,
+    "exact_internal_boundary_contact_samples": 0,
+    "attribution": "Foot link world XY, inclusive intervals in region order; not collision-contact-point readback.",
+    "effective_contact_friction_measured": false,
+    "runtime_usd_material_binding_readback": false,
+    "material_evidence": "Frozen source and CPU importer-call checks; runtime family field remains geometry-only, not binding verification.",
+    "posture_gravity_proxy_rad": {
+      "roll": {
+        "mean": 0.013285212035053454,
+        "rms": 0.015941011103813695,
+        "peak": 0.040123991668224335
+      },
+      "pitch": {
+        "mean": -0.00373223397573781,
+        "rms": 0.007312975741759539,
+        "peak": 0.038297221064567566
+      }
+    }
+  },
+  "lateral_offset_end_m": -0.46799135208129883,
+  "schema": "lite3_friction_alternating_regions_l1_post_run_review_v1",
+  "review_result": "single_condition_safety_pass_complete_reference_evidence",
+  "condition_passed": true,
+  "revision": "91f450aa29f1c55866f013d96a097591dafe770d",
+  "input_hashes_verified": 237,
+  "raw_files_verified": 12,
+  "control_steps": 1464,
+  "simulated_control_time_s": 29.28,
+  "first_goal_step": 1415,
+  "reconstructed_final_hold_steps": 50,
+  "metrics_reconstructed_from_samples": {
+    "forward_progress_m": 9.311932563781738,
+    "min_base_height_m": 0.30948057770729065,
+    "max_projected_gravity_xy": 0.054700396955013275,
+    "max_joint_speed_rad_s": 17.290164947509766,
+    "lateral_offset_peak_m": 0.46799135208129883,
+    "mean_velocity_error_mps": 0.036701219150659124,
+    "rms_velocity_error_mps": 0.03990115885168032,
+    "mean_base_velocity_x_mps": 0.3191744525245101,
+    "mean_command_velocity_x_mps": 0.30000001192092896
+  },
+  "root_yaw_end_degrees": -14.796500053734375,
+  "action_trace_rows": 1464,
+  "action_projection_count": 0,
+  "safety_rejection_count": 0,
+  "invalid_state_count": 0,
+  "nonfoot_contact_count": 0,
+  "predicate_diagnostic_review": {
+    "schema": "lite3_tile_bounds_trace_review_v2",
+    "status": "complete_predicate_evidence",
+    "evaluations_verified": 1464,
+    "body_count": 17,
+    "terminal_boundary_flag": false,
+    "terminal_geometric_hits": [],
+    "terminal_invalid_state": false,
+    "terminal_valid_indices": true,
+    "condition_completed": true,
+    "reference_conversion": {
+      "status": "verified",
+      "bodies_verified": 24888,
+      "unverifiable_evaluations": [],
+      "atol": 2e-06,
+      "rtol": 2e-06,
+      "quaternion_norm_atol": 1e-05,
+      "com_position_max_abs_error": 2.4386795782760373e-07,
+      "link_velocity_max_abs_error": 1.0763626412391147e-07
+    }
+  },
+  "root_reference_evaluations_verified": 1464,
+  "actual_root_com_offset_m": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "kinematic_errors": {
+    "quaternion_norm": 1.0419123619431758e-07,
+    "body_to_world_velocity_mps": 3.167911338808338e-08,
+    "projected_gravity": 2.9784330557447447e-08
+  },
+  "foot_slip_fraction": 0.01582471089470481,
+  "foot_slip_numerator": 52,
+  "foot_slip_denominator": 3286,
+  "actor_sha256": "aeeeb55466a7f7369e7bc041708201c0a965779e6240a7be8751fe75c1b9a0d4",
+  "policy_updated": false,
+  "ppo_initialized": false,
+  "g3_qualified": false,
+  "g4_qualified": false,
+  "supervisor_exit_code": 0,
+  "worker_exit_code": 0,
+  "execution_elapsed_s": 171.1607073424384,
+  "sampled_gpu_peak_whole_device_mib": 7270,
+  "gpu_sample_count": 161,
+  "gpu0_before_mib": 4539,
+  "gpu0_after_mib": 4539,
+  "existing_gpu0_pids_before": [
+    2303503
+  ],
+  "existing_gpu0_pids_after": [
+    2303503
+  ],
+  "residual_worker_processes": 0,
+  "console": {
+    "error_markers": 0,
+    "tracebacks": 0,
+    "unresolved_visual_reference_warnings": 4,
+    "cuda_device_skip_warnings": 6
+  },
+  "limitations": [
+    "This is one fixed friction alternating regions instance and one seed, not a family success rate or learned gait.",
+    "Candidate coefficients and CPU material calls are not runtime USD binding or effective-contact-friction readback.",
+    "Region attribution uses foot link world XY, not solver contact points; only contacted regions are exercised.",
+    "Slip counts contacting-foot horizontal-speed samples above 0.35 m/s, not measured slip distances.",
+    "Safety acceptance has no tight actual-speed tracking threshold: observed mean forward speed exceeds the 0.3 m/s command.",
+    "The actor is unchanged; this pass measures existing transfer capability, not a Source training improvement.",
+    "No automatic reset occurred; this episode does not add reset-timing coverage.",
+    "Linear link-origin prediction is not continuous-time boundary proof.",
+    "Whole-GPU resource samples include other users; timing and memory are not exclusive-task measurements."
+  ]
+}

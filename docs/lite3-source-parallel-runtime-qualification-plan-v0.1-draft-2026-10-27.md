@@ -1,8 +1,8 @@
 # Lite3 Source 并行运行资格检查方案
 
 版本：v0.1 draft，2026-10-27
-状态：`friction_front_back_passed_alternating_pending_approval`
-当前进度：前后摩擦带唯一回合安全通过：冻结提交 `e1f643f`，1467 步前进 9.311953 m，第 1418 步达到目标后稳定 50 步。向右偏移 0.464844 m，yaw -15.092421 度。四足均接触四个区域（候选系数依次 0.8/0.7/1.0/0.9），滑移代理 59/3293（1.7917%）。146 项 CPU 检查、237 项输入、12 原始文件、1467 次边界谓词及 24939 个 link/COM 换算复核通过。有效接触摩擦及运行时 USD 材料绑定未读回。actor 未变、无 PPO；GPU0 整卡峰值 7270 MiB、前后 4539 MiB，原有进程未动，本次进程无残留。剩余 1 个条件，下一阶段交错摩擦区域（10001/20380，2×2 个 6×2 m 区域）待用户确认。见[完整报告](lite3-source-policy-prequalification-friction-front-back-bands-l1-20261030/README.md)。
+状态：`fixed_l1_condition_coverage_complete_offline_review_pending_approval`
+当前进度：交错摩擦区域唯一回合安全通过：冻结提交 `91f450a`，1464 步前进 9.311933 m，第 1415 步达到目标后稳定 50 步。向右偏移 0.467991 m，yaw -14.796500 度；四个区域均有接触，候选系数 0.7/1.0/0.8/0.9，滑移代理 52/3286（1.5825%）。146 项 CPU 检查、237 项输入、12 原始文件、1464 次边界谓词及 24888 个 link/COM 换算复核通过。有效接触摩擦和运行时 USD 材料绑定未读回。actor 未变、无 PPO；GPU0 峰值 7270 MiB、前后 4539 MiB，原有进程未动，本次进程无残留。15 个登记条件均已有记录：9 个安全通过、6 个失败；不估计独立成功率，不自动进入 G3/G4 或训练。见[完整报告](lite3-source-policy-prequalification-friction-alternating-regions-l1-20261030/README.md)。下一阶段仅提议离线综合复核与失败分析，等待确认。
 
 ## 1. 目的与当前结论
 

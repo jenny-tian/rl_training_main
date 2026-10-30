@@ -1,0 +1,30 @@
+{
+  "schema": "lite3_next_phase_proposal_v1",
+  "stage_id": "offline_fixed_baseline_synthesis_and_failure_analysis",
+  "status": "awaiting_user_phase_approval",
+  "runtime_authorized": false,
+  "simulation_started": false,
+  "ppo_authorized": false,
+  "policy_updates_authorized": false,
+  "purpose": "Review all 15 fixed L1 condition archives, diagnose recorded failures and specify the next narrowly scoped experiment.",
+  "inputs": [
+    "docs/lite3-source-policy-prequalification-friction-alternating-regions-l1-20261030/baseline_progress.json",
+    "docs/lite3-source-policy-prequalification-friction-alternating-regions-l1-20261030/baseline_completion_summary.json"
+  ],
+  "required_work": [
+    "Verify referenced archive/checkpoint/revision provenance; distinguish historical flat evidence, uphill diagnostic repeats and latest fixed-condition results.",
+    "Build a comparable table of completion, steps, speed error, signed drift, yaw, posture, foot slip, safety termination and diagnostic completeness.",
+    "Replay existing boundary traces on CPU and compare slope/rough-slope failures descriptively; do not claim causal mechanisms from unequal geometry/state seeds.",
+    "Audit all three friction layouts for actual per-foot coverage and unavailable material readback; document evidence gaps.",
+    "Produce a concrete minimal follow-up proposal with frozen inputs, scope, acceptance, resources and stop rules. Any runtime, controller/policy/safety change or training requires separate approval.",
+    "Commit, push, verify remote SHA, report and stop."
+  ],
+  "exclusions": [
+    "No simulation or episode repeat",
+    "No PPO or policy update",
+    "No automatic G3/G4 qualification",
+    "No changes to controller, rewards, physics or safety thresholds"
+  ],
+  "reason": "All 15 fixed conditions now have evidence, but recorded failures prevent all-condition qualification. Review existing evidence before proposing new execution.",
+  "authorization_rule": "The current approval covers only the completed alternating-regions phase. This offline synthesis is proposed for the next separately approved phase."
+}
