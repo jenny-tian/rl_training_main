@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib.metadata
-import json
 from pathlib import Path
 import subprocess
 import sys
@@ -20,28 +19,28 @@ import traceback
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "source/rl_training"))
 
+from rl_training.source_scan.smoke_artifacts import SmokeArtifactWriter, finalize_and_close
+
 
 def main():
     from isaaclab.app import AppLauncher
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--attempt-id", required=True)
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args()
     if args.output.exists():
         parser.error("refusing to overwrite diagnostic output")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    # Reserve output before launch, so a killed process cannot look like an
-    # absent run and be retried accidentally under the same artifact name.
-    stream = args.output.open("x", encoding="utf-8")
     app, env = None, None
     started = time.monotonic()
     report = {"status": "starting", "simulation_control_steps": 0, "ppo_updates": 0,
               "training_ready": False, "g3_g4_qualified": False,
               "diagnostic_only": True, "injected_timeout": True,
+              "attempt_id": args.attempt_id,
               "base_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()}
-    stream.write(json.dumps(report) + "\n")
-    stream.flush()
+    writer = SmokeArtifactWriter(args.output, report)
     try:
         print("[source-training-smoke] launching simulator", flush=True)
         app = AppLauncher(args).app
@@ -73,27 +72,41 @@ def main():
         env = SourceTrainingVecEnv(wrapped)
         obs = env.get_observations()
         rng = torch.Generator(device=args.device).manual_seed(132001)
-        rows = []
+        report.update(status="running", critic_width=obs["critic"].shape[1])
+        writer.persist(report)
         for index in range(24):
             if not app.is_running():
                 raise RuntimeError("simulator stopped before diagnostic limit")
             if index == 23:
                 # Diagnostic injection, never a natural 2000-step episode.
                 env.unwrapped.episode_length_buf[0] = 1999
+            columns_before = env.unwrapped.scene.terrain.terrain_types.clone()
             with torch.inference_mode():
                 raw = actor(obs) + torch.randn((2, 12), device=args.device, generator=rng)
                 obs, rewards, dones, extras = env.step(raw)
             report["simulation_control_steps"] = index + 1
             terminal = extras["source_terminal"]
-            rows.append({"step": index + 1, "done": dones.cpu().tolist(),
+            terminal_row = None
+            if terminal is not None:
+                terminal_row = {name: terminal[name].cpu().tolist() for name in (
+                    "ids", "steps", "hold", "completed", "terminated", "truncated")}
+                terminal_row["observations"] = {
+                    name: value.cpu().tolist() for name, value in terminal["observations"].items()}
+                terminal_row["terms"] = {name: value.cpu().tolist() for name, value in terminal["terms"].items()}
+            writer.append_step({"step": index + 1, "done": dones.cpu().tolist(),
                          "raw_action": raw.cpu().tolist(),
+                         "base_action": env.last_trace.base_action.cpu().tolist(),
+                         "requested_action": env.last_trace.requested_action.cpu().tolist(),
                          "executed_action": env.last_trace.executed_action.cpu().tolist(),
                          "projected": env.last_trace.decision.projected.cpu().tolist(),
-                         "terminal_ids": terminal["ids"].cpu().tolist() if terminal else [],
-                         "terminal_steps": terminal["steps"].cpu().tolist() if terminal else [],
-                         "active_terms": {name: value.cpu().tolist()
-                                          for name, value in terminal["terms"].items()} if terminal else {}})
-            report["steps"] = rows
+                         "paused": env.last_trace.decision.paused.cpu().tolist(),
+                         "time_outs": extras["time_outs"].cpu().tolist(),
+                         "episode_counters": env.unwrapped.episode_length_buf.cpu().tolist(),
+                         "terrain_columns_before": columns_before.cpu().tolist(),
+                         "terrain_columns_after": env.unwrapped.scene.terrain.terrain_types.cpu().tolist(),
+                         "terminal": terminal_row})
+            report.update(exposure=env.exposure.report(), total_transitions=2 * (index + 1))
+            writer.persist(report)
             if index < 23 and bool(dones.any()):
                 raise RuntimeError("unexpected early episode ending; stop without retry")
             if index == 23:
@@ -105,28 +118,14 @@ def main():
                     raise RuntimeError("asynchronous timeout reset changed unaffected episode counter")
         report.update(status="passed", exposure=env.exposure.report(),
                       total_transitions=48, checkpoint_sha256=hashlib.sha256(args.checkpoint.read_bytes()).hexdigest())
-        print("[source-training-smoke] wiring probe passed; PPO updates=0", flush=True)
+        print("[source-training-smoke] simulation assertions completed; parent acceptance pending; PPO updates=0", flush=True)
     except Exception:
         report.update(status="failed", error=traceback.format_exc())
         traceback.print_exc()
     finally:
-        try:
-            if env is not None:
-                env.close()
-        except Exception:
-            report.update(status="failed", environment_cleanup_error=traceback.format_exc())
-        finally:
-            try:
-                if app is not None:
-                    app.close()
-            except Exception:
-                report.update(status="failed", simulator_cleanup_error=traceback.format_exc())
-            report["elapsed_seconds"] = time.monotonic() - started
-            stream.seek(0)
-            stream.truncate()
-            json.dump(report, stream, indent=2, allow_nan=False)
-            stream.write("\n")
-            stream.close()
+        report["elapsed_seconds_before_shutdown"] = time.monotonic() - started
+        finalize_and_close(writer, report, environment_close=env.close if env is not None else None,
+                           application_close=app.close if app is not None else None)
     return 0 if report["status"] == "passed" else 1
 
 

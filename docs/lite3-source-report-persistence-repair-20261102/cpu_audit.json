@@ -1,0 +1,83 @@
+{
+  "schema": "lite3_source_persistence_repair_cpu_audit_v1",
+  "status": "cpu_persistence_repair_passed_runtime_confirmation_pending",
+  "base_revision": "f827e8905ce2924c71660aef53c69b5a5ac75762",
+  "user_approved_scope": "CPU-only persistence repair; no simulator retry",
+  "python": "3.11.15 (main, Mar 11 2026, 17:20:07) [GCC 14.3.0]",
+  "tests_total": 220,
+  "new_persistence_tests": 29,
+  "existing_regressions": 191,
+  "isaac_sim_launches": 0,
+  "gpu_jobs": 0,
+  "source_training_transitions": 0,
+  "source_ppo_updates": 0,
+  "synthetic_cpu_ppo_updates_in_final_regression_suite": 1,
+  "test_environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  },
+  "junit_summary": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "220",
+    "time": "4.747",
+    "timestamp": "2026-11-02T09:37:18.239211+08:00",
+    "hostname": "batc-PowerEdge-T640"
+  },
+  "examples": {
+    "application_immediate_exit": {
+      "source_pytest_directory": "/tmp/pytest-of-tjx/pytest-357/test_complete_result_and_all_r0",
+      "synthetic_cpu_only": true,
+      "returncode_verified_by_passing_test": 0,
+      "accepted": true,
+      "steps_in_report": 24
+    },
+    "environment_cleanup_error": {
+      "source_pytest_directory": "/tmp/pytest-of-tjx/pytest-357/test_parent_rejects_incomplete3",
+      "synthetic_cpu_only": true,
+      "returncode_verified_by_passing_test": 0,
+      "accepted": false,
+      "steps_in_report": 24
+    },
+    "midway_exit": {
+      "source_pytest_directory": "/tmp/pytest-of-tjx/pytest-357/test_parent_rejects_incomplete5",
+      "synthetic_cpu_only": true,
+      "returncode_verified_by_passing_test": 17,
+      "accepted": false,
+      "steps_in_report": 5
+    }
+  },
+  "historical_archive_result_sha256_unchanged": "8c434a3e4d31c7045545b86e938a1400b048fa03d1f0847ab23ffd6bfe37d86c",
+  "historical_zero_exit_rejected": {
+    "schema": "lite3_source_smoke_acceptance_v1",
+    "accepted": false,
+    "returncode": 0,
+    "reasons": [
+      "FileNotFoundError:[Errno 2] No such file or directory: '/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-training-integration-smoke-20261102/raw/result.steps.jsonl'"
+    ],
+    "record_count": 0
+  },
+  "unchanged_training_inputs": {
+    "source/rl_training/rl_training/online_adaptation/safety.py": true,
+    "source/rl_training/rl_training/source_scan/bridge.py": true,
+    "source/rl_training/rl_training/source_scan/source_training.py": true,
+    "source/rl_training/rl_training/source_scan/frozen_actor.py": true,
+    "source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py": true,
+    "source/rl_training/rl_training/source_scan/training_env.py": true,
+    "source/rl_training/rl_training/source_scan/training_lifecycle.py": true,
+    "source/rl_training/rl_training/source_scan/training_ppo.py": true,
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py": true,
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py": true
+  },
+  "repair_input_sha256": {
+    "scripts/tools/source_training_integration_smoke.py": "c9e02d684f5dce98139f738e3aacb923d84164a1b9243a647c28adc9c8af2929",
+    "scripts/tools/source_training_integration_supervisor.py": "b16676f520c50d71147fa2c3e42da3fafcc60081b897042bc8806a6108dba4be",
+    "source/rl_training/rl_training/source_scan/smoke_artifacts.py": "e0953eb92d18dccc10b29d9c75f0db2b949eed1575b469b69201274e20799297",
+    "tests/source_scan/test_smoke_artifacts.py": "630200ed10c966f12367976190a711c60a225941bab9f5b3ba8d29acdd2c5b1f",
+    "tests/source_scan/fixtures/smoke_persistence_child.py": "6d3008da153ff0cf4ef2f0776589273828e1e008094020ee35adc2d8856b003b"
+  },
+  "simulation_retry_approved": false,
+  "next_stage": "same-scope two-environment simulation with new artifacts; waiting for user approval"
+}

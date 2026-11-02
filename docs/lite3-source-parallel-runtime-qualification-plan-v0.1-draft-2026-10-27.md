@@ -3,6 +3,12 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-02 当前阶段：** 用户已批准仅修复报告持久化并进行 CPU 验证。
+现已实现关闭前原子写盘、逐步追加证据、独立清理状态及父进程完整性验收，
+220 项 CPU 回归通过。本阶段没有启动仿真/GPU 任务或 Source 训练；
+上一轮不完整归档保留。下一阶段只提议以新目录执行同等 2 环境/24 步检查，
+尚未得到重跑同意。见[修复报告与待批准提案](lite3-source-report-persistence-repair-20261102/README.md)。
+
 **2026-11-02 最新：** 已按用户同意执行一次 2 环境/24 步/零 PPO 更新的训练
 接线检查。运行日志到达通过标记，但最终 JSON 在 Kit 关闭后未写盘，不能完整
 验收；本轮记为 `incomplete_runtime_artifacts`，没有重跑或放大。
