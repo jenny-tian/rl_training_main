@@ -1,0 +1,28 @@
+{
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  },
+  "argv": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_moving_diagnostic.py",
+    "tests/source_scan/test_smoke_artifacts.py",
+    "tests/source_scan/test_training_environment.py",
+    "tests/source_scan/test_bridge.py",
+    "tests/source_scan/test_source_training.py",
+    "tests/source_scan/test_parallel_terrain_allocation.py",
+    "tests/source_scan/test_source_parallel_reset_lifecycle.py",
+    "tests/source_scan/test_tile_bounds.py",
+    "tests/source_scan/test_shared_tensor_contact.py",
+    "tests/source_scan/test_shared_contact_report.py",
+    "tests/source_scan/test_source_ground_ray_caster.py",
+    "tests/source_scan/test_shared_terrain_bank.py",
+    "tests/online_adaptation/test_safety.py",
+    "tests/online_adaptation/test_lite3_joint_conventions.py",
+    "--junitxml=/tmp/lite3_source_eight_env_preparation_20261102.junit.xml"
+  ]
+}

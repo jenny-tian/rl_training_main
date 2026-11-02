@@ -1,0 +1,66 @@
+{
+  "schema": "lite3_eight_env_cpu_preparation_audit_v1",
+  "status": "cpu_prepared_eight_env_runtime_pending",
+  "base_revision": "3ed7e2aa61795d58739594a0f329cf564e47eb3a",
+  "tests": 410,
+  "new_moving_tests": 26,
+  "existing_regressions": 384,
+  "junit_summary": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "410",
+    "time": "140.503",
+    "timestamp": "2026-11-02T10:31:06.359419+08:00",
+    "hostname": "batc-PowerEdge-T640"
+  },
+  "isaac_sim_launches": 0,
+  "gpu_jobs": 0,
+  "source_training_transitions": 0,
+  "source_ppo_updates": 0,
+  "existing_regression_synthetic_cpu_ppo_updates": 1,
+  "synthetic_probe": {
+    "source_pytest_directory": "/tmp/pytest-of-tjx/pytest-362/eight_env_synthetic_cpu0",
+    "num_envs": 8,
+    "control_steps": 96,
+    "substeps": 384,
+    "transitions": 768,
+    "ordinary_failures": 1,
+    "total_endings": 9,
+    "reset_batches": 4,
+    "uncompressed_event_bytes": 168168636,
+    "compressed_event_bytes": 1153369,
+    "gpu_backend_is_synthetic": true,
+    "copied_files_match": {
+      "result.json": true,
+      "result.steps.jsonl": true,
+      "result.cleanup.json": true,
+      "cpu_acceptance.json": true,
+      "result.events.jsonl.gz": true
+    }
+  },
+  "python": "3.11.15 (main, Mar 11 2026, 17:20:07) [GCC 14.3.0]",
+  "packages": {
+    "torch": "2.7.0+cu128",
+    "numpy": "1.26.0",
+    "rsl-rl-lib": "5.0.1"
+  },
+  "test_env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+  },
+  "changed_source_sha256": {
+    "source/rl_training/rl_training/source_scan/smoke_artifacts.py": "3d8e266790b1066067099e28616d10f97cb51d91e21c2ba832b1c842752ef675",
+    "source/rl_training/rl_training/source_scan/moving_diagnostic.py": "cfdc9fd41eeabda4c156e268c0169e9005a0f237cb6926b54d432d0cd5e2d0d2",
+    "scripts/tools/source_eight_env_moving_probe.py": "d5be47603263e5c39f81ef0fe94732251d3a5d93876a791a94140a30146a2843",
+    "scripts/tools/source_eight_env_moving_validation.py": "895b4f959758e1cbf774fbd24e100f6b7ee527457d08a72ab8ee5bbd9901cc5c",
+    "scripts/tools/source_eight_env_moving_supervisor.py": "bca813198233976dc4f776448224f182be046ae3713bba7d4be5c5fefacac223",
+    "tests/source_scan/moving_cpu_fixture.py": "810851406dfa8571bfc8680cd54235d13cff0341f171cad602a3618f65c9e998",
+    "tests/source_scan/test_moving_diagnostic.py": "db4641e4d409d05cca11596605628f44af696eb1329a020d9ff3e402e4230687"
+  },
+  "runtime_approved": false,
+  "production_python_inputs": 212,
+  "usd_assets": 5,
+  "installed_dependency_count": 35
+}

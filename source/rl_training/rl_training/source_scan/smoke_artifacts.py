@@ -51,14 +51,15 @@ def atomic_json(path, value):
 
 
 class SmokeArtifactWriter:
-    def __init__(self, output, report):
+    def __init__(self, output, report, *, schema=SCHEMA):
         self.paths = artifact_paths(output)
+        self.schema = schema
         self.attempt_id = report["attempt_id"]
         if not isinstance(self.attempt_id, str) or not self.attempt_id:
             raise ValueError("attempt_id must be nonempty")
         if any(path.exists() for path in self.paths.values()):
             raise FileExistsError("probe artifact already exists; choose a new approved attempt directory")
-        payload = _encoded({**report, "schema": SCHEMA})
+        payload = _encoded({**report, "schema": self.schema})
         self.paths["result"].parent.mkdir(parents=True, exist_ok=True)
         with self.paths["result"].open("xb") as stream:
             stream.write(payload)
@@ -83,7 +84,7 @@ class SmokeArtifactWriter:
         if report.get("attempt_id") != self.attempt_id:
             raise ValueError("attempt identity changed")
         atomic_json(self.paths["result"], {
-            **report, "schema": SCHEMA, "steps_written": self.count,
+            **report, "schema": self.schema, "steps_written": self.count,
             "steps_file": self.paths["steps"].name,
             "steps_sha256": hashlib.sha256(self.paths["steps"].read_bytes()).hexdigest(),
         })
