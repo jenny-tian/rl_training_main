@@ -1,0 +1,23 @@
+{
+  "schema": "lite3_source_cumulative_numerics_readiness_preparation_v1",
+  "status": "proposed_waiting_for_user_approval",
+  "user_approved": false,
+  "stage": "cpu_only_cumulative_budget_runtime_and_source_selection_preparation",
+  "run1_transitions_already_charged": 384,
+  "run1_candidate_remaining_120x24_updates": {"numerics": 90, "midpoint": 363, "pilot": 728},
+  "formal_hard_ceiling_increase_authorized": false,
+  "candidate_num_envs": 120,
+  "candidate_rollout_length": 24,
+  "planned_work": [
+    "Implement and verify cumulative budget-aware formal entrypoint and an explicit initialization/continuation contract without silently reusing diagnostic weights.",
+    "Prepare selected-scale G3/G4 and throughput qualification manifests, evidence strategy and supervision without executing them.",
+    "Complete a six-family Source-only validation and checkpoint-selection protocol proposal with registered split/seed boundaries."
+  ],
+  "isaac_sim_launches": 0,
+  "gpu_jobs": 0,
+  "real_source_training_transitions": 0,
+  "real_source_ppo_updates": 0,
+  "automatic_scale_increase": false,
+  "development_or_sealed_feedback_allowed": false,
+  "after_completion": "commit_push_verify_report_then_wait_for_separate_runtime_or_training_approval"
+}

@@ -1,0 +1,207 @@
+{
+  "status": "archived_real_ppo_evidence_verified",
+  "executed_revision": "fbae04ff85b8e4fb915a5ee86fe1298bb787f2ff",
+  "acceptance": {
+    "schema": "lite3_source_live_ppo_acceptance_v1",
+    "accepted": true,
+    "reasons": [],
+    "training_ready": false,
+    "g3_g4_qualified": false,
+    "control_steps": 48,
+    "diagnostic_transitions": 384,
+    "ppo_updates": 2,
+    "ordinary_failure_episodes": 0,
+    "event_review": {
+      "motion_samples": 192,
+      "contact_samples": 192,
+      "reset_batches": 2,
+      "control_scans": 48,
+      "ground_contact_points": {
+        "0": 404,
+        "1": 399,
+        "3": 386,
+        "5": 403,
+        "6": 409,
+        "7": 406,
+        "2": 384,
+        "4": 385
+      },
+      "pending_final_recovery_ids": []
+    },
+    "synthetic_cpu_fixture": false,
+    "scope": "bounded live PPO integration"
+  },
+  "parameter_changes": [
+    {
+      "update": 1,
+      "actor_changed_tensors": 9,
+      "actor_l2_delta": 0.7217273188142822,
+      "actor_sha256": "9c736d99f44f84ef5b02c0191fd5e5b7ff44ca541ac2ffc71f68cc95f7172eed",
+      "critic_changed_tensors": 8,
+      "critic_l2_delta": 0.896699745774654,
+      "critic_sha256": "f0c0b8bb4d601a98b36aef8a82d79007b5431d57ad94b70fbb96f94db467febc",
+      "losses": {
+        "entropy": 17.02911901473999,
+        "surrogate": -0.02350691656465642,
+        "value": 0.10188486240804195
+      }
+    },
+    {
+      "update": 2,
+      "actor_changed_tensors": 9,
+      "actor_l2_delta": 0.1688574396274089,
+      "actor_sha256": "7637bf010ba718e2c0ca3d236014b03015f3971ae897508630c8947bd65c836d",
+      "critic_changed_tensors": 8,
+      "critic_l2_delta": 0.40503516929503414,
+      "critic_sha256": "8ef69217ddd0d5e5982fddb93a62df56ac01a76561d1a9a121cc70ba52f1a1b8",
+      "losses": {
+        "entropy": 17.027682304382324,
+        "surrogate": -0.06313780220225454,
+        "value": 0.08788671288639308
+      }
+    }
+  ],
+  "raw_action_clipped_rows": 78,
+  "additional_projection_rows": 0,
+  "paused_rows": 0,
+  "forced_resets": [
+    {
+      "step": 12,
+      "ids": [
+        0
+      ],
+      "terminal_steps": [
+        2000
+      ],
+      "episode_counters_after": [
+        0,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    {
+      "step": 36,
+      "ids": [
+        1,
+        4,
+        7
+      ],
+      "terminal_steps": [
+        2000,
+        2000,
+        2000
+      ],
+      "episode_counters_after": [
+        24,
+        0,
+        36,
+        36,
+        0,
+        36,
+        36,
+        0
+      ]
+    }
+  ],
+  "final_episode_counters": [
+    36,
+    12,
+    48,
+    48,
+    12,
+    48,
+    48,
+    12
+  ],
+  "exposure": {
+    "flat": {
+      "episode_assignments": 2,
+      "transitions": 84
+    },
+    "friction_alternating_regions": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "friction_front_back_bands": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "friction_left_right_bands": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "multi_scale_rough": {
+      "episode_assignments": 6,
+      "transitions": 216
+    },
+    "slope_cross_slope_left": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "slope_cross_slope_right": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "slope_downhill": {
+      "episode_assignments": 1,
+      "transitions": 12
+    },
+    "slope_rough_cross_slope_left": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "slope_rough_cross_slope_right": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "slope_rough_downhill": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "slope_rough_uphill": {
+      "episode_assignments": 1,
+      "transitions": 12
+    },
+    "slope_uphill": {
+      "episode_assignments": 1,
+      "transitions": 48
+    },
+    "stairs_ascending": {
+      "episode_assignments": 0,
+      "transitions": 0
+    },
+    "stairs_descending": {
+      "episode_assignments": 1,
+      "transitions": 12
+    }
+  },
+  "descriptive_motion_extrema": {
+    "reset_relative_forward_progress_m": 0.22010564804077148,
+    "link_displacement_per_5ms_m": 0.03684505075216293,
+    "link_speed_mps": 7.27966833114624,
+    "finite_difference_link_acceleration_mps2": 1181.0897216796875
+  },
+  "minimum_sampled_envelope_margin_m": 0.8107514381408691,
+  "card_level_resource_samples": {
+    "count": 18,
+    "used_peak_mib": 6248,
+    "free_min_mib": 17877
+  },
+  "log_markers": {
+    "foot_visual_reference_warnings": 32,
+    "gpu_enumeration_skip_warnings": 6,
+    "python_tracebacks": 0
+  },
+  "real_transitions_charged": 384,
+  "production_inputs": 225,
+  "installed_dependencies": 44,
+  "new_simulation_launches": 0,
+  "new_ppo_updates": 0,
+  "training_ready": false,
+  "g3_g4_qualified": false
+}
