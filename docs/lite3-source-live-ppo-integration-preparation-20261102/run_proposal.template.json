@@ -1,0 +1,65 @@
+{
+  "schema": "lite3_source_live_ppo_diagnostic_v1",
+  "purpose": "bounded_live_ppo_integration",
+  "run": 1,
+  "num_envs": 8,
+  "shared_bank_rows": 1,
+  "rollout_length": 24,
+  "max_updates": 2,
+  "max_transitions": 384,
+  "control_steps": 48,
+  "physics_substeps": 192,
+  "learning_epochs": 5,
+  "mini_batches": 4,
+  "optimizer_steps": 40,
+  "ppo_seed": 130001,
+  "geometry_seed": 30000,
+  "sampler_seed": 131001,
+  "reset_state_id": 40000,
+  "reset_randomized": false,
+  "action_std": 1.0,
+  "timeout_probes": {
+    "12": [
+      0
+    ],
+    "36": [
+      1,
+      4,
+      7
+    ]
+  },
+  "device": "cuda:0",
+  "startup_timeout_s": 120,
+  "wall_timeout_s": 240,
+  "cleanup_grace_s": 15,
+  "minimum_free_vram_mib": 12288,
+  "minimum_free_disk_bytes": 2147483648,
+  "events_byte_limit": 1073741824,
+  "retry": false,
+  "resume": false,
+  "automatic_scale_increase": false,
+  "development_or_sealed_feedback_allowed": false,
+  "registered_cells": 15,
+  "retain_six_families": true,
+  "budget_policy": "reserve_full_384_against_run1_no_automatic_refund",
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "training_ready": false,
+  "g3_g4_qualified": false,
+  "user_approved": false,
+  "status": "proposed_template_freeze_after_commit",
+  "attempt_id": "lite3-source-live-ppo-run1-20261102-v1",
+  "base_revision": null,
+  "remote_revision_verified": null,
+  "output_dir": "/tmp/lite3_source_live_ppo_run1_20261102",
+  "budget_ledger": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-ppo-ledgers/lite3-l1-v1.json",
+    "sha256": null
+  },
+  "freeze_command_required": true,
+  "formal_budget_ceilings_unchanged": true,
+  "remaining_120x24_updates_after_384_reservation": {
+    "numerics": 90,
+    "midpoint": 363,
+    "pilot": 728
+  }
+}

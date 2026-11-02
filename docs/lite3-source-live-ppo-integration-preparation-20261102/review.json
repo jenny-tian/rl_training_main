@@ -1,0 +1,44 @@
+{
+  "status": "cpu_preparation_archive_verified",
+  "verifier_exit_code": 0,
+  "verifier_command": "CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/tjx/anaconda3/envs/env_isaaclab/bin/python docs/lite3-source-live-ppo-integration-preparation-20261102/review.py",
+  "summary_provenance": "Saved after successful review.py invocation; acceptance and counts are read from archived records.",
+  "regression_tests": 461,
+  "followup_tests": 42,
+  "distinct_tests": 462,
+  "isaac_sim_launches": 0,
+  "gpu_jobs": 0,
+  "real_source_updates": 0,
+  "synthetic_example_acceptance": {
+    "schema": "lite3_source_live_ppo_acceptance_v1",
+    "accepted": true,
+    "reasons": [],
+    "training_ready": false,
+    "g3_g4_qualified": false,
+    "control_steps": 48,
+    "diagnostic_transitions": 384,
+    "ppo_updates": 2,
+    "ordinary_failure_episodes": 1,
+    "event_review": {
+      "motion_samples": 192,
+      "contact_samples": 192,
+      "reset_batches": 3,
+      "control_scans": 48,
+      "ground_contact_points": {
+        "0": 192,
+        "1": 192,
+        "2": 192,
+        "3": 192,
+        "4": 192,
+        "5": 192,
+        "6": 192,
+        "7": 192
+      },
+      "pending_final_recovery_ids": []
+    },
+    "synthetic_cpu_fixture": true,
+    "scope": "synthetic CPU acceptance fixture only"
+  },
+  "production_inputs": 225,
+  "core_dependencies": 44
+}

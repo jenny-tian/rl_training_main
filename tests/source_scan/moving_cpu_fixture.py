@@ -151,12 +151,13 @@ def environment():
     return env,interface,events,wrapped
 
 
-def build_artifacts(folder):
+def build_artifacts(folder, *, live_ppo=False):
     from source_shared_contact_report import ContactRuntime, capture_substeps
     from source_shared_tensor_contact import TensorContactCapture
     from source_parallel_reset_lifecycle import snapshot, check_transition
     from source_eight_env_moving_probe import serial_terminal
     env,interface,events,wrapped=environment()
+    control_steps = 48 if live_ppo else 96
     bodies=sorted(f'/World/envs/env_{i}/Robot/B{b:02d}' for i in range(8) for b in range(17))
     ground='/World/ground/terrain'
     filters=[bodies+[ground] for _ in bodies]
@@ -186,7 +187,12 @@ def build_artifacts(folder):
         'geometry_seed':30000,'sampler_seed':131001,'ppo_seed':130001,'noise_rng_seed':132001,
         'reset_state_id':40000,'reset_randomized':False,'stochastic_std':1.0,'body_names':[f'B{i:02d}' for i in range(17)],
         'synthetic_cpu_fixture':True}
-    writer=SmokeArtifactWriter(output,report,schema=SCHEMA)
+    schema = SCHEMA
+    if live_ppo:
+        from rl_training.source_scan.live_ppo_diagnostic import SCHEMA as LIVE_SCHEMA
+        report.update(ppo_updates=0, data_kind='synthetic', control_steps_limit=48)
+        schema = LIVE_SCHEMA
+    writer=SmokeArtifactWriter(output,report,schema=schema)
     with EventJournal(event_path) as journal:
         original_record=journal.record
         def record(value):
@@ -196,13 +202,36 @@ def build_artifacts(folder):
         observer=MovingObserver(env,wrapped.runtime,journal,snapshot,check_transition)
         capture=TensorContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[ground],physics_dt=.005,
             num_envs=8,capacity=65536,stage_id=73,reporting_bodies=bodies,record=journal.record,
-            start_step=env._sim_step_counter,decimation=4,control_steps=96)
+            start_step=env._sim_step_counter,decimation=4,control_steps=control_steps)
         report.update(initial_assignments=observer.initial_assignments,start_sim_step=env._sim_step_counter,
             terrain_origins=tensor_record(env.scene.terrain.terrain_origins),initial_positions_w=tensor_record(observer.previous[0]),
             initial_velocities_w=tensor_record(observer.previous[1]))
         journal.record({'phase':'initial','synthetic_cpu_fixture':True})
         with capture_substeps(env,interface,capture,runtime),observer.installed():
-            for step in range(1,97):
+            if live_ppo:
+                from rsl_rl.runners import OnPolicyRunner
+                from scripts.tools.source_training_preflight import runner_config
+                from rl_training.source_scan.source_training import TransitionBudget
+                from rl_training.source_scan.training_runner import SourceTrainingRunner
+                from rl_training.source_scan.live_ppo_diagnostic import LivePPOJournal
+                config=runner_config()
+                config['algorithm']['class_name']='rl_training.source_scan.training_ppo:SourcePPO'
+                wrapped.source_synthetic_fixture=True
+                torch.manual_seed(130001)
+                runner=OnPolicyRunner(wrapped,config,log_dir=None,device='cpu')
+                def checked(step):
+                    capture.check_control(env,step)
+                    journal.record({'phase':'control_scans','step':step,'sim_step':env._sim_step_counter,
+                        'root_positions_w':env.scene['robot'].data.root_link_pos_w.tolist(),
+                        'origins_w':env.scene.terrain.env_origins.tolist(),
+                        'scanners':observer.scans(('height_scanner','height_scanner_base'))})
+                    journal.flush()
+                live=LivePPOJournal(writer,report,app_running=lambda:True,step_check=checked)
+                training=SourceTrainingRunner(runner,run=1,budget=TransitionBudget(8,24,384),
+                    output_dir=folder/'training',checkpoint_sha256='b'*64,checkpoint_nodes=(1,2))
+                training.run(observer=live)
+                report['training_snapshot']=dict(training.report)
+            for step in ([] if live_ppo else range(1,97)):
                 forced=TIMEOUT_PROBES.get(step,[])
                 if forced:env.episode_length_buf[forced]=1999
                 before=env.scene.terrain.terrain_types.clone()
@@ -219,7 +248,7 @@ def build_artifacts(folder):
                     'executed_action':[[0.]*12]*8,'projected':[[False]]*8,'paused':[[False]]*8})
         report.update(motion_samples=observer.samples,reset_batches=observer.resets,
                       pending_recovery_ids=sorted(observer.pending_recovery),contact_capture=capture.summary())
-    report.update(status='passed',simulation_control_steps=96,total_transitions=768,exposure=wrapped.exposure.report(),
+    report.update(status='passed',simulation_control_steps=control_steps,total_transitions=control_steps*8,exposure=wrapped.exposure.report(),
                   events_file=event_path.name,events_sha256=digest_file(event_path))
     finalize_and_close(writer,report,environment_close=lambda:None,application_close=lambda:None)
     # Lossless archive path is exercised without a second run of the fixture.

@@ -45,7 +45,7 @@ def events_digest(path):
     return digest.hexdigest()
 
 
-def review_events(path, report, controls):
+def review_events(path, report, controls, *, control_steps=CONTROL_STEPS):
     start = report['start_sim_step']
     grid = restore_tensor(report['terrain_origins'])
     require(grid.shape == (1, 15, 3), 'wrong terrain origin grid')
@@ -168,13 +168,13 @@ def review_events(path, report, controls):
             summaries.append(event)
         elif phase in ('contact_error', 'cross_environment_contact', 'motion_error'):
             raise ValueError('integrity error in event journal')
-    require(motion_count == contact_count == 384 and scan_count == 96 and not details and reset_pending is None,
+    require(motion_count == contact_count == control_steps*4 and scan_count == control_steps and not details and reset_pending is None,
             'incomplete motion/contact/reset evidence')
-    require(report['motion_samples'] == 384 and report['reset_batches'] == reset_count
+    require(report['motion_samples'] == control_steps*4 and report['reset_batches'] == reset_count
             and report['pending_recovery_ids'] == sorted(pending), 'event summary mismatch')
     require(len(summaries) == 1, 'missing or duplicate contact summary')
     contact = {key: value for key, value in summaries[0].items() if key != 'phase'}
-    require(contact == report['contact_capture'] and tensor_summary_passed(contact, dict(ground), control_steps=96),
+    require(contact == report['contact_capture'] and tensor_summary_passed(contact, dict(ground), control_steps=control_steps),
             'contact positive controls/summary invalid')
     return {'motion_samples': motion_count, 'contact_samples': contact_count, 'reset_batches': reset_count,
             'control_scans': scan_count, 'ground_contact_points': dict(ground), 'pending_final_recovery_ids': sorted(pending)}

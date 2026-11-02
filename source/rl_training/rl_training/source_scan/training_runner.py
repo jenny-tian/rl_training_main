@@ -131,6 +131,7 @@ def validate_training_authorization(
     checkpoint_sha256: str,
     revision: str,
     input_sha256: dict[str, str],
+    ledger_path: Path | None = None,
 ) -> dict[str, Any]:
     """Validate the complete, explicit lock before launching Isaac Sim."""
     if not isinstance(manifest, dict) or manifest.get("schema") != "lite3_source_ppo_authorization_v1":
@@ -175,6 +176,10 @@ def validate_training_authorization(
             raise ValueError(f"authorization contract mismatch: {key}")
     if manifest.get("output_dir") != str(output_dir.resolve()):
         raise ValueError("authorization output directory differs from the requested path")
+    from .training_budget_ledger import BudgetLedger, canonical_budget_path
+    if ledger_path is None:
+        ledger_path = canonical_budget_path(Path(__file__).resolve().parents[4])
+    BudgetLedger(ledger_path).assert_fresh(run, manifest.get('budget_ledger'))
     validate_readiness(manifest, input_sha256)
     receipts = manifest.get("prior_gate_receipts", {})
     required_receipts = {"midpoint": ("numerics",), "pilot": ("numerics", "midpoint")}.get(budget_node, ())
@@ -189,6 +194,7 @@ def validate_training_authorization(
         "runtime_qualification": manifest["runtime_qualification"],
         "source_selection_lock": manifest["source_selection_lock"],
         "dependency_sha256": manifest["dependency_sha256"],
+        "budget_ledger": manifest['budget_ledger'],
     }
 
 
@@ -337,7 +343,7 @@ class SourceTrainingRunner:
         _assert_finite(state, "policy checkpoint")
         _atomic_torch_save(self.output_dir / f"actor_update_{update}.pt", state)
 
-    def run(self, *, before_step=None) -> dict[str, Any]:
+    def run(self, *, before_step=None, observer=None) -> dict[str, Any]:
         self.output_dir.mkdir(parents=True, exist_ok=False)
         self.report["status"] = "running"
         self._persist()
@@ -345,6 +351,8 @@ class SourceTrainingRunner:
             observations = self.env.get_observations().to(self.runner.device)
             self._validate_observations(observations)
             self.algorithm.train_mode()
+            if observer is not None:
+                observer.initial(self, observations)
             while self.report["completed_updates"] < self.budget.max_updates:
                 completed = self.report["completed_updates"]
                 self.budget.assert_update_allowed(completed)
@@ -359,6 +367,10 @@ class SourceTrainingRunner:
                 self._persist()
                 with torch.inference_mode():
                     for step in range(self.budget.rollout_length):
+                        global_step = completed * self.budget.rollout_length + step + 1
+                        if observer is not None:
+                            observer.before_step(self, global_step)
+                        old_observations = observations.clone() if observer is not None else None
                         if before_step is not None:
                             before_step()
                         actions = self.algorithm.act(observations)
@@ -375,9 +387,14 @@ class SourceTrainingRunner:
                         self.algorithm.process_env_step(observations, rewards, dones, extras)
                         self.report["stored_transitions"] += self.budget.num_envs
                         self.report["partial_rollout_stored_steps"] = step + 1
+                        if observer is not None:
+                            observer.after_step(self, global_step, old_observations, observations,
+                                                actions, rewards, dones, extras)
                         self._persist()
                     self.algorithm.compute_returns(observations)
                 self._storage_is_finite()
+                if observer is not None:
+                    observer.before_update(self, completed + 1)
                 losses = self.algorithm.update()
                 for name, value in losses.items():
                     if not isinstance(value, (int, float)) or not math.isfinite(float(value)):
@@ -401,6 +418,8 @@ class SourceTrainingRunner:
                 if completed in self.checkpoint_nodes:
                     self._save_policy(completed)
                 self._persist()
+                if observer is not None:
+                    observer.after_update(self, completed, receipt)
             self.report["status"] = "completed"
             self.report["training_transitions"] = self.report["stored_transitions"]
             self._persist()

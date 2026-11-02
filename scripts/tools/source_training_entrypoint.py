@@ -109,7 +109,16 @@ def main() -> int:
                "authorization": lock, "environment_close_returned": False,
                "application_close_state": "not_started"}
     _atomic_json(args.output_dir / "attempt.json", attempt)
+    reservation = None
     try:
+        from rl_training.source_scan.training_budget_ledger import BudgetLedger
+        ledger = BudgetLedger(lock['budget_ledger']['path'])
+        reservation = ledger.reserve(run=args.run, attempt_id='source-numerics-' + hashlib.sha256(
+            str(args.output_dir).encode()).hexdigest(), transitions=lock['max_updates'] * 120 * 24,
+            purpose='source_numerics', output_dir=args.output_dir, revision=revision,
+            expected_reference=lock['budget_ledger'])
+        attempt['budget_reservation'] = reservation
+        _atomic_json(args.output_dir / "attempt.json", attempt)
         import csv
 
         gpu = subprocess.check_output([
@@ -223,6 +232,12 @@ def main() -> int:
             training.report.setdefault("entrypoint_error", f"{type(error).__name__}: {error}")
             training._persist()
         _atomic_json(args.output_dir / "attempt.json", attempt)
+        if reservation is not None:
+            counts = training.report if training is not None else {}
+            ledger.finish(reservation['attempt_id'], accepted=attempt['status'] == 'completed',
+                attempted=counts.get('attempted_transition_upper_bound', 0),
+                returned=counts.get('returned_transitions', 0), stored=counts.get('stored_transitions', 0),
+                updates=counts.get('completed_updates', 0))
     if attempt["status"] != "completed":
         raise RuntimeError("Source PPO attempt did not complete with successful cleanup")
     return 0

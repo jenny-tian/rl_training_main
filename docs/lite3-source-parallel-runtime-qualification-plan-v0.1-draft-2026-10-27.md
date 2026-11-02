@@ -3,6 +3,14 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-02 最新准备完成：** 用户批准真实PPO联调的实现和离线验证后，已完成独立
+8环境×24步×2更新入口、监督器、逐子步物理及PPO原始记录、独立数值验收和跨worktree
+累计预算台账。461项整组回归通过；台账移至公共Git元数据目录后42项针对性检查通过。
+归档示例为CPU合成数据，生产台账未创建，真实Source交互/更新、GPU任务与Isaac启动0。
+待单独批准后才执行唯一一次384交互的GPU0真实联调；384整笔计入run1且失败不自动退回，
+不扩大既有硬上限。原从零开始的run1正式节点不能绕过已花费台账，须另锁累计方案。
+不授予完整G3/G4、120规模或技能资格。见[准备报告、预算和运行清单](lite3-source-live-ppo-integration-preparation-20261102/README.md)。
+
 **2026-11-02 当前阶段完成：** 用户批准入口实现、CPU边界测试和小规模GPU合成更新。
 Source PPO专用入口与预算runner已完成，433项登记回归通过；三个种子在CPU和GPU0
 上分别各完成2次合成PPO更新，即每种设备6次更新/1152 synthetic transitions。

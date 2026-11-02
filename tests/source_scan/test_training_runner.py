@@ -204,7 +204,9 @@ def authorization(tmp_path):
         input_sha256=inputs, output_dir=str((tmp_path / 'new_run').resolve()),
         runtime_qualification=runtime, source_selection_lock=selection, dependency_sha256=dependencies)
     kwargs = dict(run=1, budget_node='numerics', output_dir=tmp_path / 'new_run',
-                  checkpoint_sha256='a' * 64, revision='c' * 40, input_sha256=inputs)
+                  checkpoint_sha256='a' * 64, revision='c' * 40, input_sha256=inputs,
+                  ledger_path=tmp_path / 'budget.json')
+    manifest['budget_ledger'] = {'path': str(tmp_path / 'budget.json'), 'sha256': None}
     return manifest, kwargs
 
 

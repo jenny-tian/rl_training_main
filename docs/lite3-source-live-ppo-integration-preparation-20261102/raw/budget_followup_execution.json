@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_live_ppo_diagnostic.py",
+    "tests/source_scan/test_training_runner.py",
+    "-k",
+    "not fixture and not corrupt",
+    "--junitxml=/tmp/lite3-live-ppo-preparation-20261102-iWedyF/budget_followup.junit.xml"
+  ],
+  "returncode": 0,
+  "elapsed_seconds": 4.873457592912018
+}
