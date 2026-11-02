@@ -84,15 +84,38 @@ def main() -> int:
     parser.add_argument("--budget-node", choices=tuple(TRAINING_NODES), required=True)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--validate-only", action="store_true", help="Validate without importing Isaac or starting CUDA")
+    parser.add_argument("--supervised-ticket", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
     args.output_dir = args.output_dir.resolve()
     args.checkpoint = args.checkpoint.resolve()
     manifest = json.loads(args.authorization.read_text(encoding="utf-8"))
-    lock, revision, hashes = validate_before_simulation(args, manifest)
+    if args.supervised_ticket is None:
+        lock, revision, hashes = validate_before_simulation(args, manifest)
+    else:
+        from rl_training.source_scan.cumulative_training import validate_supervised_child
+        from rl_training.source_scan.training_budget_ledger import canonical_budget_path
+        revision, remote, dirty = _git_state()
+        if args.device != 'cuda:0' or os.environ.get('CUDA_VISIBLE_DEVICES') not in (None, '0'):
+            raise ValueError('supervised Source GPU mapping changed')
+        hashes = _input_hashes()
+        if dirty or revision != remote or hashlib.sha256(args.checkpoint.read_bytes()).hexdigest() != CHECKPOINT_SHA256:
+            raise ValueError('supervised Source worktree, remote or checkpoint changed')
+        if args.supervised_ticket.resolve() != args.output_dir / 'supervision.json':
+            raise ValueError('supervision ticket is outside the approved attempt')
+        lock = validate_supervised_child(manifest, json.loads(args.supervised_ticket.read_text()),
+            output_dir=args.output_dir, revision=revision, input_sha256=hashes,
+            ledger_path=canonical_budget_path(ROOT))
+        if args.run != lock['run'] or args.budget_node != lock['budget_node']:
+            raise ValueError('supervised Source run or budget node changed')
+        if importlib.metadata.version('rsl-rl-lib') != '5.0.1':
+            raise RuntimeError('supervised Source requires RSL-RL 5.0.1')
     if args.validate_only:
         print(json.dumps({"status": "authorization_validated", "simulation_started": False,
                           "training_started": False, "base_revision": revision}))
         return 0
+    cumulative = lock['schema'] == 'lite3_source_ppo_cumulative_authorization_v2'
+    if cumulative and args.supervised_ticket is None:
+        raise ValueError('cumulative numeric execution requires source_training_supervisor.py')
 
     import numpy as np
     import torch
@@ -104,21 +127,25 @@ def main() -> int:
     environment_closed = False
     application_closed = False
     error = None
-    args.output_dir.mkdir(parents=True, exist_ok=False)
+    if args.supervised_ticket is None:
+        args.output_dir.mkdir(parents=True, exist_ok=False)
+    elif (args.output_dir / 'attempt.json').exists():
+        raise FileExistsError('supervised Source child cannot restart an attempt')
     attempt = {"status": "starting", "base_revision": revision, "training_started": False,
                "authorization": lock, "environment_close_returned": False,
                "application_close_state": "not_started"}
     _atomic_json(args.output_dir / "attempt.json", attempt)
     reservation = None
     try:
-        from rl_training.source_scan.training_budget_ledger import BudgetLedger
-        ledger = BudgetLedger(lock['budget_ledger']['path'])
-        reservation = ledger.reserve(run=args.run, attempt_id='source-numerics-' + hashlib.sha256(
-            str(args.output_dir).encode()).hexdigest(), transitions=lock['max_updates'] * 120 * 24,
-            purpose='source_numerics', output_dir=args.output_dir, revision=revision,
-            expected_reference=lock['budget_ledger'])
-        attempt['budget_reservation'] = reservation
-        _atomic_json(args.output_dir / "attempt.json", attempt)
+        if not cumulative:
+            from rl_training.source_scan.training_budget_ledger import BudgetLedger
+            ledger = BudgetLedger(lock['budget_ledger']['path'])
+            reservation = ledger.reserve(run=args.run, attempt_id='source-numerics-' + hashlib.sha256(
+                str(args.output_dir).encode()).hexdigest(), transitions=lock['max_updates'] * 120 * 24,
+                purpose='source_numerics', output_dir=args.output_dir, revision=revision,
+                expected_reference=lock['budget_ledger'])
+            attempt['budget_reservation'] = reservation
+            _atomic_json(args.output_dir / "attempt.json", attempt)
         import csv
 
         gpu = subprocess.check_output([
@@ -171,10 +198,13 @@ def main() -> int:
             budget=TransitionBudget(lock["num_envs"], lock["rollout_length"], lock["max_transitions"]),
             output_dir=args.output_dir / "training",
             checkpoint_sha256=lock["checkpoint_sha256"],
+            checkpoint_nodes=tuple(lock['checkpoint_nodes']) if cumulative else None,
         )
         training.report.update(
-            training_ready=True,
-            g3_g4_qualified=True,
+            training_ready=not cumulative,
+            g3_g4_qualified=not cumulative,
+            bounded_numerics_ready=cumulative,
+            g4_end_to_end_qualified=False if cumulative else True,
             base_revision=revision,
             remote_revision_verified=revision,
             input_sha256=hashes,
@@ -185,8 +215,13 @@ def main() -> int:
             startup_gpu0_free_mib=free_mib,
             rsl_rl_version=importlib.metadata.version("rsl-rl-lib"),
         )
+        from rl_training.source_scan.training_runner import _state_digest
+        training.report.update(initial_actor_sha256=_state_digest(runner.alg.actor),
+            initial_critic_sha256=_state_digest(runner.alg.critic),
+            cumulative_budget=lock.get('cumulative_budget'))
         attempt.update(status="running", training_started=True)
         _atomic_json(args.output_dir / "attempt.json", attempt)
+        print('[source-numerics] initial-ready', flush=True)
         training.run(before_step=lambda: (
             None if app.is_running() else (_ for _ in ()).throw(RuntimeError("Isaac application stopped"))
         ))

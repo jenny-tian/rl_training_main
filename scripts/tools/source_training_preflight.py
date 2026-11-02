@@ -57,16 +57,8 @@ def state_digest(state):
 
 
 def validation_cells():
-    # Preserve the three already reserved cells, then allocate all remaining L1 cells.
-    order = ["stairs_ascending", "stairs_descending", "flat"]
-    order.extend(name for name in SOURCE_RESET_BLOCK_COUNTS if name not in order)
-    return [{
-        "subterrain": name, "level": 1,
-        "selection_geometry_seeds": list(range(50000 + 5 * i, 50005 + 5 * i)),
-        "selection_state_ids": list(range(60000 + 5 * i, 60005 + 5 * i)),
-        "confirmation_geometry_seeds": list(range(55000 + 5 * i, 55005 + 5 * i)),
-        "confirmation_state_ids": list(range(65000 + 5 * i, 65005 + 5 * i)),
-    } for i, name in enumerate(order)]
+    from rl_training.source_scan.source_selection import registered_validation_cells
+    return registered_validation_cells()
 
 
 def audit(checkpoint):

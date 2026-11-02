@@ -134,6 +134,14 @@ def validate_training_authorization(
     ledger_path: Path | None = None,
 ) -> dict[str, Any]:
     """Validate the complete, explicit lock before launching Isaac Sim."""
+    if isinstance(manifest, dict) and manifest.get('schema') == 'lite3_source_ppo_cumulative_authorization_v2':
+        from .training_budget_ledger import canonical_budget_path
+        from .cumulative_training import validate_authorization
+        if ledger_path is None:
+            ledger_path = canonical_budget_path(Path(__file__).resolve().parents[4])
+        return validate_authorization(manifest, run=run, budget_node=budget_node, output_dir=output_dir,
+            checkpoint_sha256=checkpoint_sha256, revision=revision, input_sha256=input_sha256,
+            ledger_path=ledger_path)
     if not isinstance(manifest, dict) or manifest.get("schema") != "lite3_source_ppo_authorization_v1":
         raise ValueError("unsupported Source PPO authorization schema")
     if manifest.get("user_approved") is not True or manifest.get("status") != "approved":
@@ -239,6 +247,9 @@ class SourceTrainingRunner:
             raise ValueError("Source PPO storage and optimizer must be fresh")
         if algorithm.rnd is not None or algorithm.symmetry is not None:
             raise ValueError("Source PPO contract does not enable RND or symmetry extensions")
+        if any(not parameter.requires_grad for model in (algorithm.actor, algorithm.critic)
+               for parameter in model.parameters()):
+            raise ValueError("Source actor and critic parameters must remain trainable")
         if len(checkpoint_sha256) != 64 or any(c not in "0123456789abcdef" for c in checkpoint_sha256):
             raise ValueError("checkpoint_sha256 must be a lowercase SHA-256 digest")
         if checkpoint_nodes is None:
@@ -410,6 +421,7 @@ class SourceTrainingRunner:
                     "stored_transitions": self.report["stored_transitions"] - start_stored,
                     "losses": {name: float(value) for name, value in losses.items()},
                     "actor_sha256": _state_digest(self.algorithm.actor),
+                    "critic_sha256": _state_digest(self.algorithm.critic),
                     "exposure": self._exposure(),
                     "elapsed_seconds": time.monotonic() - rollout_started,
                 }

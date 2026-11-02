@@ -28,14 +28,16 @@ class BudgetLedger:
     def read(self):
         if not self.path.exists():
             return {'schema': SCHEMA, 'checkpoint_sha256': CHECKPOINT_SHA256,
-                    'ceilings': CEILINGS, 'entries': []}
+                    'ceilings': dict(CEILINGS), 'entries': []}
         data = json.loads(self.path.read_text())
         if (data.get('schema') != SCHEMA or data.get('checkpoint_sha256') != CHECKPOINT_SHA256
                 or data.get('ceilings') != CEILINGS or not isinstance(data.get('entries'), list)):
             raise ValueError('invalid Source budget ledger')
         seen = set()
         for entry in data['entries']:
-            if (entry.get('attempt_id') in seen or type(entry.get('run')) is not int or entry['run'] not in (1, 2, 3)
+            if (not isinstance(entry, dict) or not isinstance(entry.get('attempt_id'), str) or not entry['attempt_id']
+                    or not isinstance(entry.get('purpose'), str) or entry.get('automatic_refund') is not False
+                    or entry.get('attempt_id') in seen or type(entry.get('run')) is not int or entry['run'] not in (1, 2, 3)
                     or type(entry.get('reserved_transitions')) is not int or entry['reserved_transitions'] <= 0
                     or entry.get('state') not in ('reserved', 'accepted', 'completed', 'failed')):
                 raise ValueError('invalid or duplicate budget reservation')
@@ -59,6 +61,55 @@ class BudgetLedger:
             raise ValueError('budget ledger differs from approved snapshot')
         if self.charged(run, self.read()):
             raise ValueError('Source seed already has reserved interactions; a revised cumulative budget lock is required')
+
+    def numerics_plan(self, run):
+        """Plan a fresh numeric trial while retaining the accepted diagnostic charge."""
+        if type(run) is not int or run not in (1, 2, 3):
+            raise ValueError('invalid Source run')
+        data = self.read()
+        prior = [row for row in data['entries'] if row['run'] == run]
+        if prior and (len(prior) != 1 or prior[0]['purpose'] != 'bounded_live_ppo_integration'
+                or prior[0]['state'] != 'accepted' or prior[0]['reserved_transitions'] != 384
+                or prior[0].get('returned_transitions') != 384 or prior[0].get('stored_transitions') != 384
+                or prior[0].get('completed_updates') != 2):
+            raise ValueError('Source numeric trial requires unused history or one accepted 384-transition diagnostic')
+        charged = self.charged(run, data)
+        nodes = {}
+        for name, ceiling in CEILINGS.items():
+            updates = max(0, (ceiling-charged)//2880)
+            nodes[name] = {'ceiling': ceiling, 'remaining_updates': updates,
+                'planned_transitions': updates*2880, 'cumulative_transitions': charged+updates*2880,
+                'unused_transitions': ceiling-charged-updates*2880}
+        if not nodes['numerics']['remaining_updates']:
+            raise ValueError('numeric budget cannot fund a whole rollout')
+        return {'run': run, 'num_envs': 120, 'rollout_length': 24,
+                'baseline_charged_transitions': charged, 'nodes': nodes,
+                'initialization': 'registered_actor_fresh_critic_optimizer',
+                'diagnostic_weights_reused': False, 'resume': False}
+
+    def reserve_numerics(self, *, run, attempt_id, output_dir, revision, expected_reference, expected_plan):
+        """Reserve the complete approved trial atomically, without refund or resume."""
+        if not isinstance(attempt_id, str) or not attempt_id:
+            raise ValueError('missing numeric attempt identity')
+        with self._locked():
+            if expected_reference != self.reference():
+                raise ValueError('budget ledger differs from approved snapshot')
+            plan = self.numerics_plan(run)
+            if expected_plan != plan:
+                raise ValueError('cumulative budget differs from approved plan')
+            data = self.read()
+            if any(row['attempt_id'] == attempt_id for row in data['entries']):
+                raise ValueError('numeric attempt already reserved')
+            node = plan['nodes']['numerics']
+            row = {'attempt_id': attempt_id, 'run': run, 'purpose': 'source_numerics_cumulative',
+                   'reserved_transitions': node['planned_transitions'], 'state': 'reserved',
+                   'output_dir': str(Path(output_dir).resolve()), 'base_revision': revision,
+                   'automatic_refund': False, 'baseline_charged_transitions': plan['baseline_charged_transitions'],
+                   'node_ceiling': node['ceiling'], 'max_updates': node['remaining_updates'],
+                   'num_envs': 120, 'rollout_length': 24, 'initialization': plan['initialization']}
+            data['entries'].append(row)
+            atomic_json(self.path, data)
+            return dict(row)
 
     @contextmanager
     def _locked(self):
@@ -92,6 +143,7 @@ class BudgetLedger:
             return dict(row)
 
     def finish(self, attempt_id, *, accepted, attempted, returned, stored, updates):
+        if type(accepted) is not bool: raise ValueError('budget result must be boolean')
         with self._locked():
             data = self.read()
             rows = [row for row in data['entries'] if row['attempt_id'] == attempt_id]
@@ -101,8 +153,13 @@ class BudgetLedger:
             if (any(type(x) is not int or x < 0 for x in (attempted, returned, stored, updates))
                     or not stored <= returned <= attempted <= row['reserved_transitions']):
                 raise ValueError('observed interactions exceed budget reservation')
-            row.update(state='accepted' if accepted else 'failed', attempted_upper_bound=attempted,
-                       returned_transitions=returned, stored_transitions=stored, completed_updates=updates)
+            if updates > row.get('max_updates', 2 if row['purpose'] == 'bounded_live_ppo_integration' else 91):
+                raise ValueError('observed updates exceed reservation')
+            changes = dict(state='accepted' if accepted else 'failed', attempted_upper_bound=attempted,
+                           returned_transitions=returned, stored_transitions=stored, completed_updates=updates)
+            if row['state'] != 'reserved' and any(row.get(key) != value for key, value in changes.items()):
+                raise ValueError('budget result already finalized')
+            row.update(changes)
             atomic_json(self.path, data)
             return dict(row)
 
