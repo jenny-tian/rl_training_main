@@ -2,6 +2,13 @@
 
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
+
+**2026-11-02 阶段补充：** 已完成训练专用 seed、向量完成/超时、安全动作接线、
+pre-reset timeout bootstrap 与 reset/transition 分开记账，191 项 CPU 回归通过。
+本阶段未启动仿真或 Source PPO。用户明确要求每阶段同意后才进入下一阶段，
+目前仅提出 2 环境、24 控制步、零 PPO 更新的仿真接线检查，尚未执行。
+见[本阶段报告与待同意提案](lite3-source-training-integration-20261102/README.md)。
+
 当前进度：15 个登记 L1 条件均已有记录：9 个安全通过、6 个失败；这是固定条件覆盖，不估计独立成功率。用户已明确继续按主方案训练六类地形，旧平地策略的失败作为学习基线，不以全部通过为训练准入条件。本轮已实现 actor-only 初始化和 rollout 预算工具，真实 checkpoint 的三个 CPU runner 初始化核验通过，74 项针对性回归通过；尚无仿真或 PPO 更新。后续推进训练安全 wrapper、回合结束/预算/seed 接线及 G3/G4 必要运行检查，不另设广泛失败分析阶段。见[训练准备与下一步实现顺序](lite3-source-training-preparation-20261030/README.md)。交错摩擦区域及此前单条件运行的完整证据仍见[原始报告](lite3-source-policy-prequalification-friction-alternating-regions-l1-20261030/README.md)。
 
 ## 1. 目的与当前结论

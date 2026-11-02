@@ -1,0 +1,45 @@
+{
+  "schema": "lite3_source_training_integration_cpu_v1",
+  "status": "cpu_integration_passed_simulation_pending_user_approval",
+  "base_revision": "8c3d0ff8a8cb9e3a3b31c1803e9f1486f072cbf5",
+  "date": "2026-11-02",
+  "python": "3.11.15 (main, Mar 11 2026, 17:20:07) [GCC 14.3.0]",
+  "rsl_rl": "5.0.1",
+  "torch": "2.7.0+cu128",
+  "tests": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "191",
+    "time": "2.722",
+    "timestamp": "2026-11-02T09:17:13.546946+08:00",
+    "hostname": "batc-PowerEdge-T640"
+  },
+  "isaac_sim_control_steps": 0,
+  "source_training_transitions": 0,
+  "synthetic_cpu_ppo_updates_in_final_suite": 1,
+  "runtime_ready": false,
+  "long_training_entrypoint_implemented": false,
+  "next_stage_approved": false,
+  "input_sha256": {
+    "source/rl_training/rl_training/online_adaptation/safety.py": "d1e72e96ce014373553b9a21ff4521305dc924204842bda05c3d152c17f85bad",
+    "source/rl_training/rl_training/source_scan/bridge.py": "a94761c4bcb8cf7ff18e65af69ce9acaddd72d14d94bf3a941d585700e0fcce9",
+    "source/rl_training/rl_training/source_scan/source_training.py": "23e11f57fedfdccc1cb79a7c13e58adf8b10296b238bda6c9ad4ac59074dd4ba",
+    "source/rl_training/rl_training/source_scan/frozen_actor.py": "e9a791490d2fd99d89cf36a19dfe652ed7dacafe9ebd46f32411c75234840a18",
+    "source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py": "ad686af511a67ff9199d53c959d80e52519425a41e6892448a34a7f35881db4c",
+    "scripts/tools/source_training_integration_smoke.py": "1960020d1d99b8fed2c14831f468614849b9dc820b452b1c16a024e395dea228",
+    "tests/source_scan/test_training_environment.py": "2a50e18bca3ac3c1fecd5c4aab611a9456da60d35df04a7fcb9f35b064f9269a",
+    "source/rl_training/rl_training/source_scan/training_env.py": "7d34191591229205e69a3dd495de21ff49fe6e62bfa682273421789f9d8c9980",
+    "source/rl_training/rl_training/source_scan/training_lifecycle.py": "5c50dd28c9aa2f7bc4c8b037ed2cc4aee4e62b9253c2e5f1f36fc234eb95ba2a",
+    "source/rl_training/rl_training/source_scan/training_ppo.py": "4dcbbd811264911f903060b204efbfb7bf278f0a52a179ed7a4aab42084f84fb",
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py": "964077f8ec6c4034f2b7c582553c74088f24d1bf147950834d4912a52e58d556",
+    "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py": "94fc416844afb28430d5ff8a889b7dfd93ee179b1a31d150fbab4d5255cd73cb"
+  },
+  "external_reference_sha256": {
+    "/home/tjx/rl_training_main/Lite3_v2.3_Fresh_C1a_20261021.md": "00a8c53ef5863fc747c733766b49ebd9d027d460375b3d03c7f386649d0caf9d",
+    "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/rsl_rl/algorithms/ppo.py": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c",
+    "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py": "974977825dbbd916460b4f9bb12176ab2cde41026fadc05e1de02d8fbbc94725",
+    "/home/tjx/IsaacLab/source/isaaclab_rl/isaaclab_rl/rsl_rl/vecenv_wrapper.py": "1d27c1a7ac75d6bc62ce5376bceb23cac08c168a1343930a72073acddaf76693"
+  }
+}

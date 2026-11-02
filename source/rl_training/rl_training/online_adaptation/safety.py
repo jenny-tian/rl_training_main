@@ -116,8 +116,20 @@ class SafetyFilter:
             scale = torch.ones_like(scale)
         return risk, scale
 
-    def reset_temporal_state(self) -> None:
-        """Clear pause, contact, and residual history at a deployment handoff."""
+    def reset_temporal_state(self, env_ids: torch.Tensor | None = None) -> None:
+        """Clear all history, or only the rows ending an asynchronous episode."""
+        if env_ids is not None:
+            if env_ids.ndim != 1 or env_ids.dtype != torch.long:
+                raise ValueError("env_ids must be a rank-1 int64 tensor")
+            if self._previous_residual is None:
+                return
+            if env_ids.device != self._previous_residual.device:
+                raise ValueError("env_ids must be on the filter device")
+            if bool(((env_ids < 0) | (env_ids >= self._previous_residual.shape[0])).any()):
+                raise ValueError("env_ids are outside the filter batch")
+            for memory in (self._previous_residual, self._paused, self._stable_steps, self._contact_steps):
+                memory[env_ids] = 0
+            return
         self._previous_residual = None
         self._paused = None
         self._stable_steps = None

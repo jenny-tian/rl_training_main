@@ -2,6 +2,14 @@
 
 Status: `cpu_initialization_passed_runtime_pending`, 2026-10-30.
 
+2026-11-02 continuation: the next environment-integration phase now has 191
+passing CPU checks. Training seeds, vector endings, safety execution and actual
+terminal-value timeout handling are implemented. No simulator steps or Source
+PPO training have run. The user explicitly requires agreement before each next
+phase; the two-environment wiring probe is proposed and has not been run. See
+[current integration report](../lite3-source-training-integration-20261102/README.md).
+The implementation order below is preserved as the historical starting point.
+
 The user directed continuation of the existing Source training plan and clarified
 that failures of the old flat policy are expected learning targets. All six
 families remain in scope. No additional broad failure-analysis stage or new

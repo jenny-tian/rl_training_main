@@ -89,7 +89,8 @@ class FrozenPolicySafetyBridge:
         if not bool(torch.isfinite(value).all().item()):
             raise FloatingPointError(f"{name} contains a non-finite value")
 
-    def _validate_state(self, state: SafetyState, action: torch.Tensor) -> None:
+    @classmethod
+    def validate_state(cls, state: SafetyState, action: torch.Tensor) -> None:
         """Reject invalid rows before comparisons or filter memory updates.
 
         NaN comparisons are false, so relying on the filter thresholds alone
@@ -103,7 +104,7 @@ class FrozenPolicySafetyBridge:
             ("joint_upper", 12), ("default_joint_pos", 12), ("action_scale", 12),
         ):
             value = getattr(state, name)
-            self._require_finite(name, value)
+            cls._require_finite(name, value)
             allowed = {(batch, width)}
             if name == "action_scale":
                 allowed.add((1, width))
@@ -143,7 +144,7 @@ class FrozenPolicySafetyBridge:
         if control_timed_out.device != base_action.device:
             raise ValueError("control_timed_out device must match the policy action")
         state = self.adapter.safety_state(control_timed_out)
-        self._validate_state(state, base_action)
+        self.validate_state(state, base_action)
         requested_action = base_action.detach().clone()
         filter_state_before = self.safety_filter.temporal_snapshot(base_action)
         decision = self.safety_filter.project(
