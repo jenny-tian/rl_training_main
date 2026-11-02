@@ -3,6 +3,13 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-02 最新实测：** 用户同意后，在新目录完成修复版 2 环境/24 步检查。
+最终报告、24 条原始动作/终止记录、台账和清理证据完整，父进程及离线复核通过；
+48 个诊断 transitions、零 PPO 更新，仅 env 0 人工 timeout 后 reset，另一环境计数
+保持 24。Live policy/critic 宽度为 45/393。无重试或放大，不授予 G3/G4 或训练资格。
+下一阶段仅提议 8 环境运动/reset 诊断的实现与 CPU 准备，仍须用户同意，
+不自动启动 8 环境仿真。见[本轮通过记录](lite3-source-training-integration-smoke-v2-20261102/README.md)。
+
 **2026-11-02 当前阶段：** 用户已批准仅修复报告持久化并进行 CPU 验证。
 现已实现关闭前原子写盘、逐步追加证据、独立清理状态及父进程完整性验收，
 220 项 CPU 回归通过。本阶段没有启动仿真/GPU 任务或 Source 训练；

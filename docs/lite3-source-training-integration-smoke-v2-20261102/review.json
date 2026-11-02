@@ -1,0 +1,72 @@
+{
+  "schema": "lite3_source_training_wiring_v2_offline_review_v1",
+  "status": "passed_within_two_environment_24_step_scope",
+  "accepted": true,
+  "parent_acceptance_reproduced": {
+    "schema": "lite3_source_smoke_acceptance_v1",
+    "accepted": true,
+    "returncode": 0,
+    "reasons": [],
+    "record_count": 24,
+    "application_close_returned": false
+  },
+  "raw_record_count": 24,
+  "control_steps_per_environment": 24,
+  "total_diagnostic_transitions": 48,
+  "simulation_duration_per_environment_s": 0.48,
+  "ppo_updates": 0,
+  "retry_count": 0,
+  "raw_clipped_environment_steps": 13,
+  "raw_clip_denominator": 48,
+  "raw_clip_fraction": 0.2708333333333333,
+  "additional_filter_projection_environment_steps": 0,
+  "safety_paused_environment_steps": 0,
+  "pure_timeout_terminal_env_ids": [
+    0
+  ],
+  "final_episode_counters": [
+    0,
+    24
+  ],
+  "terminal_policy_width": 45,
+  "terminal_critic_width": 393,
+  "terminal_policy_last_action_max_error": 0.0,
+  "exposure_nonzero": {
+    "multi_scale_rough": {
+      "episode_assignments": 2,
+      "transitions": 24
+    },
+    "slope_downhill": {
+      "episode_assignments": 1,
+      "transitions": 24
+    }
+  },
+  "exposure_attribution_matches_independent_counts": true,
+  "exposure_limit": "Allocated cell labels only; this 0.48-second probe does not establish terrain skill or contact coverage.",
+  "environment_close_returned": true,
+  "application_close_requested_process_exited": true,
+  "application_close_returned": false,
+  "persistence_errors": [],
+  "supervisor_elapsed_s": 20.2570289792493,
+  "gpu0_sampled_total_peak_used_mib": 2848,
+  "gpu0_sampled_min_free_mib": 21277,
+  "resource_limit": "5-second card-level samples, not isolated process peak or training throughput.",
+  "g3_g4_qualified": false,
+  "training_ready": false,
+  "raw_sha256": {
+    "raw/acceptance.json": "1fd43580f1243f90689372403af29912adcc6ee003ac9c550437c8100ffc468a",
+    "raw/compute_after.csv": "4d8e0b87b19812ddbccc43756dace6e3086891f5726c28692a531a9391197a05",
+    "raw/compute_before.csv": "4d8e0b87b19812ddbccc43756dace6e3086891f5726c28692a531a9391197a05",
+    "raw/execution.json": "5a14595511ae96ba2d45a2b3675902b5d46cfe57d98bb1f3fcb3b93d62d3c97a",
+    "raw/gpu_after.csv": "dba629eb5cefaddf3a207687f22409327e87c9dfcec59b987ca19a9c6e92705c",
+    "raw/gpu_before.csv": "dba629eb5cefaddf3a207687f22409327e87c9dfcec59b987ca19a9c6e92705c",
+    "raw/gpu_samples.jsonl": "502f3226ef508f1b77dcfa53737d7ab909f787e75ae8e97ae7c6f945b1800807",
+    "raw/isaaclab_runtime.log": "d8ae94dcee487170dacacf4c9a9d81d504f69e609dc2dda6ff987595fcf73694",
+    "raw/kit_runtime.log": "6570534866acbeadece984508acfb257523afd877cd51d9b8fb6e0aa2331e583",
+    "raw/result.cleanup.json": "7484ae61f7a1e4eea617de2367d2e6e1b838cc7ab6a631105ec8161af6c7f8e3",
+    "raw/result.json": "b8c29d58c38dea7cb402de96431a7b07219027e3a4e646af37917aede53b27a9",
+    "raw/result.steps.jsonl": "d3474bb40b01643d22944cab3da78e9c3e72fb42ec764ffaa93edfa0e9eaac17",
+    "raw/run_manifest.json": "f258bca16cacd224b8c96d43892a1a5ef1959a2b5c8e2c3ca18c80832926164e",
+    "raw/runtime.log": "6c2ea4130be9fe1ec60b77e0a06454160db1c5d0b448e391d88c11dc95319f4b"
+  }
+}

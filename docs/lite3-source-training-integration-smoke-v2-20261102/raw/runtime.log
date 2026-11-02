@@ -1,0 +1,232 @@
+[source-training-smoke] launching simulator
+Loading user config located at: '/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20261102_094513.log
+2026-11-02T01:45:13Z [134ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-11-02T01:45:13Z [747ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-11-02T01:45:13Z [757ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 580.178.04    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 3090          | Yes: 0 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 044ddc24.. |
+|     |                                  |        |     |            | 3b        |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | NVIDIA GeForce RTX 3090          | Yes: 1 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 372c69f6.. |
+|     |                                  |        |     |            | 5e        |            |
+|---------------------------------------------------------------------------------------------|
+| 2   | NVIDIA GeForce RTX 3090          | Yes: 2 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 55105845.. |
+|     |                                  |        |     |            | b1        |            |
+|---------------------------------------------------------------------------------------------|
+| 3   | NVIDIA GeForce RTX 3090          | Yes: 3 |     | 24822   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2204      | 92d634a9.. |
+|     |                                  |        |     |            | d9        |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-138-generic
+| XServer Vendor: The X.Org Foundation, XServer Version: 12014000 (1.20.14.0)
+| Processor: Intel(R) Xeon(R) Gold 6226R CPU @ 2.90GHz
+| Cores: 32 | Logical Cores: 64
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 128384 | Free Memory: 113827
+| Total Page/Swap (MB): 249999 | Free Page/Swap: 244400
+|---------------------------------------------------------------------------------------------|
+2026-11-02T01:45:19Z [6,667ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+2026-11-02T01:45:19Z [6,667ms] [Warning] [gpu.foundation.plugin] Detected IOMMU is enabled. Running CUDA peer-to-peer bandwidth and latency validation.
+Unidirectional P2P=Enabled Bandwidth (P2P Writes) Matrix (GB/s)
+   D\D     0      1      2      3 
+     0 832.45   3.80   3.75   3.76 
+     1   3.73 835.56   3.76   3.77 
+     2   3.93   3.85 835.56   3.88 
+     3   3.94   3.85   3.86 834.59 
+P2P=Enabled Latency (P2[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: /home/tjx/IsaacLab/apps/isaaclab.python.headless.kit
+[source-training-smoke] constructing two environments
+
+[36m======================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: /tmp/isaaclab/logs/isaaclab_2026-11-02_09-45-24.log[0m
+[36m======================================================================================[0m
+
+[33m09:45:24 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.[0m
+P Writes) Matrix (us)
+   GPU     0      1      2      3 
+     0   1.58  14.52  56.89  13.87 
+     1  13.34   1.57  57.21  15.25 
+     2  17.66  14.61   1.57  14.27 
+     3  15.20  17.45  14.14   1.57 
+
+   CPU     0      1      2      3 
+     0   3.43   9.64   9.02   8.99 
+     1   9.87   2.87   8.24   8.20 
+     2   9.45   8.32   2.65   7.90 
+     3   9.53   8.48   7.91   2.73 
+2026-11-02T01:45:22Z [9,309ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed bandwidth: 3.7 GB/s.
+2026-11-02T01:45:22Z [9,309ms] [Warning] [gpu.foundation.plugin] CUDA peer-to-peer observed latency: 57.2 us.
+2026-11-02T01:45:22Z [9,309ms] [Warning] [gpu.foundation.plugin] Please verify if observed bandwidth and latency are expected.
+2026-11-02T01:45:24Z [11,437ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/FL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FL_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+2026-11-02T01:45:24Z [11,437ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/FR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FR_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+2026-11-02T01:45:24Z [11,437ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/HL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HL_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+2026-11-02T01:45:24Z [11,437ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_0/Robot/HR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HR_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+2026-11-02T01:45:24Z [11,465ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/FR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FR_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+2026-11-02T01:45:24Z [11,465ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/HR_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HR_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HR_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Environment seed      : 130001
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+[INFO] Generating terrains based on curriculum took : 0.320697 seconds
+[INFO]: Time taken for scene creation : 1.166834 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 2
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/ground']
+	Replicate physics     : False
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 1.174421 seconds
+[33m09:45:26 [velocity_command.py] WARNING: The velocity command has the 'ranges.heading' attribute set to '(0.0, 0.0)' but the heading command is not active. Consider setting the flag for the heading command to True.[0m
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++---------------------------------------------------------+
+|                   Active Command Terms                  |
++-------+---------------+---------------------------------+
+| Index | Name          |               Type              |
++-------+---------------+---------------------------------+
+|   0   | base_velocity | UniformThresholdVelocityCommand |
++-------+---------------+---------------------------------+
+
+[INFO] Event Manager:  <EventManager> contains 2 active terms.
++-----------------------------------------+
+|  Active Event Terms in Mode: 'startup'  |
++--------+--------------------------------+
+| Index  | Name                           |
++--------+--------------------------------+
+|   0    | randomize_rigid_body_material  |
++--------+--------------------------------+
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++--------+----------------------------+
+| Index  | Name                       |
++--------+----------------------------+
+|   0    | randomize_reset_joints     |
+|   1    | randomize_reset_base       |
++--------+----------------------------+
+
+[INFO] Recorder Manager:  <RecorderManager> contains 0 active terms.
++---------------------+
+| Active Recorder Terms |
++-----------+---------+
+|   Index   | Name    |
++-----------+---------+
++-----------+---------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+[INFO] Observation Manager: <ObservationManager> contains 2 groups.
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (45,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | base_ang_vel                    |    (3,)   |
+|     1     | projected_gravity               |    (3,)   |
+|     2     | velocity_commands               |    (3,)   |
+|     3     | joint_pos                       |   (12,)   |
+|     4     | joint_vel                       |   (12,)   |
+|     5     | actions                         |   (12,)   |
++-----------+---------------------------------+-----------+
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (393,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | projected_gravity              |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (345,)   |
++-----------+--------------------------------+-------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 6 active terms.
++-----------------------------------------------+
+|            Active Termination Terms           |
++-------+----------------------------+----------+
+| Index | Name                       | Time Out |
++-------+----------------------------+----------+
+|   0   | source_terrain_tile_bounds |  False   |
+|   1   | illegal_contact            |  False   |
+|   2   | bad_orientation_2          |  False   |
+|   3   | source_training_safety     |  False   |
+|   4   | source_training_completion |  False   |
+|   5   | source_training_timeout    |   True   |
++-------+----------------------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 25 active terms.
++----------------------------------------------+
+|             Active Reward Terms              |
++-------+---------------------------+----------+
+| Index | Name                      |   Weight |
++-------+---------------------------+----------+
+|   0   | lin_vel_z_l2              |    -20.0 |
+|   1   | ang_vel_xy_l2             |    -0.25 |
+|   2   | flat_orientation_l2       |    -20.0 |
+|   3   | tilt_guard_band           |    -20.0 |
+|   4   | base_height_l2            |    -50.0 |
+|   5   | joint_torques_l2          | -0.00025 |
+|   6   | joint_acc_l2              |   -1e-08 |
+|   7   | joint_pos_limits          |     -5.0 |
+|   8   | joint_power               |  -0.0008 |
+|   9   | hipx_joint_pos_penalty    |     -0.4 |
+|   10  | knee_joint_pos_penalty    |       -2 |
+|   11  | joint_mirror              |    -0.05 |
+|   12  | action_rate_l2            |     -0.1 |
+|   13  | undesired_contacts        |     -0.5 |
+|   14  | contact_forces            |     -0.1 |
+|   15  | foot_impact_velocity      |     -2.0 |
+|   16  | track_lin_vel_xy_exp      |      4.0 |
+|   17  | track_ang_vel_z_exp       |      1.5 |
+|   18  | feet_air_time_lin_xy      |      5.0 |
+|   19  | feet_air_time_ang_z_lite3 |      5.0 |
+|   20  | feet_gait                 |      0.5 |
+|   21  | phase_foot_trajectory_exp |      2.0 |
+|   22  | feet_contact_without_cmd  |      0.1 |
+|   23  | feet_slide                |    -0.05 |
+|   24  | stand_still               |     -0.5 |
++-------+---------------------------+----------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 1 active terms.
++-----------------------------------------------+
+|            Active Curriculum Terms            |
++-------+---------------------------------------+
+| Index | Name                                  |
++-------+---------------------------------------+
+|   0   | source_terrain_parallel_reset_sampler |
++-------+---------------------------------------+
+
+[INFO]: Completed setting up the environment...
+[source-training-smoke] simulation assertions completed; parent acceptance pending; PPO updates=0
+2026-11-02T01:45:24Z [11,465ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/FL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/FL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/FL_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
+2026-11-02T01:45:24Z [11,465ms] [Warning] [omni.usd] Warning: in _ReportErrors at line 3172 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/envs/env_1/Robot/HL_FOOT/visuals>: Unresolved reference prim path @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_physics.usd@</visuals/HL_FOOT> introduced by @/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/deep_robotics_model/Lite3/Lite3_usd/configuration/Lite3_base.usd@</Lite3/HL_FOOT/visuals> (recomposing stage on stage @anon:0x5653ee971dc0:World0.usd@ <0x5653ee977200>)
+
