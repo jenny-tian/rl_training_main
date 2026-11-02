@@ -1,0 +1,30 @@
+{
+  "schema": "lite3_source_ppo_entrypoint_preparation_proposal_v1",
+  "status": "proposed_waiting_for_user_approval",
+  "user_approved": false,
+  "name": "cpu_only_source_ppo_entrypoint_and_numerics_preparation",
+  "retain_six_families_and_15_L1_cells": true,
+  "policy_observation_width": 45,
+  "critic_observation_width": 393,
+  "planned_work": [
+    "Implement dedicated Source PPO entrypoint using actor-only initialization, fresh critic/optimizer and registered independent RNG streams.",
+    "Wire sampled-action storage, SafetyFilter execution and actual terminal-observation timeout bootstrap.",
+    "Enforce whole-rollout transition budgets and record partial/interrupted collection without automatic resume or extra budget.",
+    "Stop for nonfinite losses, gradients, parameters or invalid environment state, and persist auditable counters and exposure.",
+    "CPU synthetic tests of updates, task endings and refusal paths; no real Source training.",
+    "Prepare explicit readiness and source-only selection lock fields without pretending unresolved scale/G3/G4 checks are passed."
+  ],
+  "candidate_num_envs": 120,
+  "candidate_rollout_steps": 24,
+  "candidate_budget_nodes": {"numerics_updates": 91, "numerics_transitions": 262080, "midpoint_updates": 364, "midpoint_transitions": 1048320, "pilot_updates": 728, "pilot_transitions": 2096640},
+  "budget_change_authorized": false,
+  "allow_synthetic_cpu_gradient_updates": true,
+  "isaac_sim_launches": 0,
+  "gpu_jobs": 0,
+  "source_training_transitions": 0,
+  "source_ppo_updates": 0,
+  "actual_numerics_gate_authorized": false,
+  "automatic_scale_increase": false,
+  "development_or_sealed_feedback_allowed": false,
+  "after_completion": "commit_push_verify_report_then_wait_for_separate_runtime_or_training_approval"
+}

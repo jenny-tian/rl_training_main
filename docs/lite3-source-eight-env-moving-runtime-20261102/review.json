@@ -1,0 +1,205 @@
+{
+  "schema": "lite3_eight_env_runtime_offline_review_v1",
+  "status": "passed_within_registered_short_probe",
+  "acceptance_reproduced": {
+    "schema": "lite3_eight_env_acceptance_v1",
+    "accepted": true,
+    "reasons": [],
+    "g3_g4_qualified": false,
+    "control_steps": 96,
+    "diagnostic_transitions": 768,
+    "ordinary_failure_episodes": 0,
+    "total_episode_endings": 8,
+    "event_review": {
+      "motion_samples": 384,
+      "contact_samples": 384,
+      "reset_batches": 3,
+      "control_scans": 96,
+      "ground_contact_points": {
+        "0": 762,
+        "2": 780,
+        "3": 817,
+        "5": 823,
+        "6": 778,
+        "7": 781,
+        "4": 809,
+        "1": 788
+      },
+      "pending_final_recovery_ids": []
+    },
+    "evidence_scope": "bounded eight-environment motion/reset integrity only"
+  },
+  "run_revision": "c61d455e54c5317b73de269cb19dcf25448bc102",
+  "control_steps": 96,
+  "diagnostic_transitions": 768,
+  "physics_substeps": 384,
+  "ppo_updates": 0,
+  "retry_count": 0,
+  "raw_clip_environment_steps": 127,
+  "raw_clip_denominator": 768,
+  "raw_clip_fraction": 0.16536458333333334,
+  "additional_filter_projection_environment_steps": 0,
+  "safety_pause_environment_steps": 0,
+  "timeout_batches": [
+    {
+      "control_step": 24,
+      "ids": [
+        0
+      ],
+      "terminal_steps": [
+        2000
+      ],
+      "post_reset_counters": [
+        0,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "control_step": 48,
+      "ids": [
+        1,
+        4,
+        7
+      ],
+      "terminal_steps": [
+        2000,
+        2000,
+        2000
+      ],
+      "post_reset_counters": [
+        24,
+        0,
+        48,
+        48,
+        0,
+        48,
+        48,
+        0
+      ]
+    },
+    {
+      "control_step": 72,
+      "ids": [
+        0,
+        2,
+        5,
+        6
+      ],
+      "terminal_steps": [
+        2000,
+        2000,
+        2000,
+        2000
+      ],
+      "post_reset_counters": [
+        0,
+        24,
+        0,
+        72,
+        24,
+        0,
+        0,
+        24
+      ]
+    }
+  ],
+  "recovery_first_substeps": [
+    {
+      "sim_step": 97,
+      "ids": [
+        0
+      ]
+    },
+    {
+      "sim_step": 193,
+      "ids": [
+        1,
+        4,
+        7
+      ]
+    },
+    {
+      "sim_step": 289,
+      "ids": [
+        0,
+        2,
+        5,
+        6
+      ]
+    }
+  ],
+  "final_episode_counters": [
+    24,
+    48,
+    24,
+    96,
+    48,
+    24,
+    24,
+    48
+  ],
+  "exposure_nonzero": {
+    "flat": {
+      "episode_assignments": 4,
+      "transitions": 192
+    },
+    "multi_scale_rough": {
+      "episode_assignments": 7,
+      "transitions": 360
+    },
+    "slope_downhill": {
+      "episode_assignments": 1,
+      "transitions": 24
+    },
+    "slope_rough_cross_slope_right": {
+      "episode_assignments": 1,
+      "transitions": 24
+    },
+    "slope_rough_uphill": {
+      "episode_assignments": 1,
+      "transitions": 48
+    },
+    "slope_uphill": {
+      "episode_assignments": 1,
+      "transitions": 72
+    },
+    "stairs_descending": {
+      "episode_assignments": 1,
+      "transitions": 48
+    }
+  },
+  "event_phase_counts": {
+    "initial": 1,
+    "contact_runtime": 385,
+    "tensor_contact_topology": 1,
+    "contact_poll_attempt": 384,
+    "tensor_contact": 12186,
+    "tensor_contact_sample": 384,
+    "motion_substep": 384,
+    "control_scans": 96,
+    "reset_boundary": 3,
+    "reset_checked": 3,
+    "contact_summary": 1
+  },
+  "measured_sample_extrema": {
+    "maximum_link_displacement_per_5ms_m": 0.03606546977485883,
+    "maximum_finite_difference_link_acceleration_mps2": 1233.9204606905091,
+    "maximum_link_speed_mps": 7.114711748827978,
+    "minimum_instantaneous_envelope_margin_m": 0.7943253517150879,
+    "minimum_base_clearance_m": 0.2695761024951935,
+    "maximum_reset_relative_root_progress_m": 0.18125295639038086
+  },
+  "extrema_limit": "Discrete sampled descriptive maxima/minima, not continuous-time bounds or terrain skill qualification.",
+  "gpu0_sampled_total_peak_used_mib": 7926,
+  "gpu0_sampled_min_free_mib": 16199,
+  "resource_limit": "5-second whole-card samples with instrumentation and I/O, not training throughput.",
+  "supervisor_elapsed_s": 162.04228312708437,
+  "g3_g4_qualified": false,
+  "training_ready": false
+}
