@@ -1,0 +1,19 @@
+
+==================================== ERRORS ====================================
+__ ERROR collecting tests/source_scan/test_source_family_runtime_allowlist.py __
+ImportError while importing test module '/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/tests/source_scan/test_source_family_runtime_allowlist.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../anaconda3/envs/env_isaaclab/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/source_scan/test_source_family_runtime_allowlist.py:15: in <module>
+    from scripts.tools import source_family_runtime_smoke as runtime_smoke  # noqa: E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts/tools/source_family_runtime_smoke.py:20: in <module>
+    from scripts.tools.runtime_progress import RuntimeProgressJournal
+E   ModuleNotFoundError: No module named 'scripts.tools.runtime_progress'
+=========================== short test summary info ============================
+ERROR tests/source_scan/test_source_family_runtime_allowlist.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 1.76s

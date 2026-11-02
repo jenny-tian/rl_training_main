@@ -3,6 +3,16 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-02 当前阶段完成：** 用户批准入口实现、CPU边界测试和小规模GPU合成更新。
+Source PPO专用入口与预算runner已完成，433项登记回归通过；三个种子在CPU和GPU0
+上分别各完成2次合成PPO更新，即每种设备6次更新/1152 synthetic transitions。
+actor、critic与optimizer均实际改变，loss有限，GPU进程退出清理通过。
+真实Source交互/更新和Isaac启动仍为0，不授予120环境G3/G4或正式训练资格。
+整目录测试另有历史缺失runtime_progress模块导致的收集失败，未掩盖为全绿。
+下一步提议准备8环境×24步×2更新的真实PPO联调模式、监督器及明确预算归属；
+准备和实际启动分别等待批准。见[本阶段报告与证据](lite3-source-ppo-entrypoint-preparation-20261102/README.md)。
+以下保留各阶段历史记录。
+
 **2026-11-02 最新实测：** 用户批准后，从`c61d455`完成唯一一次八环境/96控制步
 运动与异步reset探针：768诊断transitions、384接触/运动子步及96扫描检查完整；
 三批注入超时共8个回合结束，三批恢复首步和独立快照/ticket/台账复核通过。

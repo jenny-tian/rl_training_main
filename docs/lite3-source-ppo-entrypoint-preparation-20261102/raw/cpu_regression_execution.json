@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan",
+    "--junitxml=/tmp/lite3-source-ppo-preparation-20261102-lCbkg7/cpu_regression.xml"
+  ],
+  "environment_overrides": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "PYTHONPATH": "source/rl_training:.",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  },
+  "returncode": 2,
+  "elapsed_seconds": 4.87237036973238
+}

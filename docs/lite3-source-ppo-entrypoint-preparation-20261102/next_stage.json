@@ -1,0 +1,23 @@
+{
+  "schema": "lite3_source_live_ppo_integration_preparation_proposal_v1",
+  "status": "proposed_waiting_for_user_approval",
+  "user_approved": false,
+  "stage": "prepare_bounded_real_source_ppo_integration_diagnostic",
+  "candidate_num_envs": 8,
+  "candidate_rollout_length": 24,
+  "candidate_updates": 2,
+  "candidate_real_transitions": 384,
+  "planned_work": [
+    "Implement a separate bounded diagnostic path rather than bypassing formal 120-environment readiness checks.",
+    "Prepare supervisor, startup/run/cleanup limits, GPU checks, durable raw accounting and acceptance.",
+    "Explicitly lock seed and cumulative budget attribution before any real gradient-updating interaction.",
+    "Retain all six families/15 cells and initialize from the original registered actor with a fresh critic and optimizer.",
+    "Present a concrete manifest and command, report and wait for separate simulator-launch approval."
+  ],
+  "current_proposal_allows_real_simulator_launch": false,
+  "current_proposal_allows_real_source_updates": false,
+  "formal_candidate_num_envs": 120,
+  "formal_budget_change_authorized": false,
+  "automatic_scale_increase": false,
+  "development_or_sealed_feedback_allowed": false
+}
