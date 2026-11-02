@@ -2,6 +2,12 @@
 
 状态：`cpu_integration_passed_simulation_pending_user_approval`，2026-11-02。
 
+后续记录：用户已同意并执行唯一一次 2 环境检查。日志到达通过标记，但 Kit
+关闭前未持久化最终结构化证据，本轮记为 `incomplete_runtime_artifacts`。
+没有重跑；下一阶段仅提议 CPU 报告持久化修复，等待用户同意。
+详见[本次仿真归档](../lite3-source-training-integration-smoke-20261102/README.md)。
+下文是本 CPU 阶段完成时的原始状态。
+
 本阶段接续 `8c3d0ff` 的 actor-only 初始化和 transition 预算准备。
 六类家族及全部 15 个 L1 单元保留。旧平地策略的失败仍是学习基线，
 不增加“旧策略先通过所有地形”的准入要求。

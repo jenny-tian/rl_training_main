@@ -1,0 +1,19 @@
+{
+  "schema": "lite3_source_report_persistence_repair_proposal_v1",
+  "status": "proposed_waiting_for_user_approval",
+  "user_approved": false,
+  "name": "cpu_only_report_persistence_repair",
+  "cause": "Final JSON write follows app.close; real Kit shutdown ended the process before the write.",
+  "planned_changes": [
+    "Persist complete report before environment/application shutdown, with durable atomic write.",
+    "Persist append-only action and termination evidence on each control step.",
+    "Track cleanup separately and make the supervisor reject stale/missing/incomplete results regardless of exit code.",
+    "CPU subprocess checks for immediate process exit, abnormal interruption and missing results."
+  ],
+  "isaac_sim_launches": 0,
+  "gpu_jobs": 0,
+  "ppo_updates": 0,
+  "simulation_retry_authorized": false,
+  "modify_policy_or_seeds_or_safety_thresholds": false,
+  "after_completion": "commit_push_verify_and_report_then_wait_for_separate_simulation_approval"
+}

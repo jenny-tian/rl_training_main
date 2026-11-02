@@ -3,6 +3,12 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-02 最新：** 已按用户同意执行一次 2 环境/24 步/零 PPO 更新的训练
+接线检查。运行日志到达通过标记，但最终 JSON 在 Kit 关闭后未写盘，不能完整
+验收；本轮记为 `incomplete_runtime_artifacts`，没有重跑或放大。
+下一阶段仅提议 CPU 报告持久化修复，须等待用户明确同意。
+见[本次检查及证据缺口](lite3-source-training-integration-smoke-20261102/README.md)。
+
 **2026-11-02 阶段补充：** 已完成训练专用 seed、向量完成/超时、安全动作接线、
 pre-reset timeout bootstrap 与 reset/transition 分开记账，191 项 CPU 回归通过。
 本阶段未启动仿真或 Source PPO。用户明确要求每阶段同意后才进入下一阶段，

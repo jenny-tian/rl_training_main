@@ -1,0 +1,154 @@
+2026-11-02 09:20:47 [simulation_context.py:836] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/TORSO'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FL_HIP'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FL_THIGH'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FL_SHANK'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FL_FOOT'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FR_HIP'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FR_THIGH'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FR_SHANK'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/FR_FOOT'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HL_HIP'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HL_THIGH'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HL_SHANK'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HL_FOOT'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HR_HIP'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HR_THIGH'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HR_SHANK'
+2026-11-02 09:20:47 [schemas.py:557] DEBUG: Adding contact report API to prim: '/World/envs/env_0/Robot/HR_FOOT'
+2026-11-02 09:20:48 [source_terrain_importer.py:247] INFO: Imported terrain collider '/World/ground/terrain/ordinary' as 12 triangle-mesh parts (243924 total triangles; budget 100000 per part; tile layout: True)
+2026-11-02 09:20:48 [source_terrain_importer.py:247] INFO: Imported terrain collider '/World/ground/terrain/friction_00700000' as 3 triangle-mesh parts (36 total triangles; budget 100000 per part; tile layout: True)
+2026-11-02 09:20:48 [source_terrain_importer.py:247] INFO: Imported terrain collider '/World/ground/terrain/friction_00800000' as 3 triangle-mesh parts (36 total triangles; budget 100000 per part; tile layout: True)
+2026-11-02 09:20:48 [source_terrain_importer.py:247] INFO: Imported terrain collider '/World/ground/terrain/friction_00900000' as 3 triangle-mesh parts (36 total triangles; budget 100000 per part; tile layout: True)
+2026-11-02 09:20:48 [source_terrain_importer.py:247] INFO: Imported terrain collider '/World/ground/terrain/friction_01000000' as 3 triangle-mesh parts (36 total triangles; budget 100000 per part; tile layout: True)
+2026-11-02 09:20:48 [source_terrain_importer.py:179] INFO: Imported Source Terrain 'terrain' with 4 friction material(s): [0.7, 0.8, 0.9, 1.0]
+2026-11-02 09:20:48 [xform_prim_view.py:141] DEBUG: Using Fabric for the XFormPrimView over '/World/skyLight' on device 'cuda:0'.
+2026-11-02 09:20:48 [interactive_scene.py:331] INFO: Physics scene prim path: /physicsScene
+2026-11-02 09:20:49 [articulation.py:1569] INFO: Articulation initialized at: /World/envs/env_.*/Robot with root '/World/envs/env_.*/Robot/TORSO'.
+2026-11-02 09:20:49 [articulation.py:1570] INFO: Is fixed root: False
+2026-11-02 09:20:49 [articulation.py:1571] INFO: Number of bodies: 17
+2026-11-02 09:20:49 [articulation.py:1572] INFO: Body names: ['TORSO', 'FL_HIP', 'FR_HIP', 'HL_HIP', 'HR_HIP', 'FL_THIGH', 'FR_THIGH', 'HL_THIGH', 'HR_THIGH', 'FL_SHANK', 'FR_SHANK', 'HL_SHANK', 'HR_SHANK', 'FL_FOOT', 'FR_FOOT', 'HL_FOOT', 'HR_FOOT']
+2026-11-02 09:20:49 [articulation.py:1573] INFO: Number of joints: 12
+2026-11-02 09:20:49 [articulation.py:1574] INFO: Joint names: ['FL_HipX_joint', 'FR_HipX_joint', 'HL_HipX_joint', 'HR_HipX_joint', 'FL_HipY_joint', 'FR_HipY_joint', 'HL_HipY_joint', 'HR_HipY_joint', 'FL_Knee_joint', 'FR_Knee_joint', 'HL_Knee_joint', 'HR_Knee_joint']
+2026-11-02 09:20:49 [articulation.py:1575] INFO: Number of fixed tendons: 0
+2026-11-02 09:20:49 [articulation.py:1753] INFO: Actuator collection: Hip with model 'DelayedPDActuator' (type: explicit) and joint names: ['FL_HipX_joint', 'FR_HipX_joint', 'HL_HipX_joint', 'HR_HipX_joint', 'FL_HipY_joint', 'FR_HipY_joint', 'HL_HipY_joint', 'HR_HipY_joint'] [tensor([0, 1, 2, 3, 4, 5, 6, 7], device='cuda:0')].
+2026-11-02 09:20:49 [articulation.py:1753] INFO: Actuator collection: Knee with model 'DelayedPDActuator' (type: explicit) and joint names: ['FL_Knee_joint', 'FR_Knee_joint', 'HL_Knee_joint', 'HR_Knee_joint'] [tensor([ 8,  9, 10, 11], device='cuda:0')].
+2026-11-02 09:20:49 [articulation.py:2028] INFO: Simulation parameters for joints in /World/envs/env_.*/Robot:
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                 Simulation Joint Information (Prim path: /World/envs/env_.*/Robot)                                                 |
++-------+---------------+-----------+---------+----------+-----------------+------------------+------------------+-----------------+-----------------+---------------+
+| Index | Name          | Stiffness | Damping | Armature | Static Friction | Dynamic Friction | Viscous Friction | Position Limits | Velocity Limits | Effort Limits |
++-------+---------------+-----------+---------+----------+-----------------+------------------+------------------+-----------------+-----------------+---------------+
+|   0   | FL_HipX_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.523, 0.523] |      26.200     |    1.0e+09    |
+|   1   | FR_HipX_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.523, 0.523] |      26.200     |    1.0e+09    |
+|   2   | HL_HipX_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.523, 0.523] |      26.200     |    1.0e+09    |
+|   3   | HR_HipX_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-0.523, 0.523] |      26.200     |    1.0e+09    |
+|   4   | FL_HipY_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.670, 0.314] |      26.200     |    1.0e+09    |
+|   5   | FR_HipY_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.670, 0.314] |      26.200     |    1.0e+09    |
+|   6   | HL_HipY_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.670, 0.314] |      26.200     |    1.0e+09    |
+|   7   | HR_HipY_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       | [-2.670, 0.314] |      26.200     |    1.0e+09    |
+|   8   | FL_Knee_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       |  [0.524, 2.792] |      17.300     |    1.0e+09    |
+|   9   | FR_Knee_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       |  [0.524, 2.792] |      17.300     |    1.0e+09    |
+|   10  | HL_Knee_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       |  [0.524, 2.792] |      17.300     |    1.0e+09    |
+|   11  | HR_Knee_joint |   0.000   |  0.000  |  0.000   |      0.000      |      0.000       |      0.000       |  [0.524, 2.792] |      17.300     |    1.0e+09    |
++-------+---------------+-----------+---------+----------+-----------------+------------------+------------------+-----------------+-----------------+---------------+
+2026-11-02 09:20:49 [ray_caster.py:368] INFO: Created articulation view for mesh prim at path: /World/envs/env_.*/Robot/TORSO
+2026-11-02 09:20:49 [multi_mesh_ray_caster.py:275] INFO: Read '24' mesh prims under path '/World/ground' with 122082 vertices and 244068 faces.
+2026-11-02 09:20:49 [ray_caster.py:368] INFO: Created articulation view for mesh prim at path: /World/envs/env_.*/Robot/TORSO
+2026-11-02 09:20:49 [manager_base.py:411] INFO: [EventTermCfg:randomize_rigid_body_material] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]]
+2026-11-02 09:20:49 [manager_base.py:417] INFO: Initializing term 'randomize_rigid_body_material' with class 'randomize_rigid_body_material'.
+2026-11-02 09:20:50 [velocity_command.py:71] WARNING: The velocity command has the 'ranges.heading' attribute set to '(0.0, 0.0)' but the heading command is not active. Consider setting the flag for the heading command to True.
+2026-11-02 09:20:50 [joint_actions.py:70] INFO: Resolved joint names for the action term JointPositionAction: ['FL_HipX_joint', 'FL_HipY_joint', 'FL_Knee_joint', 'FR_HipX_joint', 'FR_HipY_joint', 'FR_Knee_joint', 'HL_HipX_joint', 'HL_HipY_joint', 'HL_Knee_joint', 'HR_HipX_joint', 'HR_HipY_joint', 'HR_Knee_joint'] [[0, 4, 8, 1, 5, 9, 2, 6, 10, 3, 7, 11]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [ObservationTermCfg:policy/joint_pos] Found entity 'robot'.
+	Joint names: ['FL_HipX_joint', 'FL_HipY_joint', 'FL_Knee_joint', 'FR_HipX_joint', 'FR_HipY_joint', 'FR_Knee_joint', 'HL_HipX_joint', 'HL_HipY_joint', 'HL_Knee_joint', 'HR_HipX_joint', 'HR_HipY_joint', 'HR_Knee_joint'] [[0, 4, 8, 1, 5, 9, 2, 6, 10, 3, 7, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [ObservationTermCfg:policy/joint_vel] Found entity 'robot'.
+	Joint names: ['FL_HipX_joint', 'FL_HipY_joint', 'FL_Knee_joint', 'FR_HipX_joint', 'FR_HipY_joint', 'FR_Knee_joint', 'HL_HipX_joint', 'HL_HipY_joint', 'HL_Knee_joint', 'HR_HipX_joint', 'HR_HipY_joint', 'HR_Knee_joint'] [[0, 4, 8, 1, 5, 9, 2, 6, 10, 3, 7, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [ObservationTermCfg:critic/joint_pos] Found entity 'robot'.
+	Joint names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [ObservationTermCfg:critic/joint_vel] Found entity 'robot'.
+	Joint names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [ObservationTermCfg:critic/height_scan] Found entity 'height_scanner'.
+	Joint names: None [slice(None, None, None)]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [TerminationTermCfg:source_terrain_tile_bounds] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [TerminationTermCfg:illegal_contact] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['TORSO', 'FL_HIP', 'FR_HIP', 'HL_HIP', 'HR_HIP', 'FL_THIGH', 'FR_THIGH', 'HL_THIGH', 'HR_THIGH', 'FL_SHANK', 'FR_SHANK', 'HL_SHANK', 'HR_SHANK'] [[0, 1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:tilt_guard_band] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:base_height_l2] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['TORSO'] [[0]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:base_height_l2] Found entity 'height_scanner_base'.
+	Joint names: None [slice(None, None, None)]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:joint_torques_l2] Found entity 'robot'.
+	Joint names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:joint_acc_l2] Found entity 'robot'.
+	Joint names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:joint_pos_limits] Found entity 'robot'.
+	Joint names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:joint_power] Found entity 'robot'.
+	Joint names: ['.*'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:hipx_joint_pos_penalty] Found entity 'robot'.
+	Joint names: ['FL_HipX_joint', 'FR_HipX_joint', 'HL_HipX_joint', 'HR_HipX_joint'] [[0, 1, 2, 3]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:knee_joint_pos_penalty] Found entity 'robot'.
+	Joint names: ['FL_Knee_joint', 'FR_Knee_joint', 'HL_Knee_joint', 'HR_Knee_joint'] [[8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:joint_mirror] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:undesired_contacts] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['^(?!.*.*_FOOT).*'] [[0, 1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:contact_forces] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[4, 8, 12, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:foot_impact_velocity] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[4, 8, 12, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:foot_impact_velocity] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[13, 14, 15, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_air_time_lin_xy] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[4, 8, 12, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_air_time_ang_z_lite3] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[4, 8, 12, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_gait] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_gait] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: None [slice(None, None, None)]
+2026-11-02 09:20:50 [manager_base.py:417] INFO: Initializing term 'feet_gait' with class 'GaitReward'.
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:phase_foot_trajectory_exp] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[13, 14, 15, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_contact_without_cmd] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[4, 8, 12, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_slide] Found entity 'contact_forces'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[4, 8, 12, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:feet_slide] Found entity 'robot'.
+	Joint names: None [slice(None, None, None)]
+	Body names: ['.*_FOOT'] [[13, 14, 15, 16]]
+2026-11-02 09:20:50 [manager_base.py:411] INFO: [RewardTermCfg:stand_still] Found entity 'robot'.
+	Joint names: ['FL_HipX_joint', 'FL_HipY_joint', 'FL_Knee_joint', 'FR_HipX_joint', 'FR_HipY_joint', 'FR_Knee_joint', 'HL_HipX_joint', 'HL_HipY_joint', 'HL_Knee_joint', 'HR_HipX_joint', 'HR_HipY_joint', 'HR_Knee_joint'] [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]]
+	Body names: None [slice(None, None, None)]

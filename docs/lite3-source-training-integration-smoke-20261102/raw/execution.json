@@ -1,0 +1,23 @@
+{
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=15s",
+    "240s",
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_training_integration_smoke.py",
+    "--headless",
+    "--device",
+    "cuda:0",
+    "--checkpoint",
+    "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+    "--output",
+    "/tmp/lite3_source_training_integration_smoke_20261102/result.json"
+  ],
+  "supervisor_pid": 2026441,
+  "process_group": 2026484,
+  "start_utc": "2026-11-02T01:20:34.892199+00:00",
+  "returncode": 0,
+  "elapsed_s": 25.66049572546035,
+  "end_utc": "2026-11-02T01:21:00.551238+00:00"
+}

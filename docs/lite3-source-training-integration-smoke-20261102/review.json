@@ -1,0 +1,77 @@
+{
+  "schema": "lite3_source_training_smoke_evidence_review_v1",
+  "status": "incomplete_runtime_artifacts",
+  "full_stage_acceptance": false,
+  "checks": {
+    "single_attempt_approved": true,
+    "revision_matches_initial_snapshot": true,
+    "process_exit_zero": true,
+    "within_wall_timeout": true,
+    "exactly_one_pass_marker": true,
+    "two_environment_construction_logged": true,
+    "device_cuda0_logged": true,
+    "manager_endings_registered": true,
+    "no_python_traceback_logged": true,
+    "app_shutdown_reached": true,
+    "no_process_group_remaining": true,
+    "known_processes_exited": true
+  },
+  "final_structured_report_complete": false,
+  "raw_report_status": "starting",
+  "raw_report_control_steps_are_stale_placeholder": true,
+  "raw_step_records": 0,
+  "independently_reviewable_control_steps": null,
+  "control_steps_inferred_from_pinned_code_pass_marker": 24,
+  "diagnostic_transitions_inferred_from_pass_marker": 48,
+  "inference_limit": "No raw actions, terminal tensors or exposure counts were persisted; do not reconstruct them.",
+  "ppo_updates": 0,
+  "retry_count": 0,
+  "training_ready": false,
+  "g3_g4_qualified": false,
+  "elapsed_supervisor_s": 25.66049572546035,
+  "gpu0_samples": [
+    {
+      "elapsed_s": 0.06192693952471018,
+      "used_mib": 401,
+      "free_mib": 23725
+    },
+    {
+      "elapsed_s": 5.126880798488855,
+      "used_mib": 3642,
+      "free_mib": 20483
+    },
+    {
+      "elapsed_s": 10.187683493830264,
+      "used_mib": 3758,
+      "free_mib": 20367
+    },
+    {
+      "elapsed_s": 15.251362760551274,
+      "used_mib": 6176,
+      "free_mib": 17949
+    },
+    {
+      "elapsed_s": 20.655283076688647,
+      "used_mib": 3377,
+      "free_mib": 20749
+    }
+  ],
+  "gpu0_sampled_total_peak_used_mib": 6176,
+  "gpu0_sampled_min_free_mib": 17949,
+  "gpu_measurement_limit": "5-second samples across all GPU users; not isolated process peak or throughput.",
+  "shutdown_diagnosis": "Final report write follows app.close; Kit shutdown/release is logged, but write did not happen.",
+  "next_stage": "CPU-only report persistence repair, awaiting user approval",
+  "raw_sha256": {
+    "raw/compute_after.csv": "260ca57a7e4030ce6253907ef1eb3a567f021fb078cc9818cf7d325c4e9609cd",
+    "raw/compute_before.csv": "5f615f12bc6e0c63ff32feb2ced83a08bf635ecb61ca625de4a7d922a0830fed",
+    "raw/execution.json": "45a6f8f5d75979e5fbf685e519e06f5abdc1f044724cc2d96f190bdd312c0a26",
+    "raw/gpu_after.csv": "c17143fdcf18e126572b74962b3f7ac7b9591f5bf948bad7740472d2369b7f8e",
+    "raw/gpu_before.csv": "a086fe1967bf9c8d0ddc8e80d86c58dde9730c7db64798022439e0708067a510",
+    "raw/gpu_samples.jsonl": "ad8a4864208c1a8480dc0f90b93da321a53f36b4b3863dc3fb7fbccaed1d31d4",
+    "raw/isaaclab_runtime.log": "360337f612a7f2c4b0aaa3801e279e306ed974a001e5bdcabb899fcd7b645057",
+    "raw/kit_runtime.log": "86ba6b4880a1650f6f37b0ae1bd476fb31c44c0dd781442fa80184de8af1ebd7",
+    "raw/result.json": "8c434a3e4d31c7045545b86e938a1400b048fa03d1f0847ab23ffd6bfe37d86c",
+    "raw/run_manifest.json": "1fedd366a3252996e0006fde297b40b2d219c40f51c8e6ca8178c823070cd074",
+    "raw/runtime.log": "49d259e3448a9690ff8e592115e9363f786c71f71625d3da9b20927412add575"
+  }
+}
