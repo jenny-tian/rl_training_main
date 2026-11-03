@@ -1,0 +1,32 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_scale_startup_supervisor.py",
+    "run",
+    "--num-envs",
+    "120",
+    "--manifest",
+    "/tmp/lite3_source_g1_120env_20261103.approved.json",
+    "--output-dir",
+    "/tmp/lite3_source_shared_g1_120env_20261103",
+    "--checkpoint",
+    "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt"
+  ],
+  "environment_overrides": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "PYTHONPATH": "source/rl_training:.",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "url.git@github.com:.insteadOf",
+    "GIT_CONFIG_VALUE_0": "https://github.com/",
+    "GIT_SSH_COMMAND": "ssh -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=3"
+  },
+  "started_at_utc": "2026-11-03T06:53:46.707099+00:00",
+  "single_supervisor_invocation": true,
+  "automatic_retry": false,
+  "status": "returned",
+  "returncode": 0,
+  "external_elapsed_seconds": 72.93260631337762,
+  "finished_at_utc": "2026-11-03T06:54:59.639946+00:00"
+}
