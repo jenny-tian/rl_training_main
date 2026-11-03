@@ -1,4 +1,4 @@
-"""Child of the 16-environment G1 supervisor; imports no Isaac until authorization."""
+"""Child of the selected 16/32-env G1 supervisor; no Isaac before authorization."""
 from pathlib import Path
 import argparse
 from dataclasses import asdict
@@ -17,9 +17,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--manifest',type=Path,required=True)
     parser.add_argument('--checkpoint',type=Path,required=True)
+    parser.add_argument('--num-envs',type=int,choices=(16,32),default=16)
     args=parser.parse_args()
     from source_scale_startup_supervisor import preflight
     plan=preflight(args,child=True)
+    num_envs=plan['num_envs']
     from rl_training.source_scan.smoke_artifacts import SmokeArtifactWriter,finalize_and_close
     from rl_training.source_scan.moving_diagnostic import EventJournal,tensor_record
     report=dict(plan,status='starting',simulation_control_steps=0,base_revision=plan['base_revision'])
@@ -46,7 +48,7 @@ def main():
         from source_shared_contact_report import ContactRuntime,capture_substeps
         from source_sparse_tensor_contact import SparseTensorContactCapture
         cfg=DeeproboticsLite3SourceTrainingEnvCfg(source_training_run=1,source_parallel_sampler_enabled=True,
-            source_parallel_sampler_num_envs=16,source_shared_bank_rows=1)
+            source_parallel_sampler_num_envs=num_envs,source_shared_bank_rows=1)
         cfg.sim.device='cuda:0';scene_started=time.monotonic()
         base=gym.make('SourceTerrain-Deeprobotics-Lite3-v0',cfg=cfg)
         env=SourceTrainingVecEnv(RslRlVecEnvWrapper(base,clip_actions=None));base=env.unwrapped
@@ -67,10 +69,11 @@ def main():
                 readback_suppressed=get_physx_interface().is_readback_suppressed(),tensor_device=str(base.sim.physics_sim_view.device)))
         with EventJournal(folder/'events.jsonl',byte_limit=plan['events_byte_limit']) as journal:
             observer=ScaleObserver(base,env.runtime,journal,snapshot,check_transition)
-            capture=SparseTensorContactCapture(physics_view=base.sim.physics_sim_view,ground_colliders=ground,num_envs=16,
+            capture=SparseTensorContactCapture(physics_view=base.sim.physics_sim_view,ground_colliders=ground,num_envs=num_envs,
                 physics_dt=.005,fault_path=folder/'contact_fault.npz',require_ground_positive=False,
                 stage_id=UsdUtils.StageCache.Get().GetId(base.sim.get_initial_stage()).ToLongInt(),
                 reporting_bodies=bodies,record=journal.record,start_step=base._sim_step_counter,decimation=4,control_steps=1)
+            if capture.capacity!=plan['contact_capacity']:raise ValueError('G1 contact capacity differs from approved scale')
             report.update(collision_groups=audit_shared_collision_groups(base.scene),body_names=list(robot.body_names),
                 initial_assignments=[asdict(t) for t in observer.tickets],start_sim_step=base._sim_step_counter,
                 terrain_origins=tensor_record(base.scene.terrain.terrain_origins),
@@ -82,7 +85,7 @@ def main():
             first_started=time.monotonic()
             with capture_substeps(base,interface,capture,runtime),observer.installed():
                 if not app.is_running():raise RuntimeError('simulator stopped before G1 step')
-                raw=torch.zeros((16,12),device='cuda:0')
+                raw=torch.zeros((num_envs,12),device='cuda:0')
                 with torch.inference_mode():obs,reward,done,extras=env.step(raw)
                 capture.check_control(base,1)
                 if bool(done.any()) or env.runtime.terminal is not None:raise RuntimeError('unexpected G1 episode ending')

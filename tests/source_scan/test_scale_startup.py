@@ -23,32 +23,32 @@ from source_scale_startup_validation import validate
 import source_scale_startup_supervisor as supervisor
 
 
-def cpu_plan(output):
+def cpu_plan(output,num_envs=16):
     return proposal(revision='a'*40,remote='a'*40,inputs={str(i):'b'*64 for i in range(238)},
-        dependencies={str(i):'c'*64 for i in range(44)},budget_reference={'path':'cpu_fixture','sha256':'d'*64},output_dir=output)
+        dependencies={str(i):'c'*64 for i in range(44)},budget_reference={'path':'cpu_fixture','sha256':'d'*64},output_dir=output,num_envs=num_envs)
 
 
-def build_g1_fixture(folder,*,contact_fault=None):
-    folder.mkdir();plan=cpu_plan(folder)|dict(status='approved',user_approved=True)
-    env,interface,_,wrapped=make_environment();runtime=install_tensor_backend(env,interface,fault=contact_fault)
+def build_g1_fixture(folder,*,contact_fault=None,num_envs=16):
+    folder.mkdir();plan=cpu_plan(folder,num_envs)|dict(status='approved',user_approved=True)
+    env,interface,_,wrapped=make_environment(num_envs);runtime=install_tensor_backend(env,interface,fault=contact_fault)
     report=plan|dict(status='running',simulation_control_steps=0,cpu_fixture=True,
         application_start_s=.1,scene_build_s=.2,first_step_s=.3,elapsed_seconds_before_shutdown=.6)
     writer=SmokeArtifactWriter(folder/'result.json',report,schema=CONTRACT['schema'])
     with EventJournal(folder/'events.jsonl') as journal:
         observer=ScaleObserver(env,wrapped.runtime,journal,snapshot,check_transition)
-        sensors=sorted(f'/World/envs/env_{i}/Robot/{name}' for i in range(16) for name in BODY_NAMES)
-        capture=SparseTensorContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[GROUND],num_envs=16,
+        sensors=sorted(f'/World/envs/env_{i}/Robot/{name}' for i in range(num_envs) for name in BODY_NAMES)
+        capture=SparseTensorContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[GROUND],num_envs=num_envs,
             physics_dt=.005,fault_path=folder/'contact_fault.npz',require_ground_positive=False,
             stage_id=73,reporting_bodies=sensors,record=journal.record,start_step=12,decimation=4,control_steps=1)
-        global_path='/World/collisions/global_group';groups={global_path:dict(includes=['/World/ground'],allowed_groups=[global_path,*[f'/World/collisions/group{i}' for i in range(16)]])}
-        groups.update({f'/World/collisions/group{i}':dict(includes=[f'/World/envs/env_{i}'],allowed_groups=[f'/World/collisions/group{i}',global_path]) for i in range(16)})
+        global_path='/World/collisions/global_group';groups={global_path:dict(includes=['/World/ground'],allowed_groups=[global_path,*[f'/World/collisions/group{i}' for i in range(num_envs)]])}
+        groups.update({f'/World/collisions/group{i}':dict(includes=[f'/World/envs/env_{i}'],allowed_groups=[f'/World/collisions/group{i}',global_path]) for i in range(num_envs)})
         report.update(initial_assignments=[asdict(t) for t in observer.tickets],start_sim_step=12,
             terrain_origins=tensor_record(env.scene.terrain.terrain_origins),body_names=BODY_NAMES,
             initial_root_positions_w=tensor_record(env.scene['robot'].data.root_link_pos_w),
             collision_groups={'inverted':True,'groups':groups},observation_widths={'policy':45,'critic':393})
         journal.record(dict(phase='scale_initial',scanners=observer.scans()))
         with capture_substeps(env,interface,capture,runtime),observer.installed():
-            raw=torch.zeros(16,12);_,_,done,extras=wrapped.step(raw);capture.check_control(env,1)
+            raw=torch.zeros(num_envs,12);_,_,done,extras=wrapped.step(raw);capture.check_control(env,1)
             journal.record(dict(phase='scale_control_scans',sim_step=env._sim_step_counter,scanners=observer.scans()));journal.flush()
             writer.append_step(dict(step=1,done=done.tolist(),time_outs=extras['time_outs'].tolist(),raw_action=raw.tolist(),
                 executed_action=wrapped.last_trace.executed_action.tolist(),projected=wrapped.last_trace.decision.projected.tolist(),

@@ -1,0 +1,24 @@
+{
+  "status": "proposed_not_executed",
+  "separate_user_approval_required": true,
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "scripts/tools/source_scale_startup_supervisor.py",
+    "run",
+    "--num-envs",
+    "32",
+    "--manifest",
+    "/tmp/lite3_source_g1_32env_20261103.approved.json",
+    "--output-dir",
+    "/tmp/lite3_source_shared_g1_32env_20261103",
+    "--checkpoint",
+    "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt"
+  ],
+  "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027",
+  "environment_overrides": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "PYTHONPATH": "source/rl_training:.",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  }
+}

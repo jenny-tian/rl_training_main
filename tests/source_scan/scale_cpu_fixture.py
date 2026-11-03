@@ -61,7 +61,7 @@ def install_tensor_backend(env,interface,*,fault=None):
                 self.step=interface.simulations
                 self.buffers=payload(self.sensor_paths,self.filter_paths,self.max_contact_data_count,empty=fault=='empty')
                 if fault=='cross':
-                    i=0;j=self.filter_paths[i].index(next(path for path in self.sensor_paths if '/env_15/' in path))
+                    i=0;j=self.filter_paths[i].index(next(path for path in self.sensor_paths if f'/env_{env.num_envs-1}/' in path))
                     self.buffers[1][i,j,2]=1e-8
                 if fault=='nonfinite':self.buffers[1][0,0,0]=np.nan
             return self.buffers

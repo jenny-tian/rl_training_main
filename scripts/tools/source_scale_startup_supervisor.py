@@ -1,4 +1,4 @@
-"""Freeze or supervise one 16-environment G1 attempt after separate launch approval."""
+"""Freeze or supervise one explicitly selected 16/32-env G1 after launch approval."""
 import argparse
 import hashlib
 import json
@@ -12,7 +12,7 @@ import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path[:0]=[str(ROOT/'source/rl_training'),str(ROOT/'scripts/tools')]
-from rl_training.source_scan.scale_startup import CONTRACT,proposal,validate_plan
+from rl_training.source_scan.scale_startup import CONTRACT,proposal,validate_plan,validate_predecessor
 from rl_training.source_scan.frozen_actor import CHECKPOINT_SHA256
 from rl_training.source_scan.training_budget_ledger import BudgetLedger,canonical_budget_path
 from rl_training.source_scan.smoke_artifacts import atomic_json
@@ -35,7 +35,8 @@ def dependencies():
 def preflight(args,*,child=False):
     plan=json.loads(args.manifest.read_text())
     if plan.get('user_approved') is not True or plan.get('status')!='approved':
-        raise PermissionError('separate approval of the single 16-environment G1 launch is required')
+        raise PermissionError('separate approval of the selected single G1 launch is required')
+    num_envs=getattr(args,'num_envs',16)
     revision,remote,dirty=_git_state()
     if dirty or revision!=remote:raise ValueError('G1 requires clean committed and remote-matching source')
     if os.environ.get('CUDA_VISIBLE_DEVICES') not in (None,'0'):raise ValueError('G1 GPU0 visibility mapping differs')
@@ -52,11 +53,12 @@ def preflight(args,*,child=False):
     elif args.output_dir.resolve()!=output:raise ValueError('G1 output differs from manifest')
     reference=BudgetLedger(canonical_budget_path(ROOT)).reference()
     if child:
-        expected=proposal(revision=revision,remote=remote,inputs=_input_hashes(),dependencies=dependencies(),budget_reference=reference,output_dir=output)
+        expected=proposal(revision=revision,remote=remote,inputs=_input_hashes(),dependencies=dependencies(),budget_reference=reference,output_dir=output,num_envs=num_envs)
         for key,value in expected.items():
             if key not in ('status','user_approved') and (type(plan.get(key)) is not type(value) or plan[key]!=value):raise ValueError('G1 child input mismatch: '+key)
+        validate_predecessor(num_envs,plan.get('predecessor_qualification'))
     else:
-        validate_plan(plan,revision=revision,inputs=_input_hashes(),dependencies=dependencies(),budget_reference=reference,output_dir=output)
+        validate_plan(plan,revision=revision,inputs=_input_hashes(),dependencies=dependencies(),budget_reference=reference,output_dir=output,num_envs=num_envs)
     return plan
 
 
@@ -66,9 +68,9 @@ def prepare(args):
     if dirty or revision!=remote:raise ValueError('freeze G1 only after commit, push and remote verification')
     if hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()!=CHECKPOINT_SHA256:raise ValueError('original checkpoint changed')
     plan=proposal(revision=revision,remote=remote,inputs=_input_hashes(),dependencies=dependencies(),
-        budget_reference=BudgetLedger(canonical_budget_path(ROOT)).reference(),output_dir=args.output_dir)
+        budget_reference=BudgetLedger(canonical_budget_path(ROOT)).reference(),output_dir=args.output_dir,num_envs=getattr(args,'num_envs',16))
     validate_plan(plan,revision=revision,inputs=plan['input_sha256'],dependencies=plan['dependency_sha256'],
-        budget_reference=plan['budget_ledger'],output_dir=args.output_dir,approved=False)
+        budget_reference=plan['budget_ledger'],output_dir=args.output_dir,approved=False,num_envs=getattr(args,'num_envs',16))
     args.manifest.parent.mkdir(parents=True,exist_ok=True)
     with args.manifest.open('x') as stream:json.dump(plan,stream,indent=2,allow_nan=False);stream.write('\n')
     print(json.dumps(dict(status='frozen_not_approved',manifest=str(args.manifest),base_revision=revision,
@@ -94,7 +96,8 @@ def run(args):
     (output/'gpu_before.csv').write_text(before)
     (output/'compute_before.csv').write_text(subprocess.check_output(compute_query,text=True,timeout=10))
     command=['timeout','--signal=TERM','--kill-after=15s','240s',sys.executable,str(ROOT/'scripts/tools/source_scale_startup_probe.py'),
-        '--manifest',str(output/'run_manifest.json'),'--checkpoint',str(args.checkpoint.resolve())]
+        '--manifest',str(output/'run_manifest.json'),'--checkpoint',str(args.checkpoint.resolve()),
+        '--num-envs',str(getattr(args,'num_envs',16))]
     process=None;started=time.monotonic();execution=dict(command=command,monitor_errors=[],timed_out=False)
     try:
         with (output/'runtime.log').open('x') as log,(output/'gpu_samples.jsonl').open('x') as samples:
@@ -118,6 +121,7 @@ def run(args):
         try:
             (output/'gpu_after.csv').write_text(subprocess.check_output(query,text=True,timeout=10))
             (output/'compute_after.csv').write_text(subprocess.check_output(compute_query,text=True,timeout=10))
+            validate_predecessor(plan['num_envs'],plan.get('predecessor_qualification'))
             if (_input_hashes()!=plan['input_sha256'] or dependencies()!=plan['dependency_sha256']
                     or BudgetLedger(canonical_budget_path(ROOT)).reference()!=plan['budget_ledger']
                     or hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()!=CHECKPOINT_SHA256):
@@ -132,5 +136,6 @@ def run(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=('prepare','run'))
+    parser.add_argument('--num-envs',type=int,choices=(16,32),default=16)
     for name in ('manifest','output-dir','checkpoint'):parser.add_argument('--'+name,type=Path,required=True)
     args=parser.parse_args();raise SystemExit(prepare(args) if args.action=='prepare' else run(args))
