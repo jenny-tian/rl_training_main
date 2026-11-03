@@ -1,4 +1,4 @@
-"""Child of the selected 16/32/60-env G1 supervisor; no Isaac before authorization."""
+"""Child of the selected 16/32/60/120-env G1 supervisor; no Isaac before authorization."""
 from pathlib import Path
 import argparse
 from dataclasses import asdict
@@ -17,7 +17,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--manifest',type=Path,required=True)
     parser.add_argument('--checkpoint',type=Path,required=True)
-    parser.add_argument('--num-envs',type=int,choices=(16,32,60),default=16)
+    parser.add_argument('--num-envs',type=int,choices=(16,32,60,120),default=16)
     args=parser.parse_args()
     from source_scale_startup_supervisor import preflight
     plan=preflight(args,child=True)

@@ -206,4 +206,4 @@ def test_new_validator_preserves_both_archived_real_results(reference):
 @pytest.mark.parametrize('script',['source_scale_startup_supervisor.py','source_scale_startup_probe.py'])
 def test_cli_lists_60_env_choice_without_loading_the_simulator(script):
     result=subprocess.run([sys.executable,str(ROOT/'scripts/tools'/script),'--help'],capture_output=True,text=True,timeout=30)
-    assert result.returncode==0 and '--num-envs {16,32,60}' in result.stdout
+    assert result.returncode==0 and '--num-envs {16,32,60,120}' in result.stdout
