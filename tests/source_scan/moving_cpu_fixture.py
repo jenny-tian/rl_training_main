@@ -22,28 +22,29 @@ class Scene(NS):
         return getattr(self, name)
 
 
-def environment():
-    env, interface, events = stepping_env(num_envs=8)
+def environment(num_envs=8):
+    n=num_envs
+    env, interface, events = stepping_env(num_envs=n)
     env.recorder_manager.record_pre_reset=lambda ids:None
     env.recorder_manager.record_post_reset=lambda ids:None
-    env.episode_length_buf = torch.zeros(8, dtype=torch.long)
+    env.episode_length_buf = torch.zeros(n, dtype=torch.long)
     old_scene = env.scene
     grid = torch.zeros(1, 15, 3)
     grid[0, :, 1] = torch.arange(15)*4.
-    allocator = SharedBankTerrainAllocator(8, SOURCE_RESET_BLOCK_COUNTS, 131001, bank_rows=1)
-    initial = allocator.reset(list(range(8)))
+    allocator = SharedBankTerrainAllocator(n, SOURCE_RESET_BLOCK_COUNTS, 131001, bank_rows=1)
+    initial = allocator.reset(list(range(n)))
     columns = torch.tensor([a.column for a in initial])
-    terrain = NS(terrain_origins=grid, terrain_levels=torch.zeros(8, dtype=torch.long),
+    terrain = NS(terrain_origins=grid, terrain_levels=torch.zeros(n, dtype=torch.long),
                  terrain_types=columns, env_origins=grid[0, columns].clone())
     pos = terrain.env_origins[:, None, :].repeat(1, 17, 1);pos[:, :, 2] += .4
-    quat = torch.zeros(8, 17, 4);quat[:, :, 0] = 1
-    data = NS(body_link_pos_w=pos, body_link_lin_vel_w=torch.full((8, 17, 3), 0.),
-              body_link_quat_w=quat, joint_pos=torch.zeros(8, 12), joint_vel=torch.zeros(8, 12),
-              root_state_w=torch.zeros(8, 13))
+    quat = torch.zeros(n, 17, 4);quat[:, :, 0] = 1
+    data = NS(body_link_pos_w=pos, body_link_lin_vel_w=torch.full((n, 17, 3), 0.),
+              body_link_quat_w=quat, joint_pos=torch.zeros(n, 12), joint_vel=torch.zeros(n, 12),
+              root_state_w=torch.zeros(n, 13))
     data.root_link_pos_w = data.body_link_pos_w[:, 0]
     data.root_state_w[:, :3] = data.root_link_pos_w
     data.root_state_w[:, 3] = 1
-    data.default_root_state = torch.zeros(8,13)
+    data.default_root_state = torch.zeros(n,13)
     data.default_root_state[:,2]=.4;data.default_root_state[:,3]=1.
     env.scene = Scene(terrain=terrain, robot=NS(data=data), sensors={}, stage=old_scene.stage,
                       stage_id=old_scene.stage_id, write_data_to_sim=old_scene.write_data_to_sim)
@@ -51,13 +52,13 @@ def environment():
     env.cfg.scene = NS(terrain=NS(terrain_generator=NS(seed=30000, sub_terrains=dict.fromkeys(SOURCE_RESET_BLOCK_COUNTS))))
     env.cfg.source_training_run=1;env.cfg.source_terrain_level='L1';env.cfg.seed=130001
     env.cfg.source_parallel_sampler_seed=131001
-    env.action_manager.action = torch.zeros(8, 12)
-    env.action_manager.prev_action = torch.zeros(8, 12)
+    env.action_manager.action = torch.zeros(n, 12)
+    env.action_manager.prev_action = torch.zeros(n, 12)
     def process_action(action):
         env.action_manager.prev_action.copy_(env.action_manager.action)
         env.action_manager.action.copy_(action)
     env.action_manager.process_action = process_action
-    command = torch.tensor([[.3, 0., 0.]]).repeat(8, 1)
+    command = torch.tensor([[.3, 0., 0.]]).repeat(n, 1)
     env.command_manager.active_terms=['base_velocity']
     env.command_manager.get_command=lambda name: command
     env.observation_manager._group_obs_term_history_buffer={}
@@ -65,14 +66,14 @@ def environment():
     class Sensor:
         def __init__(self, rays, period):
             self.rays=rays;self.period=period
-            self._timestamp=torch.zeros(8, dtype=torch.float64)
+            self._timestamp=torch.zeros(n, dtype=torch.float64)
             self._timestamp_last_update=torch.zeros_like(self._timestamp)
-            self._is_outdated=torch.ones(8, dtype=torch.bool)
+            self._is_outdated=torch.ones(n, dtype=torch.bool)
             if rays:
-                self._data=NS(ray_hits_w=torch.zeros(8, rays, 3), ray_mesh_ids=torch.zeros(8, rays, 1, dtype=torch.int16))
-                self._mesh_ids_wp=NS(numpy=lambda: np.full((8,1),17,dtype=np.uint64))
+                self._data=NS(ray_hits_w=torch.zeros(n, rays, 3), ray_mesh_ids=torch.zeros(n, rays, 1, dtype=torch.int16))
+                self._mesh_ids_wp=NS(numpy=lambda: np.full((n,1),17,dtype=np.uint64))
                 self.meshes={'/World/ground':NS(id=17)}
-            else:self._data=NS(net_forces_w=torch.zeros(8,17,3))
+            else:self._data=NS(net_forces_w=torch.zeros(n,17,3))
         @property
         def data(self):
             ids=self._is_outdated.nonzero().flatten()
@@ -100,17 +101,17 @@ def environment():
     env.scene.update=update
     def observations(update_history=False):
         for name in ('height_scanner','height_scanner_base'):env.scene.sensors[name].data
-        policy=torch.zeros(8,45);policy[:,-12:]=env.action_manager.action
-        critic=torch.zeros(8,393);critic[:,:3]=data.root_link_pos_w
+        policy=torch.zeros(n,45);policy[:,-12:]=env.action_manager.action
+        critic=torch.zeros(n,393);critic[:,:3]=data.root_link_pos_w
         return {'policy':policy,'critic':critic}
     env.observation_manager.compute=observations
     callbacks=[]
     env.add_pre_reset_callback=callbacks.append
     def safety_state(timeout):
-        return SafetyState(projected_gravity_xy=torch.zeros(8,2), base_height=torch.full((8,1),.4),
-            joint_pos=data.joint_pos,joint_vel=data.joint_vel,joint_lower=torch.full((8,12),-10.),
-            joint_upper=torch.full((8,12),10.),default_joint_pos=torch.zeros(8,12),
-            action_scale=torch.ones(1,12),nonfoot_contact=torch.zeros(8,1,dtype=torch.bool),control_timed_out=timeout)
+        return SafetyState(projected_gravity_xy=torch.zeros(n,2), base_height=torch.full((n,1),.4),
+            joint_pos=data.joint_pos,joint_vel=data.joint_vel,joint_lower=torch.full((n,12),-10.),
+            joint_upper=torch.full((n,12),10.),default_joint_pos=torch.zeros(n,12),
+            action_scale=torch.ones(1,12),nonfoot_contact=torch.zeros(n,1,dtype=torch.bool),control_timed_out=timeout)
     runtime=SourceTrainingRuntime(env,NS(safety_state=safety_state,contact_sensor=env.scene.sensors['contact_forces']))
     terms={}
     env.termination_manager.active_terms=['source_training_safety','source_training_completion','source_training_timeout',
@@ -119,8 +120,8 @@ def environment():
     def compute():
         life=runtime.evaluate()
         terms.update(source_training_safety=life.unsafe.clone(),source_training_completion=life.completed.clone(),
-                     source_training_timeout=life.timeout.clone(),source_terrain_tile_bounds=torch.zeros(8,dtype=torch.bool),
-                     illegal_contact=torch.zeros(8,dtype=torch.bool),bad_orientation_2=torch.zeros(8,dtype=torch.bool))
+                     source_training_timeout=life.timeout.clone(),source_terrain_tile_bounds=torch.zeros(n,dtype=torch.bool),
+                     illegal_contact=torch.zeros(n,dtype=torch.bool),bad_orientation_2=torch.zeros(n,dtype=torch.bool))
         if env.common_step_counter == 13:terms['illegal_contact'][3]=True
         env.termination_manager.terminated=torch.stack([v for k,v in terms.items() if k!='source_training_timeout']).any(dim=0)
         env.termination_manager.time_outs=terms['source_training_timeout'].clone()
@@ -139,14 +140,14 @@ def environment():
         for sensor in env.scene.sensors.values():sensor.reset(ids)
     env._reset_idx=reset
     class Wrapped:
-        unwrapped=env;device='cpu';num_envs=8;num_actions=12;clip_actions=None;cfg=env.cfg
+        unwrapped=env;device='cpu';num_envs=n;num_actions=12;clip_actions=None;cfg=env.cfg
         def get_observations(self):
             from tensordict import TensorDict
-            return TensorDict(observations(),batch_size=[8])
+            return TensorDict(observations(),batch_size=[n])
         def step(self, actions):
             obs,reward,terminated,truncated,extras=env.step(actions)
             from tensordict import TensorDict
-            return TensorDict(obs,batch_size=[8]),reward,(terminated|truncated).long(),{**extras,'time_outs':truncated}
+            return TensorDict(obs,batch_size=[n]),reward,(terminated|truncated).long(),{**extras,'time_outs':truncated}
     wrapped=SourceTrainingVecEnv(Wrapped(),runtime=runtime)
     return env,interface,events,wrapped
 

@@ -59,7 +59,7 @@ def selected_scale_proposal():
             'contact_capacity_candidate': 1048576, 'raw_journal_byte_limit': 2147483648,
             'record_raw_points_and_pairs': True, 'record_full_fault_snapshot': True,
             'independent_CPU_reconstruction_required': True,
-            'implementation_status': 'not_implemented_for_120_envs'},
+            'implementation_status': 'cpu_implemented_runtime_pending'},
         'metrics': ['startup_s', 'scene_build_s', 'first_step_s', 'process_RSS_peak_bytes',
                     'card_and_process_GPU_memory', 'control_steps_per_second', 'transitions_per_second',
                     'reset_latency_p50_s', 'reset_latency_p95_s', 'GPU_temperature_and_utilization'],

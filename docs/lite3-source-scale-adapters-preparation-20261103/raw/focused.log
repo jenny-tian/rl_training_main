@@ -1,0 +1,99 @@
+.............................F.......................................... [ 72%]
+...........................                                              [100%]
+=================================== FAILURES ===================================
+_ test_pinned_tensor_api_capture_restores_hook_and_keeps_fault_buffers[backend_failure] _
+
+tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-375/test_pinned_tensor_api_capture4')
+fault = 'backend_failure'
+
+    @pytest.mark.parametrize('fault',[None,'empty','cross','nonfinite','backend_failure'])
+    def test_pinned_tensor_api_capture_restores_hook_and_keeps_fault_buffers(tmp_path,fault):
+        from source_sparse_tensor_contact import SparseTensorContactCapture
+        from source_shared_contact_report import capture_substeps
+        env,interface,events,wrapped=make_environment();runtime=install_tensor_backend(env,interface,fault=fault)
+        records=[];sensors=sorted(f'/World/envs/env_{i}/Robot/{name}' for i in range(16) for name in BODY_NAMES)
+        capture=SparseTensorContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[GROUND],num_envs=16,
+            physics_dt=.005,fault_path=tmp_path/'fault.npz',require_ground_positive=False,
+            stage_id=73,reporting_bodies=sensors,record=records.append,start_step=12,decimation=4,control_steps=1)
+        def execute():
+            with capture_substeps(env,interface,capture,runtime):
+                wrapped.step(torch.zeros(16,12));capture.check_control(env,1)
+        if fault in (None,'empty'):
+            execute();assert capture.samples==4 and not capture.positive_controls_validated
+            assert not (tmp_path/'fault.npz').exists()
+            for frame in [row for row in records if row.get('phase')=='sparse_contact_sample']:reconstruct_frame(frame,capture.topology)
+        else:
+>           with pytest.raises((ValueError,RuntimeError)):execute()
+                                                          ^^^^^^^^^
+
+tests/source_scan/test_sparse_scale_contact.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/source_scan/test_sparse_scale_contact.py:97: in execute
+    wrapped.step(torch.zeros(16,12));capture.check_control(env,1)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+source/rl_training/rl_training/source_scan/training_env.py:162: in step
+    observations, rewards, dones, extras = self.env.step(trace.executed_action.clone())
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/source_scan/moving_cpu_fixture.py:148: in step
+    obs,reward,terminated,truncated,extras=env.step(actions)
+                                           ^^^^^^^^^^^^^^^^^
+../../../IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py:190: in step
+    self.recorder_manager.record_post_physics_decimation_step()
+scripts/tools/source_shared_contact_report.py:258: in after_physics
+    capture.poll(env, interface, get_runtime)
+scripts/tools/source_sparse_tensor_contact.py:63: in poll
+    matrix = _copy(self.view.get_contact_force_matrix(self.physics_dt))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <scale_cpu_fixture.install_tensor_backend.<locals>.View object at 0x7453e1dafe10>
+dt = 0.005
+
+    def get_contact_force_matrix(self, dt):
+        """ Gets the matrix of pair-wise contact forces between sensors and filter prims.
+    
+            This only includes the contact forces between the sensors and the filter prims but not other potential contacts between the sensors and non-filter prims.
+    
+            .. note::
+                * The function raises an exception if the contact force matrix cannot be obtained from the backend.
+                * This function can only be used if the view is initialized with a valid filter prims.
+                * There could be more than one contact point between a sensor prim and a filter prim, but this function aggregates and reports the sum of all those contact forces between a pair of sensor/filter.
+    
+            Args:
+                dt (float): The time step of the simulation to use to convert impulses to forces.
+    
+            Returns:
+                Union[np.ndarray, torch.Tensor, wp.array]:
+                  An array of contact forces with shape (sensor_count, filter_count, 3) where sensor_count is the number of sensors in the view and filter_count is the number of filter prims in the view.
+                  The 3 elements of the last dimension are the x, y, z components of the contact forces between the sensors prims (in the first dimension) and the filter prims (in the second dimension).
+    
+            Example:
+                .. code-block:: python
+    
+                  >>> import omni.physics.tensors as tensors
+                  >>> sim_view = tensors.create_simulation_view("warp")
+                  >>> rigid_contact_view = sim_view.create_rigid_contact_view("/World/Cube_*") # This assumes that the prims referenced by "/World/Cube_*" were already created in the stage
+                  >>> contact_force_matrix = rigid_contact_view.get_contact_force_matrix(dt) # Get the matrix of pair-wise contact forces between sensors and filter prims
+                  >>> contact_force_matrix_np = contact_force_matrix.numpy().reshape(rigid_contact_view.sensor_count, rigid_contact_view.filter_count, 3) # Reshape the obtained array in a 3D numpy array on the host
+        """
+        if self.filter_count == 0:
+            raise Exception("Contact force matrix is not available because no filters were specified")
+        if not hasattr(self, "_matrix"):
+            self._matrix, self._matrix_desc = self._frontend.create_tensor(
+                (self.sensor_count, self.filter_count, 3), float32)
+        if not self._backend.get_contact_force_matrix(self._matrix_desc, dt):
+>           raise Exception("Failed to get contact force matrix from backend")
+E           Exception: Failed to get contact force matrix from backend
+
+../../../anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:5874: Exception
+=============================== warnings summary ===============================
+tests/source_scan/test_sparse_scale_contact.py: 55 warnings
+tests/source_scan/test_scale_episode_metrics.py: 3 warnings
+tests/source_scan/test_scale_startup.py: 16 warnings
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_sparse_scale_contact.py::test_pinned_tensor_api_capture_restores_hook_and_keeps_fault_buffers[backend_failure]
+1 failed, 98 passed, 74 warnings in 15.29s

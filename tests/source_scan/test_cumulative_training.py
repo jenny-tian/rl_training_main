@@ -173,7 +173,7 @@ def test_selected_scale_plan_reports_missing_execution_and_dense_cost():
     assert plan['evidence_strategy']['dense_frame_bytes'] == 67393440
     assert plan['evidence_strategy']['dense_G3_bytes_before_JSON'] == 539147520000
     assert plan['evidence_strategy']['sparse_force_only_pairs_must_be_included']
-    assert plan['evidence_strategy']['implementation_status'] == 'not_implemented_for_120_envs'
+    assert plan['evidence_strategy']['implementation_status'] == 'cpu_implemented_runtime_pending'
     assert plan['stages']['G4_end_to_end']['status'] == 'pending_bounded_numerics'
     assert plan['stages']['G3']['all_old_policy_cells_must_succeed'] is False
 
