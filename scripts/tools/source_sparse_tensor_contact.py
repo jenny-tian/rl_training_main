@@ -16,7 +16,7 @@ class SparseTensorContactCapture(ContactCapture):
     uses_contact_events = False
 
     def __init__(self, *, physics_view, ground_colliders, num_envs, physics_dt, fault_path,
-                 require_ground_positive=True, **kwargs):
+                 require_ground_positive=True, diagnostic_scope='G1_startup', **kwargs):
         super().__init__(decode_path=None,event_types={},**kwargs)
         if num_envs not in CAPACITIES or physics_dt != .005:
             raise ValueError('sparse capture supports the registered 16/32/60/120 scale ladder at 200Hz')
@@ -25,6 +25,12 @@ class SparseTensorContactCapture(ContactCapture):
         self.capacity = CAPACITIES[num_envs]
         self.fault_path = Path(fault_path)
         self.require_ground_positive = require_ground_positive
+        if diagnostic_scope not in ('G1_startup','G2_reset_recovery'):
+            raise ValueError('unregistered sparse diagnostic scope')
+        if diagnostic_scope=='G2_reset_recovery' and (num_envs!=120 or self.control_steps!=4
+                or self.decimation!=4 or require_ground_positive is not False):
+            raise ValueError('G2 sparse capture requires exactly 120 environments and four recovery controls')
+        self.diagnostic_scope = diagnostic_scope
         self.view = self.encoder = self.topology = None
         self.samples = self.peak_used = 0
         self.fault_written = False
@@ -98,6 +104,10 @@ class SparseTensorContactCapture(ContactCapture):
     def finish(self):
         if self.require_ground_positive:
             super().finish()
+        elif self.diagnostic_scope=='G2_reset_recovery':
+            if (self.control_steps!=4 or self.samples!=16 or self.control_poll_counts!=[4]*4
+                    or self.errors or self.cross_contacts):
+                raise ValueError('reset-recovery sparse capture incomplete')
         elif (self.control_steps!=1 or self.samples!=4 or len(self.control_poll_counts)!=1
               or self.errors or self.cross_contacts):
             raise ValueError('startup-only sparse capture incomplete')
@@ -108,4 +118,5 @@ class SparseTensorContactCapture(ContactCapture):
             peak_used=self.peak_used,require_ground_positive=self.require_ground_positive,
             ground_positive_qualified=self.positive_controls_validated,fault_written=self.fault_written,
             physics_dt=self.physics_dt)
+        if self.diagnostic_scope=='G2_reset_recovery':result['diagnostic_scope']=self.diagnostic_scope
         return result

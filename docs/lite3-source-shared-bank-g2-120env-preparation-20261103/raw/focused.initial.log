@@ -1,0 +1,93 @@
+........................................................................ [ 37%]
+.......F................................................................ [ 75%]
+..............................................                           [100%]
+=================================== FAILURES ===================================
+_ test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes[runtime_stage] _
+
+tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-384/test_independent_g2_rejects_co35')
+g2_fixture = (PosixPath('/tmp/pytest-of-tjx/pytest-384/G2_synthetic_CPU0/attempt'), {'actions': 'all_zero', 'assignment_count': 304...scale_increase': False, ...}, {'monitor_errors': [], 'process_group_empty': True, 'returncode': 0, 'timed_out': False})
+fault = 'runtime_stage'
+
+    @pytest.mark.parametrize('fault',['batch_missing','batch_ids','batch_tick','reset_order','missing_root_inventory',
+        'unselected_root','unselected_origin','unselected_action','unselected_sensor','history_not_cleared',
+        'pushes_not_cleared','filter_not_cleared','lifecycle_not_cleared','contact_not_cleared','sensor_not_invalidated',
+        'spawn_wrong','checked_after_changed','ticket_column','ticket_tail','metric_age','metric_rows','nonfinite_metric',
+        'done','action','pause','frame_missing','frame_duplicate','force_changed','motion_missing','recovery_missing',
+        'extra_recovery','last_body','last_scanner','reset_scanner','collision_group','runtime_stage','scope',
+        'capture_count','cleanup','pending','plan_unapproved'])
+    def test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes(tmp_path,g2_fixture,fault):
+        original,plan,execution=g2_fixture;folder=tmp_path/'corrupt';shutil.copytree(original,folder);plan=deepcopy(plan)
+        report=json.loads((folder/'result.json').read_text());events=[json.loads(l) for l in (folder/'events.jsonl').read_text().splitlines()]
+        rows=[json.loads(l) for l in (folder/'result.steps.jsonl').read_text().splitlines()]
+        phases=lambda name:[v for v in events if v.get('phase')==name]
+        attempts=phases('scale_reset_attempt');afters=phases('scale_reset_after');checked=phases('scale_reset_checked')
+        motion=phases('scale_motion_substep');frames=phases('sparse_contact_sample')
+        def change_after(key,index,value):
+            for data in (afters[0]['after'],checked[0]['after']):
+                target=data[key]['values']
+                for i in index[:-1]:target=target[i]
+                target[index[-1]]=value
+        if fault=='batch_missing':events.remove(checked[-1])
+        if fault=='batch_ids':attempts[0]['ids']=[1]
+        if fault=='batch_tick':attempts[0]['sim_step']+=1
+        if fault=='reset_order':events.remove(checked[0]);events.append(checked[0])
+        if fault=='missing_root_inventory':
+            del report['reset_snapshot_inventory']['root']
+            for event in attempts+afters+checked:
+                for key in ('before','after'):
+                    if key in event:del event[key]['root']
+        if fault=='unselected_root':change_after('root',[119,0],7.)
+        if fault=='unselected_origin':change_after('origin',[119,0],7.)
+        if fault=='unselected_action':change_after('action',[119,0],.1)
+        if fault=='unselected_sensor':change_after('sensor/height_scanner/_timestamp',[119],1.)
+        if fault=='history_not_cleared':change_after('history/policy/actions',[0,0,0],.25)
+        if fault=='pushes_not_cleared':change_after('pushes/policy/actions',[0],1)
+        if fault=='filter_not_cleared':change_after('filter/filter_previous_residual_action',[0,0],.1)
+        if fault=='lifecycle_not_cleared':change_after('lifecycle/hold',[0],1)
+        if fault=='contact_not_cleared':change_after('cache/contact_forces/net_forces_w',[0,0,0],1.)
+        if fault=='sensor_not_invalidated':change_after('sensor/height_scanner/_is_outdated',[0],False)
+        if fault=='spawn_wrong':change_after('root',[0,0],999.)
+        if fault=='checked_after_changed':checked[0]['after']['root']['values'][119][0]+=1
+        if fault=='ticket_column':checked[0]['assignments'][119]['column']+=1
+        if fault=='ticket_tail':report['all_assignment_tickets'][-1]['index_in_block']+=1
+        if fault=='metric_age':rows[0]['metric_rows'][119]['step']=2
+        if fault=='metric_rows':rows[0]['metric_rows'].pop()
+        if fault=='nonfinite_metric':rows[0]['metric_rows'][119]['roll_rad']=float('nan')
+        if fault=='done':rows[0]['done'][119]=1
+        if fault=='action':rows[0]['executed_action'][119][0]=.1
+        if fault=='pause':rows[0]['paused'][119][0]=True
+        if fault=='frame_missing':events.remove(frames[-1])
+        if fault=='frame_duplicate':frames[-1]['sim_step']=frames[0]['sim_step']
+        if fault=='force_changed':frames[0]['pair_forces_N'][0][2]+=1
+        if fault=='motion_missing':events.remove(motion[-1])
+        if fault=='recovery_missing':motion[0]['recovery_ids']=[]
+        if fault=='extra_recovery':motion[1]['recovery_ids']=[119]
+        if fault=='last_body':motion[0]['body_positions_w']['values'][119][16][1]+=10
+        if fault=='last_scanner':motion[0]['scanners']['height_scanner_base']['mesh_ids']['values'][119][0]=18
+        if fault=='reset_scanner':phases('g2_reset_scans')[0]['scanners']['height_scanner_base']['age_s']['values'][119]=.005
+        if fault=='collision_group':report['collision_groups']['groups']['/World/collisions/group119']['allowed_groups'].append('/World/collisions/group0')
+        if fault=='runtime_stage':phases('contact_runtime')[0]['stage_id']+=1
+        if fault=='scope':report['contact_capture']['diagnostic_scope']='G1_startup'
+        if fault=='capture_count':report['contact_capture']['samples']=15
+        if fault=='cleanup':(folder/'result.cleanup.json').write_text('{}')
+        if fault=='pending':report['pending_recovery_ids']=[119]
+        if fault=='plan_unapproved':plan['user_approved']=False
+        (folder/'result.steps.jsonl').write_text(''.join(json.dumps(v)+'\n' for v in rows))
+        (folder/'events.jsonl').write_text(''.join(json.dumps(v)+'\n' for v in events))
+        for key,name in [('steps_sha256','result.steps.jsonl'),('events_sha256','events.jsonl')]:report[key]=hashlib.sha256((folder/name).read_bytes()).hexdigest()
+        (folder/'result.json').write_text(json.dumps(report));result=validate(folder,plan,execution)
+>       assert not result['accepted'] and result['reasons'],fault
+E       AssertionError: runtime_stage
+E       assert (not True)
+
+tests/source_scan/test_scale_reset.py:167: AssertionError
+=============================== warnings summary ===============================
+tests/source_scan/test_scale_reset.py: 25 warnings
+tests/source_scan/test_sparse_scale_contact.py: 55 warnings
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_scale_reset.py::test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes[runtime_stage]
+1 failed, 189 passed, 80 warnings in 418.18s (0:06:58)

@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_scale_reset.py",
+    "tests/source_scan/test_sparse_scale_contact.py",
+    "tests/source_scan/test_source_parallel_reset_lifecycle.py",
+    "--junitxml=/tmp/lite3-g2-120env-preparation-20261103-plum6imk/focused.junit.xml"
+  ],
+  "environment_overrides": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONPATH": "source/rl_training:.",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  },
+  "returncode": 1,
+  "elapsed_seconds": 420.83083120547235,
+  "gpu_jobs": 0,
+  "isaac_sim_launches": 0
+}

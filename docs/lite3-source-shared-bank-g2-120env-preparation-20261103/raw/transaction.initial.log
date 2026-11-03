@@ -1,0 +1,13 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__ test_partial_origin_write_rolls_back_all_buffers_without_consuming_tickets __
+
+    def test_partial_origin_write_rolls_back_all_buffers_without_consuming_tickets():
+        env=_fake_parallel_env(num_envs=120,num_rows=1)
+>       assign_source_terrain_for_parallel_reset(env,torch.arange(120),sampler_seed=131001,bank_rows=1)
+E       TypeError: assign_source_terrain_for_parallel_reset() got an unexpected keyword argument 'bank_rows'
+
+tests/source_scan/test_scale_reset_transaction.py:13: TypeError
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_scale_reset_transaction.py::test_partial_origin_write_rolls_back_all_buffers_without_consuming_tickets
+1 failed in 0.03s

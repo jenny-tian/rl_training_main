@@ -1,0 +1,23 @@
+{
+  "status": "observed_and_fixed_CPU_only_development_failure",
+  "phase": "second_selective_reset_after_first_inference_control",
+  "error": "RuntimeError: Inplace update to inference tensor outside InferenceMode is not allowed.",
+  "cause": "filter memory created by inference control was reset outside inference mode",
+  "fix": "one inference-mode context covers all four direct resets and recovery controls",
+  "gpu_jobs": 0,
+  "isaac_sim_launches": 0,
+  "partial_evidence": {
+    "result.json": {
+      "bytes": 24786,
+      "sha256": "1ef316ad2b717808327ba6953b6e6d9c3823f8e445af76f1622e3fc1553bb774"
+    },
+    "events.jsonl": {
+      "bytes": 10375074,
+      "sha256": "459f397971102b76ca9256e856f7f4730a0673db0d2b528759c59158b657da74"
+    },
+    "result.steps.jsonl": {
+      "bytes": 82497,
+      "sha256": "09fecd3dd53860fc905187bed753c44d8d0144a0c0ac1f805fc0bb9b679eb2a0"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_scale_reset.py::test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes[runtime_stage]",
+    "tests/source_scan/test_scale_reset_transaction.py",
+    "--junitxml=/tmp/lite3-g2-120env-preparation-20261103-plum6imk/focused_fix.junit.xml"
+  ],
+  "environment_overrides": {
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONPATH": "source/rl_training:.",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  },
+  "returncode": 0,
+  "elapsed_seconds": 46.84719461016357,
+  "gpu_jobs": 0,
+  "isaac_sim_launches": 0
+}
