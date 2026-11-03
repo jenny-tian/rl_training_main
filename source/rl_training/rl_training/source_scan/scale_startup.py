@@ -1,4 +1,4 @@
-"""One separately approved 16- or 32-environment startup check, without PPO."""
+"""One separately approved 16-, 32-, or 60-environment startup check, without PPO."""
 import hashlib
 import json
 from pathlib import Path
@@ -23,35 +23,48 @@ PREDECESSOR_16 = dict(archive='docs/lite3-source-shared-bank-g1-16env-runtime-20
     review_sha256='53ffd0df090934d9f1be7dd6fb7ba3f137282e0f7fb1ed44fa9608752d143758')
 
 
+PREDECESSOR_32 = dict(archive='docs/lite3-source-shared-bank-g1-32env-runtime-20261103',
+    executed_revision='7cb2c14b7a07067240c7812eb26bbf5808b0e6f0',
+    sha256sums_sha256='39647371b892b9efcb13974325b91f3fa27316b3fd919219c105bdc270f336ee',
+    review_sha256='536b6b459ac57fd66733c198beba0d379e00d921885b7387afa5a9ee8b919c15')
+
+
 def contract_for(num_envs):
-    if type(num_envs) is not int or num_envs not in (16,32):
-        raise ValueError('G1 launch contract is registered only for 16 or 32 environments')
+    if type(num_envs) is not int or num_envs not in (16,32,60):
+        raise ValueError('G1 launch contract is registered only for 16, 32, or 60 environments')
     if num_envs==16:return dict(CONTRACT)
-    return CONTRACT|dict(purpose='shared_bank_G1_32_envs',
-        attempt_id='lite3-source-shared-g1-32env-20261103-v1',num_envs=32,
-        diagnostic_transitions=32,contact_capacity=262144,predecessor_qualification=dict(PREDECESSOR_16))
+    return CONTRACT|dict(purpose=f'shared_bank_G1_{num_envs}_envs',
+        attempt_id=f'lite3-source-shared-g1-{num_envs}env-20261103-v1',num_envs=num_envs,
+        diagnostic_transitions=num_envs,contact_capacity={32:262144,60:524288}[num_envs],
+        predecessor_qualification=dict({32:PREDECESSOR_16,60:PREDECESSOR_32}[num_envs]))
 
 
 def validate_predecessor(num_envs,reference=None,*,source_root=None):
     """Bind the already accepted G1 archive, without rerunning its simulator/reviewer."""
     contract_for(num_envs)
     if num_envs==16:return
-    if reference!=PREDECESSOR_16:raise ValueError('32-env G1 requires the fixed accepted 16-env predecessor')
+    previous={32:16,60:32}[num_envs]
+    expected={32:PREDECESSOR_16,60:PREDECESSOR_32}[num_envs]
+    if reference!=expected:raise ValueError(f'{num_envs}-env G1 requires the fixed accepted {previous}-env predecessor')
     root=Path(source_root) if source_root is not None else Path(__file__).resolve().parents[4]
-    archive=(root/PREDECESSOR_16['archive']).resolve()
+    archive=(root/expected['archive']).resolve()
     for name,key in (('SHA256SUMS','sha256sums_sha256'),('review.json','review_sha256')):
         if hashlib.sha256((archive/name).read_bytes()).hexdigest()!=reference[key]:
-            raise ValueError('16-env G1 predecessor anchor changed: '+name)
+            raise ValueError(f'{previous}-env G1 predecessor anchor changed: '+name)
     for line in (archive/'SHA256SUMS').read_text().splitlines():
         digest,name=line.split('  ',1);path=(archive/name).resolve()
         if not path.is_relative_to(archive) or hashlib.sha256(path.read_bytes()).hexdigest()!=digest:
-            raise ValueError('16-env G1 predecessor evidence changed: '+name)
+            raise ValueError(f'{previous}-env G1 predecessor evidence changed: '+name)
     review=json.loads((archive/'review.json').read_text())
-    if (review.get('status')!='passed_bounded_16_env_G1_archive_review' or review.get('accepted') is not True
+    runtime_key={16:'runtime_gpu_launches',32:'runtime_GPU_launches'}[previous]
+    if (review.get('status')!=f'passed_bounded_{previous}_env_G1_archive_review' or review.get('accepted') is not True
             or review.get('executed_revision')!=reference['executed_revision']
-            or review.get('runtime_gpu_launches')!=1 or review.get('real_read_only_diagnostic_transitions')!=16
+            or review.get(runtime_key)!=1 or review.get('real_read_only_diagnostic_transitions')!=previous
             or review.get('training_ready') is not False or review.get('g3_g4_qualified') is not False):
-        raise ValueError('16-env predecessor does not qualify for the next G1 scale')
+        raise ValueError(f'{previous}-env predecessor does not qualify for the next G1 scale')
+    if num_envs==60:
+        prior=json.loads((archive/'raw/run_manifest.json').read_text())
+        validate_predecessor(32,prior.get('predecessor_qualification'),source_root=root)
 
 
 def proposal(*,revision,remote,inputs,dependencies,budget_reference,output_dir,num_envs=16):

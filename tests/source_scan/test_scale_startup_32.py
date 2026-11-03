@@ -20,7 +20,7 @@ from source_scale_startup_validation import validate
 import source_scale_startup_supervisor as supervisor
 
 
-@pytest.mark.parametrize('num_envs',[8,60,120,16.0,32.0,True,None])
+@pytest.mark.parametrize('num_envs',[8,64,120,16.0,32.0,True,None])
 def test_unregistered_or_untyped_launch_scale_is_refused(num_envs):
     with pytest.raises(ValueError):contract_for(num_envs)
 

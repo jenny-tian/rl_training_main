@@ -1,4 +1,4 @@
-"""Freeze or supervise one explicitly selected 16/32-env G1 after launch approval."""
+"""Freeze or supervise one explicitly selected 16/32/60-env G1 after launch approval."""
 import argparse
 import hashlib
 import json
@@ -136,6 +136,6 @@ def run(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=('prepare','run'))
-    parser.add_argument('--num-envs',type=int,choices=(16,32),default=16)
+    parser.add_argument('--num-envs',type=int,choices=(16,32,60),default=16)
     for name in ('manifest','output-dir','checkpoint'):parser.add_argument('--'+name,type=Path,required=True)
     args=parser.parse_args();raise SystemExit(prepare(args) if args.action=='prepare' else run(args))
