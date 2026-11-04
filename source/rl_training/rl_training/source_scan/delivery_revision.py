@@ -43,6 +43,7 @@ def validate_revision(ref, stage_ref=None):
 def compatible_inputs(plan, inputs):
     prefix='source/rl_training/rl_training/source_scan/'
     allowed={prefix+n+'.py' for n in ('delivery_stage','cumulative_training','runtime_readiness')}
+    allowed.add(prefix+'delivery_metrics.py')
     allowed.update('scripts/tools/'+n+'.py' for n in
         ('source_scale_motion_validation','source_training_delivery','source_delivery_light','source_training_supervisor'))
     additions={prefix+'delivery_revision.py','scripts/tools/source_limited_motion_validation.py'}
@@ -67,6 +68,14 @@ def compatible_inputs(plan, inputs):
         return ast.dump(scan,include_attributes=False),configuration
     if signature(before)!=signature(after):
         raise ValueError('revision changes scene configuration or production scan checks')
+    name=prefix+'delivery_metrics.py'
+    old_tree=ast.parse(subprocess.check_output(['git','show',plan['base_revision']+':'+name],cwd=ROOT,text=True))
+    new_tree=ast.parse((ROOT/name).read_text())
+    preserved={'append_json','TrainingCurves','FirstEpisodes','paired_conditions'}
+    if any(ast.dump(next(n for n in old_tree.body if getattr(n,'name',None)==key),include_attributes=False)
+           !=ast.dump(next(n for n in new_tree.body if getattr(n,'name',None)==key),include_attributes=False)
+           for key in preserved):
+        raise ValueError('revision changes existing training or episode metric behavior')
     name='scripts/tools/source_training_supervisor.py'
     old_tree=ast.parse(subprocess.check_output(['git','show',plan['base_revision']+':'+name],cwd=ROOT,text=True))
     new_tree=ast.parse((ROOT/name).read_text())

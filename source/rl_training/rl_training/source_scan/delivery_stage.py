@@ -108,8 +108,77 @@ def validate_receipt(ref,kind,*,inputs=None):
         from .delivery_revision import validate_revision,validate_limited_receipt
         validate_revision(plan['stage_revision'],plan['delivery_stage'])
         validate_limited_receipt(plan['predecessor_qualification'],revision_ref=plan['stage_revision'],inputs=plan['input_sha256'])
+    elif kind=='compare':
+        validate_failed_numeric_candidate_for_compare(plan['predecessor_qualification'],
+            revision_ref=plan.get('stage_revision'),new_checkpoint=plan.get('new_checkpoint',{}))
     elif previous:validate_receipt(plan['predecessor_qualification'],previous,inputs=plan['input_sha256'])
     return receipt
+
+
+def validate_failed_numeric_candidate_for_compare(ref, *, revision_ref, new_checkpoint):
+    """Allow only the frozen 90-update actor past its throughput-only diagnostic gate."""
+    import math
+    receipt=read_reference(ref,'numerics')
+    if (receipt.get('schema')!='lite3_delivery_job_receipt_v1' or receipt.get('kind')!='numerics'
+            or receipt.get('accepted') is not False or receipt.get('stage_id')!=STAGE):
+        raise ValueError('comparison candidate is not the recorded failed numerics attempt')
+    plan=read_reference(receipt['manifest'],'run_manifest')
+    acceptance=read_reference(receipt['acceptance'],'acceptance')
+    execution=read_reference(receipt['execution'],'execution')
+    report=read_reference(receipt['report'],'report')
+    if (plan.get('delivery_job')!='numerics' or plan.get('stage_revision')!=revision_ref
+            or plan.get('base_revision')!='67d92d7443491c8a2b05e453f7a7ad34eeb58759'
+            or plan.get('max_updates')!=90 or plan.get('max_transitions')!=259200
+            or plan.get('formal_selection_authorized') is not False
+            or plan.get('metrics_scope')!='diagnostic_only'):
+        raise ValueError('comparison candidate differs from its frozen training scope')
+    threshold='end-to-end throughput below approved 600 transitions/s target'
+    rate=acceptance.get('measured_end_to_end_transitions_per_second')
+    if (acceptance.get('schema')!='lite3_source_bounded_numerics_acceptance_v1'
+            or acceptance.get('accepted') is not False or acceptance.get('reasons')!=[threshold]
+            or acceptance.get('completed_updates')!=90 or acceptance.get('real_transitions')!=259200
+            or acceptance.get('original_G3_accepted') is not False
+            or acceptance.get('g3_g4_qualified') is not False
+            or type(rate) not in (int,float) or not math.isfinite(rate) or not 0<rate<600):
+        raise ValueError('comparison candidate has a numerics failure beyond the approved throughput rejection')
+    if (execution.get('returncode')!=0 or execution.get('timed_out') is not False
+            or execution.get('process_group_empty') is not True or execution.get('monitor_errors')):
+        raise ValueError('comparison candidate training execution did not complete and clean up')
+    if (report.get('schema')!='lite3_source_ppo_run_report_v1' or report.get('status')!='completed'
+            or report.get('base_revision')!=plan.get('base_revision')
+            or report.get('remote_revision_verified')!=plan.get('remote_revision_verified')
+            or report.get('input_sha256')!=plan.get('input_sha256')
+            or report.get('completed_updates')!=90 or report.get('returned_transitions')!=259200
+            or report.get('stored_transitions')!=259200 or report.get('source_backward_checks')!=1800
+            or report.get('source_optimizer_steps_completed')!=1800
+            or report.get('synthetic_transitions')!=0 or report.get('training_selection_performed') is not False
+            or report.get('training_ready') is not False):
+        raise ValueError('comparison candidate training report is incomplete or inconsistent')
+    updates=report.get('update_receipts',[])
+    if ([r.get('update') for r in updates]!=list(range(1,91))
+            or any(r.get('rollout_steps')!=24 or r.get('returned_transitions')!=2880
+                   or r.get('stored_transitions')!=2880 or not r.get('losses')
+                   or any(type(v) not in (int,float) or not math.isfinite(v) for v in r['losses'].values())
+                   for r in updates)
+            or updates[-1].get('actor_sha256')==report.get('initial_actor_sha256')
+            or updates[-1].get('critic_sha256')==report.get('initial_critic_sha256')):
+        raise ValueError('comparison candidate update losses or actor/critic changes are invalid')
+    checkpoint=Path(plan['output_dir'])/'training/actor_update_90.pt'
+    if (new_checkpoint.get('path')!=str(checkpoint) or new_checkpoint.get('kind')!='actor_checkpoint'
+            or new_checkpoint.get('sha256')!='14d11c8b57392c3ac0ac1e08b26de1cc1254ee059d1f653172433df9a05bdf42'
+            or file_digest(checkpoint)!=new_checkpoint['sha256']):
+        raise ValueError('comparison actor is not the frozen 90-update checkpoint')
+    import torch
+    from .frozen_actor import FrozenSourceActor
+    from source_live_ppo_validation import state_digest
+    state=torch.load(checkpoint,map_location='cpu',weights_only=True)
+    with torch.inference_mode():action=FrozenSourceActor(state)(torch.zeros(1,45))
+    if (state_digest(state)!=updates[-1]['actor_sha256'] or action.shape!=(1,12)
+            or not bool(torch.isfinite(action).all())):
+        raise ValueError('comparison candidate actor does not match its last update or cannot infer')
+    return dict(schema='lite3_compare_failed_numerics_exception_v1',accepted_for_diagnostics=True,
+        numeric_acceptance_preserved=False,only_rejection='throughput_below_600',throughput=rate,
+        training_updates=90,training_transitions=259200,formal_selection_qualified=False)
 
 
 def job_contract(kind,plan):
@@ -140,6 +209,9 @@ def job_contract(kind,plan):
         elif kind=='g4' and revision:
             from .delivery_revision import validate_limited_receipt
             validate_limited_receipt(ref,revision_ref=revision,inputs=plan['input_sha256'])
+        elif kind=='compare':
+            validate_failed_numeric_candidate_for_compare(ref,revision_ref=revision,
+                new_checkpoint=plan.get('new_checkpoint',{}))
         else:validate_receipt(ref,prior,inputs=plan.get('input_sha256'))
         result['predecessor_qualification']=ref
     if kind in ('g3','locate'):
@@ -160,13 +232,21 @@ def job_contract(kind,plan):
         result['stage_revision']=revision
         if kind=='g4':result.update(schema='lite3_source_collection_G4_delivery_v2',scheduled_resets=approval['scheduled_resets'])
     if kind=='compare':
+        if not revision:raise PermissionError('paired comparison requires its approved revised scope')
+        from .delivery_revision import validate_revision
+        approval,source_plan=validate_revision(revision,plan['delivery_stage'])
+        if 'compare' not in approval['remaining_jobs']:raise PermissionError('comparison is outside revised scope')
+        from .delivery_revision import compatible_inputs
+        compatible_inputs(source_plan,plan['input_sha256'])
+        exception=validate_failed_numeric_candidate_for_compare(plan['predecessor_qualification'],
+            revision_ref=revision,new_checkpoint=plan.get('new_checkpoint',{}))
         receipt=read_reference(plan['predecessor_qualification'],'numerics')
         numeric_plan=read_reference(receipt['manifest'],'run_manifest')
         expected_checkpoint=reference(Path(numeric_plan['output_dir'])/'training/actor_update_90.pt','actor_checkpoint')
-        if plan['new_checkpoint']!=expected_checkpoint:raise ValueError('comparison actor differs from the accepted numeric checkpoint')
+        if plan['new_checkpoint']!=expected_checkpoint:raise ValueError('comparison actor differs from the frozen numeric checkpoint')
         result.update(schema='lite3_source_paired_diagnostics_delivery_v1',policy_loaded=True,control_steps_per_actor=2000,
             actions='deterministic_actor_mean',old_checkpoint_sha256=plan['checkpoint_sha256'],
-            new_checkpoint=plan['new_checkpoint'])
+            new_checkpoint=plan['new_checkpoint'],failed_numeric_diagnostic_exception=exception)
     return result
 
 

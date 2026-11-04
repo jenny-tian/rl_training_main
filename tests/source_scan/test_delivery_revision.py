@@ -8,6 +8,7 @@ import pytest
 import torch
 
 from rl_training.source_scan.delivery_stage import reference
+from rl_training.source_scan.delivery_stage import validate_failed_numeric_candidate_for_compare,job_contract
 from rl_training.source_scan.delivery_revision import validate_revision,compatible_inputs,SCHEDULE
 from rl_training.source_scan.runtime_readiness import numerics_readiness_template,validate_numerics_runtime_receipt
 from source_training_entrypoint import _input_hashes
@@ -56,6 +57,49 @@ def test_allowed_measurement_file_cannot_change_the_scene_configuration(tmp_path
     monkeypatch.setattr(revision,'ROOT',tmp_path)
     monkeypatch.setattr(revision.subprocess,'check_output',lambda *a,**k:original)
     with pytest.raises(ValueError,match='scene configuration'):compatible_inputs(source,_input_hashes())
+
+
+@pytest.mark.parametrize('fault',[None,'nonfinite_loss'])
+def test_existing_throughput_only_failure_is_eligible_for_the_specific_compare_candidate(tmp_path,approved_revision,fault):
+    folder=Path('/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/numerics')
+    if not (folder/'receipt.json').is_file():pytest.skip('requires the preserved numeric delivery receipt')
+    prior=reference(folder/'receipt.json','numerics')
+    checkpoint=reference(folder/'training/actor_update_90.pt','actor_checkpoint')
+    if fault:
+        receipt=json.loads((folder/'receipt.json').read_text())
+        report=json.loads(Path(receipt['report']['path']).read_text())
+        report['update_receipts'][0]['losses']['value']=float('nan')
+        target=tmp_path/'result.json';target.write_text(json.dumps(report))
+        receipt['report']=reference(target,'report')
+        target=tmp_path/'receipt.json';target.write_text(json.dumps(receipt))
+        with pytest.raises(ValueError,match='losses'):
+            validate_failed_numeric_candidate_for_compare(reference(target,'numerics'),
+                revision_ref=approved_revision,new_checkpoint=checkpoint)
+        return
+    result=validate_failed_numeric_candidate_for_compare(prior,
+        revision_ref=approved_revision,new_checkpoint=checkpoint)
+    assert result['accepted_for_diagnostics'] and result['numeric_acceptance_preserved'] is False
+    assert result['only_rejection']=='throughput_below_600' and result['training_updates']==90
+    approval=json.loads(APPROVAL.read_text())
+    from rl_training.source_scan.frozen_actor import CHECKPOINT_SHA256
+    contract=job_contract('compare',dict(delivery_stage=approval['original_stage'],stage_revision=approved_revision,
+        input_sha256=_input_hashes(),predecessor_qualification=prior,new_checkpoint=checkpoint,
+        checkpoint_sha256=CHECKPOINT_SHA256))
+    assert contract['failed_numeric_diagnostic_exception']==result
+    assert contract['control_steps']==4000 and contract['diagnostic_transitions']==480000
+    assert not torch.cuda.is_initialized()
+
+
+def test_paired_episode_artifacts_include_every_actor_pair(tmp_path):
+    from rl_training.source_scan.delivery_metrics import paired_conditions,write_paired_artifacts
+    old=[];new=[]
+    for env_id in range(120):
+        row=dict(env_id=env_id,column=env_id%15,steps=20,completed=env_id%2==0,forward_progress_m=1.,
+            lateral_peak_m=.1,roll_peak_rad=.02,pitch_peak_rad=.03,velocity_error_rms_mps=.2,termination_reasons=[])
+        old.append(row);new.append(row|dict(forward_progress_m=1.1,velocity_error_rms_mps=.18))
+    conditions=paired_conditions(old,new);artifacts=write_paired_artifacts(tmp_path,old,new,conditions)
+    assert artifacts['csv']['rows']==120
+    assert (tmp_path/artifacts['png']['path']).read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
 
 
 @pytest.mark.parametrize('fault',[None,'full_g3_claim','missing_revision','wrong_schema'])

@@ -134,7 +134,11 @@ def probe(args):
             report['actors'].append(dict(label=label,actor_sha256=fingerprint,initial=identity,
                 first_episodes=episodes.result() if kind=='compare' else None))
             wrapped.close();wrapped=base=None
-        if kind=='compare':report['paired_conditions']=paired_conditions(report['actors'][0]['first_episodes'],report['actors'][1]['first_episodes'])
+        if kind=='compare':
+            report['paired_conditions']=paired_conditions(report['actors'][0]['first_episodes'],report['actors'][1]['first_episodes'])
+            from rl_training.source_scan.delivery_metrics import write_paired_artifacts
+            report['comparison_artifacts']=write_paired_artifacts(folder,
+                report['actors'][0]['first_episodes'],report['actors'][1]['first_episodes'],report['paired_conditions'])
         report['status']='passed'
     except Exception:
         report.update(status='failed',error=traceback.format_exc());traceback.print_exc()
@@ -203,6 +207,16 @@ def validate(folder,plan,execution):
             old,new=report['actors']
             if old['initial']!=new['initial'] or report['paired_conditions']!=paired_conditions(old['first_episodes'],new['first_episodes']):
                 raise ValueError('paired diagnostics do not reconstruct')
+            artifacts=report.get('comparison_artifacts',{})
+            csv_row=artifacts.get('csv',{});png_row=artifacts.get('png',{})
+            csv_path=folder/csv_row.get('path','');png_path=folder/png_row.get('path','')
+            import csv
+            if (csv_row.get('rows')!=120 or not csv_path.is_file() or not png_path.is_file()
+                    or file_digest(csv_path)!=csv_row.get('sha256') or file_digest(png_path)!=png_row.get('sha256')
+                    or not png_path.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')):
+                raise ValueError('paired comparison CSV/PNG artifacts are missing or changed')
+            with csv_path.open(newline='') as stream:
+                if sum(1 for _ in csv.DictReader(stream))!=120:raise ValueError('paired comparison CSV row count differs')
             result.update(paired_conditions=15,episode_pairs=120,formal_selection_qualified=False)
         result.update(accepted=True,diagnostic_transitions=120*count,ppo_updates=0)
     except Exception as error:result['reasons'].append(type(error).__name__+': '+str(error))

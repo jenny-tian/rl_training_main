@@ -2,6 +2,8 @@
 import json
 import math
 import os
+import csv
+import hashlib
 from pathlib import Path
 
 
@@ -72,3 +74,47 @@ def paired_conditions(old,new):
             row['delta_'+name]=row['new_'+name]-row['old_'+name]
         by.append(row)
     return by
+
+
+def write_paired_artifacts(folder,old,new,conditions):
+    """Persist episode-level pairs and a compact per-condition comparison plot."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    folder=Path(folder);csv_path=folder/'paired_episodes.csv';plot_path=folder/'paired_conditions.png'
+    metrics=('forward_progress_m','lateral_peak_m','roll_peak_rad','pitch_peak_rad','velocity_error_rms_mps')
+    fields=['env_id','column','old_steps','new_steps','old_completed','new_completed',
+        'old_termination_reasons','new_termination_reasons']
+    fields += [f'{side}_{name}' for name in metrics for side in ('old','new','delta')]
+    with csv_path.open('x',newline='') as stream:
+        writer=csv.DictWriter(stream,fieldnames=fields);writer.writeheader()
+        for before,after in zip(old,new):
+            row=dict(env_id=before['env_id'],column=before['column'],old_steps=before['steps'],
+                new_steps=after['steps'],old_completed=int(before['completed']),new_completed=int(after['completed']),
+                old_termination_reasons=json.dumps(before['termination_reasons'],separators=(',',':')),
+                new_termination_reasons=json.dumps(after['termination_reasons'],separators=(',',':')))
+            for name in metrics:
+                row['old_'+name]=before[name];row['new_'+name]=after[name]
+                row['delta_'+name]=after[name]-before[name]
+            writer.writerow(row)
+        stream.flush();os.fsync(stream.fileno())
+    columns=[r['column'] for r in conditions]
+    fig,axes=plt.subplots(3,2,figsize=(14,11),constrained_layout=True)
+    axes=axes.ravel()
+    axes[0].bar([c-.2 for c in columns],[r['old_completed'] for r in conditions],width=.4,label='Original',color='#4776a8')
+    axes[0].bar([c+.2 for c in columns],[r['new_completed'] for r in conditions],width=.4,label='90 updates',color='#d27b43')
+    axes[0].set_title('Completed first episodes');axes[0].set_ylabel('Count');axes[0].legend(frameon=False)
+    titles=('Forward progress change (m)','Lateral peak change (m)','Roll peak change (rad)',
+        'Pitch peak change (rad)','Velocity RMS error change (m/s)')
+    for ax,name,title in zip(axes[1:],metrics,titles):
+        ax.bar(columns,[r['delta_'+name] for r in conditions],color='#4d8b74')
+        ax.axhline(0,color='#333333',linewidth=.8);ax.set_title(title)
+    for ax in axes:
+        ax.set_xlabel('Terrain condition / number of pairs')
+        ax.set_xticks(columns,[str(r['column'])+'\nn='+str(r['pairs']) for r in conditions],fontsize=8)
+        ax.grid(axis='y',alpha=.2)
+    fig.suptitle('Fixed-condition paired diagnostics: 90 updates minus original',fontsize=15)
+    fig.savefig(plot_path,dpi=150);plt.close(fig)
+    return dict(csv=dict(path=csv_path.name,sha256=hashlib.sha256(csv_path.read_bytes()).hexdigest(),rows=len(old)),
+        png=dict(path=plot_path.name,sha256=hashlib.sha256(plot_path.read_bytes()).hexdigest()))
