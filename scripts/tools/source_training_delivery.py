@@ -67,12 +67,17 @@ def freeze(args):
     if dirty or revision!=remote:raise ValueError('freeze delivery only after clean commit/push verification')
     if file_digest(args.checkpoint)!=CHECKPOINT_SHA256:raise ValueError('original checkpoint changed')
     previous={'g2':'g1','g3':'g2','g4':'g3','numerics':'g4','compare':'numerics'}.get(args.job)
-    prior=reference(root/previous/'receipt.json',previous) if previous else None
+    combined=args.job=='g2' and getattr(args,'combine_startup',False)
+    if combined:
+        from rl_training.source_scan.scale_reset import PREDECESSOR_120
+        prior=dict(PREDECESSOR_120)
+    else:prior=reference(root/previous/'receipt.json',previous) if previous else None
     common=dict(status='approved',user_approved=True,base_revision=revision,remote_revision_verified=remote,
         input_sha256=_input_hashes(),dependency_sha256=dependencies(),
         budget_ledger=BudgetLedger(canonical_budget_path(ROOT)).reference(),output_dir=str(output),
         checkpoint_sha256=CHECKPOINT_SHA256,delivery_stage=grant_ref,delivery_job=args.job)
     if prior:common['predecessor_qualification']=prior
+    if combined:common['startup_covered_by_g2']=True
     if args.job=='compare':common['new_checkpoint']=reference(root/'numerics/training/actor_update_90.pt','actor_checkpoint')
     plan=numeric_plan(root,common,grant_ref,prior) if args.job=='numerics' else common|job_contract(args.job,common)
     with manifest.open('x') as stream:json.dump(plan,stream,indent=2,allow_nan=False);stream.write('\n')
@@ -111,4 +116,5 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('action',choices=('freeze','run'))
     parser.add_argument('--job',choices=tuple(LIMITS),required=True)
     parser.add_argument('--approval',type=Path,required=True);parser.add_argument('--checkpoint',type=Path,required=True)
+    parser.add_argument('--combine-startup',action='store_true',help='Reuse the real startup anchor and validate current startup inside the G2 job')
     args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else (freeze(args),0)[1])

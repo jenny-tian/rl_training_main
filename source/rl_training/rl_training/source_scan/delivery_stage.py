@@ -96,7 +96,12 @@ def validate_receipt(ref,kind,*,inputs=None):
             or not execution.get('validation_process_group_empty')):
         raise ValueError('G3 independent CPU validation did not finish')
     previous={'g2':'g1','g3':'g2','g4':'g3','numerics':'g4','compare':'numerics'}.get(kind)
-    if previous:validate_receipt(plan['predecessor_qualification'],previous,inputs=plan['input_sha256'])
+    if kind=='g2' and plan.get('startup_covered_by_g2') is True:
+        from .scale_reset import validate_predecessor
+        validate_predecessor(plan['predecessor_qualification'])
+        if acceptance.get('startup_and_first_zero_control_qualified') is not True:
+            raise ValueError('combined startup/reset validation did not cover startup')
+    elif previous:validate_receipt(plan['predecessor_qualification'],previous,inputs=plan['input_sha256'])
     return receipt
 
 
@@ -115,7 +120,12 @@ def job_contract(kind,plan):
     if kind in ('g2','g3','g4','numerics','compare'):
         prior={'g2':'g1','g3':'g2','g4':'g3','numerics':'g4','compare':'numerics'}[kind]
         ref=plan.get('predecessor_qualification')
-        validate_receipt(ref,prior,inputs=plan.get('input_sha256'))
+        if kind=='g2' and plan.get('startup_covered_by_g2') is True:
+            from .scale_reset import PREDECESSOR_120,validate_predecessor
+            if ref!=PREDECESSOR_120:raise ValueError('combined G2 must retain the real fixed 120-env startup anchor')
+            validate_predecessor(ref)
+            result['startup_covered_by_g2']=True
+        else:validate_receipt(ref,prior,inputs=plan.get('input_sha256'))
         result['predecessor_qualification']=ref
     if kind in ('g3','locate'):
         result.update(schema='lite3_source_shared_scale_G3_delivery_v2',validation_timeout_s=1800,

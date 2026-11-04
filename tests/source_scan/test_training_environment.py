@@ -283,7 +283,7 @@ def test_training_config_executes_seed_overrides_and_registers_manager_endings(r
             self.scene = NS(terrain=NS(terrain_generator=NS(seed=10001)))
             self.observations = NS(critic=NS(enable_corruption=True))
             self.commands = NS(base_velocity=NS())
-            self.terminations = NS()
+            self.terminations = NS(source_terrain_tile_bounds=NS(params={}))
     from rl_training.source_scan.training_env import (
         source_training_completion, source_training_safety, source_training_timeout)
     namespace = dict(DeeproboticsLite3SourceTerrainEnvCfg=Base, configclass=lambda cls: cls,
@@ -304,6 +304,7 @@ def test_training_config_executes_seed_overrides_and_registers_manager_endings(r
     assert config.episode_length_s == 40. and config.is_finite_horizon is False
     assert config.terminations.source_training_timeout.time_out is True
     assert config.terminations.source_training_safety.func is source_training_safety
+    assert config.terminations.source_terrain_tile_bounds.params['scanner_footprint_margin_m'] == .1
     assert not config.observations.critic.enable_corruption
     config.source_terrain_level = "L2"
     with pytest.raises(ValueError, match="L1 only"):

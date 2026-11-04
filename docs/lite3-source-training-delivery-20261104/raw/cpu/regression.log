@@ -1,0 +1,194 @@
+................................................................FFF..... [  6%]
+........................................................................ [ 13%]
+........................................................................ [ 19%]
+........................................................................ [ 26%]
+........................................................................ [ 33%]
+........................................................................ [ 39%]
+........................................................................ [ 46%]
+........................................................................ [ 52%]
+........................................................................ [ 59%]
+........................................................................ [ 66%]
+........................................................................ [ 72%]
+........................................................................ [ 79%]
+........................................................................ [ 85%]
+........................................................................ [ 92%]
+........................................................................ [ 99%]
+..........                                                               [100%]
+=================================== FAILURES ===================================
+_ test_training_config_executes_seed_overrides_and_registers_manager_endings[1] _
+
+run = 1
+
+    @pytest.mark.parametrize("run", [1, 2, 3])
+    def test_training_config_executes_seed_overrides_and_registers_manager_endings(run):
+        # Execute the actual subclass constructor with a record-only base config.
+        # This is CPU wiring evidence, not an Isaac configclass/PhysX runtime test.
+        path = Path(__file__).resolve().parents[2] / (
+            "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/"
+            "config/quadruped/deeprobotics_lite3/source_training_env_cfg.py")
+        class Base:
+            source_training_run = 1
+            source_parallel_sampler_enabled = True
+            source_terrain_level = "L1"
+            def __post_init__(self):
+                self.base_sampler_seed = self.source_parallel_sampler_seed
+                self.scene = NS(terrain=NS(terrain_generator=NS(seed=10001)))
+                self.observations = NS(critic=NS(enable_corruption=True))
+                self.commands = NS(base_velocity=NS())
+                self.terminations = NS()
+        from rl_training.source_scan.training_env import (
+            source_training_completion, source_training_safety, source_training_timeout)
+        namespace = dict(DeeproboticsLite3SourceTerrainEnvCfg=Base, configclass=lambda cls: cls,
+                         SourceRunSeeds=SourceRunSeeds, DoneTerm=lambda **kw: NS(**kw),
+                         source_training_completion=source_training_completion,
+                         source_training_safety=source_training_safety,
+                         source_training_timeout=source_training_timeout)
+        tree = ast.parse(path.read_text())
+        exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n, ast.ClassDef)],
+                               type_ignores=[]), str(path), "exec"), namespace)
+        config = namespace["DeeproboticsLite3SourceTrainingEnvCfg"]()
+        config.source_training_run = run
+>       config.__post_init__()
+
+tests/source_scan/test_training_environment.py:299: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DeeproboticsLite3SourceTrainingEnvCfg object at 0x7b9b38290190>
+
+    def __post_init__(self):
+        seeds = SourceRunSeeds(self.source_training_run)
+        if not self.source_parallel_sampler_enabled or self.source_terrain_level != "L1":
+            raise ValueError("Source training requires explicit parallel sampling and L1 only")
+        self.source_parallel_sampler_seed = seeds.sampler
+        super().__post_init__()
+>       self.terminations.source_terrain_tile_bounds.params['scanner_footprint_margin_m'] = .1
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'source_terrain_tile_bounds'
+
+source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py:22: AttributeError
+_ test_training_config_executes_seed_overrides_and_registers_manager_endings[2] _
+
+run = 2
+
+    @pytest.mark.parametrize("run", [1, 2, 3])
+    def test_training_config_executes_seed_overrides_and_registers_manager_endings(run):
+        # Execute the actual subclass constructor with a record-only base config.
+        # This is CPU wiring evidence, not an Isaac configclass/PhysX runtime test.
+        path = Path(__file__).resolve().parents[2] / (
+            "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/"
+            "config/quadruped/deeprobotics_lite3/source_training_env_cfg.py")
+        class Base:
+            source_training_run = 1
+            source_parallel_sampler_enabled = True
+            source_terrain_level = "L1"
+            def __post_init__(self):
+                self.base_sampler_seed = self.source_parallel_sampler_seed
+                self.scene = NS(terrain=NS(terrain_generator=NS(seed=10001)))
+                self.observations = NS(critic=NS(enable_corruption=True))
+                self.commands = NS(base_velocity=NS())
+                self.terminations = NS()
+        from rl_training.source_scan.training_env import (
+            source_training_completion, source_training_safety, source_training_timeout)
+        namespace = dict(DeeproboticsLite3SourceTerrainEnvCfg=Base, configclass=lambda cls: cls,
+                         SourceRunSeeds=SourceRunSeeds, DoneTerm=lambda **kw: NS(**kw),
+                         source_training_completion=source_training_completion,
+                         source_training_safety=source_training_safety,
+                         source_training_timeout=source_training_timeout)
+        tree = ast.parse(path.read_text())
+        exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n, ast.ClassDef)],
+                               type_ignores=[]), str(path), "exec"), namespace)
+        config = namespace["DeeproboticsLite3SourceTrainingEnvCfg"]()
+        config.source_training_run = run
+>       config.__post_init__()
+
+tests/source_scan/test_training_environment.py:299: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DeeproboticsLite3SourceTrainingEnvCfg object at 0x7b9b387262d0>
+
+    def __post_init__(self):
+        seeds = SourceRunSeeds(self.source_training_run)
+        if not self.source_parallel_sampler_enabled or self.source_terrain_level != "L1":
+            raise ValueError("Source training requires explicit parallel sampling and L1 only")
+        self.source_parallel_sampler_seed = seeds.sampler
+        super().__post_init__()
+>       self.terminations.source_terrain_tile_bounds.params['scanner_footprint_margin_m'] = .1
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'source_terrain_tile_bounds'
+
+source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py:22: AttributeError
+_ test_training_config_executes_seed_overrides_and_registers_manager_endings[3] _
+
+run = 3
+
+    @pytest.mark.parametrize("run", [1, 2, 3])
+    def test_training_config_executes_seed_overrides_and_registers_manager_endings(run):
+        # Execute the actual subclass constructor with a record-only base config.
+        # This is CPU wiring evidence, not an Isaac configclass/PhysX runtime test.
+        path = Path(__file__).resolve().parents[2] / (
+            "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/"
+            "config/quadruped/deeprobotics_lite3/source_training_env_cfg.py")
+        class Base:
+            source_training_run = 1
+            source_parallel_sampler_enabled = True
+            source_terrain_level = "L1"
+            def __post_init__(self):
+                self.base_sampler_seed = self.source_parallel_sampler_seed
+                self.scene = NS(terrain=NS(terrain_generator=NS(seed=10001)))
+                self.observations = NS(critic=NS(enable_corruption=True))
+                self.commands = NS(base_velocity=NS())
+                self.terminations = NS()
+        from rl_training.source_scan.training_env import (
+            source_training_completion, source_training_safety, source_training_timeout)
+        namespace = dict(DeeproboticsLite3SourceTerrainEnvCfg=Base, configclass=lambda cls: cls,
+                         SourceRunSeeds=SourceRunSeeds, DoneTerm=lambda **kw: NS(**kw),
+                         source_training_completion=source_training_completion,
+                         source_training_safety=source_training_safety,
+                         source_training_timeout=source_training_timeout)
+        tree = ast.parse(path.read_text())
+        exec(compile(ast.Module(body=[n for n in tree.body if isinstance(n, ast.ClassDef)],
+                               type_ignores=[]), str(path), "exec"), namespace)
+        config = namespace["DeeproboticsLite3SourceTrainingEnvCfg"]()
+        config.source_training_run = run
+>       config.__post_init__()
+
+tests/source_scan/test_training_environment.py:299: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <DeeproboticsLite3SourceTrainingEnvCfg object at 0x7b9b37d15710>
+
+    def __post_init__(self):
+        seeds = SourceRunSeeds(self.source_training_run)
+        if not self.source_parallel_sampler_enabled or self.source_terrain_level != "L1":
+            raise ValueError("Source training requires explicit parallel sampling and L1 only")
+        self.source_parallel_sampler_seed = seeds.sampler
+        super().__post_init__()
+>       self.terminations.source_terrain_tile_bounds.params['scanner_footprint_margin_m'] = .1
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'source_terrain_tile_bounds'
+
+source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py:22: AttributeError
+=============================== warnings summary ===============================
+tests/source_scan/test_moving_diagnostic.py: 5 warnings
+tests/source_scan/test_shared_tensor_contact.py: 297 warnings
+tests/source_scan/test_shared_contact_report.py: 57 warnings
+tests/source_scan/test_live_ppo_diagnostic.py: 1 warning
+tests/source_scan/test_sparse_scale_contact.py: 55 warnings
+tests/source_scan/test_scale_episode_metrics.py: 3 warnings
+tests/source_scan/test_scale_startup.py: 16 warnings
+tests/source_scan/test_scale_startup_32.py: 22 warnings
+tests/source_scan/test_scale_startup_60.py: 22 warnings
+tests/source_scan/test_scale_startup_120.py: 22 warnings
+tests/source_scan/test_scale_reset.py: 25 warnings
+tests/source_scan/test_scale_reset_contact_cache.py: 43 warnings
+tests/source_scan/test_scale_motion.py: 11 warnings
+tests/source_scan/test_scale_motion_protocol.py: 22 warnings
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_training_environment.py::test_training_config_executes_seed_overrides_and_registers_manager_endings[1]
+FAILED tests/source_scan/test_training_environment.py::test_training_config_executes_seed_overrides_and_registers_manager_endings[2]
+FAILED tests/source_scan/test_training_environment.py::test_training_config_executes_seed_overrides_and_registers_manager_endings[3]
+3 failed, 1087 passed, 601 warnings in 1117.96s (0:18:37)

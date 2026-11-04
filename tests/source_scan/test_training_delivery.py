@@ -166,3 +166,16 @@ def test_numeric_only_schema_keeps_actual_gate_budget_and_scope_requirements(tmp
         assert lock['formal_selection_authorized'] is False
     else:
         with pytest.raises((ValueError,PermissionError)):validate_training_authorization(plan,**kwargs)
+
+
+def test_combined_G2_reuses_only_the_fixed_real_startup_anchor_and_keeps_its_budget(tmp_path):
+    from rl_training.source_scan.delivery_stage import job_contract
+    from rl_training.source_scan.scale_reset import PREDECESSOR_120
+    path,_=grant(tmp_path)
+    plan=dict(delivery_stage=reference(path,'stage_approval'),predecessor_qualification=dict(PREDECESSOR_120),
+              startup_covered_by_g2=True,input_sha256={'cpu_contract_fixture':'a'*64})
+    contract=job_contract('g2',plan)
+    assert contract['control_steps']==4 and contract['physics_substeps']==16 and contract['wall_timeout_s']==240
+    assert contract['startup_covered_by_g2'] is True
+    plan['predecessor_qualification']['executed_revision']='unverified'
+    with pytest.raises(ValueError):job_contract('g2',plan)

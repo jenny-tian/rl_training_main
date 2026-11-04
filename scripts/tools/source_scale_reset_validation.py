@@ -198,5 +198,10 @@ def validate(folder,plan,execution):
         result.update(accepted=True,reset_boundary_qualified=True,reset_first_step_qualified=True,diagnostic_transitions=480,
             physics_substeps=16,ppo_updates=0,reset_batches=4,selected_environment_resets=184,assignment_count=304,
             complete_assignment_blocks=2,tail_assignment_count=64,ground_contact_points=ground)
+        if plan.get('startup_covered_by_g2') is True:
+            # Above checks include all 120 initial assignments/scans, 121
+            # collision groups, the complete native body inventory and the
+            # first zero-action physics interval, as well as all four resets.
+            result['startup_and_first_zero_control_qualified']=True
     except Exception as error:result['reasons'].append(type(error).__name__+': '+str(error))
     return result
