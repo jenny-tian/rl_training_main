@@ -1,0 +1,102 @@
+"""G3 frozen policy collection shared by real probe and explicit CPU fixtures."""
+from dataclasses import asdict
+import hashlib
+import json
+import time
+
+import torch
+
+from rl_training.source_scan.episode_metrics import PreResetMetricCapture,native_metric_rows
+from rl_training.source_scan.moving_diagnostic import tensor_record
+from rl_training.source_scan.scale_motion import contract_for
+from source_eight_env_moving_probe import serial_terminal
+from source_shared_contact_report import capture_substeps
+from source_sparse_tensor_contact import SparseTensorContactCapture
+
+
+def actor_digest(actor):
+    digest=hashlib.sha256()
+    for key,value in sorted(actor.state_dict().items()):
+        digest.update(key.encode());digest.update(value.detach().cpu().contiguous().numpy().tobytes())
+    return digest.hexdigest()
+
+
+class MotionContactCapture(SparseTensorContactCapture):
+    def __init__(self,**kwargs):
+        if kwargs.get('num_envs')!=120:raise ValueError('G3 contact requires 120 environments')
+        super().__init__(require_ground_positive=True,**kwargs)
+
+    def summary(self):return super().summary()|dict(diagnostic_scope='G3_motion_integrity')
+
+
+def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,runtime,*,cpu_controls=None,
+        app_running=lambda:True,on_ready=lambda:None):
+    contract=contract_for();total=contract['control_steps'] if cpu_controls is None else cpu_controls
+    main=contract['main_control_steps'] if cpu_controls is None else total-1
+    if cpu_controls is not None and report.get('synthetic_cpu_fixture') is not True:raise PermissionError('CPU profile is fixture-only')
+    if actor.training or any(v.requires_grad for v in actor.parameters()):raise ValueError('G3 actor must be frozen')
+    fingerprint=actor_digest(actor);obs=wrapped.get_observations();env.observation_manager.compute(update_history=False)
+    report.update(status='running',simulation_control_steps=0,completed_diagnostic_transitions=0,
+        initial_assignments=[asdict(t) for t in observer.tickets],start_sim_step=env._sim_step_counter,
+        terrain_origins=tensor_record(env.scene.terrain.terrain_origins),default_root_state=tensor_record(env.scene['robot'].data.default_root_state),
+        initial_positions_w=tensor_record(observer.previous[0]),initial_velocities_w=tensor_record(observer.previous[1]),
+        actor_sha256_before=fingerprint,flat_completion_witnesses=[],reset_snapshot_inventory={k:dict(shape=list(v.shape),dtype=str(v.dtype)) for k,v in observer.memory().items()})
+    journal.record(dict(phase='g3_initial',scanners=observer.scans()))
+    generator=torch.Generator(device=env.device).manual_seed(contract['noise_seed'])
+    def metric_rows(base):
+        rows=native_metric_rows(base);state=wrapped.runtime.safety_state(wrapped.runtime.zeros)
+        stable=~wrapped.runtime.lifecycle.unsafe & ~state.nonfoot_contact[:,0]
+        for i,row in enumerate(rows):row.update(stable_for_completion=bool(stable[i]),
+            lifecycle_hold=int(wrapped.runtime.lifecycle.hold[i]),unsafe=bool(wrapped.runtime.lifecycle.unsafe[i]),
+            nonfoot_contact=bool(state.nonfoot_contact[i,0]))
+        return rows
+    metrics=PreResetMetricCapture(env,metric_rows);latencies=[];main_pending=set()
+    original_update=observer.after_scene_update;original_reset=observer.reset
+    def updated():
+        result=original_update();main_pending.clear();return result
+    def reset(original,ids):
+        result=original_reset(original,ids)
+        if observer.control_step<=main:main_pending.update(torch.as_tensor(ids).cpu().tolist())
+        return result
+    observer.after_scene_update=updated;observer.reset=reset
+    try:
+        with torch.inference_mode(),capture_substeps(env,interface,capture,runtime),observer.installed(),metrics.installed():
+            on_ready()
+            for step in range(1,total+1):
+                if not app_running():raise RuntimeError('simulator exited before G3 completed')
+                observer.control_step=step
+                commands=env.command_manager.get_command('base_velocity')
+                if not torch.equal(commands,commands.new_tensor(contract['command_mps']).expand_as(commands)):
+                    raise ValueError('G3 command differs from fixed range')
+                columns=env.scene.terrain.terrain_types.cpu().tolist()
+                policy=obs['policy'].clone();mu=actor(obs);noise=torch.randn(mu.shape,device=env.device,generator=generator)
+                raw=mu+noise;metrics.begin_control();started=time.monotonic()
+                obs,reward,done,extras=wrapped.step(raw)
+                report['simulation_control_steps']+=1;report['completed_diagnostic_transitions']+=env.num_envs
+                latencies.append(time.monotonic()-started);capture.check_control(env,step)
+                rows=metrics.collect_control(done);terminal=serial_terminal(extras['source_terminal'])
+                if terminal is not None and step<=main:
+                    for j,i in enumerate(terminal['ids']):
+                        if columns[i]==0 and terminal['completed'][j] and rows[i]['forward_progress_m']>=9. and terminal['hold'][j]>=50:
+                            report['flat_completion_witnesses'].append(dict(control_step=step,env_id=i,episode_steps=terminal['steps'][j]))
+                journal.record(dict(phase='g3_control_scans',step=step,sim_step=env._sim_step_counter,
+                    roots=tensor_record(env.scene['robot'].data.root_link_pos_w),scanners=observer.scans()))
+                journal.flush()
+                row=dict(step=step,policy_observation=tensor_record(policy),actor_mean=tensor_record(mu),noise=tensor_record(noise),
+                    raw_action=raw.cpu().tolist(),executed_action=wrapped.last_trace.executed_action.cpu().tolist(),
+                    projected=wrapped.last_trace.decision.projected.cpu().tolist(),paused=wrapped.last_trace.decision.paused.cpu().tolist(),
+                    done=done.cpu().tolist(),time_outs=extras['time_outs'].cpu().tolist(),terminal=terminal,columns_before=columns,
+                    episode_counters=env.episode_length_buf.cpu().tolist(),metric_rows=rows)
+                if writer.paths['steps'].stat().st_size+len(json.dumps(row).encode())+1024>contract['steps_byte_limit']:
+                    raise RuntimeError('G3 steps evidence ceiling reached')
+                writer.append_step(row)
+    finally:
+        observer.after_scene_update=original_update;observer.reset=original_reset
+        report.update(contact_capture=capture.summary(),motion_samples=observer.samples,reset_attempts=observer.reset_attempts,
+            reset_batches=observer.resets,pending_recovery_ids=sorted(observer.pending_recovery),pending_main_recovery_ids=sorted(main_pending),
+            all_assignment_tickets=[asdict(t) for t in observer.tickets],reset_latency_s=list(observer.reset_latency_s),
+            recovery_control_latency_s=latencies,actor_sha256_after=actor_digest(actor),
+            max_body_speed_mps=observer.max_speed,max_body_displacement_m=observer.max_displacement,
+            max_finite_difference_acceleration_mps2=observer.max_acceleration)
+    if report['actor_sha256_after']!=fingerprint:raise RuntimeError('G3 actor changed')
+    report['status']='collected'
