@@ -11,6 +11,7 @@ sys.path[:0]=[str(ROOT/'source/rl_training'),str(ROOT/'scripts/tools')]
 
 
 def main():
+    process_started=time.monotonic()
     parser=argparse.ArgumentParser(description=__doc__)
     for name in ('manifest','checkpoint'):parser.add_argument('--'+name,type=Path,required=True)
     parser.add_argument('--num-envs',type=int,choices=(120,),required=True);args=parser.parse_args()
@@ -21,7 +22,7 @@ def main():
     report=dict(plan,status='starting',simulation_control_steps=0,completed_diagnostic_transitions=0,
         motion_samples=0,reset_attempts=0,reset_batches=0,pending_main_recovery_ids=[],pending_recovery_ids=[])
     folder=Path(plan['output_dir']);writer=MotionArtifactWriter(folder/'result.json',report,schema=plan['schema'])
-    env=base=app=None;started=time.monotonic()
+    env=base=app=None;started=process_started
     try:
         from isaaclab.app import AppLauncher
         tick=time.monotonic();app=AppLauncher(headless=True,device='cuda:0').app;report['application_start_s']=time.monotonic()-tick
@@ -78,11 +79,13 @@ def main():
                 binary_tensors=plan.get('events_encoding')=='concatenated_gzip_JSONL_base64_tensors_v1') as journal:
             observer=MotionObserver(base,env.runtime,journal,snapshot,check_transition,scan_guard_enabled=bool(plan.get('delivery_stage')))
             capture=MotionContactCapture(physics_view=base.sim.physics_sim_view,ground_colliders=ground,num_envs=120,
+                fast_contacts=plan.get('contact_digest_scheme')=='sha256_blocks_4096_v1',
                 physics_dt=.005,fault_path=folder/'contact_fault.npz',stage_id=UsdUtils.StageCache.Get().GetId(base.sim.get_initial_stage()).ToLongInt(),
                 reporting_bodies=bodies,record=journal.record,start_step=base._sim_step_counter,decimation=4,control_steps=plan['control_steps'])
             report.update(body_names=list(robot.body_names),collision_groups=audit_shared_collision_groups(base.scene),
                 termination_terms=sorted(base.termination_manager.active_terms),checkpoint_sha256=plan['checkpoint_sha256'])
             def ready():
+                report['startup_elapsed_s']=time.monotonic()-started
                 writer.persist(report);print('[scale-g3] initial-ready',flush=True)
             collect(base,env,actor,observer,capture,journal,writer,report,interface,runtime,app_running=app.is_running,on_ready=ready)
     except Exception:

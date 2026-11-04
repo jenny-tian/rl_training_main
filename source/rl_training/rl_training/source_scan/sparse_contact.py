@@ -138,13 +138,16 @@ class ContactDecoder:
         self._digest=topology_digest(self._topology)
 
     def decode(self,frame):
+        if frame.get('schema')=='lite3_sparse_contact_frame_v2':
+            from .fast_sparse_contact import reconstruct
+            return reconstruct(frame,self._topology,self._digest)
         return _reconstruct_frame(frame,self._topology,self._digest)
 
 
-def _reconstruct_frame(frame,topology,expected_digest):
-    _check(frame['schema']==SCHEMA and frame['topology_sha256']==expected_digest,'frame topology binding differs')
+def _reconstruct_frame(frame,topology,expected_digest,*,dense_digest_fn=dense_digest,frame_schema=SCHEMA,array_factory=np.zeros):
+    _check(frame['schema']==frame_schema and frame['topology_sha256']==expected_digest,'frame topology binding differs')
     n,f,capacity = (topology[key] for key in ('sensor_count','filter_count','capacity'))
-    matrix = np.zeros((n,f,3),np.float32); counts = np.zeros((n,f),np.uint32)
+    matrix = array_factory((n,f,3),np.float32); counts = array_factory((n,f),np.uint32)
     detail_indices = frame['detail_indices']
     _check(all(type(v) is int and 0<=v<capacity for v in detail_indices),'invalid detail index')
     _check(len(set(detail_indices))==len(detail_indices)<capacity,'duplicate or saturated detail indices')
@@ -188,6 +191,6 @@ def _reconstruct_frame(frame,topology,expected_digest):
     _check(net.shape==(n,3) and np.isfinite(net).all(),'invalid decoded net force')
     _check(np.allclose(matrix.sum(axis=1,dtype=np.float64),net,atol=ATOL,rtol=RTOL),'decoded pair/net force mismatch')
     for key,value in (('matrix_sha256',matrix),('counts_sha256',counts),('net_sha256',net)):
-        _check(frame.get(key)==dense_digest(value),'decoded dense digest differs: '+key)
+        _check(frame.get(key)==dense_digest_fn(value),'decoded dense digest differs: '+key)
     return dict(matrix=matrix,counts=counts,net=net,ground_contact_points=ground,
                 max_pair_residual_N=max_residual,used_contact_count=len(used))

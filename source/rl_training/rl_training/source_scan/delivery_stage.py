@@ -56,7 +56,8 @@ def claim_slot(grant_ref,kind,manifest):
     from .smoke_artifacts import atomic_json
     grant=validate_grant(grant_ref)
     if kind not in LIMITS:raise ValueError('job outside approved stage')
-    path=Path(grant['slot_ledger']);path.parent.mkdir(parents=True,exist_ok=True)
+    plan=json.loads(Path(manifest).read_text())
+    path=slot_ledger(plan);path.parent.mkdir(parents=True,exist_ok=True)
     with path.with_suffix('.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX)
         ledger=json.loads(path.read_text()) if path.exists() else dict(stage_id=STAGE,jobs={})
@@ -68,7 +69,7 @@ def claim_slot(grant_ref,kind,manifest):
 
 def validate_slot(plan):
     grant=validate_grant(plan['delivery_stage']);kind=plan['delivery_job']
-    ledger=json.loads(Path(grant['slot_ledger']).read_text())
+    ledger=json.loads(slot_ledger(plan).read_text())
     row=ledger['jobs'].get(kind,{})
     frozen=read_reference(row.get('manifest'),'run_manifest')
     if row.get('state')!='claimed' or frozen!=plan:raise PermissionError('delivery launch lacks its unique claimed slot')
@@ -89,9 +90,11 @@ def validate_receipt(ref,kind,*,inputs=None):
             or execution.get('monitor_errors') or execution.get('returncode')!=0
             or report.get('synthetic_cpu_fixture') or acceptance.get('cpu_evidence_validated')
             or report.get('simulation_control_steps')!=LIMITS[kind]['controls']
-            or report.get('input_sha256')!=plan.get('input_sha256')
-            or inputs is not None and plan['input_sha256']!=inputs):
+            or report.get('input_sha256')!=plan.get('input_sha256')):
         raise ValueError('delivery prerequisite runtime/identity differs: '+kind)
+    if inputs is not None and plan['input_sha256']!=inputs:
+        if kind!='g2':raise ValueError('delivery prerequisite source differs: '+kind)
+        g2_compatible_inputs(plan,inputs)
     if kind=='g3' and (execution.get('validation_returncode')!=0
             or not execution.get('validation_process_group_empty')):
         raise ValueError('G3 independent CPU validation did not finish')
@@ -131,6 +134,13 @@ def job_contract(kind,plan):
         result.update(schema='lite3_source_shared_scale_G3_delivery_v2',validation_timeout_s=1800,
             main_control_steps=2000 if kind=='g3' else 600,recovery_control_steps=1 if kind=='g3' else 0,
             events_encoding='concatenated_gzip_JSONL_base64_tensors_v1')
+        if plan.get('contact_digest_scheme')=='sha256_blocks_4096_v1':
+            slot_ledger(plan)
+            result.update(schema='lite3_source_shared_scale_G3_delivery_v3',
+                attempt_id=STAGE+'-g3-fast-v3',contact_digest_scheme='sha256_blocks_4096_v1',
+                g3_supplement=plan['g3_supplement'])
+            prior_plan=read_reference(read_reference(plan['predecessor_qualification'],'g2')['manifest'],'run_manifest')
+            result['g2_source_compatibility']=g2_compatible_inputs(prior_plan,plan['input_sha256'])
     if kind=='g4':result.update(schema='lite3_source_collection_G4_delivery_v1',warmup_control_steps=48,measured_control_steps=240,
         minimum_transitions_per_second=600.,reset_p95_limit_s=1.,heavy_contact_journal=False,
         policy_loaded=True,actions='frozen_actor_plus_seeded_unit_Gaussian',noise_seed=132001,noise_std=1.)
@@ -189,3 +199,55 @@ def seal_receipt(folder,kind):
     atomic_json(folder/'receipt.json',receipt)
     if receipt['accepted']:validate_receipt(reference(folder/'receipt.json',kind),kind)
     return receipt
+
+
+def slot_ledger(plan):
+    grant=validate_grant(plan['delivery_stage'])
+    ref=plan.get('g3_supplement')
+    if ref is None:return Path(grant['slot_ledger'])
+    supplement=read_reference(ref,'g3_supplement')
+    expected=dict(schema='lite3_G3_fast_supplement_v1',status='approved',user_approved=True,
+        stage_id=STAGE,job='g3',num_envs=120,control_steps=2001,physics_substeps=8004,
+        diagnostic_transitions=240120,training_transitions=0,ppo_updates=0,max_launches=1,
+        wall_timeout_s=1800,validation_timeout_s=1800,noise_seed=132001,noise_std=1.,command_mps=[.3,0.,0.],
+        contact_digest_scheme='sha256_blocks_4096_v1',source_revision=plan['base_revision'],
+        input_sha256=plan['input_sha256'],output_dir=plan['output_dir'])
+    if (plan.get('delivery_job')!='g3' or plan.get('contact_digest_scheme')!='sha256_blocks_4096_v1'
+            or any(type(supplement.get(k)) is not type(v) or supplement[k]!=v for k,v in expected.items())):
+        raise PermissionError('a new separately approved bounded G3 supplement is required')
+    path=Path(supplement.get('slot_ledger',''))
+    if not path.is_absolute() or path==Path(grant['slot_ledger']):raise ValueError('supplement must retain a separate single-use ledger')
+    return path
+
+
+def g2_compatible_inputs(old_plan,inputs):
+    """Retain the real G2 scope only for G3 changes and equivalent v1 CPU decoding."""
+    import ast
+    import copy
+    import subprocess
+    if old_plan.get('base_revision')!='9d56d7ef9916a7bbaae439dc4b9557fd95859ee1':
+        raise ValueError('G2 source compatibility requires the reviewed real combined run')
+    prefix='source/rl_training/rl_training/source_scan/'
+    permitted={prefix+'sparse_contact.py',prefix+'delivery_stage.py',prefix+'scale_motion.py',prefix+'scale_motion_evidence.py',
+        'scripts/tools/source_training_delivery.py',*['scripts/tools/source_scale_motion_'+s+'.py' for s in ('probe','collection','supervisor','validation')]}
+    old=old_plan['input_sha256'];changed={name for name in old if inputs.get(name)!=old[name]};added=set(inputs)-set(old)
+    if not changed<=permitted or not added<={prefix+'fast_sparse_contact.py'} or not set(old)<=set(inputs):
+        raise ValueError('changes affect the qualified G2 startup/reset implementation')
+    root=Path(__file__).resolve().parents[4];name=prefix+'sparse_contact.py'
+    before=ast.parse(subprocess.check_output(['git','show',old_plan['base_revision']+':'+name],cwd=root,text=True))
+    after=ast.parse((root/name).read_text());find=lambda tree,key:next(n for n in tree.body if getattr(n,'name',None)==key)
+    dump=lambda node:ast.dump(node,include_attributes=False)
+    ignored={'ContactDecoder','_reconstruct_frame'}
+    if dump(ast.Module(body=[n for n in before.body if getattr(n,'name',None) not in ignored],type_ignores=[]))!=dump(ast.Module(body=[n for n in after.body if getattr(n,'name',None) not in ignored],type_ignores=[])):
+        raise ValueError('legacy G2 encoder/topology/decoder entry changed')
+    previous=copy.deepcopy(find(before,'_reconstruct_frame'));current=copy.deepcopy(find(after,'_reconstruct_frame'))
+    class Defaults(ast.NodeTransformer):
+        def visit_Name(self,node):
+            if node.id=='array_factory':return ast.copy_location(ast.Attribute(value=ast.Name(id='np',ctx=ast.Load()),attr='zeros',ctx=node.ctx),node)
+            return ast.copy_location(ast.Name(id={'dense_digest_fn':'dense_digest','frame_schema':'SCHEMA'}.get(node.id,node.id),ctx=node.ctx),node)
+    current.args.kwonlyargs=[];current.args.kw_defaults=[];current=Defaults().visit(current)
+    if dump(previous)!=dump(current):raise ValueError('legacy G2 reconstruction behavior changed')
+    return dict(schema='lite3_G2_unchanged_scope_proof_v1',qualified_revision=old_plan['base_revision'],
+        unchanged_inputs=len(old)-len(changed),G3_or_authorization_changes=sorted(changed),new_G3_files=sorted(added),
+        legacy_encoder_and_default_decoder_unchanged=True,new_G2_GPU_launches=0,
+        scope='retain actual startup/selective-reset evidence; no G3 or G4 credit')

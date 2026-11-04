@@ -23,16 +23,63 @@ def actor_digest(actor):
 
 
 class MotionContactCapture(SparseTensorContactCapture):
-    def __init__(self,**kwargs):
+    def __init__(self,*,fast_contacts=False,**kwargs):
         if kwargs.get('num_envs')!=120:raise ValueError('G3 contact requires 120 environments')
         super().__init__(require_ground_positive=True,**kwargs)
         self._checked_assignments=None
         self._immutable_contact_view=None
+        self.fast_contacts=fast_contacts
+        self.fast_times=dict(native_snapshot=0.,encode=0.,journal_record=0.)
 
     def runtime(self,interface,get_runtime):
         super().runtime(interface,get_runtime)
         if self._immutable_contact_view is None:self._immutable_contact_view=self.view
         elif self.view is not self._immutable_contact_view:raise RuntimeError('G3 native contact view was replaced')
+        if self.fast_contacts:
+            from rl_training.source_scan.fast_sparse_contact import FastContactEncoder
+            if not isinstance(self.encoder,FastContactEncoder):self.encoder=FastContactEncoder(self.topology)
+
+    def poll(self,env,interface,get_runtime):
+        if not self.fast_contacts:return super().poll(env,interface,get_runtime)
+        import numpy as np
+        import os
+        from rl_training.source_scan.fast_sparse_contact import snapshot
+        from source_shared_tensor_contact import _copy
+        from rl_training.source_scan.sparse_contact import owner
+        step=env._sim_step_counter
+        self.record(dict(phase='contact_poll_attempt',sim_step=step));self.runtime(interface,get_runtime)
+        if type(step) is not int or step!=self.start_step+len(self.poll_steps)+1 or env.physics_dt!=self.physics_dt:
+            raise ValueError('nonconsecutive fast contact poll or changed timestep')
+        net=matrix=data=None
+        try:
+            tick=time.monotonic()
+            net=snapshot(self.view.get_net_contact_forces(self.physics_dt))
+            matrix=snapshot(self.view.get_contact_force_matrix(self.physics_dt))
+            data=tuple(snapshot(v) for v in self.view.get_contact_data(self.physics_dt))
+            self.fast_times['native_snapshot']+=time.monotonic()-tick;tick=time.monotonic()
+            frame=self.encoder.encode_tensors(net,matrix,data,step=step)
+            self.fast_times['encode']+=time.monotonic()-tick;tick=time.monotonic()
+            self.record(dict(phase='sparse_contact_sample',**frame))
+            self.fast_times['journal_record']+=time.monotonic()-tick
+            detail=dict(zip(frame['detail_indices'],frame['normal_forces_N']));t=self.topology
+            for (i,j),count,start in zip(frame['pair_indices'],frame['pair_counts'],frame['pair_starts']):
+                target=t['target_paths'][t['filter_orders'][t['sensor_filter_order'][i]][j]]
+                if target in self.ground_colliders:
+                    self.ground['poll'][owner(t['sensor_paths'][i])]+=sum(abs(detail[k])>1e-4 for k in range(start,start+count))
+            self.peak_used=max(self.peak_used,frame['used_contact_count']);self.samples+=1;self.poll_steps.append(step)
+        except Exception as error:
+            if not self.fault_written:
+                saved={}
+                if net is not None:saved['net']=_copy(net)
+                if matrix is not None:saved['matrix']=_copy(matrix)
+                if data is not None:saved.update({k:_copy(v) for k,v in zip(('forces','points','normals','distances','counts','starts'),data)})
+                with self.fault_path.open('xb') as stream:
+                    np.savez_compressed(stream,**saved);stream.flush();os.fsync(stream.fileno())
+                self.fault_written=True
+                self.record(dict(phase='sparse_contact_fault',sim_step=step,error=str(error),file=self.fault_path.name,
+                    available_buffers=list(saved),all_native_buffers_read=len(saved)==8,
+                    sha256=hashlib.sha256(self.fault_path.read_bytes()).hexdigest()))
+            raise
 
     def check_control(self,env,completed):
         ContactCapture.check_control(self,env,completed)
@@ -45,7 +92,10 @@ class MotionContactCapture(SparseTensorContactCapture):
             if self._topology()!=self.topology:raise ValueError('resolved G3 contact topology changed after reset')
             self._checked_assignments=assignments
 
-    def summary(self):return super().summary()|dict(diagnostic_scope='G3_motion_integrity')
+    def summary(self):
+        result=super().summary()|dict(diagnostic_scope='G3_motion_integrity')
+        if self.fast_contacts:result['fast_contact_times_s']=dict(self.fast_times)
+        return result
 
 
 def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,runtime,*,cpu_controls=None,
@@ -71,7 +121,7 @@ def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,r
         for i,row in enumerate(rows):row.update(stable_for_completion=stable[i],
             lifecycle_hold=hold[i],unsafe=unsafe[i],nonfoot_contact=nonfoot[i])
         return rows
-    metrics=PreResetMetricCapture(env,metric_rows);latencies=[];main_pending=set();collection_started=time.monotonic()
+    metrics=PreResetMetricCapture(env,metric_rows);latencies=[];main_pending=set()
     original_update=observer.after_scene_update;original_reset=observer.reset
     def updated():
         result=original_update();main_pending.clear();return result
@@ -83,6 +133,7 @@ def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,r
     try:
         with torch.inference_mode(),capture_substeps(env,interface,capture,runtime),observer.installed(),metrics.installed():
             on_ready()
+            collection_started=time.monotonic()
             for step in range(1,total+1):
                 if not app_running():raise RuntimeError('simulator exited before G3 completed')
                 observer.control_step=step
@@ -112,10 +163,12 @@ def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,r
                     raise RuntimeError('G3 steps evidence ceiling reached')
                 writer.append_step(row)
                 if step%32==0:print(f'[scale-g3] controls={step}/{total} collection_s={time.monotonic()-collection_started:.3f}',flush=True)
+                if step%32==0 and getattr(capture,'fast_contacts',False):print('[scale-g3] fast_contact_times_s='+json.dumps(capture.fast_times),flush=True)
                 if contract.get('delivery_stage') and step==64:
                     projected=(time.monotonic()-collection_started)*total/step
                     report['projected_collection_seconds_at_64']=projected
-                    if projected+contract.get('startup_timeout_s',120)>=contract['wall_timeout_s']:
+                    report['projected_total_seconds_at_64']=projected+report.get('startup_elapsed_s',120)+30
+                    if report['projected_total_seconds_at_64']>=contract['wall_timeout_s']:
                         raise TimeoutError('G3 prefix speed cannot meet approved wall budget')
     finally:
         observer.after_scene_update=original_update;observer.reset=original_reset

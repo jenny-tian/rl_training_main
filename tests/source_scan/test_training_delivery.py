@@ -179,3 +179,46 @@ def test_combined_G2_reuses_only_the_fixed_real_startup_anchor_and_keeps_its_bud
     assert contract['startup_covered_by_g2'] is True
     plan['predecessor_qualification']['executed_revision']='unverified'
     with pytest.raises(ValueError):job_contract('g2',plan)
+
+
+@pytest.mark.parametrize('fault',[None,'unapproved','wall','updates','source'])
+def test_G3_supplement_cannot_reuse_consumed_slot_or_expand_scope(tmp_path,fault):
+    import json
+    from rl_training.source_scan.delivery_stage import slot_ledger
+    path,_=grant(tmp_path);ref=reference(path,'stage_approval')
+    original=tmp_path/'slots.json';original.write_text(json.dumps(dict(stage_id=STAGE,jobs={'g3':{'state':'claimed'}})))
+    before=original.read_bytes()
+    plan=dict(delivery_stage=ref,delivery_job='g3',base_revision='c'*40,input_sha256={'cpu_fixture':'d'*64},output_dir=str(tmp_path/'fast'),
+              contact_digest_scheme='sha256_blocks_4096_v1')
+    sup=dict(schema='lite3_G3_fast_supplement_v1',status='approved',user_approved=True,stage_id=STAGE,job='g3',
+        num_envs=120,control_steps=2001,physics_substeps=8004,diagnostic_transitions=240120,
+        training_transitions=0,ppo_updates=0,max_launches=1,wall_timeout_s=1800,validation_timeout_s=1800,
+        noise_seed=132001,noise_std=1.,command_mps=[.3,0.,0.],contact_digest_scheme='sha256_blocks_4096_v1',
+        source_revision=plan['base_revision'],input_sha256=plan['input_sha256'],output_dir=plan['output_dir'],
+        slot_ledger=str(tmp_path/'supplement_slots.json'))
+    if fault=='unapproved':sup['user_approved']=False
+    if fault=='wall':sup['wall_timeout_s']=7200
+    if fault=='updates':sup['ppo_updates']=1
+    if fault=='source':sup['source_revision']='e'*40
+    supplement=tmp_path/'supplement.json';supplement.write_text(json.dumps(sup));plan['g3_supplement']=reference(supplement,'g3_supplement')
+    if fault is not None:
+        with pytest.raises(PermissionError):slot_ledger(plan)
+    else:
+        manifest=tmp_path/'fast_manifest';manifest.write_text(json.dumps(plan))
+        claim_slot(ref,'g3',manifest);validate_slot(plan)
+        with pytest.raises(PermissionError):claim_slot(ref,'g3',manifest)
+    assert original.read_bytes()==before
+
+
+def test_reuse_of_real_G2_refuses_any_reset_or_physics_source_change():
+    import json
+    from pathlib import Path
+    from rl_training.source_scan.delivery_stage import g2_compatible_inputs
+    from source_training_entrypoint import _input_hashes
+    path=Path('/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/g2/run_manifest.json')
+    if not path.is_file():pytest.skip('requires the preserved real combined G2 manifest')
+    previous=json.loads(path.read_text());inputs=_input_hashes()
+    assert g2_compatible_inputs(previous,inputs)['legacy_encoder_and_default_decoder_unchanged']
+    inputs['source/rl_training/rl_training/source_scan/training_env.py']='0'*64
+    with pytest.raises(ValueError,match='qualified G2'):
+        g2_compatible_inputs(previous,inputs)

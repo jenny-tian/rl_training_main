@@ -24,8 +24,9 @@ def cpu_plan(output):
         dependencies={str(i):'c'*64 for i in range(51)},budget_reference=dict(path='synthetic_CPU_fixture',sha256='d'*64),output_dir=output)
 
 
-def build_fixture(folder,*,contact_fault=None,app_running=lambda:True):
+def build_fixture(folder,*,contact_fault=None,app_running=lambda:True,fast_contacts=False):
     folder=Path(folder);folder.mkdir();plan=cpu_plan(folder)|dict(status='approved',user_approved=True)
+    if fast_contacts:plan['contact_digest_scheme']='sha256_blocks_4096_v1'
     env,interface,wrapped=environment();runtime=install_tensor_backend(env,interface,fault=contact_fault)
     original_compute=env.termination_manager.compute;original_get=env.termination_manager.get_term
     forced={2:[0],4:[1,17,119],5:[3]};mask=torch.zeros(120,dtype=torch.bool)
@@ -47,6 +48,7 @@ def build_fixture(folder,*,contact_fault=None,app_running=lambda:True):
                 uncompressed_limit=plan['events_uncompressed_byte_limit'],record_limit=plan['event_record_byte_limit']) as journal:
             observer=MotionObserver(env,wrapped.runtime,journal,snapshot,check_transition)
             capture=MotionContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[GROUND],num_envs=120,
+                fast_contacts=fast_contacts,
                 physics_dt=.005,fault_path=folder/'contact_fault.npz',stage_id=73,
                 reporting_bodies=[f'/World/envs/env_{i}/Robot/{name}' for i in range(120) for name in BODY_NAMES],
                 record=journal.record,start_step=env._sim_step_counter,decimation=4,control_steps=5)

@@ -141,6 +141,11 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
                     _require(event['sim_step']==report['start_sim_step']+contacts+1,'contact attempt sequence differs')
                 elif phase=='sparse_contact_sample':
                     _require(top is not None and event['sim_step']==report['start_sim_step']+contacts+1,'contact sample sequence differs')
+                    if plan.get('contact_digest_scheme')=='sha256_blocks_4096_v1':
+                        _require(event.get('schema')=='lite3_sparse_contact_frame_v2'
+                            and event.get('dense_digest_scheme')=='sha256_blocks_4096_v1'
+                            and (cpu or event.get('native_device')=='cuda:0'),'fast native contact scheme/device differs')
+                    else:_require(event.get('schema')=='lite3_sparse_contact_frame_v1','contact encoding differs from the approved plan')
                     decoded=decoder.decode(event);ground.update(decoded['ground_contact_points']);contacts+=1
                 elif phase=='g3_motion_substep':
                     _require(not awaiting_rebase and contacts==motions+1 and event['sim_step']==report['start_sim_step']+motions+1

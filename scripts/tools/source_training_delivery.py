@@ -61,7 +61,10 @@ def freeze(args):
     from source_scale_startup_supervisor import dependencies
     grant_ref=reference(args.approval,'stage_approval');grant=validate_grant(grant_ref)
     root=Path(grant['output_root']);root.mkdir(parents=True,exist_ok=True)
-    output=root/args.job;manifest=root/(args.job+'.approved.json')
+    supplement=getattr(args,'g3_supplement',None)
+    if supplement is not None and args.job!='g3':raise ValueError('G3 supplement cannot authorize another job')
+    label='g3_fast' if supplement is not None else args.job
+    output=root/label;manifest=root/(label+'.approved.json')
     if output.exists() or manifest.exists():raise FileExistsError('delivery attempt/manifest already exists')
     revision,remote,dirty=_git_state()
     if dirty or revision!=remote:raise ValueError('freeze delivery only after clean commit/push verification')
@@ -71,13 +74,17 @@ def freeze(args):
     if combined:
         from rl_training.source_scan.scale_reset import PREDECESSOR_120
         prior=dict(PREDECESSOR_120)
-    else:prior=reference(root/previous/'receipt.json',previous) if previous else None
+    else:
+        previous_folder='g3_fast' if previous=='g3' and (root/'g3_fast/receipt.json').exists() else previous
+        prior=reference(root/previous_folder/'receipt.json',previous) if previous else None
     common=dict(status='approved',user_approved=True,base_revision=revision,remote_revision_verified=remote,
         input_sha256=_input_hashes(),dependency_sha256=dependencies(),
         budget_ledger=BudgetLedger(canonical_budget_path(ROOT)).reference(),output_dir=str(output),
         checkpoint_sha256=CHECKPOINT_SHA256,delivery_stage=grant_ref,delivery_job=args.job)
     if prior:common['predecessor_qualification']=prior
     if combined:common['startup_covered_by_g2']=True
+    if supplement is not None:
+        common.update(g3_supplement=reference(supplement,'g3_supplement'),contact_digest_scheme='sha256_blocks_4096_v1')
     if args.job=='compare':common['new_checkpoint']=reference(root/'numerics/training/actor_update_90.pt','actor_checkpoint')
     plan=numeric_plan(root,common,grant_ref,prior) if args.job=='numerics' else common|job_contract(args.job,common)
     with manifest.open('x') as stream:json.dump(plan,stream,indent=2,allow_nan=False);stream.write('\n')
@@ -117,4 +124,5 @@ if __name__=='__main__':
     parser.add_argument('--job',choices=tuple(LIMITS),required=True)
     parser.add_argument('--approval',type=Path,required=True);parser.add_argument('--checkpoint',type=Path,required=True)
     parser.add_argument('--combine-startup',action='store_true',help='Reuse the real startup anchor and validate current startup inside the G2 job')
+    parser.add_argument('--g3-supplement',type=Path,help='Separate approval of one replacement G3; never reuses the consumed slot')
     args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else (freeze(args),0)[1])
