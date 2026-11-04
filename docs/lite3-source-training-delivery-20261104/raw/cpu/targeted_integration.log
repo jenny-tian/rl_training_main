@@ -1,0 +1,171 @@
+........................................................................ [ 34%]
+........................................................................ [ 68%]
+..F.....................................................FF.......        [100%]
+=================================== FAILURES ===================================
+___________ test_G2_real_predecessor_and_complete_chain_remain_valid ___________
+
+>   def test_G2_real_predecessor_and_complete_chain_remain_valid():validate_predecessor(G2)
+                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/source_scan/test_scale_motion.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+reference = {'archive': 'docs/lite3-source-shared-bank-g2-120env-v2-runtime-20261104', 'executed_revision': '717f21fbfe7d08b957208...cd056244e5d16a20e9d2cd4c9959', 'sha256sums_sha256': 'afe5ee37a6cc7956813f752e24b7037971fd33801bbc26d415c7fecb14f66ab4'}
+
+    def validate_predecessor(reference,*,source_root=None,verify_current_inputs=True):
+        if isinstance(reference,dict) and reference.get('schema')=='lite3_delivery_artifact_reference_v1':
+            from .delivery_stage import validate_receipt
+            validate_receipt(reference,'g2');validate_policy_prequalification(FLAT,source_root=source_root);return
+        if reference!=G2:raise ValueError('G3 requires the accepted real G2 v2 archive')
+        root=Path(source_root) if source_root is not None else Path(__file__).resolve().parents[4]
+        folder=root/G2['archive']
+        for name,key in [('SHA256SUMS','sha256sums_sha256'),('review.json','review_sha256')]:
+            if hashlib.sha256((folder/name).read_bytes()).hexdigest()!=G2[key]:raise ValueError('G2 anchor changed: '+name)
+        for line in (folder/'SHA256SUMS').read_text().splitlines():
+            digest,name=line.split('  ',1);path=(folder/name).resolve()
+            if not path.is_relative_to(folder.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest()!=digest:
+                raise ValueError('G2 evidence changed: '+name)
+        value=json.loads((folder/'review.json').read_text())
+        if (value.get('accepted') is not True or value.get('executed_revision')!=G2['executed_revision']
+                or value.get('runtime_GPU_launches')!=1 or value.get('real_read_only_diagnostic_transitions')!=480
+                or value.get('reset_boundary_qualified') is not True or value.get('reset_first_recovery_step_qualified') is not True
+                or value.get('training_ready') is not False or value.get('g3_g4_qualified') is not False):
+            raise ValueError('G2 scope does not qualify for G3 preparation')
+        plan=json.loads((folder/'raw/run_manifest.json').read_text())
+        # New G3 files may be added, but none of the already qualified inputs may change.
+        if verify_current_inputs:
+            for name,digest in plan['input_sha256'].items():
+>               if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise ValueError('qualified G2 input changed: '+name)
+                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               ValueError: qualified G2 input changed: scripts/tools/source_scale_reset_supervisor.py
+
+source/rl_training/rl_training/source_scan/scale_motion.py:79: ValueError
+_ test_approved_parent_and_child_check_source_ticket_and_scale_before_simulator[False] _
+
+tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-397/test_approved_parent_and_child0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x757be9252c10>
+child = False
+
+    @pytest.mark.parametrize('child',[False,True])
+    def test_approved_parent_and_child_check_source_ticket_and_scale_before_simulator(tmp_path,monkeypatch,child):
+        out=tmp_path/'attempt';plan=cpu_plan(out)|dict(status='approved',user_approved=True)
+        path=out/'run_manifest.json' if child else tmp_path/'approved.json'
+        if child:out.mkdir()
+        path.write_text(json.dumps(plan))
+        if child:(out/'supervision.json').write_text(json.dumps(dict(revision='a'*40,manifest_sha256=hashlib.sha256(path.read_bytes()).hexdigest())))
+        checkpoint=tmp_path/'actor';checkpoint.write_bytes(b'CPU fixture')
+        monkeypatch.setenv('CUDA_VISIBLE_DEVICES','0');monkeypatch.setattr(supervisor,'CHECKPOINT_SHA256',hashlib.sha256(checkpoint.read_bytes()).hexdigest())
+        monkeypatch.setattr(supervisor,'_git_state',lambda:('a'*40,'a'*40,''));monkeypatch.setattr(supervisor,'_input_hashes',lambda:plan['input_sha256'])
+        monkeypatch.setattr(supervisor,'dependencies',lambda:plan['dependency_sha256']);monkeypatch.setattr(supervisor.BudgetLedger,'reference',lambda self:plan['budget_ledger'])
+        args=NS(manifest=path,num_envs=120,checkpoint=checkpoint,output_dir=out)
+>       assert supervisor.preflight(args,child=child)==plan
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/source_scan/test_scale_motion_protocol.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/tools/source_scale_motion_supervisor.py:44: in preflight
+    validate_plan(plan,revision=revision,inputs=inputs,dependencies=deps,budget_reference=reference,output_dir=output)
+source/rl_training/rl_training/source_scan/scale_motion.py:101: in validate_plan
+    validate_predecessor(plan['predecessor_qualification'])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+reference = {'archive': 'docs/lite3-source-shared-bank-g2-120env-v2-runtime-20261104', 'executed_revision': '717f21fbfe7d08b957208...cd056244e5d16a20e9d2cd4c9959', 'sha256sums_sha256': 'afe5ee37a6cc7956813f752e24b7037971fd33801bbc26d415c7fecb14f66ab4'}
+
+    def validate_predecessor(reference,*,source_root=None,verify_current_inputs=True):
+        if isinstance(reference,dict) and reference.get('schema')=='lite3_delivery_artifact_reference_v1':
+            from .delivery_stage import validate_receipt
+            validate_receipt(reference,'g2');validate_policy_prequalification(FLAT,source_root=source_root);return
+        if reference!=G2:raise ValueError('G3 requires the accepted real G2 v2 archive')
+        root=Path(source_root) if source_root is not None else Path(__file__).resolve().parents[4]
+        folder=root/G2['archive']
+        for name,key in [('SHA256SUMS','sha256sums_sha256'),('review.json','review_sha256')]:
+            if hashlib.sha256((folder/name).read_bytes()).hexdigest()!=G2[key]:raise ValueError('G2 anchor changed: '+name)
+        for line in (folder/'SHA256SUMS').read_text().splitlines():
+            digest,name=line.split('  ',1);path=(folder/name).resolve()
+            if not path.is_relative_to(folder.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest()!=digest:
+                raise ValueError('G2 evidence changed: '+name)
+        value=json.loads((folder/'review.json').read_text())
+        if (value.get('accepted') is not True or value.get('executed_revision')!=G2['executed_revision']
+                or value.get('runtime_GPU_launches')!=1 or value.get('real_read_only_diagnostic_transitions')!=480
+                or value.get('reset_boundary_qualified') is not True or value.get('reset_first_recovery_step_qualified') is not True
+                or value.get('training_ready') is not False or value.get('g3_g4_qualified') is not False):
+            raise ValueError('G2 scope does not qualify for G3 preparation')
+        plan=json.loads((folder/'raw/run_manifest.json').read_text())
+        # New G3 files may be added, but none of the already qualified inputs may change.
+        if verify_current_inputs:
+            for name,digest in plan['input_sha256'].items():
+>               if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise ValueError('qualified G2 input changed: '+name)
+                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               ValueError: qualified G2 input changed: scripts/tools/source_scale_reset_supervisor.py
+
+source/rl_training/rl_training/source_scan/scale_motion.py:79: ValueError
+_ test_approved_parent_and_child_check_source_ticket_and_scale_before_simulator[True] _
+
+tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-397/test_approved_parent_and_child1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x757bf3890290>
+child = True
+
+    @pytest.mark.parametrize('child',[False,True])
+    def test_approved_parent_and_child_check_source_ticket_and_scale_before_simulator(tmp_path,monkeypatch,child):
+        out=tmp_path/'attempt';plan=cpu_plan(out)|dict(status='approved',user_approved=True)
+        path=out/'run_manifest.json' if child else tmp_path/'approved.json'
+        if child:out.mkdir()
+        path.write_text(json.dumps(plan))
+        if child:(out/'supervision.json').write_text(json.dumps(dict(revision='a'*40,manifest_sha256=hashlib.sha256(path.read_bytes()).hexdigest())))
+        checkpoint=tmp_path/'actor';checkpoint.write_bytes(b'CPU fixture')
+        monkeypatch.setenv('CUDA_VISIBLE_DEVICES','0');monkeypatch.setattr(supervisor,'CHECKPOINT_SHA256',hashlib.sha256(checkpoint.read_bytes()).hexdigest())
+        monkeypatch.setattr(supervisor,'_git_state',lambda:('a'*40,'a'*40,''));monkeypatch.setattr(supervisor,'_input_hashes',lambda:plan['input_sha256'])
+        monkeypatch.setattr(supervisor,'dependencies',lambda:plan['dependency_sha256']);monkeypatch.setattr(supervisor.BudgetLedger,'reference',lambda self:plan['budget_ledger'])
+        args=NS(manifest=path,num_envs=120,checkpoint=checkpoint,output_dir=out)
+>       assert supervisor.preflight(args,child=child)==plan
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/source_scan/test_scale_motion_protocol.py:104: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+scripts/tools/source_scale_motion_supervisor.py:41: in preflight
+    validate_predecessor(plan['predecessor_qualification'])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+reference = {'archive': 'docs/lite3-source-shared-bank-g2-120env-v2-runtime-20261104', 'executed_revision': '717f21fbfe7d08b957208...cd056244e5d16a20e9d2cd4c9959', 'sha256sums_sha256': 'afe5ee37a6cc7956813f752e24b7037971fd33801bbc26d415c7fecb14f66ab4'}
+
+    def validate_predecessor(reference,*,source_root=None,verify_current_inputs=True):
+        if isinstance(reference,dict) and reference.get('schema')=='lite3_delivery_artifact_reference_v1':
+            from .delivery_stage import validate_receipt
+            validate_receipt(reference,'g2');validate_policy_prequalification(FLAT,source_root=source_root);return
+        if reference!=G2:raise ValueError('G3 requires the accepted real G2 v2 archive')
+        root=Path(source_root) if source_root is not None else Path(__file__).resolve().parents[4]
+        folder=root/G2['archive']
+        for name,key in [('SHA256SUMS','sha256sums_sha256'),('review.json','review_sha256')]:
+            if hashlib.sha256((folder/name).read_bytes()).hexdigest()!=G2[key]:raise ValueError('G2 anchor changed: '+name)
+        for line in (folder/'SHA256SUMS').read_text().splitlines():
+            digest,name=line.split('  ',1);path=(folder/name).resolve()
+            if not path.is_relative_to(folder.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest()!=digest:
+                raise ValueError('G2 evidence changed: '+name)
+        value=json.loads((folder/'review.json').read_text())
+        if (value.get('accepted') is not True or value.get('executed_revision')!=G2['executed_revision']
+                or value.get('runtime_GPU_launches')!=1 or value.get('real_read_only_diagnostic_transitions')!=480
+                or value.get('reset_boundary_qualified') is not True or value.get('reset_first_recovery_step_qualified') is not True
+                or value.get('training_ready') is not False or value.get('g3_g4_qualified') is not False):
+            raise ValueError('G2 scope does not qualify for G3 preparation')
+        plan=json.loads((folder/'raw/run_manifest.json').read_text())
+        # New G3 files may be added, but none of the already qualified inputs may change.
+        if verify_current_inputs:
+            for name,digest in plan['input_sha256'].items():
+>               if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise ValueError('qualified G2 input changed: '+name)
+                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               ValueError: qualified G2 input changed: scripts/tools/source_scale_reset_supervisor.py
+
+source/rl_training/rl_training/source_scan/scale_motion.py:79: ValueError
+=============================== warnings summary ===============================
+tests/source_scan/test_scale_episode_metrics.py: 3 warnings
+tests/source_scan/test_scale_motion.py: 11 warnings
+tests/source_scan/test_scale_motion_protocol.py: 22 warnings
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_scale_motion.py::test_G2_real_predecessor_and_complete_chain_remain_valid
+FAILED tests/source_scan/test_scale_motion_protocol.py::test_approved_parent_and_child_check_source_ticket_and_scale_before_simulator[False]
+FAILED tests/source_scan/test_scale_motion_protocol.py::test_approved_parent_and_child_check_source_ticket_and_scale_before_simulator[True]
+3 failed, 206 passed, 36 warnings in 242.43s (0:04:02)

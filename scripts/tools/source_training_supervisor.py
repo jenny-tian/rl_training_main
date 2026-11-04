@@ -12,7 +12,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT/'source/rl_training'), str(ROOT/'scripts/tools')]
-from rl_training.source_scan.cumulative_training import SCHEMA
+from rl_training.source_scan.cumulative_training import SCHEMA,NUMERICS_SCHEMA
 from rl_training.source_scan.smoke_artifacts import atomic_json
 from rl_training.source_scan.training_budget_ledger import BudgetLedger
 from source_training_entrypoint import validate_before_simulation, _input_hashes
@@ -86,9 +86,12 @@ def validate_result(folder, lock, execution):
 
 def run(args):
     manifest = json.loads(args.authorization.read_text())
-    if manifest.get('schema') != SCHEMA or manifest.get('user_approved') is not True or manifest.get('status') != 'approved':
+    if manifest.get('schema') not in (SCHEMA,NUMERICS_SCHEMA) or manifest.get('user_approved') is not True or manifest.get('status') != 'approved':
         raise PermissionError('separately approved cumulative numeric manifest required')
     lock, revision, hashes = validate_before_simulation(args, manifest)
+    if manifest['schema']==NUMERICS_SCHEMA:
+        from rl_training.source_scan.delivery_stage import validate_slot
+        validate_slot(manifest)
     if lock['dependency_sha256'] != dependencies():
         raise ValueError('numeric manifest omits or changes core runtime dependencies')
     query = ['nvidia-smi','--query-gpu=index,uuid,name,memory.used,memory.free,memory.total,utilization.gpu','--format=csv,noheader']

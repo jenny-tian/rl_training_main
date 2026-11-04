@@ -34,6 +34,9 @@ def dependencies():
 
 def preflight(args,*,child=False):
     plan=json.loads(args.manifest.read_text())
+    if plan.get('delivery_stage'):
+        from rl_training.source_scan.delivery_stage import preflight as delivery_preflight
+        return delivery_preflight(args,plan,kind='g1',child=child)
     if plan.get('user_approved') is not True or plan.get('status')!='approved':
         raise PermissionError('separate approval of the selected single G1 launch is required')
     num_envs=getattr(args,'num_envs',16)

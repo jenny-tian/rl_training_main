@@ -75,6 +75,9 @@ def validate(folder,plan,execution):
         g3_g4_qualified=False,ground_positive_qualification=False,scope='120_env_four_selective_resets_and_first_recovery_step_only')
     try:
         contract=contract_for(plan.get('num_envs'));n=120
+        if plan.get('delivery_stage'):
+            from rl_training.source_scan.delivery_stage import job_contract
+            contract=job_contract('g2',plan)
         _require(plan.get('status')=='approved' and plan.get('user_approved') is True,'G2 plan is not approved')
         for key,value in contract.items():_require(same_value(plan.get(key),value),'G2 plan mismatch: '+key)
         validate_predecessor(plan.get('predecessor_qualification'))

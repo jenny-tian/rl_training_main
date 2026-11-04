@@ -15,6 +15,7 @@ def source_terrain_tile_bounds(
     flat_length_m: float,
     collision_radius_m: float,
     numerical_margin_m: float,
+    scanner_footprint_margin_m: float = 0.0,
 ):
     """Terminate each environment before any Lite3 collision envelope exits its tile."""
 
@@ -63,6 +64,15 @@ def source_terrain_tile_bounds(
             episode_steps=env.episode_length_buf.detach().clone(),
         )
         observer(diagnostics)
+    if scanner_footprint_margin_m:
+        from rl_training.source_scan.scan_footprint import scanner_boundary
+        # The wide critic scanner extends beyond the rigid-body envelope.
+        # Grid half-size (.8,.5) plus one .07 m sampling interval bounds every
+        # generated ray, including arange endpoint rounding. Do not read the
+        # scanner here: its next update must happen after termination/reset.
+        terminated |= scanner_boundary(robot.data.root_link_pos_w,robot.data.root_link_quat_w,
+            robot.data.root_link_lin_vel_w,robot.data.root_ang_vel_w[:,2],terrain.env_origins,
+            margin=scanner_footprint_margin_m,dt=float(env.step_dt))
     return terminated
 
 

@@ -57,6 +57,8 @@ def main():
         if (sorted(ids)!=list(range(17)) or len(robot.body_names)!=17 or guard['collision_radius_m']!=.27
                 or guard['numerical_margin_m']!=.001 or tuple(guard['size'])!=(12.,4.) or guard['flat_length_m']!=3.
                 or set(base.termination_manager.active_terms)!=EXPECTED_TERMS):raise ValueError('G3 guard/body/termination contract differs')
+        if plan.get('delivery_stage') and guard.get('scanner_footprint_margin_m')!=.1:
+            raise ValueError('delivery G3 requires the scanner footprint boundary guard')
         bodies=[]
         for path in base.scene.env_prim_paths:
             found=[p for p in Usd.PrimRange(base.sim.stage.GetPrimAtPath(path+'/Robot')) if p.HasAPI(UsdPhysics.RigidBodyAPI)]
@@ -72,8 +74,9 @@ def main():
             get_backend_state=lambda:dict(suppress_readback_setting=carb.settings.get_settings().get('/physics/suppressReadback'),
                 readback_suppressed=get_physx_interface().is_readback_suppressed(),tensor_device=str(base.sim.physics_sim_view.device)))
         with CompressedJournal(folder/'events.jsonl.gz',byte_limit=plan['events_byte_limit'],
-                uncompressed_limit=plan['events_uncompressed_byte_limit'],record_limit=plan['event_record_byte_limit']) as journal:
-            observer=MotionObserver(base,env.runtime,journal,snapshot,check_transition)
+                uncompressed_limit=plan['events_uncompressed_byte_limit'],record_limit=plan['event_record_byte_limit'],
+                binary_tensors=plan.get('events_encoding')=='concatenated_gzip_JSONL_base64_tensors_v1') as journal:
+            observer=MotionObserver(base,env.runtime,journal,snapshot,check_transition,scan_guard_enabled=bool(plan.get('delivery_stage')))
             capture=MotionContactCapture(physics_view=base.sim.physics_sim_view,ground_colliders=ground,num_envs=120,
                 physics_dt=.005,fault_path=folder/'contact_fault.npz',stage_id=UsdUtils.StageCache.Get().GetId(base.sim.get_initial_stage()).ToLongInt(),
                 reporting_bodies=bodies,record=journal.record,start_step=base._sim_step_counter,decimation=4,control_steps=plan['control_steps'])

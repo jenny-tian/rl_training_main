@@ -19,6 +19,7 @@ class DeeproboticsLite3SourceTrainingEnvCfg(DeeproboticsLite3SourceTerrainEnvCfg
             raise ValueError("Source training requires explicit parallel sampling and L1 only")
         self.source_parallel_sampler_seed = seeds.sampler
         super().__post_init__()
+        self.terminations.source_terrain_tile_bounds.params['scanner_footprint_margin_m'] = .1
         self.seed = seeds.ppo
         self.scene.terrain.terrain_generator.seed = seeds.geometry
         self.episode_length_s = 40.0

@@ -44,6 +44,9 @@ def validate(folder,plan,execution):
         training_ready=False,g3_g4_qualified=False,scope='G1_startup_one_zero_control_step_only')
     try:
         num_envs=plan.get('num_envs');contract=contract_for(num_envs)
+        if plan.get('delivery_stage'):
+            from rl_training.source_scan.delivery_stage import job_contract
+            contract=job_contract('g1',plan)
         result['scope']=f'{num_envs}_env_startup_one_zero_control_step_only'
         _require(plan.get('status')=='approved' and plan.get('user_approved') is True,'G1 plan is not approved')
         for key,value in contract.items():

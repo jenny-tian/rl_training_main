@@ -100,6 +100,13 @@ def test_approved_parent_and_child_check_source_ticket_and_scale_before_simulato
     monkeypatch.setenv('CUDA_VISIBLE_DEVICES','0');monkeypatch.setattr(supervisor,'CHECKPOINT_SHA256',hashlib.sha256(checkpoint.read_bytes()).hexdigest())
     monkeypatch.setattr(supervisor,'_git_state',lambda:('a'*40,'a'*40,''));monkeypatch.setattr(supervisor,'_input_hashes',lambda:plan['input_sha256'])
     monkeypatch.setattr(supervisor,'dependencies',lambda:plan['dependency_sha256']);monkeypatch.setattr(supervisor.BudgetLedger,'reference',lambda self:plan['budget_ledger'])
+    # This test supplies synthetic input hashes above. Its historical archive
+    # check is CPU-only; real preflight still refuses the changed old source.
+    import rl_training.source_scan.scale_motion as motion_contract
+    historical=motion_contract.validate_predecessor
+    check=lambda ref:historical(ref,verify_current_inputs=False)
+    monkeypatch.setattr(supervisor,'validate_predecessor',check)
+    monkeypatch.setattr(motion_contract,'validate_predecessor',check)
     args=NS(manifest=path,num_envs=120,checkpoint=checkpoint,output_dir=out)
     assert supervisor.preflight(args,child=child)==plan
     args.num_envs=60

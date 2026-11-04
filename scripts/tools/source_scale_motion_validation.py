@@ -16,7 +16,7 @@ from rl_training.source_scan.shared_terrain_bank import SharedBankTerrainAllocat
 from rl_training.source_scan.parallel_terrain_allocation import SOURCE_RESET_BLOCK_COUNTS
 from rl_training.source_scan.moving_diagnostic import restore_tensor,EXPECTED_TERMS
 from rl_training.source_scan.tile_bounds import source_tile_bounds_terminated
-from rl_training.source_scan.sparse_contact import reconstruct_frame
+from rl_training.source_scan.sparse_contact import ContactDecoder
 from rl_training.source_scan.frozen_actor import load_frozen_source_actor
 from source_scale_motion_collection import actor_digest
 from source_scale_reset_validation import _inventory,_state,_metrics
@@ -73,12 +73,15 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
         folder=Path(folder);report=_load((folder/'result.json').read_text());contract=contract_for()
         if report.get('status')=='failed':raise ValueError('G3 probe failed: '+str(report.get('error')))
         cpu=cpu_profile is not None
+        if plan.get('delivery_stage'):
+            from rl_training.source_scan.delivery_stage import job_contract
+            contract=job_contract('g3',plan)
         _require(cpu or not report.get('synthetic_cpu_fixture'),'synthetic CPU data cannot qualify a real G3 run')
         _require(not cpu or report.get('synthetic_cpu_fixture') is True,'CPU profile requires explicit fixture provenance')
         total,main=(contract['control_steps'],contract['main_control_steps']) if not cpu else cpu_profile
         _require(plan.get('status')=='approved' and plan.get('user_approved') is True,'G3 plan is not approved')
         for k,v in contract.items():_require(same_value(plan.get(k),v),'G3 contract differs: '+k)
-        validate_predecessor(plan['predecessor_qualification'])
+        validate_predecessor(plan['predecessor_qualification'],verify_current_inputs=not cpu)
         _require(execution.get('returncode')==0 and execution.get('timed_out') is False
             and execution.get('process_group_empty') is True and execution.get('monitor_errors')==[],'G3 execution failed')
         _require(report.get('status')=='collected' and report.get('simulation_control_steps')==total
@@ -133,11 +136,12 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
                     _require(top is None,'duplicate topology');top={k:v for k,v in event.items() if k!='phase'}
                     _require(top['num_envs']==120 and top['sensor_count']==2040 and top['capacity']==1048576,'G3 topology dimensions differ')
                     _require(len(report['body_names'])==17 and set(top['sensor_paths'])=={f'/World/envs/env_{i}/Robot/{n}' for i in range(120) for n in report['body_names']},'G3 body coverage differs')
+                    decoder=ContactDecoder(top)
                 elif phase=='contact_poll_attempt':
                     _require(event['sim_step']==report['start_sim_step']+contacts+1,'contact attempt sequence differs')
                 elif phase=='sparse_contact_sample':
                     _require(top is not None and event['sim_step']==report['start_sim_step']+contacts+1,'contact sample sequence differs')
-                    decoded=reconstruct_frame(event,top);ground.update(decoded['ground_contact_points']);contacts+=1
+                    decoded=decoder.decode(event);ground.update(decoded['ground_contact_points']);contacts+=1
                 elif phase=='g3_motion_substep':
                     _require(not awaiting_rebase and contacts==motions+1 and event['sim_step']==report['start_sim_step']+motions+1
                         and event['control_step']==motions//4+1,'G3 motion order differs')
@@ -156,6 +160,13 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
                     _require(torch.allclose(restore_tensor(event['displacements_m']),delta,atol=2e-6,rtol=2e-6)
                         and torch.allclose(restore_tensor(event['finite_difference_acceleration_mps2']),acceleration,atol=1e-4,rtol=2e-6),'G3 derivatives/reset rebase differ')
                     roots=restore_tensor(event['root_positions_w']);_require(torch.equal(roots,pos[:,0]),'G3 root/body mapping differs')
+                    if plan.get('delivery_stage'):
+                        from rl_training.source_scan.scan_footprint import scanner_boundary
+                        guard=event['scanner_guard'];scan_diagnostic={}
+                        scanner_boundary(roots,quat[:,0],restore_tensor(guard['root_linear_velocity_w']),
+                            restore_tensor(guard['root_yaw_rate_w']),origins,diagnostics=scan_diagnostic)
+                        _require(guard['current']==scan_diagnostic['current'].tolist()
+                            and guard['predicted']==scan_diagnostic['predicted'].tolist(),'scanner footprint guard does not reconstruct')
                     _scans(event['scanners'],roots,origins,only_base=True)
                     _require(event['recovery_ids']==sorted(pending),'G3 reset first physics step missing')
                     pending.clear();pending_main.clear();previous=(pos,vel);motions+=1

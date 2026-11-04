@@ -30,7 +30,10 @@ def test_G3_fixed_budget_policy_and_scope_cannot_be_changed(tmp_path,field,value
     with pytest.raises(ValueError):validate_plan(plan,revision='a'*40,inputs=plan['input_sha256'],dependencies=plan['dependency_sha256'],budget_reference=plan['budget_ledger'],output_dir=output)
 
 
-def test_G2_real_predecessor_and_complete_chain_remain_valid():validate_predecessor(G2)
+def test_G2_archive_is_intact_but_changed_source_requires_new_runtime_qualification():
+    validate_predecessor(G2,verify_current_inputs=False)
+    with pytest.raises(ValueError,match='qualified G2 input changed'):
+        validate_predecessor(G2)
 
 
 @pytest.mark.parametrize('field',['archive','executed_revision','sha256sums_sha256','review_sha256'])

@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from copy import deepcopy
 
 import numpy as np
 
@@ -127,7 +128,21 @@ class ContactEncoder:
 def reconstruct_frame(frame, topology):
     """Independent CPU decoder: explicit pair/point loops, no encoder invocation."""
     validate_topology(topology)
-    _check(frame['schema']==SCHEMA and frame['topology_sha256']==topology_digest(topology),'frame topology binding differs')
+    return _reconstruct_frame(frame,topology,topology_digest(topology))
+
+
+class ContactDecoder:
+    """Validate a private topology copy once; independently reconstruct every frame."""
+    def __init__(self,topology):
+        self._topology=validate_topology(deepcopy(topology))
+        self._digest=topology_digest(self._topology)
+
+    def decode(self,frame):
+        return _reconstruct_frame(frame,self._topology,self._digest)
+
+
+def _reconstruct_frame(frame,topology,expected_digest):
+    _check(frame['schema']==SCHEMA and frame['topology_sha256']==expected_digest,'frame topology binding differs')
     n,f,capacity = (topology[key] for key in ('sensor_count','filter_count','capacity'))
     matrix = np.zeros((n,f,3),np.float32); counts = np.zeros((n,f),np.uint32)
     detail_indices = frame['detail_indices']

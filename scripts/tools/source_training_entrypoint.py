@@ -113,7 +113,7 @@ def main() -> int:
         print(json.dumps({"status": "authorization_validated", "simulation_started": False,
                           "training_started": False, "base_revision": revision}))
         return 0
-    cumulative = lock['schema'] == 'lite3_source_ppo_cumulative_authorization_v2'
+    cumulative = lock['schema'] in ('lite3_source_ppo_cumulative_authorization_v2','lite3_source_ppo_bounded_numerics_authorization_v3')
     if cumulative and args.supervised_ticket is None:
         raise ValueError('cumulative numeric execution requires source_training_supervisor.py')
 
@@ -222,7 +222,11 @@ def main() -> int:
         attempt.update(status="running", training_started=True)
         _atomic_json(args.output_dir / "attempt.json", attempt)
         print('[source-numerics] initial-ready', flush=True)
-        training.run(before_step=lambda: (
+        curves=None
+        if lock['schema']=='lite3_source_ppo_bounded_numerics_authorization_v3':
+            from rl_training.source_scan.delivery_metrics import TrainingCurves
+            curves=TrainingCurves(args.output_dir/'training/curves.jsonl')
+        training.run(observer=curves,before_step=lambda: (
             None if app.is_running() else (_ for _ in ()).throw(RuntimeError("Isaac application stopped"))
         ))
         attempt["status"] = "completed"

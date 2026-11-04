@@ -66,14 +66,19 @@ def native_metric_rows(env):
         raise FloatingPointError('invalid native metric tensors')
     if gravity.shape!=(env.num_envs,3) or bool((gravity.abs()>1+1e-5).any()):raise ValueError('invalid projected gravity')
     error=(velocity-command).norm(dim=-1)
+    scalar=torch.stack((pos[:,0]-origin[:,0],pos[:,1]-origin[:,1],error,velocity[:,0],
+        torch.asin(gravity[:,1].clamp(-1,1)),torch.asin(gravity[:,0].clamp(-1,1))),dim=1).cpu().tolist()
+    ages=env.episode_length_buf.cpu().tolist()
+    foot_xy=(feet[:,:,:2]-origin[:,None,:2]).cpu().tolist()
+    speeds=speed.cpu().tolist();contacts=(forces.norm(dim=-1)>1.).cpu().tolist()
+    horizontal=forces[:,:,:2].norm(dim=-1).cpu().tolist()
     rows=[]
     for i in range(env.num_envs):
-        rows.append(dict(step=int(env.episode_length_buf[i]),forward_progress_m=float(pos[i,0]-origin[i,0]),
-            lateral_m=float(pos[i,1]-origin[i,1]),velocity_error_mps=float(error[i]),forward_velocity_mps=float(velocity[i,0]),
-            roll_rad=float(torch.asin(gravity[i,1].clamp(-1,1))),pitch_rad=float(torch.asin(gravity[i,0].clamp(-1,1))),
-            foot_positions_reset_xy_m=(feet[i,:,:2]-origin[i,:2]).cpu().tolist(),
-            foot_speeds_mps=speed[i].cpu().tolist(),foot_contact=(forces[i].norm(dim=-1)>1.).cpu().tolist(),
-            foot_horizontal_forces_N=forces[i,:,:2].norm(dim=-1).cpu().tolist()))
+        progress,lateral,err,forward,roll,pitch=scalar[i]
+        rows.append(dict(step=int(ages[i]),forward_progress_m=progress,lateral_m=lateral,
+            velocity_error_mps=err,forward_velocity_mps=forward,roll_rad=roll,pitch_rad=pitch,
+            foot_positions_reset_xy_m=foot_xy[i],foot_speeds_mps=speeds[i],foot_contact=contacts[i],
+            foot_horizontal_forces_N=horizontal[i]))
     return rows
 
 

@@ -7,12 +7,24 @@ from .runtime_readiness import validate_numerics_runtime_receipt
 from .training_budget_ledger import BudgetLedger
 
 SCHEMA = 'lite3_source_ppo_cumulative_authorization_v2'
+NUMERICS_SCHEMA = 'lite3_source_ppo_bounded_numerics_authorization_v3'
 
 
 def validate_evidence(manifest, input_sha256, budget):
     from .training_runner import _receipt
     runtime = _receipt(manifest.get('runtime_qualification'), 'bounded numeric runtime')
     validate_numerics_runtime_receipt(runtime, input_sha256)
+    if manifest.get('schema')==NUMERICS_SCHEMA:
+        from .delivery_stage import validate_grant,validate_receipt
+        validate_grant(manifest['delivery_stage'])
+        validate_receipt(manifest['predecessor_qualification'],'g4',inputs=input_sha256)
+        if (manifest.get('formal_selection_authorized') is not False
+                or manifest.get('metrics_scope')!='diagnostic_only' or budget['run']!=1
+                or manifest.get('delivery_job')!='numerics'
+                or 'source_selection_lock' in manifest or 'metrics_qualification' in manifest):
+            raise ValueError('numeric-only authorization cannot claim formal selection or metrics qualification')
+        _validate_dependencies(manifest)
+        return
     protocol = _receipt(manifest.get('source_selection_lock'), 'Source selection protocol')
     validate_protocol(protocol, require_locked=True)
     if protocol['budget_nodes'][str(budget['run'])] != [budget['nodes'][name]['remaining_updates'] for name in ('numerics','midpoint','pilot')]:
@@ -25,6 +37,10 @@ def validate_evidence(manifest, input_sha256, budget):
             or metrics.get('front_foot_detector_force_N') != 20.
             or metrics.get('normalized_episode_schema') != 'lite3_source_episode_metrics_v1'):
         raise ValueError('Source metric collection has not been qualified')
+    _validate_dependencies(manifest)
+
+
+def _validate_dependencies(manifest):
     dependencies = manifest.get('dependency_sha256')
     if not isinstance(dependencies, dict) or len(dependencies) < 44:
         raise ValueError('cumulative numeric dependency inventory is incomplete')
@@ -37,7 +53,7 @@ def validate_evidence(manifest, input_sha256, budget):
 
 def validate_authorization(manifest, *, run, budget_node, output_dir, checkpoint_sha256,
                            revision, input_sha256, ledger_path):
-    if manifest.get('schema') != SCHEMA: raise ValueError('invalid cumulative authorization schema')
+    if manifest.get('schema') not in (SCHEMA,NUMERICS_SCHEMA): raise ValueError('invalid cumulative authorization schema')
     if manifest.get('user_approved') is not True or manifest.get('status') != 'approved':
         raise PermissionError('bounded numeric launch requires separate approval')
     if budget_node != 'numerics':
@@ -66,16 +82,20 @@ def validate_authorization(manifest, *, run, budget_node, output_dir, checkpoint
         if type(manifest.get(key)) is not type(value) or manifest[key] != value:
             raise ValueError('cumulative authorization mismatch: '+key)
     validate_evidence(manifest, input_sha256, budget)
-    return expected | {key: manifest[key] for key in (
+    keys=(
         'schema','status','user_approved','budget_ledger','runtime_qualification',
-        'source_selection_lock','metrics_qualification','dependency_sha256')}
+        'source_selection_lock','metrics_qualification','dependency_sha256')
+    if manifest['schema']==NUMERICS_SCHEMA:
+        keys=('schema','status','user_approved','budget_ledger','runtime_qualification','dependency_sha256',
+              'delivery_stage','delivery_job','predecessor_qualification','formal_selection_authorized','metrics_scope')
+    return expected | {key:manifest[key] for key in keys}
 
 
 def validate_supervised_child(manifest, ticket, *, output_dir, revision, input_sha256, ledger_path):
     lock = ticket.get('authorization')
     if ticket.get('schema') != 'lite3_source_numerics_supervision_v1' or not isinstance(lock, dict):
         raise ValueError('invalid Source numerics supervision ticket')
-    if lock.get('schema') != SCHEMA or lock.get('status') != 'approved' or lock.get('user_approved') is not True:
+    if lock.get('schema') not in (SCHEMA,NUMERICS_SCHEMA) or lock.get('status') != 'approved' or lock.get('user_approved') is not True:
         raise PermissionError('unapproved Source numerics supervision')
     if any(type(manifest.get(k)) is not type(v) or manifest[k] != v for k, v in lock.items()):
         raise ValueError('supervised authorization differs from approved manifest')

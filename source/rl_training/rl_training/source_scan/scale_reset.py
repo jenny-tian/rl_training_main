@@ -29,6 +29,9 @@ def same_value(actual,expected):
 
 
 def validate_predecessor(reference,*,source_root=None):
+    if isinstance(reference,dict) and reference.get('schema')=='lite3_delivery_artifact_reference_v1':
+        from .delivery_stage import validate_receipt
+        validate_receipt(reference,'g1');return
     if reference!=PREDECESSOR_120:raise ValueError('G2 requires the fixed accepted 120-env G1 predecessor')
     root=Path(source_root) if source_root is not None else Path(__file__).resolve().parents[4]
     archive=(root/PREDECESSOR_120['archive']).resolve()

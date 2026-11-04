@@ -23,6 +23,9 @@ from source_scale_startup_supervisor import dependencies
 
 def preflight(args,*,child=False):
     plan=json.loads(args.manifest.read_text())
+    if plan.get('delivery_stage'):
+        from rl_training.source_scan.delivery_stage import preflight as delivery_preflight
+        return delivery_preflight(args,plan,kind='g2',child=child)
     if plan.get('user_approved') is not True or plan.get('status')!='approved':
         raise PermissionError('separate approval of the selected single G2 launch is required')
     num_envs=args.num_envs;contract_for(num_envs)
@@ -67,8 +70,8 @@ def prepare(args):
     return 0
 
 
-def deadline_expired(elapsed,text):
-    return elapsed>480 or elapsed>120 and '[scale-g2] initial-ready' not in text
+def deadline_expired(elapsed,text,wall_timeout_s=480):
+    return elapsed>wall_timeout_s or elapsed>120 and '[scale-g2] initial-ready' not in text
 
 
 def run(args):
@@ -84,7 +87,7 @@ def run(args):
     atomic_json(output/'supervision.json',dict(manifest_sha256=hashlib.sha256((output/'run_manifest.json').read_bytes()).hexdigest(),revision=plan['base_revision']))
     (output/'gpu_before.csv').write_text(before)
     (output/'compute_before.csv').write_text(subprocess.check_output(compute_query,text=True,timeout=10))
-    command=['timeout','--signal=TERM','--kill-after=15s','480s',sys.executable,str(ROOT/'scripts/tools/source_scale_reset_probe.py'),
+    command=['timeout','--signal=TERM','--kill-after=15s',str(plan['wall_timeout_s'])+'s',sys.executable,str(ROOT/'scripts/tools/source_scale_reset_probe.py'),
         '--manifest',str(output/'run_manifest.json'),'--checkpoint',str(args.checkpoint.resolve()),
         '--num-envs',str(args.num_envs)]
     process=None;started=time.monotonic();execution=dict(command=command,monitor_errors=[],timed_out=False)
@@ -95,7 +98,7 @@ def run(args):
             execution['process_group']=process.pid;atomic_json(output/'execution.json',execution);next_sample=0
             while process.poll() is None:
                 elapsed=time.monotonic()-started
-                if deadline_expired(elapsed,(output/'runtime.log').read_text(errors='replace')):
+                if deadline_expired(elapsed,(output/'runtime.log').read_text(errors='replace'),plan['wall_timeout_s']):
                     execution['timed_out']=True;raise TimeoutError('G2 startup or wall timeout')
                 if elapsed>=next_sample:
                     samples.write(json.dumps(dict(elapsed_s=elapsed,gpu=subprocess.check_output(query,text=True,timeout=10),

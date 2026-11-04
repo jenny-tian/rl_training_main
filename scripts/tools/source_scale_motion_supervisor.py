@@ -22,6 +22,9 @@ from source_live_ppo_supervisor import group_exists,terminate_group
 
 def preflight(args,*,child=False):
     plan=json.loads(args.manifest.read_text())
+    if plan.get('delivery_stage'):
+        from rl_training.source_scan.delivery_stage import preflight as delivery_preflight
+        return delivery_preflight(args,plan,kind=plan.get('delivery_job'),child=child)
     if plan.get('status')!='approved' or plan.get('user_approved') is not True:raise PermissionError('separate G3 GPU approval is required')
     contract_for(args.num_envs);revision,remote,dirty=_git_state()
     if dirty or revision!=remote:raise ValueError('G3 requires clean committed and remote-matching source')

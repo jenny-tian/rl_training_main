@@ -53,7 +53,10 @@ def validate_policy_prequalification(reference,*,source_root=None):
         raise ValueError('Flat policy prerequisite scope differs')
 
 
-def validate_predecessor(reference,*,source_root=None):
+def validate_predecessor(reference,*,source_root=None,verify_current_inputs=True):
+    if isinstance(reference,dict) and reference.get('schema')=='lite3_delivery_artifact_reference_v1':
+        from .delivery_stage import validate_receipt
+        validate_receipt(reference,'g2');validate_policy_prequalification(FLAT,source_root=source_root);return
     if reference!=G2:raise ValueError('G3 requires the accepted real G2 v2 archive')
     root=Path(source_root) if source_root is not None else Path(__file__).resolve().parents[4]
     folder=root/G2['archive']
@@ -71,8 +74,9 @@ def validate_predecessor(reference,*,source_root=None):
         raise ValueError('G2 scope does not qualify for G3 preparation')
     plan=json.loads((folder/'raw/run_manifest.json').read_text())
     # New G3 files may be added, but none of the already qualified inputs may change.
-    for name,digest in plan['input_sha256'].items():
-        if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise ValueError('qualified G2 input changed: '+name)
+    if verify_current_inputs:
+        for name,digest in plan['input_sha256'].items():
+            if hashlib.sha256((root/name).read_bytes()).hexdigest()!=digest:raise ValueError('qualified G2 input changed: '+name)
     validate_g1_chain(plan['predecessor_qualification'],source_root=root)
     validate_policy_prequalification(FLAT,source_root=root)
 

@@ -11,6 +11,7 @@ from rl_training.source_scan.moving_diagnostic import tensor_record
 from rl_training.source_scan.scale_motion import contract_for
 from source_eight_env_moving_probe import serial_terminal
 from source_shared_contact_report import capture_substeps
+from source_shared_contact_report import ContactCapture
 from source_sparse_tensor_contact import SparseTensorContactCapture
 
 
@@ -25,13 +26,32 @@ class MotionContactCapture(SparseTensorContactCapture):
     def __init__(self,**kwargs):
         if kwargs.get('num_envs')!=120:raise ValueError('G3 contact requires 120 environments')
         super().__init__(require_ground_positive=True,**kwargs)
+        self._checked_assignments=None
+        self._immutable_contact_view=None
+
+    def runtime(self,interface,get_runtime):
+        super().runtime(interface,get_runtime)
+        if self._immutable_contact_view is None:self._immutable_contact_view=self.view
+        elif self.view is not self._immutable_contact_view:raise RuntimeError('G3 native contact view was replaced')
+
+    def check_control(self,env,completed):
+        ContactCapture.check_control(self,env,completed)
+        # Native contact views have immutable filters. runtime() checks their
+        # identity, stage, backend and dimensions on every physics sample.
+        # Re-resolve all paths on the first control and after every reset;
+        # ordinary motion cannot change the native filter mapping.
+        assignments=tuple(env._source_parallel_terrain_allocator.assignments)
+        if assignments!=self._checked_assignments:
+            if self._topology()!=self.topology:raise ValueError('resolved G3 contact topology changed after reset')
+            self._checked_assignments=assignments
 
     def summary(self):return super().summary()|dict(diagnostic_scope='G3_motion_integrity')
 
 
 def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,runtime,*,cpu_controls=None,
         app_running=lambda:True,on_ready=lambda:None):
-    contract=contract_for();total=contract['control_steps'] if cpu_controls is None else cpu_controls
+    contract=report if report.get('delivery_stage') else contract_for()
+    total=contract['control_steps'] if cpu_controls is None else cpu_controls
     main=contract['main_control_steps'] if cpu_controls is None else total-1
     if cpu_controls is not None and report.get('synthetic_cpu_fixture') is not True:raise PermissionError('CPU profile is fixture-only')
     if actor.training or any(v.requires_grad for v in actor.parameters()):raise ValueError('G3 actor must be frozen')
@@ -46,11 +66,12 @@ def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,r
     def metric_rows(base):
         rows=native_metric_rows(base);state=wrapped.runtime.safety_state(wrapped.runtime.zeros)
         stable=~wrapped.runtime.lifecycle.unsafe & ~state.nonfoot_contact[:,0]
-        for i,row in enumerate(rows):row.update(stable_for_completion=bool(stable[i]),
-            lifecycle_hold=int(wrapped.runtime.lifecycle.hold[i]),unsafe=bool(wrapped.runtime.lifecycle.unsafe[i]),
-            nonfoot_contact=bool(state.nonfoot_contact[i,0]))
+        stable=stable.cpu().tolist();hold=wrapped.runtime.lifecycle.hold.cpu().tolist()
+        unsafe=wrapped.runtime.lifecycle.unsafe.cpu().tolist();nonfoot=state.nonfoot_contact[:,0].cpu().tolist()
+        for i,row in enumerate(rows):row.update(stable_for_completion=stable[i],
+            lifecycle_hold=hold[i],unsafe=unsafe[i],nonfoot_contact=nonfoot[i])
         return rows
-    metrics=PreResetMetricCapture(env,metric_rows);latencies=[];main_pending=set()
+    metrics=PreResetMetricCapture(env,metric_rows);latencies=[];main_pending=set();collection_started=time.monotonic()
     original_update=observer.after_scene_update;original_reset=observer.reset
     def updated():
         result=original_update();main_pending.clear();return result
@@ -90,6 +111,12 @@ def collect(env,wrapped,actor,observer,capture,journal,writer,report,interface,r
                 if writer.paths['steps'].stat().st_size+len(json.dumps(row).encode())+1024>contract['steps_byte_limit']:
                     raise RuntimeError('G3 steps evidence ceiling reached')
                 writer.append_step(row)
+                if step%32==0:print(f'[scale-g3] controls={step}/{total} collection_s={time.monotonic()-collection_started:.3f}',flush=True)
+                if contract.get('delivery_stage') and step==64:
+                    projected=(time.monotonic()-collection_started)*total/step
+                    report['projected_collection_seconds_at_64']=projected
+                    if projected+contract.get('startup_timeout_s',120)>=contract['wall_timeout_s']:
+                        raise TimeoutError('G3 prefix speed cannot meet approved wall budget')
     finally:
         observer.after_scene_update=original_update;observer.reset=original_reset
         report.update(contact_capture=capture.summary(),motion_samples=observer.samples,reset_attempts=observer.reset_attempts,

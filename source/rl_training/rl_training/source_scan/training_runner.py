@@ -134,7 +134,7 @@ def validate_training_authorization(
     ledger_path: Path | None = None,
 ) -> dict[str, Any]:
     """Validate the complete, explicit lock before launching Isaac Sim."""
-    if isinstance(manifest, dict) and manifest.get('schema') == 'lite3_source_ppo_cumulative_authorization_v2':
+    if isinstance(manifest, dict) and manifest.get('schema') in ('lite3_source_ppo_cumulative_authorization_v2','lite3_source_ppo_bounded_numerics_authorization_v3'):
         from .training_budget_ledger import canonical_budget_path
         from .cumulative_training import validate_authorization
         if ledger_path is None:
