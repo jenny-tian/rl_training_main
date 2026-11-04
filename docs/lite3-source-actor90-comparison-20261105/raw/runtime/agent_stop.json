@@ -1,0 +1,20 @@
+{
+  "schema": "lite3_compare_external_stop_v1",
+  "at_utc": "2026-11-04T16:39:49.958832+00:00",
+  "reason": "No progress between actors after 2000 old-actor controls; second actor never reached initial-ready.",
+  "last_control": 2000,
+  "old_actor_controls": 2000,
+  "new_actor_controls": 0,
+  "stalled_seconds_before_stop": 391.1466180700809,
+  "process_group": 2714769,
+  "process_command": "timeout --signal=TERM --kill-after=15s 1800s /home/tjx/anaconda3/envs/env_isaaclab/bin/python /home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_delivery_light.py probe --manifest /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/compare/run_manifest.json --checkpoint /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt --output-dir /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/compare ",
+  "root_cause_confirmed": false,
+  "debugger_attach_allowed": false,
+  "automatic_retry": false,
+  "termination_signal": "SIGTERM",
+  "cleanup_grace_s": 15,
+  "process_snapshot": "    PID     ELAPSED     TIME %CPU STAT WCHAN                        COMMAND\n2714445       08:55 00:00:04  0.8 S    hrtimer_nanosleep            /home/tjx/anaconda3/envs/env_isaaclab/bin/python scripts/tools/source_training_delivery.py run --job compare --approval /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/approval.json --stage-revision /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/revision_approval.json --checkpoint /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt\n2714769       08:47 00:00:00  0.0 Ss   sigsuspend                   timeout --signal=TERM --kill-after=15s 1800s /home/tjx/anaconda3/envs/env_isaaclab/bin/python /home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_delivery_light.py probe --manifest /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/compare/run_manifest.json --checkpoint /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt --output-dir /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/compare\n2714770       08:47 00:10:40  121 Rl   -                            /home/tjx/anaconda3/envs/env_isaaclab/bin/python /home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_delivery_light.py probe --manifest /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/compare/run_manifest.json --checkpoint /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt --output-dir /home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/compare\n",
+  "gpu_snapshot": "0, 2856 MiB, 0 %\n1, 15 MiB, 0 %\n2, 13 MiB, 0 %\n3, 335 MiB, 0 %\n",
+  "kill_escalated": false,
+  "process_group_empty_at_check": true
+}
