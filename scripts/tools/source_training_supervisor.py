@@ -78,6 +78,9 @@ def validate_result(folder, lock, execution):
             cumulative_transitions=transitions+lock['cumulative_budget']['baseline_charged_transitions'],
             measured_end_to_end_transitions_per_second=rate, g4_end_to_end_passed=passed,
             g3_g4_qualified=passed, evidence_scope='bounded numeric trial only')
+        if lock.get('stage_revision'):
+            result.update(g3_g4_qualified=False,limited_motion_evidence_qualified=passed,
+                original_G3_accepted=False)
         if not passed: result['reasons'].append('end-to-end throughput below approved 600 transitions/s target')
     except Exception as error:
         result['reasons'].append(type(error).__name__+': '+str(error))

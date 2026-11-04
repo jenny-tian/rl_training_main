@@ -13,10 +13,14 @@ NUMERICS_SCHEMA = 'lite3_source_ppo_bounded_numerics_authorization_v3'
 def validate_evidence(manifest, input_sha256, budget):
     from .training_runner import _receipt
     runtime = _receipt(manifest.get('runtime_qualification'), 'bounded numeric runtime')
-    validate_numerics_runtime_receipt(runtime, input_sha256)
+    revision=manifest.get('stage_revision') if manifest.get('schema')==NUMERICS_SCHEMA else None
+    validate_numerics_runtime_receipt(runtime, input_sha256,stage_revision=revision)
     if manifest.get('schema')==NUMERICS_SCHEMA:
         from .delivery_stage import validate_grant,validate_receipt
         validate_grant(manifest['delivery_stage'])
+        if revision:
+            from .delivery_revision import validate_revision
+            validate_revision(revision,manifest['delivery_stage'])
         validate_receipt(manifest['predecessor_qualification'],'g4',inputs=input_sha256)
         if (manifest.get('formal_selection_authorized') is not False
                 or manifest.get('metrics_scope')!='diagnostic_only' or budget['run']!=1
@@ -88,6 +92,7 @@ def validate_authorization(manifest, *, run, budget_node, output_dir, checkpoint
     if manifest['schema']==NUMERICS_SCHEMA:
         keys=('schema','status','user_approved','budget_ledger','runtime_qualification','dependency_sha256',
               'delivery_stage','delivery_job','predecessor_qualification','formal_selection_authorized','metrics_scope')
+        if manifest.get('stage_revision'):keys+=('stage_revision',)
     return expected | {key:manifest[key] for key in keys}
 
 

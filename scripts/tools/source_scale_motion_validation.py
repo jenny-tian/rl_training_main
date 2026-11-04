@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+import time
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path[:0]=[str(ROOT/'source/rl_training'),str(ROOT/'scripts/tools')]
@@ -66,25 +67,38 @@ def audit_terminal(terminal,ended,ages,holds,time_outs,columns,step,main):
     return witnesses
 
 
-def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
+def validate(folder,plan,execution,checkpoint,*,cpu_profile=None,limited_revision=None):
     result=dict(schema='lite3_source_shared_G3_acceptance_v1',accepted=False,reasons=[],training_ready=False,
         g4_qualified=False,continuous_time_safety_claim=False)
     try:
         folder=Path(folder);report=_load((folder/'result.json').read_text());contract=contract_for()
         if report.get('status')=='failed':raise ValueError('G3 probe failed: '+str(report.get('error')))
-        cpu=cpu_profile is not None
+        cpu=cpu_profile is not None;limited=limited_revision is not None
+        if limited:
+            from rl_training.source_scan.delivery_revision import (validate_revision,compatible_inputs,
+                source_artifacts,LIMITED_SCHEMA,CONTROLS)
+            from source_training_entrypoint import _input_hashes
+            approval,source=validate_revision(limited_revision)
+            _require(not cpu and source==plan and not report.get('synthetic_cpu_fixture'),
+                'limited evidence requires the actual frozen real source')
+            source_artifacts(approval)
+            current_inputs=_input_hashes();compatibility=compatible_inputs(source,current_inputs)
+            result.update(schema=LIMITED_SCHEMA,scope_qualified=False,G3_qualified=False,
+                original_G3_accepted=False,stage_revision=limited_revision,source_manifest=approval['source_manifest'],
+                input_sha256=current_inputs,source_compatibility=compatibility)
         if plan.get('delivery_stage'):
             from rl_training.source_scan.delivery_stage import job_contract
             contract=job_contract('g3',plan)
         _require(cpu or not report.get('synthetic_cpu_fixture'),'synthetic CPU data cannot qualify a real G3 run')
         _require(not cpu or report.get('synthetic_cpu_fixture') is True,'CPU profile requires explicit fixture provenance')
         total,main=(contract['control_steps'],contract['main_control_steps']) if not cpu else cpu_profile
+        if limited:total=main=CONTROLS
         _require(plan.get('status')=='approved' and plan.get('user_approved') is True,'G3 plan is not approved')
         for k,v in contract.items():_require(same_value(plan.get(k),v),'G3 contract differs: '+k)
         validate_predecessor(plan['predecessor_qualification'],verify_current_inputs=not cpu)
-        _require(execution.get('returncode')==0 and execution.get('timed_out') is False
+        if not limited:_require(execution.get('returncode')==0 and execution.get('timed_out') is False
             and execution.get('process_group_empty') is True and execution.get('monitor_errors')==[],'G3 execution failed')
-        _require(report.get('status')=='collected' and report.get('simulation_control_steps')==total
+        if not limited:_require(report.get('status')=='collected' and report.get('simulation_control_steps')==total
             and report.get('completed_diagnostic_transitions')==120*total and report.get('steps_written')==total
             and report.get('base_revision')==plan['base_revision'] and report.get('input_sha256')==plan['input_sha256'],
             'G3 report progress/identity differs')
@@ -95,9 +109,10 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
             own=None if path==world else int(path.rsplit('group',1)[1])
             _require(set(value['includes'])==set(['/World/ground'] if own is None else [f'/World/envs/env_{own}'])
                 and set(value['allowed_groups'])==set([world,*[f'/World/collisions/group{i}' for i in range(120)]] if own is None else [path,world]),'G3 collision permission differs')
-        cleanup=_load((folder/'result.cleanup.json').read_text())
-        _require(cleanup.get('attempt_id')==plan['attempt_id'] and cleanup.get('environment')=='returned'
-            and cleanup.get('application') in ('closing','returned') and cleanup.get('persistence_errors')==[],'G3 cleanup incomplete')
+        if not limited:
+            cleanup=_load((folder/'result.cleanup.json').read_text())
+            _require(cleanup.get('attempt_id')==plan['attempt_id'] and cleanup.get('environment')=='returned'
+                and cleanup.get('application') in ('closing','returned') and cleanup.get('persistence_errors')==[],'G3 cleanup incomplete')
         for k,v in contract.items():_require(same_value(report.get(k),v),'G3 report contract differs: '+k)
         event_path=folder/'events.jsonl.gz';step_path=folder/'result.steps.jsonl'
         _require(event_path.stat().st_size<=contract['events_byte_limit'] and step_path.stat().st_size<=contract['steps_byte_limit'],'G3 file budget exceeded')
@@ -107,7 +122,7 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
             with path.open('rb') as stream:
                 for block in iter(lambda:stream.read(1048576),b''):h.update(block)
             return h.hexdigest()
-        _require(report['events_sha256']==file_digest(event_path) and report['events_uncompressed_sha256']==digest_stream(event_path)
+        if not limited:_require(report['events_sha256']==file_digest(event_path) and report['events_uncompressed_sha256']==digest_stream(event_path)
             and report['steps_sha256']==file_digest(step_path),'G3 evidence hashes differ')
         inventory=report['reset_snapshot_inventory'];_inventory(inventory,sorted(k for k in inventory if k.startswith('history/')),120)
         oracle=SharedBankTerrainAllocator(120,SOURCE_RESET_BLOCK_COUNTS,131001,bank_rows=1)
@@ -117,21 +132,27 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
         _require(grid.shape==(1,15,3) and default.shape==(120,13),'G3 terrain/default root dimensions differ')
         previous=(restore_tensor(report['initial_positions_w']),restore_tensor(report['initial_velocities_w']))
         actor=load_frozen_source_actor(Path(checkpoint));fingerprint=actor_digest(actor)
-        _require(report['actor_sha256_before']==report['actor_sha256_after']==fingerprint,'G3 actor changed or differs')
+        _require(report['actor_sha256_before']==fingerprint and (limited or report['actor_sha256_after']==fingerprint),'G3 actor changed or differs')
         top=None;motions=contacts=controls=resets=runtimes=0;phase_counts=Counter();ground=Counter()
         pending=set();pending_main=set();reset_context=before=after=None;checked=False;awaiting_rebase=False
         ages=torch.zeros(120,dtype=torch.long);holds=[0]*120;step_columns=None;ended=[];witnesses=[];exposure=Counter()
-        max_speed=max_delta=max_acceleration=0.
+        max_speed=max_delta=max_acceleration=0.;runtime_stage=None;tail=Counter();tail_steps=[];started=time.monotonic()
         with step_path.open() as steps:
             for event in event_records(event_path,record_limit=contract['event_record_byte_limit'],uncompressed_limit=contract['events_uncompressed_byte_limit']):
-                phase=event.get('phase');phase_counts[phase]+=1
+                phase=event.get('phase')
+                if limited and controls==total:
+                    tail[phase]+=1
+                    if type(event.get('sim_step')) is int:tail_steps.append(event['sim_step'])
+                    continue
+                phase_counts[phase]+=1
                 if phase in ('g3_reset_context','scale_reset_attempt','scale_reset_after','scale_reset_checked','g3_reset_rebase'):
                     _require(event['sim_step']==report['start_sim_step']+motions,'G3 reset timestamp differs')
                 if phase=='g3_initial':
                     _require(phase_counts[phase]==1 and motions==0,'duplicate/late G3 initial')
                     _scans(event['scanners'],previous[0][:,0],grid[0,torch.tensor([t.column for t in oracle.assignments])])
                 elif phase=='contact_runtime':
-                    _require(tensor_runtime_passed(event,report['contact_capture']['stage_id']),'G3 native CUDA backend differs');runtimes+=1
+                    if runtime_stage is None:runtime_stage=event['stage_id'] if limited else report['contact_capture']['stage_id']
+                    _require(tensor_runtime_passed(event,runtime_stage),'G3 native CUDA backend differs');runtimes+=1
                 elif phase=='sparse_contact_topology':
                     _require(top is None,'duplicate topology');top={k:v for k,v in event.items() if k!='phase'}
                     _require(top['num_envs']==120 and top['sensor_count']==2040 and top['capacity']==1048576,'G3 topology dimensions differ')
@@ -225,16 +246,45 @@ def validate(folder,plan,execution,checkpoint,*,cpu_profile=None):
                     raw_action=torch.tensor(row['raw_action']);executed=torch.tensor(row['executed_action'])
                     _require(raw_action.shape==executed.shape==(120,12) and torch.isfinite(executed).all()
                         and torch.allclose(raw_action,mu+noise,atol=1e-6,rtol=1e-6),'G3 action replay differs')
+                    if limited:
+                        from rl_training.lite3_joint_conventions import clip_lite3_policy_action
+                        _require(torch.allclose(executed,clip_lite3_policy_action(raw_action),atol=1e-6,rtol=1e-6),
+                            'limited executed action does not reconstruct from frozen mean/noise/clipping')
                     _require(row['paused']==[[False]]*120 and len(row['projected'])==120
                         and all(len(v)==1 and type(v[0]) is bool for v in row['projected']),'G3 invalid pause/projection trace')
                     ages+=1;ages[ended]=0
                     for i in ended:holds[i]=0
                     _require(row['episode_counters']==ages.tolist(),'G3 post-reset episode ages differ')
                     exposure.update(step_columns);controls+=1
+                    if limited and controls%64==0:
+                        print(f'[limited-motion] controls={controls}/{total} physics={motions} resets={resets} elapsed_s={time.monotonic()-started:.3f}',flush=True)
                 elif phase=='contact_summary':
                     _require(phase_counts[phase]==1 and event['samples']==contacts,'contact summary differs')
                 else:raise ValueError('G3 unexpected/fault event: '+str(phase))
             _require(not steps.readline(),'extra G3 step row')
+        if limited:
+            _require(controls==total and contacts==motions==4*total and runtimes==4*total+1,
+                'limited complete control/physics/native-runtime coverage differs')
+            _require(phase_counts['g3_initial']==phase_counts['sparse_contact_topology']==1
+                and phase_counts['contact_poll_attempt']==contacts,'limited initial/contact attempt coverage differs')
+            _require(not pending and not pending_main and reset_context is None and not awaiting_rebase,
+                'limited observed reset lacks subsequent recovery')
+            _require(set(exposure)==set(range(15)) and all(ground[str(i)]>0 for i in range(120))
+                and not (folder/'contact_fault.npz').exists(),'limited cells/ground positive control incomplete')
+            _require(_input_hashes()==current_inputs,'limited validator inputs changed during CPU review')
+            source_artifacts(approval)
+            result.update(scope_qualified=True,complete_controls=controls,physics_substeps=motions,
+                diagnostic_transitions=120*controls,reset_batches=resets,
+                deferred_final_recovery_ids=[],flat_completion_witnesses=witnesses,
+                observed_cells=sorted(exposure),ground_positive_environment_ids=list(range(120)),
+                ground_contact_points=dict(ground),phase_counts=dict(phase_counts),
+                excluded_tail_phase_counts=dict(tail),excluded_tail_sim_step_range=[min(tail_steps),max(tail_steps)] if tail_steps else [],
+                ppo_updates=0,synthetic_cpu_fixture=False,independent_CPU_review=True,
+                noise_replay='stored_noise_plus_independently_loaded_actor_mean; CUDA RNG stream not recreated on CPU',
+                max_body_speed_mps=max_speed,max_body_displacement_m=max_delta,
+                max_finite_difference_acceleration_mps2=max_acceleration,
+                scope='actual_saved_1884_controls_and_all_corresponding_physics; original full G3 remains unqualified')
+            return result
         _require(controls==total and contacts==motions==4*total and runtimes==4*total+1
             and resets==report['reset_batches']==report['reset_attempts'] and report['motion_samples']==motions,'G3 evidence incomplete')
         _require(all(phase_counts[k]==1 for k in ('g3_initial','sparse_contact_topology','contact_summary'))

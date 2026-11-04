@@ -217,7 +217,9 @@ def test_reuse_of_real_G2_refuses_any_reset_or_physics_source_change():
     from source_training_entrypoint import _input_hashes
     path=Path('/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/g2/run_manifest.json')
     if not path.is_file():pytest.skip('requires the preserved real combined G2 manifest')
-    previous=json.loads(path.read_text());inputs=_input_hashes()
+    previous=json.loads(path.read_text())
+    frozen=path.parent.parent/'g3_fast/run_manifest.json'
+    inputs=json.loads(frozen.read_text())['input_sha256'] if frozen.exists() else _input_hashes()
     assert g2_compatible_inputs(previous,inputs)['legacy_encoder_and_default_decoder_unchanged']
     inputs['source/rl_training/rl_training/source_scan/training_env.py']='0'*64
     with pytest.raises(ValueError,match='qualified G2'):

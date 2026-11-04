@@ -31,6 +31,9 @@ def numeric_plan(root,common,grant_ref,prior):
         g3_passed=True,g4_collection_passed=True,
         measured_collection_transitions_per_second=g4['measured_collection_transitions_per_second'],
         evidence=prior)
+    if common.get('stage_revision'):
+        readiness.update(schema='lite3_bounded_numerics_limited_readiness_v2',g3_passed=False,
+            limited_motion_evidence_passed=True,stage_revision=common['stage_revision'])
     receipt_path=root/'numeric_runtime_readiness.json'
     if receipt_path.exists():raise FileExistsError('numeric readiness already frozen')
     atomic_json(receipt_path,readiness)
@@ -51,6 +54,7 @@ def numeric_plan(root,common,grant_ref,prior):
         runtime_qualification=dict(path=str(receipt_path),sha256=file_digest(receipt_path)),
         dependency_sha256=dependencies(),delivery_stage=grant_ref,delivery_job='numerics',
         predecessor_qualification=prior,formal_selection_authorized=False,metrics_scope='diagnostic_only')
+    if common.get('stage_revision'):plan['stage_revision']=common['stage_revision']
     validated=validate_authorization(plan,run=1,budget_node='numerics',output_dir=Path(common['output_dir']),
         checkpoint_sha256=CHECKPOINT_SHA256,revision=common['base_revision'],input_sha256=common['input_sha256'],ledger_path=ledger.path)
     if validated!=plan:raise ValueError('numeric manifest differs from its canonical authorized lock')
@@ -69,11 +73,19 @@ def freeze(args):
     revision,remote,dirty=_git_state()
     if dirty or revision!=remote:raise ValueError('freeze delivery only after clean commit/push verification')
     if file_digest(args.checkpoint)!=CHECKPOINT_SHA256:raise ValueError('original checkpoint changed')
+    revision_path=getattr(args,'stage_revision',None)
+    revision_ref=reference(revision_path,'stage_revision') if revision_path else None
+    if revision_ref:
+        from rl_training.source_scan.delivery_revision import validate_revision
+        revised,_=validate_revision(revision_ref,grant_ref)
+        if args.job not in revised['remaining_jobs']:raise PermissionError('job outside approved revision')
     previous={'g2':'g1','g3':'g2','g4':'g3','numerics':'g4','compare':'numerics'}.get(args.job)
     combined=args.job=='g2' and getattr(args,'combine_startup',False)
     if combined:
         from rl_training.source_scan.scale_reset import PREDECESSOR_120
         prior=dict(PREDECESSOR_120)
+    elif args.job=='g4' and revision_ref:
+        prior=reference(root/'prefix_review/receipt.json','limited_motion')
     else:
         previous_folder='g3_fast' if previous=='g3' and (root/'g3_fast/receipt.json').exists() else previous
         prior=reference(root/previous_folder/'receipt.json',previous) if previous else None
@@ -82,6 +94,7 @@ def freeze(args):
         budget_ledger=BudgetLedger(canonical_budget_path(ROOT)).reference(),output_dir=str(output),
         checkpoint_sha256=CHECKPOINT_SHA256,delivery_stage=grant_ref,delivery_job=args.job)
     if prior:common['predecessor_qualification']=prior
+    if revision_ref:common['stage_revision']=revision_ref
     if combined:common['startup_covered_by_g2']=True
     if supplement is not None:
         common.update(g3_supplement=reference(supplement,'g3_supplement'),contact_digest_scheme='sha256_blocks_4096_v1')
@@ -125,4 +138,5 @@ if __name__=='__main__':
     parser.add_argument('--approval',type=Path,required=True);parser.add_argument('--checkpoint',type=Path,required=True)
     parser.add_argument('--combine-startup',action='store_true',help='Reuse the real startup anchor and validate current startup inside the G2 job')
     parser.add_argument('--g3-supplement',type=Path,help='Separate approval of one replacement G3; never reuses the consumed slot')
+    parser.add_argument('--stage-revision',type=Path,help='Explicit approved limited-evidence revision; original failed G3 stays failed')
     args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else (freeze(args),0)[1])

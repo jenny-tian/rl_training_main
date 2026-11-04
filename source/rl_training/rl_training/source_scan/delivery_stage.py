@@ -104,6 +104,10 @@ def validate_receipt(ref,kind,*,inputs=None):
         validate_predecessor(plan['predecessor_qualification'])
         if acceptance.get('startup_and_first_zero_control_qualified') is not True:
             raise ValueError('combined startup/reset validation did not cover startup')
+    elif kind=='g4' and plan.get('stage_revision'):
+        from .delivery_revision import validate_revision,validate_limited_receipt
+        validate_revision(plan['stage_revision'],plan['delivery_stage'])
+        validate_limited_receipt(plan['predecessor_qualification'],revision_ref=plan['stage_revision'],inputs=plan['input_sha256'])
     elif previous:validate_receipt(plan['predecessor_qualification'],previous,inputs=plan['input_sha256'])
     return receipt
 
@@ -114,6 +118,11 @@ def job_contract(kind,plan):
     from .scale_motion import contract_for as g3
     if kind not in LIMITS:raise ValueError('unknown delivery job')
     validate_grant(plan['delivery_stage'])
+    revision=plan.get('stage_revision')
+    if revision:
+        from .delivery_revision import validate_revision
+        approval,_=validate_revision(revision,plan['delivery_stage'])
+        if kind not in approval['remaining_jobs']:raise PermissionError('job outside revised remaining scope')
     base={'g1':g1,'g2':g2,'g3':g3,'locate':g3}.get(kind,g1)(120)
     count=LIMITS[kind]['controls']
     result=base|dict(attempt_id=STAGE+'-'+kind,purpose='source_delivery_'+kind,num_envs=120,control_steps=count,
@@ -128,6 +137,9 @@ def job_contract(kind,plan):
             if ref!=PREDECESSOR_120:raise ValueError('combined G2 must retain the real fixed 120-env startup anchor')
             validate_predecessor(ref)
             result['startup_covered_by_g2']=True
+        elif kind=='g4' and revision:
+            from .delivery_revision import validate_limited_receipt
+            validate_limited_receipt(ref,revision_ref=revision,inputs=plan['input_sha256'])
         else:validate_receipt(ref,prior,inputs=plan.get('input_sha256'))
         result['predecessor_qualification']=ref
     if kind in ('g3','locate'):
@@ -144,6 +156,9 @@ def job_contract(kind,plan):
     if kind=='g4':result.update(schema='lite3_source_collection_G4_delivery_v1',warmup_control_steps=48,measured_control_steps=240,
         minimum_transitions_per_second=600.,reset_p95_limit_s=1.,heavy_contact_journal=False,
         policy_loaded=True,actions='frozen_actor_plus_seeded_unit_Gaussian',noise_seed=132001,noise_std=1.)
+    if revision:
+        result['stage_revision']=revision
+        if kind=='g4':result.update(schema='lite3_source_collection_G4_delivery_v2',scheduled_resets=approval['scheduled_resets'])
     if kind=='compare':
         receipt=read_reference(plan['predecessor_qualification'],'numerics')
         numeric_plan=read_reference(receipt['manifest'],'run_manifest')

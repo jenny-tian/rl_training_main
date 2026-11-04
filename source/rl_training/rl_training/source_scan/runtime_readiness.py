@@ -68,12 +68,17 @@ def selected_scale_proposal():
         'development_or_sealed_feedback_allowed': False}
 
 
-def validate_numerics_runtime_receipt(receipt, input_sha256):
+def validate_numerics_runtime_receipt(receipt, input_sha256, *, stage_revision=None):
     expected = {'schema': 'lite3_bounded_numerics_runtime_readiness_v1',
         'status': 'qualified_for_bounded_numerics', 'num_envs': 120, 'shared_bank_rows': 1,
         'device': 'cuda:0', 'input_sha256': input_sha256,
         'g0_passed': True, 'g1_passed': True, 'g2_passed': True, 'g3_passed': True,
         'g4_collection_passed': True, 'g4_end_to_end_status': 'pending_bounded_numerics'}
+    if stage_revision:
+        from .delivery_revision import validate_revision
+        validate_revision(stage_revision)
+        expected.update(schema='lite3_bounded_numerics_limited_readiness_v2',g3_passed=False,
+            limited_motion_evidence_passed=True,stage_revision=stage_revision)
     for key, value in expected.items():
         if type(receipt.get(key)) is not type(value) or receipt[key] != value:
             raise ValueError('bounded numeric runtime receipt mismatch: '+key)

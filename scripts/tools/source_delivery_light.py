@@ -33,7 +33,7 @@ def probe(args):
     preflight(args,plan,kind=kind,child=True)
     from rl_training.source_scan.smoke_artifacts import SmokeArtifactWriter,finalize_and_close
     folder=Path(plan['output_dir']);report=plan|dict(status='starting',simulation_control_steps=0,
-        completed_diagnostic_transitions=0,reset_latency_s=[],actors=[],finite_controls=0)
+        completed_diagnostic_transitions=0,reset_latency_s=[],reset_samples=[],scheduled_ready_samples=[],actors=[],finite_controls=0)
     writer=SmokeArtifactWriter(folder/'result.json',report,schema=plan['schema'])
     app=wrapped=base=None
     try:
@@ -79,9 +79,15 @@ def probe(args):
             if initial is not None and initial!=identity:raise ValueError('paired environment initial geometry/state differs')
             initial=identity;episodes=FirstEpisodes([t['column'] for t in assignments])
             original_reset=base._reset_idx
+            reset_context=dict(kind='natural',step=0)
             def reset(ids):
+                torch.cuda.synchronize()
                 tick=time.monotonic();value=original_reset(ids)
-                report['reset_latency_s'].append(time.monotonic()-tick);return value
+                torch.cuda.synchronize();elapsed=time.monotonic()-tick
+                report['reset_latency_s'].append(elapsed)
+                report['reset_samples'].append(dict(kind=reset_context['kind'],step=reset_context['step'],
+                    ids=torch.as_tensor(ids).cpu().tolist(),elapsed_s=elapsed))
+                return value
             base._reset_idx=reset
             observations=wrapped.get_observations();check_scans(base)
             generator=torch.Generator(device='cuda:0').manual_seed(132001)
@@ -91,6 +97,16 @@ def probe(args):
             with torch.inference_mode(),metrics.installed() if kind=='compare' else _null_context():
                 for step in range(1,count+1):
                     if not app.is_running():raise RuntimeError('simulator stopped during bounded diagnostics')
+                    reset_context['step']=step
+                    scheduled=next((r for r in plan.get('scheduled_resets',[]) if r['step']==step),None) if kind=='g4' else None
+                    if scheduled is not None:
+                        ready_tick=time.monotonic();reset_context['kind']='scheduled'
+                        base._reset_idx(torch.tensor(scheduled['ids'],device=base.device,dtype=torch.long))
+                        reset_context['kind']='natural'
+                        base.scene.write_data_to_sim();base.sim.forward();base.scene.update(0.)
+                        observations=wrapped.get_observations();check_scans(base)
+                        report['scheduled_ready_samples'].append(dict(step=step,ids=scheduled['ids'],
+                            elapsed_s=time.monotonic()-ready_tick))
                     mean=actor(observations)
                     action=mean+torch.randn(mean.shape,device='cuda:0',generator=generator) if kind=='g4' else mean
                     if kind=='compare':metrics.begin_control()
@@ -169,6 +185,17 @@ def validate(folder,plan,execution):
                     or report['measured_end_mono']<rows[-1]['wall_mono']):
                 raise ValueError('G4 reset samples or measurement interval differs')
             p95=float(np.percentile(resets,95))
+            if plan.get('stage_revision'):
+                samples=report['reset_samples']
+                scheduled=[dict(step=r['step'],ids=r['ids']) for r in samples if r['kind']=='scheduled']
+                ready=[dict(step=r['step'],ids=r['ids']) for r in report['scheduled_ready_samples']]
+                if (scheduled!=plan['scheduled_resets'] or ready!=plan['scheduled_resets']
+                        or [r['elapsed_s'] for r in samples]!=report['reset_latency_s']
+                        or any(r['kind'] not in ('natural','scheduled') for r in samples)
+                        or any(not math.isfinite(r['elapsed_s']) or r['elapsed_s']<0 for r in report['scheduled_ready_samples'])):
+                    raise ValueError('G4 planned/natural reset evidence differs')
+                result.update(scheduled_reset_batches=len(scheduled),scheduled_environment_resets=120,
+                    measured_natural_reset_batches=sum(r['kind']=='natural' for r in samples[report['measured_reset_start']:]))
             if (not math.isfinite(rate) or rate<600 or p95>1. or p95!=report['reset_p95_s']
                     or rate!=report['measured_transitions_per_second']):raise ValueError('G4 collection throughput/reset gate failed')
             result.update(measured_collection_transitions_per_second=rate,reset_p95_s=p95,measured_reset_count=len(resets))
