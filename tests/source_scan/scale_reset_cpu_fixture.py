@@ -4,6 +4,7 @@ from types import SimpleNamespace as NS
 import hashlib
 import sys
 import time
+import traceback
 
 import torch
 
@@ -36,25 +37,40 @@ def environment():
     def reset(ids):
         result=original_reset(ids);history._buffer[:,ids]=0;history._num_pushes[ids]=0;return result
     env.observation_manager.compute=compute;env._reset_idx=reset
+    from reset_contact_cpu_fixture import install_real_reset_callback
+    install_real_reset_callback(env,wrapped)
     return env,interface,wrapped
 
 
-def build_fixture(folder,*,contact_fault=None):
+def build_fixture(folder,*,contact_fault=None,reset_fault=None,allow_failure=False):
     folder=Path(folder);folder.mkdir();plan=cpu_plan(folder)|dict(status='approved',user_approved=True)
     env,interface,wrapped=environment();runtime=install_tensor_backend(env,interface,fault=contact_fault)
-    report=plan|dict(status='running',simulation_control_steps=0,cpu_fixture=True,application_start_s=.1,scene_build_s=.2)
+    if reset_fault is not None:
+        original_reset=env._reset_idx;reset_calls=0
+        def reset(ids):
+            nonlocal reset_calls
+            result=original_reset(ids);reset_calls+=1;reset_fault(env,reset_calls);return result
+        env._reset_idx=reset
+    report=plan|dict(status='running',simulation_control_steps=0,reset_batches=0,reset_attempts=0,
+        motion_samples=0,completed_diagnostic_transitions=0,pending_recovery_ids=[],
+        cpu_fixture=True,application_start_s=.1,scene_build_s=.2)
     writer=SmokeArtifactWriter(folder/'result.json',report,schema=plan['schema']);started=time.monotonic()
-    with EventJournal(folder/'events.jsonl',byte_limit=plan['events_byte_limit']) as journal:
-        observer=ScaleObserver(env,wrapped.runtime,journal,snapshot,check_transition)
-        sensors=sorted(f'/World/envs/env_{i}/Robot/{name}' for i in range(120) for name in BODY_NAMES)
-        capture=SparseTensorContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[GROUND],num_envs=120,
-            physics_dt=.005,fault_path=folder/'contact_fault.npz',require_ground_positive=False,diagnostic_scope='G2_reset_recovery',
-            stage_id=73,reporting_bodies=sensors,record=journal.record,start_step=env._sim_step_counter,decimation=4,control_steps=4)
-        world='/World/collisions/global_group';groups={world:dict(includes=['/World/ground'],allowed_groups=[world,*[f'/World/collisions/group{i}' for i in range(120)]])}
-        groups.update({f'/World/collisions/group{i}':dict(includes=[f'/World/envs/env_{i}'],allowed_groups=[f'/World/collisions/group{i}',world]) for i in range(120)})
-        report.update(collision_groups=dict(inverted=True,groups=groups),observation_widths=dict(policy=45,critic=393))
-        collect(env,wrapped,observer,capture,journal,writer,report,interface,runtime)
-    report['events_sha256']=hashlib.sha256((folder/'events.jsonl').read_bytes()).hexdigest()
-    report['elapsed_seconds_before_shutdown']=time.monotonic()-started
-    finalize_and_close(writer,report,environment_close=lambda:None,application_close=lambda:None)
+    try:
+        with EventJournal(folder/'events.jsonl',byte_limit=plan['events_byte_limit']) as journal:
+            observer=ScaleObserver(env,wrapped.runtime,journal,snapshot,check_transition)
+            sensors=sorted(f'/World/envs/env_{i}/Robot/{name}' for i in range(120) for name in BODY_NAMES)
+            capture=SparseTensorContactCapture(physics_view=env.sim.physics_sim_view,ground_colliders=[GROUND],num_envs=120,
+                physics_dt=.005,fault_path=folder/'contact_fault.npz',require_ground_positive=False,diagnostic_scope='G2_reset_recovery',
+                stage_id=73,reporting_bodies=sensors,record=journal.record,start_step=env._sim_step_counter,decimation=4,control_steps=4)
+            world='/World/collisions/global_group';groups={world:dict(includes=['/World/ground'],allowed_groups=[world,*[f'/World/collisions/group{i}' for i in range(120)]])}
+            groups.update({f'/World/collisions/group{i}':dict(includes=[f'/World/envs/env_{i}'],allowed_groups=[f'/World/collisions/group{i}',world]) for i in range(120)})
+            report.update(collision_groups=dict(inverted=True,groups=groups),observation_widths=dict(policy=45,critic=393))
+            collect(env,wrapped,observer,capture,journal,writer,report,interface,runtime)
+    except Exception:
+        report.update(status='failed',error=traceback.format_exc())
+        if not allow_failure:raise
+    finally:
+        report['events_sha256']=hashlib.sha256((folder/'events.jsonl').read_bytes()).hexdigest()
+        report['elapsed_seconds_before_shutdown']=time.monotonic()-started
+        finalize_and_close(writer,report,environment_close=lambda:None,application_close=lambda:None)
     return plan,dict(returncode=0,process_group_empty=True,timed_out=False,monitor_errors=[])

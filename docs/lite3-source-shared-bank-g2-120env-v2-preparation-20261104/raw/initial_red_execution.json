@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/source_scan/test_scale_reset_contact_cache.py",
+    "--junitxml=/tmp/lite3-g2-v2-cpu-repair-20261104-xgn5eur2/initial_red.junit.xml"
+  ],
+  "environment_overrides": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "PYTHONPATH": "source/rl_training:.",
+    "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1"
+  },
+  "returncode": 1,
+  "elapsed_seconds": 5.827902768738568,
+  "gpu_jobs": 0,
+  "isaac_sim_launches": 0
+}

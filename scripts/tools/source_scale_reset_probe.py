@@ -23,7 +23,8 @@ def main():
     num_envs=plan['num_envs']
     from rl_training.source_scan.smoke_artifacts import SmokeArtifactWriter,finalize_and_close
     from rl_training.source_scan.moving_diagnostic import EventJournal
-    report=dict(plan,status='starting',simulation_control_steps=0,base_revision=plan['base_revision'])
+    report=dict(plan,status='starting',simulation_control_steps=0,reset_batches=0,reset_attempts=0,
+        motion_samples=0,completed_diagnostic_transitions=0,pending_recovery_ids=[],base_revision=plan['base_revision'])
     folder=Path(plan['output_dir']);writer=SmokeArtifactWriter(folder/'result.json',report,schema=plan['schema'])
     env=base=app=None;started=time.monotonic()
     try:
@@ -79,11 +80,12 @@ def main():
             writer.persist(report)
             print('[scale-g2] initial-ready',flush=True)
             collect(base,env,observer,capture,journal,writer,report,interface,runtime)
-        report.update(events_sha256=hashlib.sha256((folder/'events.jsonl').read_bytes()).hexdigest(),
-            process_RSS_peak_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024)
     except Exception:
         report.update(status='failed',error=traceback.format_exc());traceback.print_exc()
     finally:
+        if (folder/'events.jsonl').is_file():
+            report['events_sha256']=hashlib.sha256((folder/'events.jsonl').read_bytes()).hexdigest()
+        report['process_RSS_peak_bytes']=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024
         report['elapsed_seconds_before_shutdown']=time.monotonic()-started
         finalize_and_close(writer,report,environment_close=env.close if env is not None else base.close if base is not None else None,
             application_close=app.close if app is not None else None)

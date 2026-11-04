@@ -13,10 +13,11 @@ PREDECESSOR_120 = dict(archive='docs/lite3-source-shared-bank-g1-120env-runtime-
 
 def contract_for(num_envs=120):
     if type(num_envs) is not int or num_envs!=120:raise ValueError('G2 is registered only for exactly 120 environments')
-    return G1_CONTRACT|dict(schema='lite3_source_shared_scale_G2_v1',purpose='shared_bank_G2_120_envs',
-        attempt_id='lite3-source-shared-g2-120env-20261103-v1',num_envs=120,control_steps=4,
+    return G1_CONTRACT|dict(schema='lite3_source_shared_scale_G2_v2',purpose='shared_bank_G2_120_envs',
+        attempt_id='lite3-source-shared-g2-120env-20261104-v2',num_envs=120,control_steps=4,
         physics_substeps=16,diagnostic_transitions=480,contact_capacity=1048576,
-        reset_batches=[[0],[1,17,119],list(range(0,120,2)),list(range(120))],
+        planned_reset_batches=[[0],[1,17,119],list(range(0,120,2)),list(range(120))],
+        reset_boundary_baseline='fresh_contact_cache_before_snapshot',
         selective_reset_calls=4,selected_environment_resets=184,assignment_count=304,
         complete_assignment_blocks=2,tail_assignment_count=64,recovery_control_steps_per_batch=1,
         events_byte_limit=268435456,wall_timeout_s=480,minimum_free_disk_bytes=4294967296,

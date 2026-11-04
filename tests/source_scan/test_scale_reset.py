@@ -41,14 +41,14 @@ def test_g2_plan_cannot_change_fixed_resets_recovery_or_resource_limits(tmp_path
     if fault in fields:
         key,value=fields[fault];plan[key]=value
     if fault=='CLI_scale':kwargs['num_envs']=60
-    if fault=='reset_ids':plan['reset_batches'][1]=[1,17,118]
-    if fault=='boolean_ids':plan['reset_batches'][1][0]=True
-    if fault=='reset_order':plan['reset_batches'].reverse()
+    if fault=='reset_ids':plan['planned_reset_batches'][1]=[1,17,118]
+    if fault=='boolean_ids':plan['planned_reset_batches'][1][0]=True
+    if fault=='reset_order':plan['planned_reset_batches'].reverse()
     if fault=='output_exists':output.mkdir()
     if fault=='source_inventory':plan['input_sha256'].pop('242')
     if fault is None:
         assert validate_plan(plan,**kwargs)==plan
-        assert [len(v) for v in plan['reset_batches']]==[1,3,60,120]
+        assert [len(v) for v in plan['planned_reset_batches']]==[1,3,60,120]
         assert plan['assignment_count']==304 and plan['complete_assignment_blocks']==2 and plan['tail_assignment_count']==64
     else:
         with pytest.raises((ValueError,PermissionError,FileExistsError)):validate_plan(plan,**kwargs)
@@ -102,7 +102,8 @@ def test_g2_keeps_no_supporting_force_as_unqualified_scope(tmp_path):
     'spawn_wrong','checked_after_changed','ticket_column','ticket_tail','metric_age','metric_rows','nonfinite_metric',
     'done','action','pause','frame_missing','frame_duplicate','force_changed','motion_missing','recovery_missing',
     'extra_recovery','last_body','last_scanner','reset_scanner','collision_group','runtime_stage','scope',
-    'capture_count','cleanup','pending','plan_unapproved'])
+    'capture_count','cleanup','pending','plan_unapproved','missing_contact_history','unselected_contact_history',
+    'stale_baseline','baseline_clock','completed_transitions','reset_attempt_count','planned_schedule'])
 def test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes(tmp_path,g2_fixture,fault):
     original,plan,execution=g2_fixture;folder=tmp_path/'corrupt';shutil.copytree(original,folder);plan=deepcopy(plan)
     report=json.loads((folder/'result.json').read_text());events=[json.loads(l) for l in (folder/'events.jsonl').read_text().splitlines()]
@@ -124,10 +125,22 @@ def test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes(tmp_
         for event in attempts+afters+checked:
             for key in ('before','after'):
                 if key in event:del event[key]['root']
+    if fault=='missing_contact_history':
+        name='cache/contact_forces/net_forces_w_history';del report['reset_snapshot_inventory'][name]
+        for event in attempts+afters+checked:
+            for key in ('before','after'):
+                if key in event:del event[key][name]
     if fault=='unselected_root':change_after('root',[119,0],7.)
     if fault=='unselected_origin':change_after('origin',[119,0],7.)
     if fault=='unselected_action':change_after('action',[119,0],.1)
     if fault=='unselected_sensor':change_after('sensor/height_scanner/_timestamp',[119],1.)
+    if fault=='unselected_contact_history':change_after('cache/contact_forces/net_forces_w_history',[119,0,0,0],1.)
+    if fault=='stale_baseline':
+        attempts[0]['before']['sensor/contact_forces/_is_outdated']['values'][119]=True
+        change_after('sensor/contact_forces/_is_outdated',[119],True)
+    if fault=='baseline_clock':
+        attempts[0]['before']['sensor/contact_forces/_timestamp']['values'][119]=1.
+        change_after('sensor/contact_forces/_timestamp',[119],1.)
     if fault=='history_not_cleared':change_after('history/policy/actions',[0,0,0],.25)
     if fault=='pushes_not_cleared':change_after('pushes/policy/actions',[0],1)
     if fault=='filter_not_cleared':change_after('filter/filter_previous_residual_action',[0,0],.1)
@@ -159,6 +172,9 @@ def test_independent_g2_rejects_corrupt_evidence_even_with_new_outer_hashes(tmp_
     if fault=='capture_count':report['contact_capture']['samples']=15
     if fault=='cleanup':(folder/'result.cleanup.json').write_text('{}')
     if fault=='pending':report['pending_recovery_ids']=[119]
+    if fault=='completed_transitions':report['completed_diagnostic_transitions']=360
+    if fault=='reset_attempt_count':report['reset_attempts']=3
+    if fault=='planned_schedule':report['planned_reset_batches'].reverse()
     if fault=='plan_unapproved':plan['user_approved']=False
     (folder/'result.steps.jsonl').write_text(''.join(json.dumps(v)+'\n' for v in rows))
     (folder/'events.jsonl').write_text(''.join(json.dumps(v)+'\n' for v in events))

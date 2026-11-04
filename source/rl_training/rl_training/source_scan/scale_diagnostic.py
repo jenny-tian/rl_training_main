@@ -50,7 +50,7 @@ class ScaleObserver:
         self.tickets=list(self.oracle.reset(list(range(env.num_envs))))
         if tuple(self.tickets)!=env._source_parallel_terrain_allocator.assignments:
             raise ValueError('initial scale assignments differ from sampler replay')
-        self.start=env._sim_step_counter;self.samples=self.resets=0
+        self.start=env._sim_step_counter;self.samples=self.resets=self.reset_attempts=0
         self.pending_recovery=set();self.reset_latency_s=[]
 
     def scans(self,names=('height_scanner','height_scanner_base')):
@@ -78,10 +78,15 @@ class ScaleObserver:
         selected=sorted(ids.cpu().tolist())
         if len(set(selected))!=len(selected) or selected[0]<0 or selected[-1]>=self.env.num_envs:
             raise ValueError('invalid selective reset ids')
+        # The adapter's pre-reset terminal-contact callback reads sensor.data.
+        # Refresh its lazy cache before the baseline, so that callback cannot
+        # make untouched rows appear changed merely by refreshing stale data.
+        self.env.scene.sensors['contact_forces'].data
         self.env.observation_manager.compute(update_history=False);self.scans()
         before=self.memory();prior=self.env._source_parallel_terrain_allocator.assignments
         self.journal.record({'phase':'scale_reset_attempt','ids':selected,'sim_step':self.env._sim_step_counter,
             'before':{key:tensor_record(value) for key,value in before.items()}});self.journal.flush()
+        self.reset_attempts+=1
         started=time.monotonic();result=original(env_ids);self.reset_latency_s.append(time.monotonic()-started)
         after=self.memory()
         self.journal.record({'phase':'scale_reset_after','ids':selected,'sim_step':self.env._sim_step_counter,

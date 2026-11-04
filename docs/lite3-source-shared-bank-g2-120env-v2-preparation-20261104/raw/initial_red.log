@@ -1,0 +1,66 @@
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+____ test_real_adapter_pre_reset_callback_uses_a_fresh_comparable_baseline _____
+
+tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-387/test_real_adapter_pre_reset_ca0')
+
+    def test_real_adapter_pre_reset_callback_uses_a_fresh_comparable_baseline(tmp_path):
+        env,_,wrapped=environment();adapter=wrapped.runtime.adapter
+        assert isinstance(adapter,Lite3IsaacLabAdapter)
+        assert env._cpu_reset_callback_owner._pre_reset_callbacks==[adapter.capture_terminal_contact,wrapped.runtime.before_reset]
+        sensor=env.scene.sensors['contact_forces']
+        assert sensor._is_outdated.all() and not sensor._data.net_forces_w.any()
+        with EventJournal(tmp_path/'events.jsonl') as journal:
+            observer=ScaleObserver(env,wrapped.runtime,journal,snapshot,check_transition)
+>           with observer.installed():observer.direct_resets([[0]])
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/source_scan/test_scale_reset_contact_cache.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+source/rl_training/rl_training/source_scan/scale_diagnostic.py:140: in direct_resets
+    self.env._reset_idx(torch.tensor(ids,device=self.env.device,dtype=torch.long))
+source/rl_training/rl_training/source_scan/scale_diagnostic.py:129: in <lambda>
+    self.env._reset_idx=lambda ids:self.reset(saved[1][-1],ids)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+source/rl_training/rl_training/source_scan/scale_diagnostic.py:89: in reset
+    self.boundary_checker(before,after,selected)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+before = {'action': tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., ...   [ 0., 48.,  0.],
+         ...,
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.]]]), ...}
+after = {'action': tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., ...   [ 0., 48.,  0.],
+         ...,
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.]]]), ...}
+ids = [0]
+
+    def check_transition(before, after, ids):
+        """Compare only the reset boundary, never a physics integration interval."""
+        if before.keys() != after.keys():
+            raise AssertionError('snapshot buffer inventory changed')
+        selected = torch.as_tensor(sorted(ids), device=before['row'].device, dtype=torch.long)
+        other = torch.ones(len(before['row']), device=selected.device, dtype=torch.bool)
+        other[selected] = False
+        for name in before:
+            if not torch.equal(before[name][other], after[name][other]):
+>               raise AssertionError(f'reset changed untouched buffer: {name}')
+E               AssertionError: reset changed untouched buffer: sensor/contact_forces/_is_outdated
+
+scripts/tools/source_parallel_reset_lifecycle.py:58: AssertionError
+=============================== warnings summary ===============================
+tests/source_scan/test_scale_reset_contact_cache.py::test_real_adapter_pre_reset_callback_uses_a_fresh_comparable_baseline
+  /home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/isaacsim/extscache/omni.physics.tensors-107.3.26+107.3.3.lx64.r.cp311.u353/omni/physics/tensors/impl/api.py:1316: DeprecationWarning: invalid escape sequence '\l'
+    """ Sets the degrees of freedom (DOF) drive model properties for articulations indicated by indices.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/source_scan/test_scale_reset_contact_cache.py::test_real_adapter_pre_reset_callback_uses_a_fresh_comparable_baseline
+1 failed, 1 passed, 1 warning in 2.35s

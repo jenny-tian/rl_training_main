@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="2.334" timestamp="2026-11-04T09:38:59.518537+08:00" hostname="batc-PowerEdge-T640"><testcase classname="tests.source_scan.test_scale_reset_contact_cache" name="test_original_gpu_snapshots_still_fail_the_strict_boundary_check" time="0.546" /><testcase classname="tests.source_scan.test_scale_reset_contact_cache" name="test_real_adapter_pre_reset_callback_uses_a_fresh_comparable_baseline" time="0.567"><failure message="AssertionError: reset changed untouched buffer: sensor/contact_forces/_is_outdated">tmp_path = PosixPath('/tmp/pytest-of-tjx/pytest-387/test_real_adapter_pre_reset_ca0')
+
+    def test_real_adapter_pre_reset_callback_uses_a_fresh_comparable_baseline(tmp_path):
+        env,_,wrapped=environment();adapter=wrapped.runtime.adapter
+        assert isinstance(adapter,Lite3IsaacLabAdapter)
+        assert env._cpu_reset_callback_owner._pre_reset_callbacks==[adapter.capture_terminal_contact,wrapped.runtime.before_reset]
+        sensor=env.scene.sensors['contact_forces']
+        assert sensor._is_outdated.all() and not sensor._data.net_forces_w.any()
+        with EventJournal(tmp_path/'events.jsonl') as journal:
+            observer=ScaleObserver(env,wrapped.runtime,journal,snapshot,check_transition)
+&gt;           with observer.installed():observer.direct_resets([[0]])
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/source_scan/test_scale_reset_contact_cache.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+source/rl_training/rl_training/source_scan/scale_diagnostic.py:140: in direct_resets
+    self.env._reset_idx(torch.tensor(ids,device=self.env.device,dtype=torch.long))
+source/rl_training/rl_training/source_scan/scale_diagnostic.py:129: in &lt;lambda&gt;
+    self.env._reset_idx=lambda ids:self.reset(saved[1][-1],ids)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+source/rl_training/rl_training/source_scan/scale_diagnostic.py:89: in reset
+    self.boundary_checker(before,after,selected)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+before = {'action': tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., ...   [ 0., 48.,  0.],
+         ...,
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.]]]), ...}
+after = {'action': tensor([[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., ...   [ 0., 48.,  0.],
+         ...,
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.],
+         [ 0., 48.,  0.]]]), ...}
+ids = [0]
+
+    def check_transition(before, after, ids):
+        """Compare only the reset boundary, never a physics integration interval."""
+        if before.keys() != after.keys():
+            raise AssertionError('snapshot buffer inventory changed')
+        selected = torch.as_tensor(sorted(ids), device=before['row'].device, dtype=torch.long)
+        other = torch.ones(len(before['row']), device=selected.device, dtype=torch.bool)
+        other[selected] = False
+        for name in before:
+            if not torch.equal(before[name][other], after[name][other]):
+&gt;               raise AssertionError(f'reset changed untouched buffer: {name}')
+E               AssertionError: reset changed untouched buffer: sensor/contact_forces/_is_outdated
+
+scripts/tools/source_parallel_reset_lifecycle.py:58: AssertionError</failure></testcase></testsuite></testsuites>

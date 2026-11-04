@@ -21,6 +21,7 @@ def _inventory(value,history_terms,n):
         'root':([n,13],'torch.float32'),'joint_pos':([n,12],'torch.float32'),'joint_vel':([n,12],'torch.float32'),
         'episode':([n],'torch.int64'),'action':([n,12],'torch.float32'),'previous_action':([n,12],'torch.float32'),
         'command/base_velocity':([n,3],'torch.float32'),'cache/contact_forces/net_forces_w':([n,17,3],'torch.float32'),
+        'cache/contact_forces/net_forces_w_history':([n,3,17,3],'torch.float32'),
         'filter/filter_previous_residual_action':([n,12],'torch.float32'),'filter/filter_paused':([n,1],'torch.bool'),
         'filter/filter_stable_steps':([n,1],'torch.int64'),'filter/filter_contact_steps':([n,1],'torch.int64')}
     for name in ('hold','contact_steps','completed','unsafe','timeout'):
@@ -70,21 +71,28 @@ def _metrics(rows,ages):
 
 
 def validate(folder,plan,execution):
-    result=dict(schema='lite3_source_shared_scale_G2_acceptance_v1',accepted=False,reasons=[],training_ready=False,
+    result=dict(schema='lite3_source_shared_scale_G2_acceptance_v2',accepted=False,reasons=[],training_ready=False,
         g3_g4_qualified=False,ground_positive_qualification=False,scope='120_env_four_selective_resets_and_first_recovery_step_only')
     try:
         contract=contract_for(plan.get('num_envs'));n=120
         _require(plan.get('status')=='approved' and plan.get('user_approved') is True,'G2 plan is not approved')
         for key,value in contract.items():_require(same_value(plan.get(key),value),'G2 plan mismatch: '+key)
         validate_predecessor(plan.get('predecessor_qualification'))
+        folder=Path(folder);report=_load((folder/'result.json').read_text())
+        # A child may close Isaac normally with exit code zero after an exception.
+        # Surface its original failure before secondary incomplete-report checks.
+        if report.get('status')=='failed':
+            result['probe_error']=report.get('error','')
+            _require(False,'G2 probe failed: '+str(report.get('error') or 'missing original error'))
         _require(execution.get('returncode')==0 and execution.get('process_group_empty') is True
             and execution.get('timed_out') is False and execution.get('monitor_errors')==[],'G2 process/monitor failed')
-        folder=Path(folder);report=_load((folder/'result.json').read_text());cleanup=_load((folder/'result.cleanup.json').read_text())
+        cleanup=_load((folder/'result.cleanup.json').read_text())
         steps_raw=(folder/'result.steps.jsonl').read_bytes();events_raw=(folder/'events.jsonl').read_bytes()
         _require(len(events_raw)<=contract['events_byte_limit'],'G2 event byte limit exceeded')
         rows=[_load(line) for line in steps_raw.splitlines()];events=[_load(line) for line in events_raw.splitlines()]
         expected=contract|dict(status='passed',base_revision=plan['base_revision'],input_sha256=plan['input_sha256'],
-            simulation_control_steps=4,phase='result_before_shutdown',steps_written=4,motion_samples=16,reset_batches=4,pending_recovery_ids=[])
+            simulation_control_steps=4,completed_diagnostic_transitions=480,phase='result_before_shutdown',
+            steps_written=4,motion_samples=16,reset_attempts=4,reset_batches=4,pending_recovery_ids=[])
         for key,value in expected.items():_require(same_value(report.get(key),value),'G2 report mismatch: '+key)
         _require(report['steps_file']=='result.steps.jsonl' and len(rows)==4
             and report['steps_sha256']==hashlib.sha256(steps_raw).hexdigest()
@@ -119,12 +127,15 @@ def validate(folder,plan,execution):
             ('scale_reset_attempt','scale_reset_after','scale_reset_checked','g2_reset_scans','scale_control_scans'))
         _require(all(len(v)==4 for v in (attempts,afters,checked,reset_scans,controls)),'G2 reset/control records incomplete')
         ages=torch.zeros(n,dtype=torch.long);ground={str(i):0 for i in range(n)}
-        for batch,ids in enumerate(contract['reset_batches']):
+        for batch,ids in enumerate(contract['planned_reset_batches']):
             step=batch+1;tick=start+4*batch;selected=torch.tensor(ids)
             for record in (attempts[batch],afters[batch],checked[batch],reset_scans[batch]):
                 _require(same_value(record.get('ids'),ids) and record['sim_step']==tick,'G2 reset schedule differs')
             _require(checked[batch]['batch']==step and reset_scans[batch]['batch']==step,'G2 reset batch identity differs')
             before=_state(attempts[batch]['before'],inventory);after=_state(afters[batch]['after'],inventory)
+            _require(not bool(before['sensor/contact_forces/_is_outdated'].any())
+                and torch.equal(before['sensor/contact_forces/_timestamp'],before['sensor/contact_forces/_timestamp_last_update']),
+                'G2 contact cache baseline was not refreshed')
             audited=_state(checked[batch]['after'],inventory)
             _require(all(torch.equal(after[k],audited[k]) for k in after),'checked reset state differs from actual after-state')
             _require(torch.equal(before['episode'],ages) and before['column'].tolist()==[t.column for t in oracle.assignments]
