@@ -1,0 +1,68 @@
+{
+  "schema": "lite3_G3_fast_actual_control_record_summary_v1",
+  "at_utc": "2026-11-04T14:13:24.788805+00:00",
+  "scope": "Saved real control records and runtime outcomes; this does not grant G3 acceptance",
+  "complete_control_records": 1884,
+  "planned_controls": 2001,
+  "readonly_transitions_with_complete_control_records": 226080,
+  "incomplete_final_control_record_bytes": 0,
+  "ordinary_terminal_batches": 77,
+  "ended_episodes": 78,
+  "termination_reason_counts": {
+    "bad_orientation_2": 8,
+    "source_training_safety": 8,
+    "source_terrain_tile_bounds": 67,
+    "illegal_contact": 3
+  },
+  "best_flat_record": {
+    "forward_progress_m": 3.9067344665527344,
+    "step": 1884,
+    "env_id": 7,
+    "lifecycle_hold": 0
+  },
+  "candidate_flat_completions": [],
+  "execution": {
+    "command": [
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=15s",
+      "1800s",
+      "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+      "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_scale_motion_probe.py",
+      "--manifest",
+      "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-delivery-evidence/lite3-training-delivery-20261104-v1/run/g3_fast/run_manifest.json",
+      "--checkpoint",
+      "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+      "--num-envs",
+      "120"
+    ],
+    "elapsed_s": 1800.7525878027081,
+    "monitor_errors": [
+      "TimeoutError: G3 startup/wall deadline reached"
+    ],
+    "process_group": 2401046,
+    "process_group_empty": true,
+    "returncode": 124,
+    "timed_out": true,
+    "validation_process_group_empty": true,
+    "validation_returncode": 1
+  },
+  "acceptance": {
+    "accepted": false,
+    "continuous_time_safety_claim": false,
+    "g4_qualified": false,
+    "reasons": [
+      "ValueError: G3 execution failed",
+      "G3 supervision or CPU validation failed"
+    ],
+    "schema": "lite3_source_shared_G3_acceptance_v1",
+    "training_ready": false
+  },
+  "report_status": "running",
+  "production_ledger_sha256_after": "b1d224ba20a93c93c99189d700aeb145d506259f56462eb506def64f8f888189",
+  "production_ledger_unchanged": true,
+  "new_ppo_updates": 0,
+  "new_training_transitions": 0,
+  "trained_checkpoints_found": [],
+  "current_source_revision": "dee8efe377fd46e06263bc69a5e1e46648afc3d6"
+}

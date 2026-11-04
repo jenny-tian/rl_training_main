@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import runpy
 import xml.etree.ElementTree as ET
 
 
@@ -42,8 +43,11 @@ def main(folder):
     assert len(tests)==89 and all(t.find('failure') is None and t.find('error') is None and t.find('skipped') is None for t in tests)
     assert load('raw/cpu/g2_reuse_proof.json')['legacy_encoder_and_default_decoder_unchanged']
     assert load('raw/cpu/fast_virtual_benchmark.json')['dense_arrays_reconstructed_exactly']
+    supplement=runpy.run_path(str(folder/'g3-fast-runtime/review.py'))['main'](folder/'g3-fast-runtime')
+    assert supplement['archive_integrity_verified'] and supplement['readonly_transitions']==226080
     return dict(archive_integrity_verified=True,hashed_files=checked,bulk_files_verified=bulk,
-        actual_GPU_jobs=2,G2_accepted=True,G3_accepted=False,latest_targeted_CPU_passed=89,
+        initial_GPU_jobs=2,actual_GPU_jobs=3,total_readonly_transitions=234240,
+        supplemental_run=supplement,G2_accepted=True,G3_accepted=False,latest_targeted_CPU_passed=89,
         new_ppo_updates=0,production_ledger_unchanged=True,model_delivery_complete=False,
         scope='archive integrity and CPU repair evidence; no new G3/G4 qualification')
 
