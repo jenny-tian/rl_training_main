@@ -247,6 +247,10 @@ def job_contract(kind,plan):
         result.update(schema='lite3_source_paired_diagnostics_delivery_v1',policy_loaded=True,control_steps_per_actor=2000,
             actions='deterministic_actor_mean',old_checkpoint_sha256=plan['checkpoint_sha256'],
             new_checkpoint=plan['new_checkpoint'],failed_numeric_diagnostic_exception=exception)
+        if plan.get('compare_supplement'):
+            slot_ledger(plan)
+            result.update(attempt_id=STAGE+'-compare-repair-20261105',
+                compare_supplement=plan['compare_supplement'],lifecycle_repair='stop_close_replace_stage_v1')
     return result
 
 
@@ -298,6 +302,32 @@ def seal_receipt(folder,kind):
 
 def slot_ledger(plan):
     grant=validate_grant(plan['delivery_stage'])
+    repair=plan.get('compare_supplement')
+    if repair is not None:
+        supplement=read_reference(repair,'compare_supplement')
+        root=Path(grant['output_root'])
+        expected=dict(schema='lite3_compare_repair_supplement_v1',status='approved',user_approved=True,
+            user_message='继续',stage_id=STAGE,job='compare',num_envs=120,control_steps=4000,
+            diagnostic_transitions=480000,training_transitions=0,ppo_updates=0,max_launches=1,
+            startup_timeout_s=120,wall_timeout_s=1800,cleanup_grace_s=15,automatic_retry=False,
+            source_revision=plan['base_revision'],input_sha256=plan['input_sha256'],
+            output_dir=str(root/'compare_repair_20261105'),slot_ledger=str(root.parent/'compare_repair_slots.json'))
+        if (plan.get('delivery_job')!='compare' or plan.get('g3_supplement')
+                or plan.get('output_dir')!=expected['output_dir']
+                or any(type(supplement.get(k)) is not type(v) or supplement[k]!=v for k,v in expected.items())):
+            raise PermissionError('comparison repair differs from the user-requested bounded continuation')
+        previous=supplement.get('previous_failed_compare')
+        if previous!=reference(root/'compare/receipt.json','compare'):
+            raise ValueError('comparison repair must preserve the actual failed comparison')
+        receipt=read_reference(previous,'compare')
+        execution=read_reference(receipt['execution'],'execution')
+        if receipt.get('accepted') is not False or execution.get('process_group_empty') is not True:
+            raise ValueError('previous comparison must be failed and cleaned up')
+        ledger_ref=supplement.get('original_slots')
+        ledger=read_reference(ledger_ref,'slot_ledger')
+        if ledger_ref['path']!=grant['slot_ledger'] or 'compare' not in ledger.get('jobs',{}):
+            raise ValueError('original consumed comparison slot must remain unchanged')
+        return Path(supplement['slot_ledger'])
     ref=plan.get('g3_supplement')
     if ref is None:return Path(grant['slot_ledger'])
     supplement=read_reference(ref,'g3_supplement')

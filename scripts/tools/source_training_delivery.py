@@ -68,6 +68,10 @@ def freeze(args):
     supplement=getattr(args,'g3_supplement',None)
     if supplement is not None and args.job!='g3':raise ValueError('G3 supplement cannot authorize another job')
     label='g3_fast' if supplement is not None else args.job
+    compare_supplement=getattr(args,'compare_supplement',None)
+    if compare_supplement is not None:
+        if args.job!='compare' or supplement is not None:raise ValueError('comparison repair applies only to compare')
+        label='compare_repair_20261105'
     output=root/label;manifest=root/(label+'.approved.json')
     if output.exists() or manifest.exists():raise FileExistsError('delivery attempt/manifest already exists')
     revision,remote,dirty=_git_state()
@@ -95,6 +99,7 @@ def freeze(args):
         checkpoint_sha256=CHECKPOINT_SHA256,delivery_stage=grant_ref,delivery_job=args.job)
     if prior:common['predecessor_qualification']=prior
     if revision_ref:common['stage_revision']=revision_ref
+    if compare_supplement is not None:common['compare_supplement']=reference(compare_supplement,'compare_supplement')
     if combined:common['startup_covered_by_g2']=True
     if supplement is not None:
         common.update(g3_supplement=reference(supplement,'g3_supplement'),contact_digest_scheme='sha256_blocks_4096_v1')
@@ -128,7 +133,8 @@ def run(args):
         if (out/'acceptance.json').exists() and (out/'result.json').exists():seal_receipt(out,args.job)
         return code
     finally:
-        atomic_json(manifest.parent/(args.job+'.supervisor_receipt.json'),dict(job=args.job,returncode=code,
+        label=out.name if plan.get('compare_supplement') else args.job
+        atomic_json(manifest.parent/(label+'.supervisor_receipt.json'),dict(job=args.job,returncode=code,
             supervisor_elapsed_s=time.monotonic()-started,automatic_retry=False))
 
 
@@ -138,5 +144,6 @@ if __name__=='__main__':
     parser.add_argument('--approval',type=Path,required=True);parser.add_argument('--checkpoint',type=Path,required=True)
     parser.add_argument('--combine-startup',action='store_true',help='Reuse the real startup anchor and validate current startup inside the G2 job')
     parser.add_argument('--g3-supplement',type=Path,help='Separate approval of one replacement G3; never reuses the consumed slot')
+    parser.add_argument('--compare-supplement',type=Path,help='User-requested repair attempt; preserves the original consumed compare slot')
     parser.add_argument('--stage-revision',type=Path,help='Explicit approved limited-evidence revision; original failed G3 stays failed')
     args=parser.parse_args();raise SystemExit(run(args) if args.action=='run' else (freeze(args),0)[1])

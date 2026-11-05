@@ -15,6 +15,42 @@ from rl_training.source_scan.delivery_stage import preflight,file_digest
 from rl_training.source_scan.smoke_artifacts import atomic_json
 
 
+def record_phase(folder,phase,actor=None,limit_s=None):
+    """Publish lifecycle deadlines independently of buffered simulator output."""
+    row=dict(phase=phase,actor=actor,started_mono=time.monotonic(),limit_s=limit_s)
+    from rl_training.source_scan.delivery_metrics import append_json
+    append_json(Path(folder)/'phases.jsonl',row)
+    atomic_json(Path(folder)/'phase.json',row)
+    print('[source-delivery] phase='+phase+' actor='+str(actor),flush=True)
+
+
+def close_comparison_environment(wrapped):
+    """Stop the old timeline before a new context registers its STOP callback."""
+    sim=wrapped.unwrapped.sim
+    # IsaacLab's STOP callback waits for play. Suppress it only after all
+    # actor controls and metrics are finished, when disposing of this context.
+    sim._disable_app_control_on_stop_handle=True
+    sim.stop()
+    if sim.is_playing():raise RuntimeError('comparison timeline did not stop before teardown')
+    wrapped.close()
+
+
+def persist_actor_and_close(writer,report,wrapped,phase,kind,label):
+    writer.persist(report)
+    phase('environment_close',label,15)
+    if kind=='compare':close_comparison_environment(wrapped)
+    else:wrapped.close()
+
+
+def lifecycle_deadline(folder,now):
+    path=Path(folder)/'phase.json'
+    if not path.exists():return None
+    row=json.loads(path.read_text());limit=row['limit_s']
+    if limit is not None and now-row['started_mono']>limit:
+        return f"{row['phase']} actor={row['actor']} exceeded {limit}s"
+    return None
+
+
 def check_scans(base):
     import torch
     from rl_training.source_scan.moving_diagnostic import check_scan
@@ -35,8 +71,16 @@ def probe(args):
     folder=Path(plan['output_dir']);report=plan|dict(status='starting',simulation_control_steps=0,
         completed_diagnostic_transitions=0,reset_latency_s=[],reset_samples=[],scheduled_ready_samples=[],actors=[],finite_controls=0)
     writer=SmokeArtifactWriter(folder/'result.json',report,schema=plan['schema'])
+    import faulthandler
+    stack_log=(folder/'python_stacks.log').open('w')
+    faulthandler.enable(file=stack_log)
+    def phase(name,label=None,limit=None):
+        faulthandler.cancel_dump_traceback_later()
+        record_phase(folder,name,label,limit)
+        if limit is not None:faulthandler.dump_traceback_later(max(1,limit-5),file=stack_log)
     app=wrapped=base=None
     try:
+        phase('application_start',limit=120)
         from isaaclab.app import AppLauncher
         app=AppLauncher(headless=True,device='cuda:0').app
         import gymnasium as gym
@@ -56,6 +100,7 @@ def probe(args):
         names=['old'] if kind=='g4' else ['old','new']
         initial=None
         for label in names:
+            phase('environment_start',label,120)
             cfg=DeeproboticsLite3SourceTrainingEnvCfg(source_training_run=1,source_parallel_sampler_enabled=True,
                 source_parallel_sampler_num_envs=120,source_shared_bank_rows=1)
             cfg.sim.device='cuda:0';ranges=cfg.commands.base_velocity.ranges
@@ -92,6 +137,7 @@ def probe(args):
             observations=wrapped.get_observations();check_scans(base)
             generator=torch.Generator(device='cuda:0').manual_seed(132001)
             print('[source-delivery] initial-ready',flush=True);writer.persist(report)
+            phase('actor_controls',label)
             count=288 if kind=='g4' else 2000
             metrics=PreResetMetricCapture(base)
             with torch.inference_mode(),metrics.installed() if kind=='compare' else _null_context():
@@ -130,10 +176,17 @@ def probe(args):
                 report.update(measured_elapsed_s=elapsed,measured_transitions=28800,
                     measured_transitions_per_second=28800/elapsed,
                     measured_reset_count=len(reset_values),reset_p95_s=float(np.percentile(reset_values,95)) if reset_values else None)
+            phase('actor_finalize',label,15)
             if actor_digest(actor)!=fingerprint:raise RuntimeError('read-only actor changed')
             report['actors'].append(dict(label=label,actor_sha256=fingerprint,initial=identity,
                 first_episodes=episodes.result() if kind=='compare' else None))
-            wrapped.close();wrapped=base=None
+            persist_actor_and_close(writer,report,wrapped,phase,kind,label)
+            wrapped=base=None
+            phase('environment_closed',label)
+            if kind=='compare' and label=='old':
+                phase('stage_replace',label,120)
+                from isaaclab.sim import create_new_stage
+                create_new_stage()
         if kind=='compare':
             report['paired_conditions']=paired_conditions(report['actors'][0]['first_episodes'],report['actors'][1]['first_episodes'])
             from rl_training.source_scan.delivery_metrics import write_paired_artifacts
@@ -143,8 +196,18 @@ def probe(args):
     except Exception:
         report.update(status='failed',error=traceback.format_exc());traceback.print_exc()
     finally:
-        finalize_and_close(writer,report,environment_close=wrapped.close if wrapped is not None else lambda:None,
-                           application_close=app.close if app is not None else None)
+        def close_remaining():
+            phase('environment_close',limit=15)
+            if wrapped is not None:
+                if kind=='compare':close_comparison_environment(wrapped)
+                else:wrapped.close()
+        def close_application():
+            phase('application_close',limit=15)
+            app.close()
+        finalize_and_close(writer,report,environment_close=close_remaining,
+                           application_close=close_application if app is not None else None)
+        phase('finished')
+        faulthandler.disable();stack_log.close()
     return 0 if report['status']=='passed' else 1
 
 
@@ -248,6 +311,9 @@ def supervise(args):
             execution['process_group']=process.pid;atomic_json(out/'execution.json',execution);next_sample=0
             while process.poll() is None:
                 elapsed=time.monotonic()-start;text=(out/'runtime.log').read_text(errors='replace')
+                deadline=lifecycle_deadline(out,time.monotonic())
+                if deadline:
+                    execution['timed_out']=True;raise TimeoutError(deadline)
                 if elapsed>plan['wall_timeout_s'] or elapsed>120 and '[source-delivery] initial-ready' not in text:
                     execution['timed_out']=True;raise TimeoutError('delivery startup/wall deadline reached')
                 if (out/'runtime.log').stat().st_size>512*1024**2:raise RuntimeError('delivery log ceiling reached')
