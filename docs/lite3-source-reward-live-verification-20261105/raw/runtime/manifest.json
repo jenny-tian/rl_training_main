@@ -1,0 +1,30 @@
+{
+  "schema": "source_adaptation_live_verification_v1",
+  "source_revision": "9d7a97086cfe576035bb2c466318623c77739abf",
+  "script_sha256": "b72dd0dbe3d4975f84ebc0a40793105edacc9c1481b892706bc04ffefa980ca0",
+  "profile": "lite3_source_lowspeed_v1",
+  "num_envs": 120,
+  "steps_per_actor": 400,
+  "actor_labels": [
+    "old_mean",
+    "new_mean"
+  ],
+  "checkpoint_sha256": [
+    "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "14d11c8b57392c3ac0ac1e08b26de1cc1254ee059d1f653172433df9a05bdf42"
+  ],
+  "diagnostic_transition_cap": 96000,
+  "wall_limit_s": 300,
+  "startup_limit_s": 120,
+  "close_limit_s": 15,
+  "training_transitions": 0,
+  "ppo_updates": 0,
+  "behavior_limits": {
+    "original_min_vx_mps": 0.2,
+    "original_max_clipped_joint_fraction": 0.01,
+    "candidate_max_abs_vx_mps": 0.05
+  },
+  "authorization_basis": "user agreed to the bounded next-stage plan",
+  "budget_before": "f171d9fdbe380a20c827453c52bb30ac30c8f6ed431f45c01f796625be303435",
+  "python": "/home/tjx/anaconda3/envs/env_isaaclab/bin/python"
+}

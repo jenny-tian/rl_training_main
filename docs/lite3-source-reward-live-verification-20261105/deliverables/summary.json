@@ -1,0 +1,106 @@
+{
+  "status": "passed_live_verification",
+  "execution": {
+    "exit_code": 0,
+    "deadline_failure": null,
+    "elapsed_s": 55.020775522105396,
+    "process_group_had_remaining_children": false,
+    "budget_before": "f171d9fdbe380a20c827453c52bb30ac30c8f6ed431f45c01f796625be303435",
+    "budget_after": "f171d9fdbe380a20c827453c52bb30ac30c8f6ed431f45c01f796625be303435"
+  },
+  "diagnostic_transitions": 96000,
+  "training_transitions": 0,
+  "ppo_updates": 0,
+  "before_after_physical_trajectories_identical": {
+    "old_mean": {
+      "state": true,
+      "columns": true,
+      "done": true
+    },
+    "new_mean": {
+      "state": true,
+      "columns": true,
+      "done": true
+    }
+  },
+  "behavior_checks": {
+    "original_walks": true,
+    "original_has_no_endings": true,
+    "original_mean_clip_below_one_percent": true,
+    "walking_reward_exceeds_stationary_candidate": true,
+    "candidate_remains_stationary": true
+  },
+  "eligible_for_two_update_trial": true,
+  "cases": [
+    {
+      "label": "old_mean",
+      "metrics": {
+        "vx_mps": 0.313888843005937,
+        "velocity_rms_error_mps": 0.08056581181796676,
+        "reward_per_control": 0.09716739208822561,
+        "clipped_joint_fraction": 0.0,
+        "weighted_reward_per_second": {
+          "track_lin_vel_xy_exp": 3.6775667148215905,
+          "track_ang_vel_z_exp": 1.4902484031187164,
+          "lin_vel_z_l2": -0.0018476167016882926,
+          "ang_vel_xy_l2": -0.01506655529455655,
+          "flat_orientation_l2": -0.019888331024104255,
+          "base_height_l2": -0.09515215016311655,
+          "joint_torques_l2": -0.04028904437025388,
+          "joint_acc_l2": -0.01756038481497309,
+          "feet_air_time": -0.03022497205519014,
+          "feet_air_time_variance": -0.02892566475901953,
+          "undesired_contacts": 0.0,
+          "feet_slide": -0.0332833415578999,
+          "foot_impact_velocity": -0.0019232119175035523,
+          "contact_forces": 0.0,
+          "action_rate_l2": -0.025284240870719562,
+          "joint_pos_limits": 0.0,
+          "stand_still": 0.0
+        }
+      },
+      "done_count": 0,
+      "gate_min": 1.0,
+      "gate_max": 1.0
+    },
+    {
+      "label": "new_mean",
+      "metrics": {
+        "vx_mps": -0.0007718597339325163,
+        "velocity_rms_error_mps": 0.30096010187115985,
+        "reward_per_control": 0.045245515836900986,
+        "clipped_joint_fraction": 0.1666666716337204,
+        "weighted_reward_per_second": {
+          "track_lin_vel_xy_exp": 0.9413951379375325,
+          "track_ang_vel_z_exp": 1.4992445719838143,
+          "lin_vel_z_l2": -3.4955143478088117e-06,
+          "ang_vel_xy_l2": -2.444046654805433e-05,
+          "flat_orientation_l2": -0.07771424920339551,
+          "base_height_l2": -0.0036929255106628667,
+          "joint_torques_l2": -0.013996254610725576,
+          "joint_acc_l2": -2.8976514925461457e-07,
+          "feet_air_time": 0.0,
+          "feet_air_time_variance": -0.08151958989474224,
+          "undesired_contacts": 0.0,
+          "feet_slide": -0.0014047013908202643,
+          "foot_impact_velocity": 0.0,
+          "contact_forces": 0.0,
+          "action_rate_l2": -7.971719906485352e-06,
+          "joint_pos_limits": 0.0,
+          "stand_still": 0.0
+        }
+      },
+      "done_count": 0,
+      "gate_min": 1.0,
+      "gate_max": 1.0
+    }
+  ],
+  "two_update_evaluation_thresholds": {
+    "min_vx_mps": 0.2511110744047496,
+    "max_velocity_rms_error_mps": 0.12084871772695015,
+    "max_clipped_joint_fraction": 0.01,
+    "max_done_count": 0,
+    "min_reward_per_control": 0.0777339136705805
+  },
+  "threshold_basis": "80% baseline speed and reward; 1.5x baseline RMS error; <=1% mean clipping; no endings in 400 controls"
+}
