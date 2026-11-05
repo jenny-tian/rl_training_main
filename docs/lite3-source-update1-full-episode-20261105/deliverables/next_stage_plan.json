@@ -1,0 +1,48 @@
+{
+  "schema": "source_lane_objective_design_proposal_v1",
+  "status": "proposed_pending_user_consent",
+  "user_approved": false,
+  "objective": "Design reward, observation/command, and retention checks that address lane drift before proposing more PPO updates.",
+  "reason": "Update1 preserves binary outcomes but increases common-window lateral RMS by 15.23%; update2 improves stairs while introducing five friction failures. Scalar reward and aggregate completion alone miss these changes.",
+  "scope": "Offline analysis and a reviewable design only.",
+  "reference_project": "/home/tjx/rl_training",
+  "input_recordings": [
+    "original model_1998 full first episodes",
+    "fixed low LR update1 full first episodes",
+    "fixed low LR update2 full first episodes"
+  ],
+  "steps": [
+    "Compare active Source reward terms and actor observations with the reference project; document frames, units, weights, dt scaling, and terrain-height differences.",
+    "Use the saved common first-episode windows to quantify heading/lateral drift and rank illustrative successful, failed and earlier-failed episodes. Treat reconstructed scanner clearance as geometric evidence, not exact termination branch provenance.",
+    "Compare reward-only shaping, lane-feedback velocity/yaw commands with the existing 45-dimensional actor, and explicit observation augmentation. State observability and checkpoint-compatibility limits and recommend one bounded route.",
+    "Write candidate formulas, scales and configuration drafts; offline candidate scores must not be described as learned-policy improvement or a counterfactual simulator result.",
+    "Design future retention gates that keep current completion/safety/bounds criteria while adding per-condition lateral/heading metrics and checks for earlier endings on pre-existing failures.",
+    "Deliver a reviewable design and a separately budgeted proposed implementation/experiment; seek consent again before applying it."
+  ],
+  "new_diagnostic_transitions": 0,
+  "new_training_transitions": 0,
+  "new_ppo_updates": 0,
+  "cumulative_training_charge": 271104,
+  "compute": "CPU-only offline scripts; each analysis command bounded to 120 seconds; no simulator or GPU workload.",
+  "modify_active_reward_observation_controller": false,
+  "modify_or_promote_checkpoint": false,
+  "simulator_started": false,
+  "training_started": false,
+  "acceptance_criteria": [
+    "All 17 active reward terms and actual 45 actor inputs have documented reference mappings or explained differences.",
+    "Drift metrics reproduce from archived arrays with explicit windows, units, sample counts and exclusions.",
+    "The five new friction failures and three pre-existing stair failures are included; aggregate averages cannot hide per-condition tradeoffs.",
+    "One recommended design states required state, network/checkpoint compatibility, fallback/stop conditions, and limitations of offline scoring.",
+    "Future numeric evaluation thresholds and resource caps are proposed in writing before any implementation or simulation."
+  ],
+  "deliverables": [
+    "reward_observation_mapping.csv",
+    "offline_drift_diagnostics.json",
+    "reward_and_control_design.md",
+    "candidate_config_draft.json",
+    "future_validation_plan.json",
+    "checksums and Git commit"
+  ],
+  "automatic_followup": false,
+  "requires_new_consent_after_stage": true
+}

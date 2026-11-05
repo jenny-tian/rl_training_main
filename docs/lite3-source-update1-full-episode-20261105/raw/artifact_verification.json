@@ -1,0 +1,414 @@
+{
+  "status": "verified",
+  "runtime_source_revision": "2efb6c3867578f8f178f0d4d26a0778f97cd37cb",
+  "runtime_archive_matches_persistent": true,
+  "runtime_archive_files": {
+    "budget_after.json": "9e54797c258c4d7c658bb07b9b3fe39d400019805944c44fe9d055946e1357b8",
+    "budget_before.json": "9e54797c258c4d7c658bb07b9b3fe39d400019805944c44fe9d055946e1357b8",
+    "execution.json": "75a421c2eb43cc122860223f08e7a02d82f12538ba516090381623006b4fa307",
+    "manifest.json": "19695805c92d7486e76aa8ba32743c1baffa9ebba5969f00cfb0785882bd8c2b",
+    "phase.json": "9298e5351a2c6f56010371386a23096b60eab0000f30f72f0e3a50a33f9bf6b6",
+    "phases.jsonl": "5892d3addad297316e26f862adece0925d98cf13aee67bf64534aa4a8f145d87",
+    "prefix_checks.json": "f0af8d7ffabde245dce3d3f3f3a5a5ad5e440c12c936507a306bd44d050d37ab",
+    "progress.json": "431dc8b2e054b98607db51897f1ad39778eca53c142e2ca29a0c2c49a0581c4a",
+    "python_stacks.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "result.json": "551ba6dd4af34f92a5323743a16548ffad3228ee7ec4b05b60cf0589db86a297",
+    "runtime.log": "f58853b597a42182908cd532c80342fca3d9acb859f9661555d50bb726ac56f0",
+    "update1.npz": "4e944242b132a15bb0e012bffe62f36595465188f1fbed7fc541a183dd1bc39f",
+    "update1_endings.jsonl": "847d9048c6d1e3c0232e3ed565c105e6ba5a5e149585e9110e3ed56ffc154ebe",
+    "update1_events.json": "6003c5f51a9e7190234b430f74b42a14d091bee2f60fe043dfbfeb44daf24539"
+  },
+  "runtime_inputs": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+      "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-fixed-low-lr-trial-20261105/deliverables/actor_update_1.pt",
+      "sha256": "b21473b7c1037b857d81d3b0614d7cd23d9229707879ba31599a8bbfecd4c549",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-fixed-low-lr-trial-20261105/deliverables/actor_update_2.pt",
+      "sha256": "e7fc084e6beb8cc8a4b5d9d4aefd75ae97a7160a695079cbbf36216719bf822f",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-fixed-low-lr-trial-20261105/raw/runtime/actor_update_1.npz",
+      "sha256": "dbf716c22912705f7961696dee46ccab34270fce884b97eecbd9cd8c4708206c",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-full-episode-comparison-20261105/SHA256SUMS",
+      "sha256": "e95f819aa6287c6ff769ed747209a28b082a7ba3d3f43ed8b2dd6fb087610bed",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-full-episode-comparison-20261105/deliverables/next_stage_plan.json",
+      "sha256": "96c805717a01773bc4120001baaa9fb5d3db08b72f74baaeac14712c420d8f34",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-full-episode-comparison-20261105/deliverables/summary.json",
+      "sha256": "99436202011260db3b2022011b7d5af6d646662dce3fc051068530ece7c38421",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-full-episode-comparison-20261105/raw/runtime/candidate.npz",
+      "sha256": "c990017c196273fad66f6ea8c585821995c55d103f6112aeebcb79737d0c80c1",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-full-episode-comparison-20261105/raw/runtime/original.npz",
+      "sha256": "51057df6b0fc74542c0fb6d6622c873be5576f1ff324e07225da7c95f8627d9e",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-full-episode-comparison-20261105/raw/runtime/result.json",
+      "sha256": "960c6ae5c7eb2065cf210c22a05b9cab5fe6f0f6352c63f8186cc23d1eeca372",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/docs/lite3-source-update1-full-episode-20261105/authorization.json",
+      "sha256": "92edd52b253cf67dd020d4052a19872192efb80603b0f72dcff0549de60930c9",
+      "verification_method": "immutable_file"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_adaptation_runtime.py",
+      "sha256": "b72dd0dbe3d4975f84ebc0a40793105edacc9c1481b892706bc04ffefa980ca0",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_delivery_light.py",
+      "sha256": "9584d8fa523119df502f6debda4e8b6cbf6bae39c451b1162959adacba5398e1",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_full_episode_comparison.py",
+      "sha256": "cefd8fd4b24e0f1041c8524630b3d83554538f3460a636d49e7756fbdf784c98",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/scripts/tools/source_update1_full_episode.py",
+      "sha256": "f0f3b7bc27694e5e4c7761387e6b8c9166410a3b6f18d4588a2bd5603a53de4d",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/__init__.py",
+      "sha256": "d37f920bc1de4aa97d4cd8646c561e65172be485296be7b90d70fd65d7a7c746",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/adaptation_profile.py",
+      "sha256": "7de6eb0a6d71085e1c588737e470c6ccb06f2d90c8aad389b0cb995011e96ec7",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/bridge.py",
+      "sha256": "a94761c4bcb8cf7ff18e65af69ce9acaddd72d14d94bf3a941d585700e0fcce9",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/cumulative_training.py",
+      "sha256": "b5a79d15c05d65cf8bd688b48cc2a2602743a0162b422eabd8bcefa6f058895b",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/delivery_metrics.py",
+      "sha256": "8003a8ace00d8a2bcc6a1067e1b24286b6f8d84d030e195a8756b81298bac9be",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/delivery_revision.py",
+      "sha256": "b9178ad1c30d513d9fd1c88e7bd3641247696e3d4a7c16f09e806deea44ed2d2",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/delivery_stage.py",
+      "sha256": "548464af320fcc3899b058d5baf99aa2aa3100ce1fabf1f050fecd024723f796",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/episode_metrics.py",
+      "sha256": "d8f00ebf60ef39e98b6b9730ce87b2bedbae24e5df983e0f2e3507c433384bcd",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/fast_sparse_contact.py",
+      "sha256": "959a7e6a089d3352c5219c4c7bc2ed74a794d25c44641bc6d73e49b9683afb3a",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/first_episode_comparison.py",
+      "sha256": "aa2b4bfa79fe17f5d746ffad09c5a68ada65b086e2dafe158c1c769673fe86ff",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/fixed_lr_trial.py",
+      "sha256": "9d39bd5fea98e7b4f08dfff45c6d241c04f66b12790af16b404eb8e62070a5c9",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/frozen_actor.py",
+      "sha256": "e9a791490d2fd99d89cf36a19dfe652ed7dacafe9ebd46f32411c75234840a18",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/live_ppo_diagnostic.py",
+      "sha256": "c43d10875f2f73bd8775efe4b48715da948ac81321dbfce445a6e8adbfb2cb1c",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/manifest.py",
+      "sha256": "3d2980a5cf52225f992e54525f4afef01908c6f34c533c24f4ea4baed51b219a",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/moving_diagnostic.py",
+      "sha256": "cfdc9fd41eeabda4c156e268c0169e9005a0f237cb6926b54d432d0cd5e2d0d2",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py",
+      "sha256": "ad686af511a67ff9199d53c959d80e52519425a41e6892448a34a7f35881db4c",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/rigid_body_reference.py",
+      "sha256": "ec603c4f051b564ac9b2ead90b203fab2233938dbf64a9b74fb447074ee69093",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/runtime_readiness.py",
+      "sha256": "3784e935b2b6f09426cc94c762f94c67e55c5a44611f3d53d354fea5cc260c6d",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/scale_diagnostic.py",
+      "sha256": "636c748bbd68880dd02c44452f659faa37b5ec5d41f226ca26be260429a515fa",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/scale_motion.py",
+      "sha256": "059c0721d87fe4f2f267f77f82e741cee7af02be71ca8cd2291089a14060bbce",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/scale_motion_evidence.py",
+      "sha256": "9df5be18729e83a60ac67ffc8630f737aa245e3113027076d8ccb4b3de30ada8",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/scale_reset.py",
+      "sha256": "2bec1b62d6e3b2e30934a4376d21b679534611c2a940765baf43f281fb1645d0",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/scale_startup.py",
+      "sha256": "f26dd4dca852d1e2e3e7834a80a53b72257e5e06cef5027314dfa4ca60ff9888",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/scan_footprint.py",
+      "sha256": "f55fbfa79411e593d2c3653610bd4035145b72ab32fbd6d1c4b45de400947558",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/shared_terrain_bank.py",
+      "sha256": "3bd592bdcd0f3a6abab505ae735a7515959c815ffd0d1799b352426676224a40",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/smoke_artifacts.py",
+      "sha256": "3d8e266790b1066067099e28616d10f97cb51d91e21c2ba832b1c842752ef675",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/source_ground_ray_caster.py",
+      "sha256": "5624b7e3a6464c4c607d07d1abddc4bd01110e2be44d37cfb0a6b4d66598bb9b",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/source_selection.py",
+      "sha256": "cfc7c2de6eac43ebcaaaaaa72971eb0e3e106afda4045e2078e326a6b1cde8c1",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/source_training.py",
+      "sha256": "9f87bf5aa0e70ed134e8cffc0bf2c2e6d2da305561626af36d3a022af0d455fb",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/sparse_contact.py",
+      "sha256": "0cc85271946102c31570520e1b8d216a7f78fc6e07b9fed38edeede786b90a9a",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/tensor_codec.py",
+      "sha256": "5de7233743534fed84f242162ee844420c68429ae77748738f017d5e16e07995",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/terrain_config.py",
+      "sha256": "80a7efda47e07ac414e6f2c146fc9f2a8e25a7ecd70ad392fc2cb6acadbe954a",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/tile_bounds.py",
+      "sha256": "46e8f829e3c2ad11c7358134d37d037999599272f5d3629c3ea0db29178e3f8c",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/tile_bounds_diagnostics.py",
+      "sha256": "f26b7dbf211f4a5f42be0be925041284e94c63fbfc22dd783aa0c6e402d9bcf8",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/training_budget_ledger.py",
+      "sha256": "d56ddff2e347f8790ed1798a021ca2eb78aed3d7c1494b7186446ffae2402594",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/training_env.py",
+      "sha256": "7d34191591229205e69a3dd495de21ff49fe6e62bfa682273421789f9d8c9980",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/training_lifecycle.py",
+      "sha256": "5c50dd28c9aa2f7bc4c8b037ed2cc4aee4e62b9253c2e5f1f36fc234eb95ba2a",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/training_ppo.py",
+      "sha256": "c91ac26893e82e60f02c84a70797a87d18c3f5e976afcdce718fb14cb93f041e",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/training_runner.py",
+      "sha256": "1a938e078f8fa85500de92f1a223d30b9fbcbdb15d7f52280d90a3322f39d523",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/source_scan/update1_episode_comparison.py",
+      "sha256": "bf59f288524e02ff82ca96e6bcbe35c00e0c03372a6e373e8ffc0620f154d728",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/__init__.py",
+      "sha256": "c3210df83c0925f870205c9be0a4be03d3fba69e1620936010c564a9f9ce5c41",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/continuous_rough_env_cfg.py",
+      "sha256": "9f3a281f438cc64e0de6617a74011524e1ef12ba5d23ef71363fc455a5a8fa85",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/flat_env_cfg.py",
+      "sha256": "5366e8393f1ef5826aea1640d812f5e7ffcac093d72acf994add0d5025df5c81",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/flat_online_env_cfg.py",
+      "sha256": "7d5f9fad253981534e26a215b07956e390979a0207c7c202b42163bf83b0eeb7",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/heldout_boxes_env_cfg.py",
+      "sha256": "749cd42ef6aa6ba7c70779121fb5281a8629b31b6f5d35b7c136e77d594212d0",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/motion_imitation_env_cfg.py",
+      "sha256": "a64656a685a3d8d5f5e332f1533e209a40444cdcb729d175a800e266110f24e3",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/online_adapt_env_cfg.py",
+      "sha256": "769e0dcddcd1957c0742f3eb111e69564f6916413384eff5332b4b1691d71083",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/rough_env_cfg.py",
+      "sha256": "bf8e2c20bb2ef62fc39a6d45b42f335f6d82be82b5b0100419a424934f95515f",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_adaptation_env_cfg.py",
+      "sha256": "542153f67972b1caeb9de0e07097c7096f63783b6c554b3ec9855fe359461154",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py",
+      "sha256": "94fc416844afb28430d5ff8a889b7dfd93ee179b1a31d150fbab4d5255cd73cb",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py",
+      "sha256": "27ad0fb261ff540d20b3ee8c160587490e8ac49aaba433586f9e8ad88b658c28",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/__init__.py",
+      "sha256": "5466cdb44fa20efa97c15158988c7ce87344e4bdd1253036949ad0c9f6e8aaa0",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+      "sha256": "6b9b8ba9eb357cd92ded661f4111dd2c934295e8ff63eb6bd38a5dd41ba8f13c",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/curriculums.py",
+      "sha256": "63273f9b54f7b92b7cd94feb1e150db6b4f703bb9b260bc97c22a1760a6a8988",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/events.py",
+      "sha256": "8fd6cee5a3458abaab7318efb1c27684d72885fc6e92afdf719055ea4ad3a4e0",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/motion_prior_rewards.py",
+      "sha256": "fb683681fe63defa846340cc8270375935209d161862f0ad8fe957d787b12905",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/observations.py",
+      "sha256": "21f05323699f4699350a13f8c15702faf1a248fb625aa7521317f5a56f1625b4",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "sha256": "8ea4b0f16d002c73dde4d8230cc145ab80cf94d2a16ed63ac0d27ce29c5f881b",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/terminations.py",
+      "sha256": "3bde6d3d61c846308949d56146382b7bd710f724c8eef779bfac3179fc10156f",
+      "verification_method": "file_and_git_blob_at_runtime_revision"
+    }
+  ],
+  "offline_source_sha256": {
+    "scripts/tools/source_update1_full_episode.py": "f0f3b7bc27694e5e4c7761387e6b8c9166410a3b6f18d4588a2bd5603a53de4d",
+    "scripts/tools/source_update1_full_episode_summary.py": "477024cf0aee9b4555ed844328d6ca7e51f36467c35980da31a64a034d5a77d4",
+    "scripts/tools/source_update1_full_episode_verify.py": "3d04f2cea1055159d3bf6fc51c2fdb93b8cf4a06ffb1dad369d7729b4839ea1d",
+    "source/rl_training/rl_training/source_scan/update1_episode_comparison.py": "bf59f288524e02ff82ca96e6bcbe35c00e0c03372a6e373e8ffc0620f154d728",
+    "tests/source_scan/test_update1_episode_comparison.py": "cbcc2ec9e9f8022baa625cefa2dae8d3944b831477376a2e437491ca19940492"
+  },
+  "original_and_update2_archives_unchanged": true,
+  "first_episode_count": 120,
+  "actual_diagnostic_transitions": 207720,
+  "original_update1_paired_transitions": 140808,
+  "common_three_actor_transitions": 140021,
+  "online_comparison_finalize_s": 0.536147559992969,
+  "offline_summary_equals_online": true,
+  "actor_parameters_unchanged": true,
+  "prefix_matches": true,
+  "new_training_transitions": 0,
+  "new_ppo_updates": 0,
+  "training_charge": 271104,
+  "ledger_sha256": "9e54797c258c4d7c658bb07b9b3fe39d400019805944c44fe9d055946e1357b8",
+  "next_stage_pending_consent": true
+}

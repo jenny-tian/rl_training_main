@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "execution": {
+    "exit_code": 0,
+    "deadline_failure": null,
+    "elapsed_s": 104.03642832580954,
+    "process_group_had_remaining_children": false,
+    "budget_before": "9e54797c258c4d7c658bb07b9b3fe39d400019805944c44fe9d055946e1357b8",
+    "budget_after": "9e54797c258c4d7c658bb07b9b3fe39d400019805944c44fe9d055946e1357b8",
+    "attempted_diagnostic_transitions": 207720,
+    "diagnostic_transitions": 207720,
+    "training_transitions": 0,
+    "ppo_updates": 0
+  },
+  "checks": {
+    "total_completion": true,
+    "condition_completion": true,
+    "safety": true,
+    "bounds": true,
+    "paired_velocity_error": true,
+    "paired_reward": true,
+    "clipping": true
+  },
+  "actors": {
+    "original": {
+      "episodes": 120,
+      "completed": 87,
+      "completion_fraction": 0.725,
+      "safety_endings": 0,
+      "bounds_endings": 33,
+      "timeouts": 0,
+      "termination_counts": {
+        "source_training_completion": 87,
+        "source_terrain_tile_bounds": 33
+      },
+      "completed_time_mean_s": 29.197701149425292
+    },
+    "update1": {
+      "episodes": 120,
+      "completed": 87,
+      "completion_fraction": 0.725,
+      "safety_endings": 0,
+      "bounds_endings": 33,
+      "timeouts": 0,
+      "termination_counts": {
+        "source_training_completion": 87,
+        "source_terrain_tile_bounds": 33
+      },
+      "completed_time_mean_s": 28.82436781609196
+    },
+    "update2": {
+      "episodes": 120,
+      "completed": 85,
+      "completion_fraction": 0.7083333333333334,
+      "safety_endings": 0,
+      "bounds_endings": 35,
+      "timeouts": 0,
+      "termination_counts": {
+        "source_training_completion": 85,
+        "source_terrain_tile_bounds": 35
+      },
+      "completed_time_mean_s": 28.912941176470586
+    }
+  },
+  "paired_original_update1_transitions": 140808,
+  "common_three_actor_transitions": 140021,
+  "changed_original_update1_outcome_environment_ids": [],
+  "changed_update1_update2_outcome_environment_ids": [
+    24,
+    31,
+    36,
+    53,
+    69,
+    73,
+    75,
+    88
+  ],
+  "update1_common_lateral_rms_ratio_to_original": 1.1523313607275822
+}
