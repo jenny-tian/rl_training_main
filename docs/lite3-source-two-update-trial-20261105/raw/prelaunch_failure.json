@@ -1,0 +1,14 @@
+{
+  "source_revision": "b73b8c5c18d08b09ae9a9a98b1f59431c31d0a9c",
+  "status": "failed_before_reservation",
+  "command": "git rev-parse @{upstream}",
+  "error": "fatal: upstream branch 'refs/heads/codex/lite3-source-parallel-qualification-20261027' not stored as a remote-tracking branch",
+  "git_exit_code": 128,
+  "supervisor_exit_code": 1,
+  "simulator_started": false,
+  "budget_reserved": false,
+  "training_transitions": 0,
+  "ppo_updates": 0,
+  "budget_sha256": "f171d9fdbe380a20c827453c52bb30ac30c8f6ed431f45c01f796625be303435",
+  "repair": "Directly compare git ls-remote origin refs/heads/<current branch> against local HEAD before reserving the budget."
+}

@@ -228,8 +228,10 @@ def supervise(folder):
     if subprocess.check_output(['git','status','--porcelain'], cwd=ROOT, text=True).strip():
         raise ValueError('commit trial changes before launch')
     revision = subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip()
-    upstream = subprocess.check_output(['git','rev-parse','@{upstream}'], cwd=ROOT, text=True).strip()
-    if revision != upstream:
+    branch = subprocess.check_output(['git','symbolic-ref','--short','HEAD'], cwd=ROOT, text=True).strip()
+    remote = subprocess.check_output(['git','ls-remote','--exit-code','origin','refs/heads/'+branch],
+        cwd=ROOT, text=True, timeout=40).split()
+    if remote != [revision, 'refs/heads/'+branch]:
         raise ValueError('push trial revision before launch')
     inputs = [OLD, Path(__file__), ROOT/'scripts/tools/source_adaptation_runtime.py',
         ROOT/'scripts/tools/source_delivery_light.py', ROOT/'scripts/tools/source_training_preflight.py',
