@@ -1,0 +1,279 @@
+{
+  "actor_initialization": {
+    "action_std": [
+      0.41239991784095764,
+      0.31498321890830994,
+      0.30774933099746704,
+      0.4118286669254303,
+      0.31518396735191345,
+      0.2974865138530731,
+      0.40851980447769165,
+      0.2883022129535675,
+      0.3272320330142975,
+      0.4235660135746002,
+      0.29552850127220154,
+      0.31504741311073303
+    ],
+    "action_std_mode": "checkpoint",
+    "checkpoint_iteration_ignored": 1998,
+    "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "critic_restored": false,
+    "iteration_restored": false,
+    "loaded": "actor_state_dict_only",
+    "optimizer_restored": false,
+    "reward_profile": "lite3_source_lowspeed_v1"
+  },
+  "attempted_transition_upper_bound": 5760,
+  "automatic_resume": false,
+  "bounded_adaptation_trial": true,
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "committed_transition_ceiling": 5760,
+  "completed_updates": 2,
+  "data_kind": "source_simulation",
+  "elapsed_seconds": 7.79021879285574,
+  "exposure": {
+    "flat": {
+      "episode_assignments": 12,
+      "transitions": 576
+    },
+    "friction_alternating_regions": {
+      "episode_assignments": 4,
+      "transitions": 192
+    },
+    "friction_front_back_bands": {
+      "episode_assignments": 4,
+      "transitions": 192
+    },
+    "friction_left_right_bands": {
+      "episode_assignments": 4,
+      "transitions": 192
+    },
+    "multi_scale_rough": {
+      "episode_assignments": 24,
+      "transitions": 1152
+    },
+    "slope_cross_slope_left": {
+      "episode_assignments": 6,
+      "transitions": 288
+    },
+    "slope_cross_slope_right": {
+      "episode_assignments": 6,
+      "transitions": 288
+    },
+    "slope_downhill": {
+      "episode_assignments": 6,
+      "transitions": 288
+    },
+    "slope_rough_cross_slope_left": {
+      "episode_assignments": 3,
+      "transitions": 144
+    },
+    "slope_rough_cross_slope_right": {
+      "episode_assignments": 3,
+      "transitions": 144
+    },
+    "slope_rough_downhill": {
+      "episode_assignments": 6,
+      "transitions": 288
+    },
+    "slope_rough_uphill": {
+      "episode_assignments": 6,
+      "transitions": 288
+    },
+    "slope_uphill": {
+      "episode_assignments": 6,
+      "transitions": 288
+    },
+    "stairs_ascending": {
+      "episode_assignments": 15,
+      "transitions": 720
+    },
+    "stairs_descending": {
+      "episode_assignments": 15,
+      "transitions": 720
+    }
+  },
+  "g3_g4_qualified": false,
+  "geometry_seed": 30000,
+  "manifest_sha256": "f00ef5ee74b4998a83dfe66c0e20a3a8e22f78bac0ff63a3825c964bfe1ffa52",
+  "max_updates": 2,
+  "num_envs": 120,
+  "partial_rollout_stored_steps": 0,
+  "ppo_seed": 130001,
+  "profile": "lite3_source_lowspeed_v1",
+  "real_source_ppo_updates": 2,
+  "real_source_training_transitions": 5760,
+  "reset_state_id": 40000,
+  "returned_transitions": 5760,
+  "rollout_length": 24,
+  "rollout_steps_started": 24,
+  "run": 1,
+  "sampler_seed": 131001,
+  "schema": "lite3_source_ppo_run_report_v1",
+  "source_backward_checks": 40,
+  "source_optimizer_steps_completed": 40,
+  "source_optimizer_steps_started": 40,
+  "status": "completed",
+  "stored_transitions": 5760,
+  "synthetic_transitions": 0,
+  "training_ready": false,
+  "training_selection_performed": false,
+  "training_transitions": 5760,
+  "transition_ceiling": 5760,
+  "transitions_per_update": 2880,
+  "unused_transition_ceiling": 0,
+  "update_receipts": [
+    {
+      "actor_sha256": "63df7f715f4f822f4b6327d8574d1d315aef50d8357830f16bb7d999fd582ea7",
+      "critic_sha256": "74de839375e214d9fd2c038b730d21f656c5bcb87ef0d2451b3969567fed84ca",
+      "elapsed_seconds": 4.146297065541148,
+      "exposure": {
+        "flat": {
+          "episode_assignments": 12,
+          "transitions": 288
+        },
+        "friction_alternating_regions": {
+          "episode_assignments": 4,
+          "transitions": 96
+        },
+        "friction_front_back_bands": {
+          "episode_assignments": 4,
+          "transitions": 96
+        },
+        "friction_left_right_bands": {
+          "episode_assignments": 4,
+          "transitions": 96
+        },
+        "multi_scale_rough": {
+          "episode_assignments": 24,
+          "transitions": 576
+        },
+        "slope_cross_slope_left": {
+          "episode_assignments": 6,
+          "transitions": 144
+        },
+        "slope_cross_slope_right": {
+          "episode_assignments": 6,
+          "transitions": 144
+        },
+        "slope_downhill": {
+          "episode_assignments": 6,
+          "transitions": 144
+        },
+        "slope_rough_cross_slope_left": {
+          "episode_assignments": 3,
+          "transitions": 72
+        },
+        "slope_rough_cross_slope_right": {
+          "episode_assignments": 3,
+          "transitions": 72
+        },
+        "slope_rough_downhill": {
+          "episode_assignments": 6,
+          "transitions": 144
+        },
+        "slope_rough_uphill": {
+          "episode_assignments": 6,
+          "transitions": 144
+        },
+        "slope_uphill": {
+          "episode_assignments": 6,
+          "transitions": 144
+        },
+        "stairs_ascending": {
+          "episode_assignments": 15,
+          "transitions": 360
+        },
+        "stairs_descending": {
+          "episode_assignments": 15,
+          "transitions": 360
+        }
+      },
+      "losses": {
+        "entropy": 4.070129656791687,
+        "surrogate": 0.10749833714216947,
+        "value": 0.2817946940660477
+      },
+      "returned_transitions": 2880,
+      "rollout_steps": 24,
+      "stored_transitions": 2880,
+      "update": 1
+    },
+    {
+      "actor_sha256": "a283beb5157d6f206b7359406fa1010499b4ff7f13bf988f2e3aaaad42741734",
+      "critic_sha256": "792ccb060d6f64e0bbf37d5945667e21f1915d8be23cee645f45158bb016a70b",
+      "elapsed_seconds": 3.5992540447041392,
+      "exposure": {
+        "flat": {
+          "episode_assignments": 12,
+          "transitions": 576
+        },
+        "friction_alternating_regions": {
+          "episode_assignments": 4,
+          "transitions": 192
+        },
+        "friction_front_back_bands": {
+          "episode_assignments": 4,
+          "transitions": 192
+        },
+        "friction_left_right_bands": {
+          "episode_assignments": 4,
+          "transitions": 192
+        },
+        "multi_scale_rough": {
+          "episode_assignments": 24,
+          "transitions": 1152
+        },
+        "slope_cross_slope_left": {
+          "episode_assignments": 6,
+          "transitions": 288
+        },
+        "slope_cross_slope_right": {
+          "episode_assignments": 6,
+          "transitions": 288
+        },
+        "slope_downhill": {
+          "episode_assignments": 6,
+          "transitions": 288
+        },
+        "slope_rough_cross_slope_left": {
+          "episode_assignments": 3,
+          "transitions": 144
+        },
+        "slope_rough_cross_slope_right": {
+          "episode_assignments": 3,
+          "transitions": 144
+        },
+        "slope_rough_downhill": {
+          "episode_assignments": 6,
+          "transitions": 288
+        },
+        "slope_rough_uphill": {
+          "episode_assignments": 6,
+          "transitions": 288
+        },
+        "slope_uphill": {
+          "episode_assignments": 6,
+          "transitions": 288
+        },
+        "stairs_ascending": {
+          "episode_assignments": 15,
+          "transitions": 720
+        },
+        "stairs_descending": {
+          "episode_assignments": 15,
+          "transitions": 720
+        }
+      },
+      "losses": {
+        "entropy": 4.072547721862793,
+        "surrogate": -0.012092792702605947,
+        "value": 0.28793649971485136
+      },
+      "returned_transitions": 2880,
+      "rollout_steps": 24,
+      "stored_transitions": 2880,
+      "update": 2
+    }
+  ]
+}

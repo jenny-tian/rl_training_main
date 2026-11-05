@@ -1,0 +1,186 @@
+{
+  "status": "behavior_regressed",
+  "execution": {
+    "exit_code": 0,
+    "deadline_failure": null,
+    "elapsed_s": 44.022191947326064,
+    "process_group_had_remaining_children": false,
+    "budget_after": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-ppo-ledgers/lite3-l1-v1.json",
+      "sha256": "9941b3774a8d712749ff1fa608479ec1ec9b81c847e6ca4791c49cfdc1fbd865"
+    },
+    "cumulative_charged_transitions": 265344,
+    "accepted_short_trial": false,
+    "training_transitions": 5760,
+    "ppo_updates": 2,
+    "diagnostic_transitions": 48000
+  },
+  "baseline": {
+    "vx_mps": 0.313888843005937,
+    "velocity_rms_error_mps": 0.08056581181796676,
+    "reward_per_control": 0.09716739208822561,
+    "clipped_joint_fraction": 0.0,
+    "weighted_reward_per_second": {
+      "track_lin_vel_xy_exp": 3.6775667148215905,
+      "track_ang_vel_z_exp": 1.4902484031187164,
+      "lin_vel_z_l2": -0.0018476167016882926,
+      "ang_vel_xy_l2": -0.01506655529455655,
+      "flat_orientation_l2": -0.019888331024104255,
+      "base_height_l2": -0.09515215016311655,
+      "joint_torques_l2": -0.04028904437025388,
+      "joint_acc_l2": -0.01756038481497309,
+      "feet_air_time": -0.03022497205519014,
+      "feet_air_time_variance": -0.02892566475901953,
+      "undesired_contacts": 0.0,
+      "feet_slide": -0.0332833415578999,
+      "foot_impact_velocity": -0.0019232119175035523,
+      "contact_forces": 0.0,
+      "action_rate_l2": -0.025284240870719562,
+      "joint_pos_limits": 0.0,
+      "stand_still": 0.0
+    }
+  },
+  "candidate": {
+    "vx_mps": 0.24023663064208167,
+    "velocity_rms_error_mps": 0.12378847391198423,
+    "reward_per_control": 0.08009348564318014,
+    "clipped_joint_fraction": 0.0,
+    "weighted_reward_per_second": {
+      "track_lin_vel_xy_exp": 3.1640608685202896,
+      "track_ang_vel_z_exp": 1.4296763203574552,
+      "lin_vel_z_l2": -0.0019761619258994675,
+      "ang_vel_xy_l2": -0.04845578898884735,
+      "flat_orientation_l2": -0.05952000035723581,
+      "base_height_l2": -0.10918799085708128,
+      "joint_torques_l2": -0.04388998357811943,
+      "joint_acc_l2": -0.055905398173657785,
+      "feet_air_time": -0.14692277222995956,
+      "feet_air_time_variance": -0.043620421731081375,
+      "undesired_contacts": 0.0,
+      "feet_slide": -0.03999494376944171,
+      "foot_impact_velocity": -0.0014694498584834458,
+      "contact_forces": -2.5596554494566387e-06,
+      "action_rate_l2": -0.03811743559348098,
+      "joint_pos_limits": 0.0,
+      "stand_still": 0.0
+    }
+  },
+  "baseline_done_count": 0,
+  "candidate_done_count": 0,
+  "evaluation_thresholds": {
+    "min_vx_mps": 0.2511110744047496,
+    "max_velocity_rms_error_mps": 0.12084871772695015,
+    "max_clipped_joint_fraction": 0.01,
+    "max_done_count": 0,
+    "min_reward_per_control": 0.0777339136705805
+  },
+  "evaluation_checks": {
+    "speed": false,
+    "velocity_error": false,
+    "clipping": true,
+    "endings": true,
+    "reward": true
+  },
+  "speed_change_percent": -23.46442506797295,
+  "error_change_percent": 53.64888793236054,
+  "reward_change_percent": -17.571642171421853,
+  "condition_count": 15,
+  "conditions_with_lower_speed": 15,
+  "conditions_with_larger_error": 13,
+  "updates": [
+    {
+      "update": 1,
+      "training_transitions": 2880,
+      "mean_step_reward": 0.07057197669443364,
+      "sampled_action_clipped_fraction": 0.00034722223548063386,
+      "post_step_vx_mps": 0.2225100213351349,
+      "episode_endings": 0,
+      "learning_rate": 1e-05,
+      "action_std": [
+        0.4131269156932831,
+        0.3149741291999817,
+        0.30856412649154663,
+        0.41131919622421265,
+        0.315072625875473,
+        0.2979024052619934,
+        0.40826597809791565,
+        0.28909850120544434,
+        0.3278810977935791,
+        0.42461785674095154,
+        0.2949291169643402,
+        0.3145682215690613
+      ],
+      "mean_action_std": 0.343360036611557,
+      "initial_probe_mean_shift_rms": 0.02891894429922104,
+      "initial_probe_mean_shift_max": 0.06565064191818237,
+      "rollout": {
+        "value_mean": 0.00892878882586956,
+        "return_mean": 0.6414968967437744,
+        "value_mse": 0.4735836684703827,
+        "advantage_mean": -1.0596381549987655e-08,
+        "advantage_std": 0.9999998807907104
+      },
+      "losses": {
+        "value": 0.2817946940660477,
+        "surrogate": 0.10749833714216947,
+        "entropy": 4.070129656791687
+      },
+      "elapsed_s": 4.146297065541148
+    },
+    {
+      "update": 2,
+      "training_transitions": 5760,
+      "mean_step_reward": 0.07585165649652481,
+      "sampled_action_clipped_fraction": 0.0002604166729724966,
+      "post_step_vx_mps": 0.27025606979926425,
+      "episode_endings": 0,
+      "learning_rate": 5.062500000000001e-05,
+      "action_std": [
+        0.4130763113498688,
+        0.31516069173812866,
+        0.30843043327331543,
+        0.41145098209381104,
+        0.31509196758270264,
+        0.29800689220428467,
+        0.4083928167819977,
+        0.2891608476638794,
+        0.3278585970401764,
+        0.42463457584381104,
+        0.29487577080726624,
+        0.31468507647514343
+      ],
+      "mean_action_std": 0.34340208768844604,
+      "initial_probe_mean_shift_rms": 0.02774973027408123,
+      "initial_probe_mean_shift_max": 0.06784889101982117,
+      "rollout": {
+        "value_mean": 0.3035307824611664,
+        "return_mean": 0.877354085445404,
+        "value_mse": 0.409624844789505,
+        "advantage_mean": 1.5232298977707615e-08,
+        "advantage_std": 1.0
+      },
+      "losses": {
+        "value": 0.28793649971485136,
+        "surrogate": -0.012092792702605947,
+        "entropy": 4.072547721862793
+      },
+      "elapsed_s": 3.5992540447041392
+    }
+  ],
+  "checkpoint_sha256": {
+    "actor_update_1.pt": "5b87e1ef80c4d903bd7a43f87306dbfc6c59890df6db73e76c5a852f93b1eeac",
+    "actor_update_2.pt": "83fbebee7c9ae483aaeef879b3a688f1c19e582183bff606c903061b6a7d945c",
+    "model_update_2.pt": "01a2ed776a5ad5adf11a70687f51d2145c0b562353827a2f13b8fdb770a1ec4d"
+  },
+  "budget_checks": {
+    "history_preserved": true,
+    "old_ceilings_preserved": true,
+    "cumulative_charge_exact": true
+  },
+  "recommendation": "retain original checkpoint; do not extend or promote this candidate",
+  "limitations": [
+    "400 controls represent 8 seconds, not full terrain qualification",
+    "update1 has only offline probes, no deterministic runtime evaluation",
+    "no ablation isolates critic initialization from learning-rate effects"
+  ]
+}

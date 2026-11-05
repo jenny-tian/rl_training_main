@@ -1,0 +1,16 @@
+{
+  "source": "/home/tjx/anaconda3/envs/env_isaaclab/lib/python3.11/site-packages/rsl_rl/algorithms/ppo.py",
+  "sha256": "a2d35e7ad7b884c80b7434e7d2ce785a6da1e18d93c96f1179fbd3a208669f8c",
+  "rsl_rl_version": "5.0.1",
+  "initial_learning_rate": 0.001,
+  "desired_kl": 0.01,
+  "decay_threshold_kl": 0.02,
+  "decay_factor": 1.5,
+  "min_learning_rate": 1e-05,
+  "update1_final_learning_rate": 1e-05,
+  "optimizer_steps_in_update1": 20,
+  "inferred_minimum_decay_events": 12,
+  "inference_basis": "Under the installed adaptive schedule, reaching 1e-5 from 1e-3 requires at least 12 decay events, each conditioned on minibatch mean KL > 0.02.",
+  "limitation": "Per-minibatch KL was not logged; this is a lower bound inferred from code and the recorded final learning rate.",
+  "behavior": "The scheduler changes the learning rate for the next optimizer step. It does not roll back an earlier update or impose a hard action-change bound."
+}
