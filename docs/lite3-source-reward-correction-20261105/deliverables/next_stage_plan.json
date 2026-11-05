@@ -1,0 +1,70 @@
+{
+  "status": "proposed_not_executed",
+  "profile": "lite3_source_lowspeed_v1",
+  "next_stage": {
+    "name": "bounded_live_reward_verification",
+    "purpose": "Verify the real SDK configuration and reward preference before further learning",
+    "actor_checkpoints": [
+      "original_model_1998",
+      "candidate_actor_update_90"
+    ],
+    "actions": "deterministic_mean",
+    "num_envs": 120,
+    "steps_per_actor": 400,
+    "diagnostic_transition_cap": 96000,
+    "training_transition_cap": 0,
+    "command": [
+      0.3,
+      0.0,
+      0.0
+    ],
+    "terrain": "same 15 L1 conditions and paired initial state",
+    "device": "cuda:0",
+    "wall_limit_s": 300,
+    "startup_limit_s": 120,
+    "close_limit_s": 15,
+    "checks": [
+      "actual manager has exactly the 17 configured terms",
+      "environment reward gate is 1 and expected terms are sampled",
+      "old actor retains walking under the same controls",
+      "measure old/new total and component rewards",
+      "record clipping, endings and unchanged actor hashes"
+    ],
+    "stop_on": [
+      "nonfinite data",
+      "configuration mismatch",
+      "lifecycle timeout"
+    ],
+    "launch_implemented": false
+  },
+  "subsequent_training": {
+    "status": "requires_runtime_results_and_a_separate_incremental_budget",
+    "initialize_from": "original_model_1998",
+    "action_std": "checkpoint_12_values",
+    "num_envs": 120,
+    "rollout_length": 24,
+    "updates": 2,
+    "training_transitions": 5760,
+    "save_after_updates": [
+      1,
+      2
+    ],
+    "automatic_extension": false,
+    "historical_charged_transitions": 259584,
+    "proposed_cumulative_charged_transitions": 265344,
+    "old_numerical_budget_remaining": 2560,
+    "historical_budget_reset": false,
+    "learning_rate_and_critic_changes": "not included in this configuration stage",
+    "stop_on": [
+      "nonfinite losses or actions",
+      "safety or clipping deterioration",
+      "deterministic locomotion regression"
+    ],
+    "quantitative_behavior_thresholds": "set from the new-profile live baseline before training"
+  },
+  "current_stage": {
+    "simulation_steps": 0,
+    "training_transitions": 0,
+    "ppo_updates": 0
+  }
+}

@@ -18,6 +18,7 @@ from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor, RayCaster
 from isaaclab.utils.math import quat_apply_inverse, yaw_quat
 from rl_training.lite3_stability_contract import tilt_guard_band_penalty
+from rl_training.source_scan.adaptation_profile import resolve_reward_gait_level
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -57,8 +58,9 @@ def update_gait_level_from_terrain_mean(terrain_level_mean: float | torch.Tensor
     return gait_level
 
 def get_gait_level_tensor(env: ManagerBasedRLEnv) -> torch.Tensor:
-    """Return global gait_level as tensor matching environment batch size."""
-    return torch.full((env.num_envs,), gait_level, device=env.device)
+    """Use an explicit environment gate, falling back to the legacy terrain curriculum."""
+    level = resolve_reward_gait_level(getattr(env, "cfg", None), gait_level)
+    return torch.full((env.num_envs,), level, device=env.device)
 
 
 def track_lin_vel_xy_exp(

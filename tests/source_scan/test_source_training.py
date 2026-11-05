@@ -99,3 +99,42 @@ def test_bad_initialization_rejected_before_actor_mutation(tmp_path, failure):
             action_std=float("nan") if failure == "std" else 1.0,
         )
     assert all(torch.equal(value, before[key]) for key, value in actor.state_dict().items())
+
+
+def test_adaptation_initialization_preserves_nonuniform_std_actor_and_rng(tmp_path):
+    from types import SimpleNamespace as NS
+    from rl_training.source_scan.adaptation_profile import (
+        SOURCE_ADAPTATION_PROFILE, build_source_adaptation_rewards, initialize_source_adaptation_actor)
+
+    path, _, _ = checkpoint_fixture(tmp_path)
+    saved = torch.load(path, weights_only=True)
+    saved["actor_state_dict"]["distribution.log_std_param"] = torch.linspace(0.2, 0.45, 12).log()
+    torch.save(saved, path)
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    actor = make_actor()
+    cfg = NS(source_reward_profile=SOURCE_ADAPTATION_PROFILE, reward_gait_level=1.0,
+             rewards=build_source_adaptation_rewards(NS, NS))
+    rng = torch.random.get_rng_state().clone()
+    report = initialize_source_adaptation_actor(actor, path, cfg, expected_sha256=digest)
+    assert torch.equal(rng, torch.random.get_rng_state())
+    assert all(torch.equal(v, saved["actor_state_dict"][k]) for k, v in actor.state_dict().items())
+    assert report["action_std_mode"] == "checkpoint" and len(report["action_std"]) == 12
+    assert not report["critic_restored"] and not report["optimizer_restored"]
+    assert all(p.requires_grad for p in actor.parameters())
+    with pytest.raises(ValueError, match="preserves checkpoint"):
+        initialize_source_adaptation_actor(actor, path, cfg, action_std=1.0)
+
+
+@pytest.mark.parametrize("std", [1e-100, 1e100, None])
+def test_unrepresentable_exploration_is_rejected_before_actor_mutation(tmp_path, std):
+    path, digest, _ = checkpoint_fixture(tmp_path)
+    if std is None:
+        saved = torch.load(path, weights_only=True)
+        saved["actor_state_dict"]["distribution.log_std_param"][0] = 1000.0
+        torch.save(saved, path)
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    actor = make_actor()
+    before = {k: v.clone() for k, v in actor.state_dict().items()}
+    with pytest.raises(FloatingPointError, match="exploration std"):
+        load_source_actor_only(actor, path, expected_sha256=digest, action_std=std)
+    assert all(torch.equal(v, before[k]) for k, v in actor.state_dict().items())

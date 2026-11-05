@@ -71,10 +71,10 @@ def load_source_actor_only(
     actor: torch.nn.Module,
     checkpoint: Path,
     *,
-    action_std: float = 1.0,
+    action_std: float | None = 1.0,
     expected_sha256: str = CHECKPOINT_SHA256,
 ) -> dict[str, Any]:
-    """Load only a registered actor state and reset its exploration std.
+    """Load only a registered actor state; None preserves its learned exploration std.
 
     ``actor`` is the freshly constructed Source PPO actor.  The function never
     receives a critic, optimizer, or iteration counter, so those states cannot
@@ -85,7 +85,7 @@ def load_source_actor_only(
         checkpoint = Path(checkpoint)
     if not isinstance(expected_sha256, str) or len(expected_sha256) != 64:
         raise ValueError("expected_sha256 must be a 64-character digest")
-    if type(action_std) not in (int, float) or not 0.0 < float(action_std) < float("inf"):
+    if action_std is not None and (type(action_std) not in (int, float) or not 0.0 < float(action_std) < float("inf")):
         raise ValueError("action_std must be finite and positive")
     payload_bytes = checkpoint.read_bytes()
     observed_sha256 = hashlib.sha256(payload_bytes).hexdigest()
@@ -123,9 +123,13 @@ def load_source_actor_only(
     if not log_std.requires_grad or not any(parameter is log_std for parameter in actor.parameters()):
         raise ValueError("actor log_std_param must be a trainable parameter")
     initialized = dict(state)
-    initialized["distribution.log_std_param"] = torch.full_like(
-        state["distribution.log_std_param"], math.log(action_std)
-    )
+    if action_std is not None:
+        initialized["distribution.log_std_param"] = torch.full_like(
+            state["distribution.log_std_param"], math.log(action_std)
+        )
+    actual_std = initialized["distribution.log_std_param"].exp()
+    if not bool(torch.isfinite(actual_std).all()) or not bool((actual_std > 0).all()):
+        raise FloatingPointError("actor exploration std must be finite and positive in float32")
     actor.load_state_dict(initialized, strict=True)
     return {
         "checkpoint_sha256": observed_sha256,
@@ -134,7 +138,8 @@ def load_source_actor_only(
         "critic_restored": False,
         "optimizer_restored": False,
         "iteration_restored": False,
-        "action_std": float(action_std),
+        "action_std": actual_std.cpu().tolist() if action_std is None else float(action_std),
+        "action_std_mode": "checkpoint" if action_std is None else "constant",
     }
 
 
