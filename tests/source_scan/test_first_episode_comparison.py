@@ -88,3 +88,24 @@ def test_short_pair_is_reported_as_excluded_without_reset_data():
     assert result['paired_controls'] == 4
     with pytest.raises(ValueError,match='no paired samples'):
         compare_episodes(episodes,episodes,a,a,GATES,warmup=5)
+
+
+def test_compressed_archive_reads_do_not_scale_with_environment_count(tmp_path,monkeypatch):
+    arrays,events,assign = fixture(ends=(3,)*20,completed=(True,)*20)
+    path = tmp_path/'recording.npz'
+    np.savez_compressed(path,**arrays)
+    reads = []
+    original = np.lib.npyio.NpzFile.__getitem__
+    def counted(self,key):
+        reads.append(key)
+        return original(self,key)
+    monkeypatch.setattr(np.lib.npyio.NpzFile,'__getitem__',counted)
+    expected = first_episodes(arrays,events,assign)
+    with np.load(path) as archived:
+        actual = first_episodes(archived,events,assign)
+        assert actual == expected
+        assert len(reads) <= 5
+        reads.clear()
+        compared = compare_episodes(actual,actual,archived,archived,GATES,warmup=1)
+        assert compared == compare_episodes(actual,actual,arrays,arrays,GATES,warmup=1)
+        assert len(reads) <= 6

@@ -1,0 +1,121 @@
+{
+  "schema": "source_update1_full_episode_proposal_v1",
+  "status": "proposed_pending_user_consent",
+  "user_approved": false,
+  "objective": "Locate whether first-episode regression is already present after fixed-low-LR update 1 on the registered deterministic L1 allocation.",
+  "action": "frozen_update1_full_first_episode_comparison_with_archived_baselines",
+  "actor": {
+    "path": "docs/lite3-source-fixed-low-lr-trial-20261105/deliverables/actor_update_1.pt",
+    "sha256": "b21473b7c1037b857d81d3b0614d7cd23d9229707879ba31599a8bbfecd4c549"
+  },
+  "baselines": [
+    {
+      "label": "original",
+      "actor_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+      "archive": "docs/lite3-source-full-episode-comparison-20261105/raw/runtime/original.npz",
+      "rerun": false
+    },
+    {
+      "label": "fixed_lr_update2",
+      "actor_sha256": "e7fc084e6beb8cc8a4b5d9d4aefd75ae97a7160a695079cbbf36216719bf822f",
+      "archive": "docs/lite3-source-full-episode-comparison-20261105/raw/runtime/candidate.npz",
+      "rerun": false
+    }
+  ],
+  "device": "cuda:0",
+  "num_envs": 120,
+  "conditions": 15,
+  "terrain_level": "L1",
+  "same_geometry_initial_state_assignments": true,
+  "reward_profile": "lite3_source_lowspeed_v1",
+  "command_mps": [
+    0.3,
+    0
+  ],
+  "command_yaw_rate_rps": 0,
+  "policy_mode": "deterministic_frozen",
+  "reward_observation_action_control_changes": false,
+  "control_dt": 0.02,
+  "max_controls": 2000,
+  "max_episode_seconds": 40,
+  "stop_when_all_first_episodes_end": true,
+  "diagnostic_transition_cap": 240000,
+  "new_training_transitions": 0,
+  "new_ppo_updates": 0,
+  "cumulative_training_charge": 271104,
+  "completion": {
+    "min_progress_m": 9,
+    "consecutive_stable_controls": 50,
+    "use_existing_lifecycle": true
+  },
+  "prefix_validation": {
+    "controls": 400,
+    "reference": "docs/lite3-source-fixed-low-lr-trial-20261105/raw/runtime/actor_update_1.npz",
+    "fields": [
+      "state_first_9_fields",
+      "columns",
+      "done",
+      "rewards"
+    ],
+    "exact_equal": true,
+    "failure_action": "stop and report; no automatic retry or replacement baseline"
+  },
+  "episode_accounting": "First episode only, include terminal sample; charge all executed transitions, including automatic resets.",
+  "acceptance_gates": {
+    "minimum_total_completed": 87,
+    "minimum_per_condition_completed": [
+      12,
+      24,
+      0,
+      6,
+      0,
+      0,
+      12,
+      15,
+      0,
+      6,
+      0,
+      0,
+      4,
+      4,
+      4
+    ],
+    "max_safety_endings": 0,
+    "max_bounds_endings": 33,
+    "max_paired_velocity_rms_error_ratio_to_original": 1.5,
+    "min_paired_reward_ratio_to_original": 0.8,
+    "max_first_episode_clipped_joint_fraction": 0.01
+  },
+  "paired_metric_window": "Control 101 through the earlier first ending for original versus update1; report sample counts and exclusions.",
+  "three_actor_window": "For each environment, control 101 through the earliest first ending among original, update1 and update2. Diagnostic comparison, separate from original-update1 acceptance gates.",
+  "priority_environment_ids": [
+    24,
+    31,
+    69,
+    73,
+    75,
+    36,
+    53,
+    88
+  ],
+  "wall_limit_s": 600,
+  "startup_limit_s": 120,
+  "comparison_finalize_limit_s": 30,
+  "close_limit_s": 15,
+  "retry": false,
+  "automatic_extension": false,
+  "automatic_training": false,
+  "automatic_selection_or_deployment": false,
+  "budget_reserved": false,
+  "simulator_started": false,
+  "deliverables": [
+    "three actor first-episode table",
+    "15 condition comparison",
+    "matched speed/reward/lateral/yaw metrics",
+    "priority environment trajectories",
+    "regression timing assessment with causal limitations",
+    "runtime receipts and checksums",
+    "separate next-stage proposal"
+  ],
+  "decision_after_stage": "Report results and seek explicit user agreement before any further stage."
+}

@@ -1,0 +1,58 @@
+{
+  "status": "behavior_regressed",
+  "checks": {
+    "total_completion": false,
+    "condition_completion": false,
+    "safety": true,
+    "bounds": false,
+    "paired_velocity_error": true,
+    "paired_reward": true,
+    "clipping": true
+  },
+  "original": {
+    "episodes": 120,
+    "completed": 87,
+    "completion_fraction": 0.725,
+    "safety_endings": 0,
+    "bounds_endings": 33,
+    "timeouts": 0,
+    "termination_counts": {
+      "source_training_completion": 87,
+      "source_terrain_tile_bounds": 33
+    },
+    "completed_time_mean_s": 29.197701149425292
+  },
+  "candidate": {
+    "episodes": 120,
+    "completed": 85,
+    "completion_fraction": 0.7083333333333334,
+    "safety_endings": 0,
+    "bounds_endings": 35,
+    "timeouts": 0,
+    "termination_counts": {
+      "source_training_completion": 85,
+      "source_terrain_tile_bounds": 35
+    },
+    "completed_time_mean_s": 28.912941176470586
+  },
+  "paired_metrics": {
+    "original": {
+      "transitions": 141647,
+      "velocity_rms_error_mps": 0.09325773733361485,
+      "vx_mps": 0.3115453718434654,
+      "reward_per_control": 0.09501430048058429,
+      "clipped_joint_fraction": 0.0
+    },
+    "candidate": {
+      "transitions": 141647,
+      "velocity_rms_error_mps": 0.09220026658293659,
+      "vx_mps": 0.31597814208094077,
+      "reward_per_control": 0.09519887388970796,
+      "clipped_joint_fraction": 0.0
+    }
+  },
+  "controls_by_actor": {
+    "original": 1731,
+    "candidate": 1706
+  }
+}

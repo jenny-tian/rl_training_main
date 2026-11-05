@@ -1,0 +1,3016 @@
+{
+  "passed": false,
+  "checks": {
+    "total_completion": false,
+    "condition_completion": false,
+    "safety": true,
+    "bounds": false,
+    "paired_velocity_error": true,
+    "paired_reward": true,
+    "clipping": true
+  },
+  "original": {
+    "episodes": 120,
+    "completed": 87,
+    "completion_fraction": 0.725,
+    "safety_endings": 0,
+    "bounds_endings": 33,
+    "timeouts": 0,
+    "termination_counts": {
+      "source_training_completion": 87,
+      "source_terrain_tile_bounds": 33
+    },
+    "completed_time_mean_s": 29.197701149425292
+  },
+  "candidate": {
+    "episodes": 120,
+    "completed": 85,
+    "completion_fraction": 0.7083333333333334,
+    "safety_endings": 0,
+    "bounds_endings": 35,
+    "timeouts": 0,
+    "termination_counts": {
+      "source_training_completion": 85,
+      "source_terrain_tile_bounds": 35
+    },
+    "completed_time_mean_s": 28.912941176470586
+  },
+  "paired_metrics": {
+    "original": {
+      "transitions": 141647,
+      "velocity_rms_error_mps": 0.09325773733361485,
+      "vx_mps": 0.3115453718434654,
+      "reward_per_control": 0.09501430048058429,
+      "clipped_joint_fraction": 0.0
+    },
+    "candidate": {
+      "transitions": 141647,
+      "velocity_rms_error_mps": 0.09220026658293659,
+      "vx_mps": 0.31597814208094077,
+      "reward_per_control": 0.09519887388970796,
+      "clipped_joint_fraction": 0.0
+    }
+  },
+  "paired_controls": 141647,
+  "excluded_environment_ids": [],
+  "candidate_first_episode_clipped_fraction": 0.0,
+  "pairs": [
+    {
+      "env_id": 0,
+      "column": 3,
+      "terrain": "slope_downhill",
+      "original_steps": 1009,
+      "candidate_steps": 1001,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 901,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22132471583162275,
+      "original_reward_per_control": 0.06301232941015898,
+      "original_vx_mps": 0.48046280210475945,
+      "candidate_velocity_rms_error_mps": 0.2217958222779007,
+      "candidate_reward_per_control": 0.06313240163227513,
+      "candidate_vx_mps": 0.4831758474933188
+    },
+    {
+      "env_id": 1,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 2,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1563,
+      "candidate_steps": 1549,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1449,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03340326888339196,
+      "original_reward_per_control": 0.10287452999948264,
+      "original_vx_mps": 0.29982444440355954,
+      "candidate_velocity_rms_error_mps": 0.0337066849511288,
+      "candidate_reward_per_control": 0.10274757956191694,
+      "candidate_vx_mps": 0.30262924570351163
+    },
+    {
+      "env_id": 3,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1492,
+      "candidate_steps": 1470,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1370,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.0337978883161759,
+      "original_reward_per_control": 0.1023558325154325,
+      "original_vx_mps": 0.3144876744190272,
+      "candidate_velocity_rms_error_mps": 0.03363438849363685,
+      "candidate_reward_per_control": 0.10239304803729093,
+      "candidate_vx_mps": 0.31997134615905093
+    },
+    {
+      "env_id": 4,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 5,
+      "column": 2,
+      "terrain": "slope_uphill",
+      "original_steps": 846,
+      "candidate_steps": 836,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 736,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13794498083455625,
+      "original_reward_per_control": 0.08185483052165124,
+      "original_vx_mps": 0.19558664520635552,
+      "candidate_velocity_rms_error_mps": 0.13363092282512082,
+      "candidate_reward_per_control": 0.08293266253151445,
+      "candidate_vx_mps": 0.20077075247409876
+    },
+    {
+      "env_id": 6,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1494,
+      "candidate_steps": 1473,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1373,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03774222891730861,
+      "original_reward_per_control": 0.10205552030839217,
+      "original_vx_mps": 0.3138318470118259,
+      "candidate_velocity_rms_error_mps": 0.037253491455440144,
+      "candidate_reward_per_control": 0.10203403119198966,
+      "candidate_vx_mps": 0.31821068863059515
+    },
+    {
+      "env_id": 7,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1479,
+      "candidate_steps": 1468,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1368,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03609347337025977,
+      "original_reward_per_control": 0.10265545925478241,
+      "original_vx_mps": 0.3174999484149685,
+      "candidate_velocity_rms_error_mps": 0.03406422496676254,
+      "candidate_reward_per_control": 0.10284928715606077,
+      "candidate_vx_mps": 0.3205680707959752
+    },
+    {
+      "env_id": 8,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 9,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1500,
+      "candidate_steps": 1480,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1380,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.04991278362167346,
+      "original_reward_per_control": 0.1009698119913672,
+      "original_vx_mps": 0.3133078028758367,
+      "candidate_velocity_rms_error_mps": 0.05193840859585637,
+      "candidate_reward_per_control": 0.10071487801892925,
+      "candidate_vx_mps": 0.3188647239536479
+    },
+    {
+      "env_id": 10,
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "original_steps": 1014,
+      "candidate_steps": 932,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 832,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.18271485127852313,
+      "original_reward_per_control": 0.0687653514238315,
+      "original_vx_mps": 0.1504702881740321,
+      "candidate_velocity_rms_error_mps": 0.1696048886462088,
+      "candidate_reward_per_control": 0.07314658248527812,
+      "candidate_vx_mps": 0.16757961585468506
+    },
+    {
+      "env_id": 11,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 12,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1563,
+      "candidate_steps": 1549,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1449,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03340326888339196,
+      "original_reward_per_control": 0.10287452999948264,
+      "original_vx_mps": 0.29982444440355954,
+      "candidate_velocity_rms_error_mps": 0.0337066849511288,
+      "candidate_reward_per_control": 0.10274757956191694,
+      "candidate_vx_mps": 0.30262924570351163
+    },
+    {
+      "env_id": 13,
+      "column": 11,
+      "terrain": "slope_rough_cross_slope_right",
+      "original_steps": 633,
+      "candidate_steps": 660,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 533,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.14598702277634706,
+      "original_reward_per_control": 0.08051225434066143,
+      "original_vx_mps": 0.3556375206635101,
+      "candidate_velocity_rms_error_mps": 0.13966494437415358,
+      "candidate_reward_per_control": 0.08205782883364045,
+      "candidate_vx_mps": 0.35799452824619427
+    },
+    {
+      "env_id": 14,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1554,
+      "candidate_steps": 1541,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1441,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.02942534580806763,
+      "original_reward_per_control": 0.10338160158938343,
+      "original_vx_mps": 0.30104297494656673,
+      "candidate_velocity_rms_error_mps": 0.026021935232301632,
+      "candidate_reward_per_control": 0.1033469187088671,
+      "candidate_vx_mps": 0.30486159776334215
+    },
+    {
+      "env_id": 15,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1479,
+      "candidate_steps": 1468,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1368,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03609347337025977,
+      "original_reward_per_control": 0.10265545925478241,
+      "original_vx_mps": 0.3174999484149685,
+      "candidate_velocity_rms_error_mps": 0.03406422496676254,
+      "candidate_reward_per_control": 0.10284928715606077,
+      "candidate_vx_mps": 0.3205680707959752
+    },
+    {
+      "env_id": 16,
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "original_steps": 736,
+      "candidate_steps": 768,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 636,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13373766821220254,
+      "original_reward_per_control": 0.08305198745283775,
+      "original_vx_mps": 0.3297611892504512,
+      "candidate_velocity_rms_error_mps": 0.12892321411616375,
+      "candidate_reward_per_control": 0.08436204476920142,
+      "candidate_vx_mps": 0.3326858492954722
+    },
+    {
+      "env_id": 17,
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "original_steps": 946,
+      "candidate_steps": 946,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 846,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.1447933034411079,
+      "original_reward_per_control": 0.07924099903310144,
+      "original_vx_mps": 0.18263247238370825,
+      "candidate_velocity_rms_error_mps": 0.13888814646457173,
+      "candidate_reward_per_control": 0.08065931475846869,
+      "candidate_vx_mps": 0.187110702249598
+    },
+    {
+      "env_id": 18,
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "original_steps": 1014,
+      "candidate_steps": 932,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 832,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.18271485127852313,
+      "original_reward_per_control": 0.0687653514238315,
+      "original_vx_mps": 0.1504702881740321,
+      "candidate_velocity_rms_error_mps": 0.1696048886462088,
+      "candidate_reward_per_control": 0.07314658248527812,
+      "candidate_vx_mps": 0.16757961585468506
+    },
+    {
+      "env_id": 19,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1500,
+      "candidate_steps": 1480,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1380,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.04991278362167346,
+      "original_reward_per_control": 0.1009698119913672,
+      "original_vx_mps": 0.3133078028758367,
+      "candidate_velocity_rms_error_mps": 0.05193840859585637,
+      "candidate_reward_per_control": 0.10071487801892925,
+      "candidate_vx_mps": 0.3188647239536479
+    },
+    {
+      "env_id": 20,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 21,
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "original_steps": 736,
+      "candidate_steps": 768,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 636,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13373766821220254,
+      "original_reward_per_control": 0.08305198745283775,
+      "original_vx_mps": 0.3297611892504512,
+      "candidate_velocity_rms_error_mps": 0.12892321411616375,
+      "candidate_reward_per_control": 0.08436204476920142,
+      "candidate_vx_mps": 0.3326858492954722
+    },
+    {
+      "env_id": 22,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1470,
+      "candidate_steps": 1441,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1341,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.053150011344453095,
+      "original_reward_per_control": 0.10046212075479895,
+      "original_vx_mps": 0.322876225204098,
+      "candidate_velocity_rms_error_mps": 0.0554829935697127,
+      "candidate_reward_per_control": 0.10010878788657668,
+      "candidate_vx_mps": 0.32840818822339435
+    },
+    {
+      "env_id": 23,
+      "column": 3,
+      "terrain": "slope_downhill",
+      "original_steps": 1009,
+      "candidate_steps": 1001,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 901,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22132471583162275,
+      "original_reward_per_control": 0.06301232941015898,
+      "original_vx_mps": 0.48046280210475945,
+      "candidate_velocity_rms_error_mps": 0.2217958222779007,
+      "candidate_reward_per_control": 0.06313240163227513,
+      "candidate_vx_mps": 0.4831758474933188
+    },
+    {
+      "env_id": 24,
+      "column": 13,
+      "terrain": "friction_front_back_bands",
+      "original_steps": 1512,
+      "candidate_steps": 1435,
+      "original_completed": true,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 1335,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.029274015809243922,
+      "original_reward_per_control": 0.10337578116252052,
+      "original_vx_mps": 0.3131703954734159,
+      "candidate_velocity_rms_error_mps": 0.028990419797815248,
+      "candidate_reward_per_control": 0.1029575881635288,
+      "candidate_vx_mps": 0.31621934075034064
+    },
+    {
+      "env_id": 25,
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "original_steps": 802,
+      "candidate_steps": 798,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 698,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10968062560352525,
+      "original_reward_per_control": 0.0890953531170137,
+      "original_vx_mps": 0.32967907666391494,
+      "candidate_velocity_rms_error_mps": 0.11005340284234147,
+      "candidate_reward_per_control": 0.0888938610078858,
+      "candidate_vx_mps": 0.33649047163120316
+    },
+    {
+      "env_id": 26,
+      "column": 3,
+      "terrain": "slope_downhill",
+      "original_steps": 1038,
+      "candidate_steps": 1027,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 927,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.208254324724984,
+      "original_reward_per_control": 0.06653390367025097,
+      "original_vx_mps": 0.4688149454009829,
+      "candidate_velocity_rms_error_mps": 0.20953308803823978,
+      "candidate_reward_per_control": 0.06590993225050829,
+      "candidate_vx_mps": 0.4715113487765756
+    },
+    {
+      "env_id": 27,
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "original_steps": 999,
+      "candidate_steps": 991,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 891,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22885931480244062,
+      "original_reward_per_control": 0.0630846079476315,
+      "original_vx_mps": 0.4888501160273247,
+      "candidate_velocity_rms_error_mps": 0.22992686181580047,
+      "candidate_reward_per_control": 0.0629171464726471,
+      "candidate_vx_mps": 0.4917568005161521
+    },
+    {
+      "env_id": 28,
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "original_steps": 999,
+      "candidate_steps": 991,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 891,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22885931480244062,
+      "original_reward_per_control": 0.0630846079476315,
+      "original_vx_mps": 0.4888501160273247,
+      "candidate_velocity_rms_error_mps": 0.22992686181580047,
+      "candidate_reward_per_control": 0.0629171464726471,
+      "candidate_vx_mps": 0.4917568005161521
+    },
+    {
+      "env_id": 29,
+      "column": 10,
+      "terrain": "slope_rough_cross_slope_left",
+      "original_steps": 749,
+      "candidate_steps": 784,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 649,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10320028948805335,
+      "original_reward_per_control": 0.08975073184448762,
+      "original_vx_mps": 0.3153830935435229,
+      "candidate_velocity_rms_error_mps": 0.10458725125228151,
+      "candidate_reward_per_control": 0.08932612439869321,
+      "candidate_vx_mps": 0.3168316467195887
+    },
+    {
+      "env_id": 30,
+      "column": 2,
+      "terrain": "slope_uphill",
+      "original_steps": 945,
+      "candidate_steps": 922,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 822,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.1419248698842297,
+      "original_reward_per_control": 0.08046720243733943,
+      "original_vx_mps": 0.18496812678819155,
+      "candidate_velocity_rms_error_mps": 0.13918574113290938,
+      "candidate_reward_per_control": 0.08101683288364524,
+      "candidate_vx_mps": 0.18881912534906917
+    },
+    {
+      "env_id": 31,
+      "column": 13,
+      "terrain": "friction_front_back_bands",
+      "original_steps": 1512,
+      "candidate_steps": 1435,
+      "original_completed": true,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 1335,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.029274015809243922,
+      "original_reward_per_control": 0.10337578116252052,
+      "original_vx_mps": 0.3131703954734159,
+      "candidate_velocity_rms_error_mps": 0.028995504474954747,
+      "candidate_reward_per_control": 0.10300233866510407,
+      "candidate_vx_mps": 0.3161984988142935
+    },
+    {
+      "env_id": 32,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 33,
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "original_steps": 736,
+      "candidate_steps": 768,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 636,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13373766821220254,
+      "original_reward_per_control": 0.08305198745283775,
+      "original_vx_mps": 0.3297611892504512,
+      "candidate_velocity_rms_error_mps": 0.12892321411616375,
+      "candidate_reward_per_control": 0.08436204476920142,
+      "candidate_vx_mps": 0.3326858492954722
+    },
+    {
+      "env_id": 34,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1470,
+      "candidate_steps": 1441,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1341,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.053150011344453095,
+      "original_reward_per_control": 0.10046212075479895,
+      "original_vx_mps": 0.322876225204098,
+      "candidate_velocity_rms_error_mps": 0.0554829935697127,
+      "candidate_reward_per_control": 0.10010878788657668,
+      "candidate_vx_mps": 0.32840818822339435
+    },
+    {
+      "env_id": 35,
+      "column": 2,
+      "terrain": "slope_uphill",
+      "original_steps": 913,
+      "candidate_steps": 923,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 813,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.1447522784556573,
+      "original_reward_per_control": 0.07944128746878928,
+      "original_vx_mps": 0.18591149518813888,
+      "candidate_velocity_rms_error_mps": 0.14093230886746272,
+      "candidate_reward_per_control": 0.08022833090865482,
+      "candidate_vx_mps": 0.18894989645569088
+    },
+    {
+      "env_id": 36,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1487,
+      "candidate_steps": 1698,
+      "original_completed": false,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1387,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.07885308343831132,
+      "original_reward_per_control": 0.09612604039146984,
+      "original_vx_mps": 0.27721427531446924,
+      "candidate_velocity_rms_error_mps": 0.1017030535534105,
+      "candidate_reward_per_control": 0.0924270675264172,
+      "candidate_vx_mps": 0.26675785465465446
+    },
+    {
+      "env_id": 37,
+      "column": 3,
+      "terrain": "slope_downhill",
+      "original_steps": 1038,
+      "candidate_steps": 1027,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 927,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.208254324724984,
+      "original_reward_per_control": 0.06653390367025097,
+      "original_vx_mps": 0.4688149454009829,
+      "candidate_velocity_rms_error_mps": 0.20953308803823978,
+      "candidate_reward_per_control": 0.06590993225050829,
+      "candidate_vx_mps": 0.4715113487765756
+    },
+    {
+      "env_id": 38,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1731,
+      "candidate_steps": 1691,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1591,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.085511439695629,
+      "original_reward_per_control": 0.09498564280206197,
+      "original_vx_mps": 0.26758317884030797,
+      "candidate_velocity_rms_error_mps": 0.08143195494058328,
+      "candidate_reward_per_control": 0.09628482904034602,
+      "candidate_vx_mps": 0.27481657209060384
+    },
+    {
+      "env_id": 39,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1731,
+      "candidate_steps": 1691,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1591,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.085511439695629,
+      "original_reward_per_control": 0.09498564280206197,
+      "original_vx_mps": 0.26758317884030797,
+      "candidate_velocity_rms_error_mps": 0.08143195494058328,
+      "candidate_reward_per_control": 0.09628482904034602,
+      "candidate_vx_mps": 0.27481657209060384
+    },
+    {
+      "env_id": 40,
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "original_steps": 760,
+      "candidate_steps": 780,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 660,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10252840597197893,
+      "original_reward_per_control": 0.09031539940986141,
+      "original_vx_mps": 0.3178971369158138,
+      "candidate_velocity_rms_error_mps": 0.10253193861271391,
+      "candidate_reward_per_control": 0.0898239534585167,
+      "candidate_vx_mps": 0.32202687976938305
+    },
+    {
+      "env_id": 41,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1519,
+      "candidate_steps": 1500,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1400,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.029403236642041915,
+      "original_reward_per_control": 0.10283527369669966,
+      "original_vx_mps": 0.3105427278152534,
+      "candidate_velocity_rms_error_mps": 0.02822552447990864,
+      "candidate_reward_per_control": 0.10311423237389529,
+      "candidate_vx_mps": 0.3150915657196726
+    },
+    {
+      "env_id": 42,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 43,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 44,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1730,
+      "candidate_steps": 1706,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1606,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.08202959853645587,
+      "original_reward_per_control": 0.0966316807480483,
+      "original_vx_mps": 0.26676415242118456,
+      "candidate_velocity_rms_error_mps": 0.07250536083057038,
+      "candidate_reward_per_control": 0.09695516673579883,
+      "candidate_vx_mps": 0.2723387387276141
+    },
+    {
+      "env_id": 45,
+      "column": 11,
+      "terrain": "slope_rough_cross_slope_right",
+      "original_steps": 662,
+      "candidate_steps": 690,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 562,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.14065847166903342,
+      "original_reward_per_control": 0.08027240505152043,
+      "original_vx_mps": 0.3538440989323782,
+      "candidate_velocity_rms_error_mps": 0.1328614921235708,
+      "candidate_reward_per_control": 0.08253674532106461,
+      "candidate_vx_mps": 0.3554239869648027
+    },
+    {
+      "env_id": 46,
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "original_steps": 1040,
+      "candidate_steps": 1028,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 928,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.20750034833296804,
+      "original_reward_per_control": 0.06640206953476212,
+      "original_vx_mps": 0.4681552942713787,
+      "candidate_velocity_rms_error_mps": 0.20901998271326416,
+      "candidate_reward_per_control": 0.06608468647835516,
+      "candidate_vx_mps": 0.47158335261689177
+    },
+    {
+      "env_id": 47,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1519,
+      "candidate_steps": 1500,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1400,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.029403236642041915,
+      "original_reward_per_control": 0.10283527369669966,
+      "original_vx_mps": 0.3105427278152534,
+      "candidate_velocity_rms_error_mps": 0.02822552447990864,
+      "candidate_reward_per_control": 0.10311423237389529,
+      "candidate_vx_mps": 0.3150915657196726
+    },
+    {
+      "env_id": 48,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1625,
+      "candidate_steps": 1612,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1512,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.07040965938816798,
+      "original_reward_per_control": 0.09701552479891837,
+      "original_vx_mps": 0.2852398356097558,
+      "candidate_velocity_rms_error_mps": 0.06698170397810986,
+      "candidate_reward_per_control": 0.09748030273775017,
+      "candidate_vx_mps": 0.28811136828291983
+    },
+    {
+      "env_id": 49,
+      "column": 12,
+      "terrain": "friction_left_right_bands",
+      "original_steps": 1483,
+      "candidate_steps": 1462,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1362,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03445361725834919,
+      "original_reward_per_control": 0.10246167259146279,
+      "original_vx_mps": 0.31658904510447633,
+      "candidate_velocity_rms_error_mps": 0.034261364011476905,
+      "candidate_reward_per_control": 0.10280909624629489,
+      "candidate_vx_mps": 0.32141214941741786
+    },
+    {
+      "env_id": 50,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1479,
+      "candidate_steps": 1468,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1368,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03609347337025977,
+      "original_reward_per_control": 0.10265545925478241,
+      "original_vx_mps": 0.3174999484149685,
+      "candidate_velocity_rms_error_mps": 0.03406422496676254,
+      "candidate_reward_per_control": 0.10284928715606077,
+      "candidate_vx_mps": 0.3205680707959752
+    },
+    {
+      "env_id": 51,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 52,
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "original_steps": 1003,
+      "candidate_steps": 1001,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 901,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22318371473477164,
+      "original_reward_per_control": 0.06292560605561567,
+      "original_vx_mps": 0.48247903843434087,
+      "candidate_velocity_rms_error_mps": 0.22313895622008054,
+      "candidate_reward_per_control": 0.0628538917426482,
+      "candidate_vx_mps": 0.4832379792162634
+    },
+    {
+      "env_id": 53,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1487,
+      "candidate_steps": 1698,
+      "original_completed": false,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1387,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.07885308343831132,
+      "original_reward_per_control": 0.09612604039146984,
+      "original_vx_mps": 0.27721427531446924,
+      "candidate_velocity_rms_error_mps": 0.1017030535534105,
+      "candidate_reward_per_control": 0.0924270675264172,
+      "candidate_vx_mps": 0.26675785465465446
+    },
+    {
+      "env_id": 54,
+      "column": 2,
+      "terrain": "slope_uphill",
+      "original_steps": 891,
+      "candidate_steps": 892,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 791,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13898604657924862,
+      "original_reward_per_control": 0.08049931944824151,
+      "original_vx_mps": 0.192439577541068,
+      "candidate_velocity_rms_error_mps": 0.13404173801167268,
+      "candidate_reward_per_control": 0.08142789386714087,
+      "candidate_vx_mps": 0.1974132487223061
+    },
+    {
+      "env_id": 55,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1470,
+      "candidate_steps": 1441,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1341,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.053150011344453095,
+      "original_reward_per_control": 0.10046212075479895,
+      "original_vx_mps": 0.322876225204098,
+      "candidate_velocity_rms_error_mps": 0.0554829935697127,
+      "candidate_reward_per_control": 0.10010878788657668,
+      "candidate_vx_mps": 0.32840818822339435
+    },
+    {
+      "env_id": 56,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1494,
+      "candidate_steps": 1473,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1373,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03774222891730861,
+      "original_reward_per_control": 0.10205552030839217,
+      "original_vx_mps": 0.3138318470118259,
+      "candidate_velocity_rms_error_mps": 0.037253491455440144,
+      "candidate_reward_per_control": 0.10203403119198966,
+      "candidate_vx_mps": 0.31821068863059515
+    },
+    {
+      "env_id": 57,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1554,
+      "candidate_steps": 1541,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1441,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.02942534580806763,
+      "original_reward_per_control": 0.10338160158938343,
+      "original_vx_mps": 0.30104297494656673,
+      "candidate_velocity_rms_error_mps": 0.026021935232301632,
+      "candidate_reward_per_control": 0.1033469187088671,
+      "candidate_vx_mps": 0.30486159776334215
+    },
+    {
+      "env_id": 58,
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "original_steps": 760,
+      "candidate_steps": 780,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 660,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10252840597197893,
+      "original_reward_per_control": 0.09031539940986141,
+      "original_vx_mps": 0.3178971369158138,
+      "candidate_velocity_rms_error_mps": 0.10253193861271391,
+      "candidate_reward_per_control": 0.0898239534585167,
+      "candidate_vx_mps": 0.32202687976938305
+    },
+    {
+      "env_id": 59,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1625,
+      "candidate_steps": 1612,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1512,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.07040965938816798,
+      "original_reward_per_control": 0.09701552479891837,
+      "original_vx_mps": 0.2852398356097558,
+      "candidate_velocity_rms_error_mps": 0.06698170397810986,
+      "candidate_reward_per_control": 0.09748030273775017,
+      "candidate_vx_mps": 0.28811136828291983
+    },
+    {
+      "env_id": 60,
+      "column": 11,
+      "terrain": "slope_rough_cross_slope_right",
+      "original_steps": 711,
+      "candidate_steps": 755,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 611,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.1309582287433009,
+      "original_reward_per_control": 0.08304774342899836,
+      "original_vx_mps": 0.3347774069457515,
+      "candidate_velocity_rms_error_mps": 0.12548374424243536,
+      "candidate_reward_per_control": 0.08433500716887088,
+      "candidate_vx_mps": 0.3361044102721831
+    },
+    {
+      "env_id": 61,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1426,
+      "candidate_steps": 1411,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1311,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.060294336760029765,
+      "original_reward_per_control": 0.0994357750891614,
+      "original_vx_mps": 0.3297141749698819,
+      "candidate_velocity_rms_error_mps": 0.05876682812008275,
+      "candidate_reward_per_control": 0.09981640343109989,
+      "candidate_vx_mps": 0.33323582147569897
+    },
+    {
+      "env_id": 62,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1421,
+      "candidate_steps": 1390,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1290,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.06003613146240443,
+      "original_reward_per_control": 0.09976266185435585,
+      "original_vx_mps": 0.33179614439953203,
+      "candidate_velocity_rms_error_mps": 0.0702069327263674,
+      "candidate_reward_per_control": 0.0988513266456325,
+      "candidate_vx_mps": 0.3394145418507184
+    },
+    {
+      "env_id": 63,
+      "column": 3,
+      "terrain": "slope_downhill",
+      "original_steps": 1038,
+      "candidate_steps": 1027,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 927,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.208254324724984,
+      "original_reward_per_control": 0.06653390367025097,
+      "original_vx_mps": 0.4688149454009829,
+      "candidate_velocity_rms_error_mps": 0.20953308803823978,
+      "candidate_reward_per_control": 0.06590993225050829,
+      "candidate_vx_mps": 0.4715113487765756
+    },
+    {
+      "env_id": 64,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1554,
+      "candidate_steps": 1541,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1441,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.02942534580806763,
+      "original_reward_per_control": 0.10338160158938343,
+      "original_vx_mps": 0.30104297494656673,
+      "candidate_velocity_rms_error_mps": 0.026021935232301632,
+      "candidate_reward_per_control": 0.1033469187088671,
+      "candidate_vx_mps": 0.30486159776334215
+    },
+    {
+      "env_id": 65,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1479,
+      "candidate_steps": 1468,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1368,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03609347337025977,
+      "original_reward_per_control": 0.10265545925478241,
+      "original_vx_mps": 0.3174999484149685,
+      "candidate_velocity_rms_error_mps": 0.03406422496676254,
+      "candidate_reward_per_control": 0.10284928715606077,
+      "candidate_vx_mps": 0.3205680707959752
+    },
+    {
+      "env_id": 66,
+      "column": 2,
+      "terrain": "slope_uphill",
+      "original_steps": 891,
+      "candidate_steps": 892,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 791,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13898604657924862,
+      "original_reward_per_control": 0.08049931944824151,
+      "original_vx_mps": 0.192439577541068,
+      "candidate_velocity_rms_error_mps": 0.13404173801167268,
+      "candidate_reward_per_control": 0.08142789386714087,
+      "candidate_vx_mps": 0.1974132487223061
+    },
+    {
+      "env_id": 67,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1500,
+      "candidate_steps": 1480,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1380,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.04991278362167346,
+      "original_reward_per_control": 0.1009698119913672,
+      "original_vx_mps": 0.3133078028758367,
+      "candidate_velocity_rms_error_mps": 0.05193840859585637,
+      "candidate_reward_per_control": 0.10071487801892925,
+      "candidate_vx_mps": 0.3188647239536479
+    },
+    {
+      "env_id": 68,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1494,
+      "candidate_steps": 1473,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1373,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03774222891730861,
+      "original_reward_per_control": 0.10205552030839217,
+      "original_vx_mps": 0.3138318470118259,
+      "candidate_velocity_rms_error_mps": 0.037253491455440144,
+      "candidate_reward_per_control": 0.10203403119198966,
+      "candidate_vx_mps": 0.31821068863059515
+    },
+    {
+      "env_id": 69,
+      "column": 14,
+      "terrain": "friction_alternating_regions",
+      "original_steps": 1513,
+      "candidate_steps": 1406,
+      "original_completed": true,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 1306,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.029941883330455634,
+      "original_reward_per_control": 0.10304387885075546,
+      "original_vx_mps": 0.3124194400325121,
+      "candidate_velocity_rms_error_mps": 0.028484514659920832,
+      "candidate_reward_per_control": 0.1031562832589094,
+      "candidate_vx_mps": 0.3143932486657527
+    },
+    {
+      "env_id": 70,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1730,
+      "candidate_steps": 1706,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1606,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.08202959853645587,
+      "original_reward_per_control": 0.0966316807480483,
+      "original_vx_mps": 0.26676415242118456,
+      "candidate_velocity_rms_error_mps": 0.07250536083057038,
+      "candidate_reward_per_control": 0.09695516673579883,
+      "candidate_vx_mps": 0.2723387387276141
+    },
+    {
+      "env_id": 71,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1563,
+      "candidate_steps": 1549,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1449,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03340326888339196,
+      "original_reward_per_control": 0.10287452999948264,
+      "original_vx_mps": 0.29982444440355954,
+      "candidate_velocity_rms_error_mps": 0.0337066849511288,
+      "candidate_reward_per_control": 0.10274757956191694,
+      "candidate_vx_mps": 0.30262924570351163
+    },
+    {
+      "env_id": 72,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1563,
+      "candidate_steps": 1549,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1449,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03340326888339196,
+      "original_reward_per_control": 0.10287452999948264,
+      "original_vx_mps": 0.29982444440355954,
+      "candidate_velocity_rms_error_mps": 0.0337066849511288,
+      "candidate_reward_per_control": 0.10274757956191694,
+      "candidate_vx_mps": 0.30262924570351163
+    },
+    {
+      "env_id": 73,
+      "column": 12,
+      "terrain": "friction_left_right_bands",
+      "original_steps": 1555,
+      "candidate_steps": 1506,
+      "original_completed": true,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 1406,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.028618639952410888,
+      "original_reward_per_control": 0.1035001591063196,
+      "original_vx_mps": 0.30252301408929133,
+      "candidate_velocity_rms_error_mps": 0.02721494849397095,
+      "candidate_reward_per_control": 0.10307951593492823,
+      "candidate_vx_mps": 0.3068433506348055
+    },
+    {
+      "env_id": 74,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1563,
+      "candidate_steps": 1549,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1449,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03340326888339196,
+      "original_reward_per_control": 0.10287452999948264,
+      "original_vx_mps": 0.29982444440355954,
+      "candidate_velocity_rms_error_mps": 0.0337066849511288,
+      "candidate_reward_per_control": 0.10274757956191694,
+      "candidate_vx_mps": 0.30262924570351163
+    },
+    {
+      "env_id": 75,
+      "column": 13,
+      "terrain": "friction_front_back_bands",
+      "original_steps": 1512,
+      "candidate_steps": 1425,
+      "original_completed": true,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 1325,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.029307980001386996,
+      "original_reward_per_control": 0.10330389108201501,
+      "original_vx_mps": 0.3131496087560114,
+      "candidate_velocity_rms_error_mps": 0.029047386158327092,
+      "candidate_reward_per_control": 0.10297583695804285,
+      "candidate_vx_mps": 0.31620972152026194
+    },
+    {
+      "env_id": 76,
+      "column": 14,
+      "terrain": "friction_alternating_regions",
+      "original_steps": 1490,
+      "candidate_steps": 1464,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1364,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03427487942300715,
+      "original_reward_per_control": 0.10229994786006685,
+      "original_vx_mps": 0.3155943152229807,
+      "candidate_velocity_rms_error_mps": 0.03508190821631236,
+      "candidate_reward_per_control": 0.10236744345205637,
+      "candidate_vx_mps": 0.32151105779269573
+    },
+    {
+      "env_id": 77,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 78,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 79,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1494,
+      "candidate_steps": 1473,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1373,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03774222891730861,
+      "original_reward_per_control": 0.10205552030839217,
+      "original_vx_mps": 0.3138318470118259,
+      "candidate_velocity_rms_error_mps": 0.037253491455440144,
+      "candidate_reward_per_control": 0.10203403119198966,
+      "candidate_vx_mps": 0.31821068863059515
+    },
+    {
+      "env_id": 80,
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "original_steps": 802,
+      "candidate_steps": 798,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 698,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10968062560352525,
+      "original_reward_per_control": 0.0890953531170137,
+      "original_vx_mps": 0.32967907666391494,
+      "candidate_velocity_rms_error_mps": 0.11005340284234147,
+      "candidate_reward_per_control": 0.0888938610078858,
+      "candidate_vx_mps": 0.33649047163120316
+    },
+    {
+      "env_id": 81,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1470,
+      "candidate_steps": 1441,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1341,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.053150011344453095,
+      "original_reward_per_control": 0.10046212075479895,
+      "original_vx_mps": 0.322876225204098,
+      "candidate_velocity_rms_error_mps": 0.0554829935697127,
+      "candidate_reward_per_control": 0.10010878788657668,
+      "candidate_vx_mps": 0.32840818822339435
+    },
+    {
+      "env_id": 82,
+      "column": 14,
+      "terrain": "friction_alternating_regions",
+      "original_steps": 1483,
+      "candidate_steps": 1462,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1362,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.036308322208147496,
+      "original_reward_per_control": 0.10282626149222447,
+      "original_vx_mps": 0.31828818731721104,
+      "candidate_velocity_rms_error_mps": 0.03586598387516792,
+      "candidate_reward_per_control": 0.10273314131543616,
+      "candidate_vx_mps": 0.3233792244425254
+    },
+    {
+      "env_id": 83,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1479,
+      "candidate_steps": 1468,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1368,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03609347337025977,
+      "original_reward_per_control": 0.10265545925478241,
+      "original_vx_mps": 0.3174999484149685,
+      "candidate_velocity_rms_error_mps": 0.03406422496676254,
+      "candidate_reward_per_control": 0.10284928715606077,
+      "candidate_vx_mps": 0.3205680707959752
+    },
+    {
+      "env_id": 84,
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "original_steps": 1003,
+      "candidate_steps": 1001,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 901,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22318371473477164,
+      "original_reward_per_control": 0.06292560605561567,
+      "original_vx_mps": 0.48247903843434087,
+      "candidate_velocity_rms_error_mps": 0.22313895622008054,
+      "candidate_reward_per_control": 0.0628538917426482,
+      "candidate_vx_mps": 0.4832379792162634
+    },
+    {
+      "env_id": 85,
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "original_steps": 1522,
+      "candidate_steps": 1020,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 920,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.17668727409525958,
+      "original_reward_per_control": 0.06971683031046366,
+      "original_vx_mps": 0.15136645567918489,
+      "candidate_velocity_rms_error_mps": 0.15659895786622266,
+      "candidate_reward_per_control": 0.0756346653470933,
+      "candidate_vx_mps": 0.17307286001134503
+    },
+    {
+      "env_id": 86,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1625,
+      "candidate_steps": 1612,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1512,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.07040965938816798,
+      "original_reward_per_control": 0.09701552479891837,
+      "original_vx_mps": 0.2852398356097558,
+      "candidate_velocity_rms_error_mps": 0.06698170397810986,
+      "candidate_reward_per_control": 0.09748030273775017,
+      "candidate_vx_mps": 0.28811136828291983
+    },
+    {
+      "env_id": 87,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1426,
+      "candidate_steps": 1411,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1311,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.060294336760029765,
+      "original_reward_per_control": 0.0994357750891614,
+      "original_vx_mps": 0.3297141749698819,
+      "candidate_velocity_rms_error_mps": 0.05876682812008275,
+      "candidate_reward_per_control": 0.09981640343109989,
+      "candidate_vx_mps": 0.33323582147569897
+    },
+    {
+      "env_id": 88,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1487,
+      "candidate_steps": 1698,
+      "original_completed": false,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1387,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.07885308343831132,
+      "original_reward_per_control": 0.09612604039146984,
+      "original_vx_mps": 0.27721427531446924,
+      "candidate_velocity_rms_error_mps": 0.1017030535534105,
+      "candidate_reward_per_control": 0.0924270675264172,
+      "candidate_vx_mps": 0.26675785465465446
+    },
+    {
+      "env_id": 89,
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "original_steps": 719,
+      "candidate_steps": 744,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 619,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10047380119430026,
+      "original_reward_per_control": 0.09053403093198023,
+      "original_vx_mps": 0.3297411599143834,
+      "candidate_velocity_rms_error_mps": 0.10129247740568378,
+      "candidate_reward_per_control": 0.09005008639067769,
+      "candidate_vx_mps": 0.3329573377653932
+    },
+    {
+      "env_id": 90,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1426,
+      "candidate_steps": 1411,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1311,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.060294336760029765,
+      "original_reward_per_control": 0.0994357750891614,
+      "original_vx_mps": 0.3297141749698819,
+      "candidate_velocity_rms_error_mps": 0.05876682812008275,
+      "candidate_reward_per_control": 0.09981640343109989,
+      "candidate_vx_mps": 0.33323582147569897
+    },
+    {
+      "env_id": 91,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1730,
+      "candidate_steps": 1706,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1606,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.08202959853645587,
+      "original_reward_per_control": 0.0966316807480483,
+      "original_vx_mps": 0.26676415242118456,
+      "candidate_velocity_rms_error_mps": 0.07250536083057038,
+      "candidate_reward_per_control": 0.09695516673579883,
+      "candidate_vx_mps": 0.2723387387276141
+    },
+    {
+      "env_id": 92,
+      "column": 14,
+      "terrain": "friction_alternating_regions",
+      "original_steps": 1481,
+      "candidate_steps": 1464,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1364,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03522034420375635,
+      "original_reward_per_control": 0.10235212775038402,
+      "original_vx_mps": 0.31735264599498064,
+      "candidate_velocity_rms_error_mps": 0.03508190821631236,
+      "candidate_reward_per_control": 0.10236744345205637,
+      "candidate_vx_mps": 0.32151105779269573
+    },
+    {
+      "env_id": 93,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1500,
+      "candidate_steps": 1480,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1380,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.04991278362167346,
+      "original_reward_per_control": 0.1009698119913672,
+      "original_vx_mps": 0.3133078028758367,
+      "candidate_velocity_rms_error_mps": 0.05193840859585637,
+      "candidate_reward_per_control": 0.10071487801892925,
+      "candidate_vx_mps": 0.3188647239536479
+    },
+    {
+      "env_id": 94,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 95,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1542,
+      "candidate_steps": 1510,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1410,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03616329906793442,
+      "original_reward_per_control": 0.10242566705124607,
+      "original_vx_mps": 0.30587001939614616,
+      "candidate_velocity_rms_error_mps": 0.03691148572648987,
+      "candidate_reward_per_control": 0.10229838869380138,
+      "candidate_vx_mps": 0.31132657858708224
+    },
+    {
+      "env_id": 96,
+      "column": 10,
+      "terrain": "slope_rough_cross_slope_left",
+      "original_steps": 720,
+      "candidate_steps": 760,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 620,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10431992286505151,
+      "original_reward_per_control": 0.09027044975290668,
+      "original_vx_mps": 0.3277920709261971,
+      "candidate_velocity_rms_error_mps": 0.10342688475812474,
+      "candidate_reward_per_control": 0.08974942004012215,
+      "candidate_vx_mps": 0.33085344900046626
+    },
+    {
+      "env_id": 97,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1421,
+      "candidate_steps": 1390,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1290,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.06003613146240443,
+      "original_reward_per_control": 0.09976266185435585,
+      "original_vx_mps": 0.33179614439953203,
+      "candidate_velocity_rms_error_mps": 0.0702069327263674,
+      "candidate_reward_per_control": 0.0988513266456325,
+      "candidate_vx_mps": 0.3394145418507184
+    },
+    {
+      "env_id": 98,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1731,
+      "candidate_steps": 1691,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1591,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.085511439695629,
+      "original_reward_per_control": 0.09498564280206197,
+      "original_vx_mps": 0.26758317884030797,
+      "candidate_velocity_rms_error_mps": 0.08143195494058328,
+      "candidate_reward_per_control": 0.09628482904034602,
+      "candidate_vx_mps": 0.27481657209060384
+    },
+    {
+      "env_id": 99,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1426,
+      "candidate_steps": 1411,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1311,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.060294336760029765,
+      "original_reward_per_control": 0.0994357750891614,
+      "original_vx_mps": 0.3297141749698819,
+      "candidate_velocity_rms_error_mps": 0.05876682812008275,
+      "candidate_reward_per_control": 0.09981640343109989,
+      "candidate_vx_mps": 0.33323582147569897
+    },
+    {
+      "env_id": 100,
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "original_steps": 760,
+      "candidate_steps": 780,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 660,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.10252840597197893,
+      "original_reward_per_control": 0.09031539940986141,
+      "original_vx_mps": 0.3178971369158138,
+      "candidate_velocity_rms_error_mps": 0.10253193861271391,
+      "candidate_reward_per_control": 0.0898239534585167,
+      "candidate_vx_mps": 0.32202687976938305
+    },
+    {
+      "env_id": 101,
+      "column": 7,
+      "terrain": "stairs_descending",
+      "original_steps": 1426,
+      "candidate_steps": 1411,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1311,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.060294336760029765,
+      "original_reward_per_control": 0.0994357750891614,
+      "original_vx_mps": 0.3297141749698819,
+      "candidate_velocity_rms_error_mps": 0.05876682812008275,
+      "candidate_reward_per_control": 0.09981640343109989,
+      "candidate_vx_mps": 0.33323582147569897
+    },
+    {
+      "env_id": 102,
+      "column": 13,
+      "terrain": "friction_front_back_bands",
+      "original_steps": 1475,
+      "candidate_steps": 1453,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1353,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03560736330482027,
+      "original_reward_per_control": 0.10210142237872875,
+      "original_vx_mps": 0.3184980125402576,
+      "candidate_velocity_rms_error_mps": 0.03591338258980919,
+      "candidate_reward_per_control": 0.10252416023119747,
+      "candidate_vx_mps": 0.32335532440666964
+    },
+    {
+      "env_id": 103,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1479,
+      "candidate_steps": 1460,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1360,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03789034728428508,
+      "original_reward_per_control": 0.10197621593856337,
+      "original_vx_mps": 0.31808287146336894,
+      "candidate_velocity_rms_error_mps": 0.03859837245265663,
+      "candidate_reward_per_control": 0.10227124158861263,
+      "candidate_vx_mps": 0.3229686161831898
+    },
+    {
+      "env_id": 104,
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "original_steps": 1014,
+      "candidate_steps": 932,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 832,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.18271485127852313,
+      "original_reward_per_control": 0.0687653514238315,
+      "original_vx_mps": 0.1504702881740321,
+      "candidate_velocity_rms_error_mps": 0.1696048886462088,
+      "candidate_reward_per_control": 0.07314658248527812,
+      "candidate_vx_mps": 0.16757961585468506
+    },
+    {
+      "env_id": 105,
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "original_steps": 686,
+      "candidate_steps": 695,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 586,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13653144198995928,
+      "original_reward_per_control": 0.08154176676515182,
+      "original_vx_mps": 0.35016585489792224,
+      "candidate_velocity_rms_error_mps": 0.13443469158850882,
+      "candidate_reward_per_control": 0.08220980234308416,
+      "candidate_vx_mps": 0.3553543300351999
+    },
+    {
+      "env_id": 106,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1731,
+      "candidate_steps": 1691,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1591,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.085511439695629,
+      "original_reward_per_control": 0.09498564280206197,
+      "original_vx_mps": 0.26758317884030797,
+      "candidate_velocity_rms_error_mps": 0.08143195494058328,
+      "candidate_reward_per_control": 0.09628482904034602,
+      "candidate_vx_mps": 0.27481657209060384
+    },
+    {
+      "env_id": 107,
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "original_steps": 686,
+      "candidate_steps": 695,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 586,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13653144198995928,
+      "original_reward_per_control": 0.08154176676515182,
+      "original_vx_mps": 0.35016585489792224,
+      "candidate_velocity_rms_error_mps": 0.13443469158850882,
+      "candidate_reward_per_control": 0.08220980234308416,
+      "candidate_vx_mps": 0.3553543300351999
+    },
+    {
+      "env_id": 108,
+      "column": 0,
+      "terrain": "flat",
+      "original_steps": 1554,
+      "candidate_steps": 1541,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1441,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.02942534580806763,
+      "original_reward_per_control": 0.10338160158938343,
+      "original_vx_mps": 0.30104297494656673,
+      "candidate_velocity_rms_error_mps": 0.026021935232301632,
+      "candidate_reward_per_control": 0.1033469187088671,
+      "candidate_vx_mps": 0.30486159776334215
+    },
+    {
+      "env_id": 109,
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "original_steps": 1494,
+      "candidate_steps": 1473,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1373,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03774222891730861,
+      "original_reward_per_control": 0.10205552030839217,
+      "original_vx_mps": 0.3138318470118259,
+      "candidate_velocity_rms_error_mps": 0.037253491455440144,
+      "candidate_reward_per_control": 0.10203403119198966,
+      "candidate_vx_mps": 0.31821068863059515
+    },
+    {
+      "env_id": 110,
+      "column": 10,
+      "terrain": "slope_rough_cross_slope_left",
+      "original_steps": 742,
+      "candidate_steps": 777,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 642,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.11096754607302084,
+      "original_reward_per_control": 0.08806135938976023,
+      "original_vx_mps": 0.3268175435678981,
+      "candidate_velocity_rms_error_mps": 0.11505150440760069,
+      "candidate_reward_per_control": 0.08687156802661176,
+      "candidate_vx_mps": 0.3315103882198393
+    },
+    {
+      "env_id": 111,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1731,
+      "candidate_steps": 1691,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1591,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.085511439695629,
+      "original_reward_per_control": 0.09498564280206197,
+      "original_vx_mps": 0.26758317884030797,
+      "candidate_velocity_rms_error_mps": 0.08143195494058328,
+      "candidate_reward_per_control": 0.09628482904034602,
+      "candidate_vx_mps": 0.27481657209060384
+    },
+    {
+      "env_id": 112,
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "original_steps": 730,
+      "candidate_steps": 735,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 630,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13113502269039473,
+      "original_reward_per_control": 0.08311222220693298,
+      "original_vx_mps": 0.333686946639939,
+      "candidate_velocity_rms_error_mps": 0.13044170677577924,
+      "candidate_reward_per_control": 0.08333754637064811,
+      "candidate_vx_mps": 0.3403678852414328
+    },
+    {
+      "env_id": 113,
+      "column": 12,
+      "terrain": "friction_left_right_bands",
+      "original_steps": 1471,
+      "candidate_steps": 1450,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1350,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03630593239205338,
+      "original_reward_per_control": 0.10262521180242865,
+      "original_vx_mps": 0.32040547430515287,
+      "candidate_velocity_rms_error_mps": 0.0364903235821442,
+      "candidate_reward_per_control": 0.10257730509619735,
+      "candidate_vx_mps": 0.325557953008899
+    },
+    {
+      "env_id": 114,
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "original_steps": 1731,
+      "candidate_steps": 1691,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1591,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.085511439695629,
+      "original_reward_per_control": 0.09498564280206197,
+      "original_vx_mps": 0.26758317884030797,
+      "candidate_velocity_rms_error_mps": 0.08143195494058328,
+      "candidate_reward_per_control": 0.09628482904034602,
+      "candidate_vx_mps": 0.27481657209060384
+    },
+    {
+      "env_id": 115,
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "original_steps": 1003,
+      "candidate_steps": 1001,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 901,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.22318371473477164,
+      "original_reward_per_control": 0.06292560605561567,
+      "original_vx_mps": 0.48247903843434087,
+      "candidate_velocity_rms_error_mps": 0.22313895622008054,
+      "candidate_reward_per_control": 0.0628538917426482,
+      "candidate_vx_mps": 0.4832379792162634
+    },
+    {
+      "env_id": 116,
+      "column": 2,
+      "terrain": "slope_uphill",
+      "original_steps": 846,
+      "candidate_steps": 836,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 736,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.13794498083455625,
+      "original_reward_per_control": 0.08185483052165124,
+      "original_vx_mps": 0.19558664520635552,
+      "candidate_velocity_rms_error_mps": 0.13363092282512082,
+      "candidate_reward_per_control": 0.08293266253151445,
+      "candidate_vx_mps": 0.20077075247409876
+    },
+    {
+      "env_id": 117,
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "original_steps": 1522,
+      "candidate_steps": 1020,
+      "original_completed": false,
+      "candidate_completed": false,
+      "original_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "candidate_reasons": [
+        "source_terrain_tile_bounds"
+      ],
+      "paired_controls": 920,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.17668727409525958,
+      "original_reward_per_control": 0.06971683031046366,
+      "original_vx_mps": 0.15136645567918489,
+      "candidate_velocity_rms_error_mps": 0.15659895786622266,
+      "candidate_reward_per_control": 0.0756346653470933,
+      "candidate_vx_mps": 0.17307286001134503
+    },
+    {
+      "env_id": 118,
+      "column": 3,
+      "terrain": "slope_downhill",
+      "original_steps": 1000,
+      "candidate_steps": 994,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 894,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.2280399263195048,
+      "original_reward_per_control": 0.06311750547830107,
+      "original_vx_mps": 0.48795475812433015,
+      "candidate_velocity_rms_error_mps": 0.22880423065346672,
+      "candidate_reward_per_control": 0.06253379219101485,
+      "candidate_vx_mps": 0.49043741088852255
+    },
+    {
+      "env_id": 119,
+      "column": 12,
+      "terrain": "friction_left_right_bands",
+      "original_steps": 1468,
+      "candidate_steps": 1448,
+      "original_completed": true,
+      "candidate_completed": true,
+      "original_reasons": [
+        "source_training_completion"
+      ],
+      "candidate_reasons": [
+        "source_training_completion"
+      ],
+      "paired_controls": 1348,
+      "excluded": false,
+      "original_velocity_rms_error_mps": 0.03711664661958992,
+      "original_reward_per_control": 0.10280176801943697,
+      "original_vx_mps": 0.32113466347714203,
+      "candidate_velocity_rms_error_mps": 0.03716134902136824,
+      "candidate_reward_per_control": 0.1023693550636379,
+      "candidate_vx_mps": 0.3262143049510721
+    }
+  ],
+  "conditions": [
+    {
+      "column": 0,
+      "terrain": "flat",
+      "pairs": 12,
+      "original_completed": 12,
+      "candidate_completed": 12,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 0,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 1,
+      "terrain": "multi_scale_rough",
+      "pairs": 24,
+      "original_completed": 24,
+      "candidate_completed": 24,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 0,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 2,
+      "terrain": "slope_uphill",
+      "pairs": 6,
+      "original_completed": 0,
+      "candidate_completed": 0,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 6,
+      "candidate_bounds": 6,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 3,
+      "terrain": "slope_downhill",
+      "pairs": 6,
+      "original_completed": 6,
+      "candidate_completed": 6,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 0,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 4,
+      "terrain": "slope_cross_slope_left",
+      "pairs": 6,
+      "original_completed": 0,
+      "candidate_completed": 0,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 6,
+      "candidate_bounds": 6,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "pairs": 6,
+      "original_completed": 0,
+      "candidate_completed": 0,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 6,
+      "candidate_bounds": 6,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 6,
+      "terrain": "stairs_ascending",
+      "pairs": 15,
+      "original_completed": 12,
+      "candidate_completed": 15,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 3,
+      "candidate_bounds": 0,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 7,
+      "terrain": "stairs_descending",
+      "pairs": 15,
+      "original_completed": 15,
+      "candidate_completed": 15,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 0,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 8,
+      "terrain": "slope_rough_uphill",
+      "pairs": 6,
+      "original_completed": 0,
+      "candidate_completed": 0,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 6,
+      "candidate_bounds": 6,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 9,
+      "terrain": "slope_rough_downhill",
+      "pairs": 6,
+      "original_completed": 6,
+      "candidate_completed": 6,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 0,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 10,
+      "terrain": "slope_rough_cross_slope_left",
+      "pairs": 3,
+      "original_completed": 0,
+      "candidate_completed": 0,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 3,
+      "candidate_bounds": 3,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 11,
+      "terrain": "slope_rough_cross_slope_right",
+      "pairs": 3,
+      "original_completed": 0,
+      "candidate_completed": 0,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 3,
+      "candidate_bounds": 3,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 12,
+      "terrain": "friction_left_right_bands",
+      "pairs": 4,
+      "original_completed": 4,
+      "candidate_completed": 3,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 1,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 13,
+      "terrain": "friction_front_back_bands",
+      "pairs": 4,
+      "original_completed": 4,
+      "candidate_completed": 1,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 3,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    },
+    {
+      "column": 14,
+      "terrain": "friction_alternating_regions",
+      "pairs": 4,
+      "original_completed": 4,
+      "candidate_completed": 3,
+      "original_safety": 0,
+      "candidate_safety": 0,
+      "original_bounds": 0,
+      "candidate_bounds": 1,
+      "original_timeouts": 0,
+      "candidate_timeouts": 0
+    }
+  ]
+}

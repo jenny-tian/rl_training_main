@@ -9,6 +9,9 @@ TIMEOUT_TERM = 'source_training_timeout'
 
 def first_episodes(arrays, events, assignments, *, control_dt=0.02):
     """Terminal samples are included; all samples after the first reset are excluded."""
+    # NpzFile decompresses an entire member on every lookup. Load each once,
+    # before per-environment slicing, so disk work does not grow with env count.
+    arrays = {key:np.asarray(arrays[key]) for key in ('done','state','rewards','actions','columns')}
     done = np.asarray(arrays['done'],dtype=bool)
     state = np.asarray(arrays['state'])
     if done.ndim != 2 or state.shape[:2] != done.shape or len(assignments) != done.shape[1]:
@@ -56,6 +59,8 @@ def episode_totals(episodes):
 
 
 def compare_episodes(old, new, old_arrays, new_arrays, gates, *, control_dt=0.02, warmup=100):
+    old_arrays = {key:np.asarray(old_arrays[key]) for key in ('state','rewards','actions')}
+    new_arrays = {key:np.asarray(new_arrays[key]) for key in ('state','rewards','actions')}
     if len(old) != len(new) or not old:
         raise ValueError('first-episode pairs are incomplete')
     pairs = []
