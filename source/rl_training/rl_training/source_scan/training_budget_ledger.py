@@ -124,6 +124,40 @@ class BudgetLedger:
             finally:
                 fcntl.flock(stream, fcntl.LOCK_UN)
 
+    def reserve_adaptation_trial(self, *, run, attempt_id, output_dir, revision,
+                                 expected_reference, expected_plan):
+        """Append the agreed two-update correction trial without changing old ceilings.
+
+        This one-off increment retains all earlier charges, including failures.
+        A different baseline, profile or trial size requires a new explicit plan.
+        """
+        from .adaptation_profile import SOURCE_ADAPTATION_PROFILE
+
+        plan = dict(profile=SOURCE_ADAPTATION_PROFILE, num_envs=120, rollout_length=24,
+                    max_updates=2, reserved_transitions=5760,
+                    baseline_charged_transitions=259584, cumulative_ceiling=265344,
+                    initialization='registered_actor_checkpoint_std_fresh_critic_optimizer')
+        if type(run) is not int or run != 1 or not isinstance(attempt_id, str) or not attempt_id:
+            raise ValueError('invalid adaptation trial identity')
+        if (expected_plan != plan or any(type(expected_plan[k]) is not type(v) for k, v in plan.items())):
+            raise ValueError('adaptation trial differs from the agreed incremental plan')
+        with self._locked():
+            if expected_reference != self.reference():
+                raise ValueError('budget ledger differs from approved snapshot')
+            data = self.read()
+            if any(row['state'] == 'reserved' for row in data['entries']):
+                raise ValueError('another Source reservation is unfinished')
+            if any(row['attempt_id'] == attempt_id for row in data['entries']):
+                raise ValueError('adaptation attempt already reserved')
+            if self.charged(run, data) != plan['baseline_charged_transitions']:
+                raise ValueError('adaptation baseline charge changed; no retry or refund')
+            row = dict(plan, attempt_id=attempt_id, run=run, purpose='source_adaptation_two_update_trial',
+                       state='reserved', automatic_refund=False,
+                       output_dir=str(Path(output_dir).resolve()), base_revision=revision)
+            data['entries'].append(row)
+            atomic_json(self.path, data)
+            return dict(row)
+
     def reserve(self, *, run, attempt_id, transitions, purpose, output_dir, revision, expected_reference):
         if type(run) is not int or run not in (1, 2, 3) or not isinstance(attempt_id, str) or not attempt_id:
             raise ValueError('invalid budget identity')
