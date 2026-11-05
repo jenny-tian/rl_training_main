@@ -1,0 +1,43 @@
+
+==================================== ERRORS ====================================
+_____ ERROR collecting tests/source_scan/test_first_episode_comparison.py ______
+ImportError while importing test module '/home/tjx/rl_training_main/.worktrees/lite3-source-parallel-qualification-20261027/tests/source_scan/test_first_episode_comparison.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../anaconda3/envs/env_isaaclab/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/source_scan/test_first_episode_comparison.py:6: in <module>
+    from rl_training.source_scan.first_episode_comparison import first_episodes, compare_episodes
+../../../rl_training/source/rl_training/rl_training/__init__.py:12: in <module>
+    from .tasks import *
+../../../rl_training/source/rl_training/rl_training/tasks/__init__.py:17: in <module>
+    from isaaclab_tasks.utils import import_packages
+../../../IsaacLab/source/isaaclab_tasks/isaaclab_tasks/__init__.py:33: in <module>
+    from .utils import import_packages
+../../../IsaacLab/source/isaaclab_tasks/isaaclab_tasks/utils/__init__.py:9: in <module>
+    from .parse_cfg import get_checkpoint_path, load_cfg_from_registry, parse_env_cfg
+../../../IsaacLab/source/isaaclab_tasks/isaaclab_tasks/utils/parse_cfg.py:17: in <module>
+    from isaaclab.envs import DirectRLEnvCfg, ManagerBasedRLEnvCfg
+../../../IsaacLab/source/isaaclab/isaaclab/envs/__init__.py:45: in <module>
+    from . import mdp, ui
+../../../IsaacLab/source/isaaclab/isaaclab/envs/mdp/__init__.py:18: in <module>
+    from .actions import *  # noqa: F401, F403
+    ^^^^^^^^^^^^^^^^^^^^^^
+../../../IsaacLab/source/isaaclab/isaaclab/envs/mdp/actions/__init__.py:8: in <module>
+    from .actions_cfg import *
+../../../IsaacLab/source/isaaclab/isaaclab/envs/mdp/actions/actions_cfg.py:8: in <module>
+    from isaaclab.controllers import DifferentialIKControllerCfg, OperationalSpaceControllerCfg
+../../../IsaacLab/source/isaaclab/isaaclab/controllers/__init__.py:14: in <module>
+    from .differential_ik import DifferentialIKController
+../../../IsaacLab/source/isaaclab/isaaclab/controllers/differential_ik.py:12: in <module>
+    from isaaclab.utils.math import apply_delta_pose, compute_pose_error
+../../../IsaacLab/source/isaaclab/isaaclab/utils/__init__.py:14: in <module>
+    from .mesh import *
+../../../IsaacLab/source/isaaclab/isaaclab/utils/mesh.py:14: in <module>
+    from pxr import Usd, UsdGeom
+E   ModuleNotFoundError: No module named 'pxr'
+=========================== short test summary info ============================
+ERROR tests/source_scan/test_first_episode_comparison.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.98s
