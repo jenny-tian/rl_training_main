@@ -158,6 +158,33 @@ class BudgetLedger:
             atomic_json(self.path, data)
             return dict(row)
 
+    def reserve_fixed_lr_trial(self, *, run, attempt_id, output_dir, revision,
+                               expected_reference, expected_plan):
+        """Charge the agreed low-rate comparison once, preserving the failed trial."""
+        from .fixed_lr_trial import fixed_low_lr_plan
+
+        plan = fixed_low_lr_plan()
+        if type(run) is not int or run != 1 or not isinstance(attempt_id, str) or not attempt_id:
+            raise ValueError('invalid fixed-rate trial identity')
+        if expected_plan != plan or any(type(expected_plan[k]) is not type(v) for k,v in plan.items()):
+            raise ValueError('fixed-rate trial differs from the agreed incremental plan')
+        with self._locked():
+            if expected_reference != self.reference():
+                raise ValueError('budget ledger differs from approved snapshot')
+            data = self.read()
+            if any(row['state'] == 'reserved' for row in data['entries']):
+                raise ValueError('another Source reservation is unfinished')
+            if any(row['attempt_id'] == attempt_id for row in data['entries']):
+                raise ValueError('fixed-rate attempt already reserved')
+            if self.charged(run, data) != plan['baseline_charged_transitions']:
+                raise ValueError('fixed-rate baseline charge changed; no retry or refund')
+            row = dict(plan, attempt_id=attempt_id, run=run, purpose='source_fixed_low_lr_two_update_trial',
+                       state='reserved', automatic_refund=False,
+                       output_dir=str(Path(output_dir).resolve()), base_revision=revision)
+            data['entries'].append(row)
+            atomic_json(self.path, data)
+            return dict(row)
+
     def reserve(self, *, run, attempt_id, transitions, purpose, output_dir, revision, expected_reference):
         if type(run) is not int or run not in (1, 2, 3) or not isinstance(attempt_id, str) or not attempt_id:
             raise ValueError('invalid budget identity')

@@ -1,0 +1,58 @@
+{
+  "status": "approved",
+  "purpose": "isolate_learning_rate_in_first_two_source_updates",
+  "initialization": "original_model_1998_checkpoint_std_fresh_critic_optimizer",
+  "reward_profile": "lite3_source_lowspeed_v1",
+  "run": 1,
+  "ppo_seed": 130001,
+  "num_envs": 120,
+  "rollout_length": 24,
+  "max_updates": 2,
+  "algorithm_change": {
+    "learning_rate": 1e-05,
+    "schedule": "fixed",
+    "previous_initial_learning_rate": 0.001,
+    "previous_schedule": "adaptive"
+  },
+  "retain_other_ppo_parameters": true,
+  "checkpoint_nodes": [
+    1,
+    2
+  ],
+  "deterministic_evaluation": {
+    "actors": [
+      "actor_update_1",
+      "actor_update_2"
+    ],
+    "steps_each": 400,
+    "diagnostic_transition_cap": 96000,
+    "thresholds": {
+      "min_vx_mps": 0.2511110744047496,
+      "max_velocity_rms_error_mps": 0.12084871772695015,
+      "max_clipped_joint_fraction": 0.01,
+      "max_done_count": 0,
+      "min_reward_per_control": 0.0777339136705805
+    }
+  },
+  "diagnostics": [
+    "Record per-minibatch rollout KL and actual optimizer learning rate",
+    "Record action shifts and Gaussian KL on the same saved original walking observations after each update",
+    "Report value predictions and return targets; do not change critic initialization in this comparison"
+  ],
+  "additional_training_transition_cap": 5760,
+  "baseline_charged_transitions": 265344,
+  "cumulative_ceiling": 271104,
+  "current_ledger_sha256": "9941b3774a8d712749ff1fa608479ec1ec9b81c847e6ca4791c49cfdc1fbd865",
+  "budget_reserved": false,
+  "simulator_started": false,
+  "training_started": false,
+  "automatic_extension": false,
+  "retry": false,
+  "wall_limit_s": 300,
+  "startup_limit_s": 120,
+  "close_limit_s": 15,
+  "interpretation": "A fixed low learning rate tests update-size sensitivity. It does not isolate actor from critic learning because the optimizer is shared.",
+  "followup_if_still_regresses": "Design a separate actor-frozen critic warmup or policy anchoring experiment, with its own budget and checks.",
+  "authorization_basis": "User explicitly agreed after the detailed next-stage proposal in this conversation.",
+  "approved_proposal_sha256": "e557f65a75cf9f2dbe7398e403489fc32e36ffe1739ddf00a5fa1e0946ef0e26"
+}
