@@ -1,0 +1,261 @@
+{
+  "primary_window": "controls_101_to_400",
+  "primary_weighting": "each_sample_equal",
+  "primary_metrics": [
+    {
+      "case": "old_mean",
+      "window": "after_100",
+      "transitions": 36000,
+      "reward_per_control": 0.07802018459058069,
+      "vx_mps": 0.313888843005937,
+      "velocity_rms_error_mps": 0.08056581181796676,
+      "base_height_above_scan_m": 0.3133918167443739,
+      "joint_deviation_l2": 1.0918275892900096,
+      "noise_rms_mean": 0.0,
+      "clipped_joint_fraction": 0.0,
+      "projected_fraction": 0.0,
+      "paused_fraction": 0.0,
+      "narrow_tracking_rescore_per_control": 0.07257337829121728
+    },
+    {
+      "case": "old_original_std",
+      "window": "after_100",
+      "transitions": 36000,
+      "reward_per_control": 0.0732669579974364,
+      "vx_mps": 0.2888382214617385,
+      "velocity_rms_error_mps": 0.08936959016955522,
+      "base_height_above_scan_m": 0.31155626385741764,
+      "joint_deviation_l2": 1.1020251107447676,
+      "noise_rms_mean": 0.33894540848852034,
+      "clipped_joint_fraction": 0.00027083334140479566,
+      "projected_fraction": 0.0,
+      "paused_fraction": 0.0,
+      "narrow_tracking_rescore_per_control": 0.06633823119095236
+    },
+    {
+      "case": "old_std1",
+      "window": "after_100",
+      "transitions": 36000,
+      "reward_per_control": 0.035258782588433984,
+      "vx_mps": 0.06125562567927823,
+      "velocity_rms_error_mps": 0.29071029191897174,
+      "base_height_above_scan_m": 0.3065034767736991,
+      "joint_deviation_l2": 1.1345328815778097,
+      "noise_rms_mean": 0.9788302239833606,
+      "clipped_joint_fraction": 0.012141204063884086,
+      "projected_fraction": 0.0,
+      "paused_fraction": 0.0,
+      "narrow_tracking_rescore_per_control": -0.0012313906354853574
+    },
+    {
+      "case": "new_mean",
+      "window": "after_100",
+      "transitions": 36000,
+      "reward_per_control": 0.08112147088926204,
+      "vx_mps": -0.0007718597339325163,
+      "velocity_rms_error_mps": 0.30096010187115985,
+      "base_height_above_scan_m": 0.3628622231938773,
+      "joint_deviation_l2": 0.8105553675691287,
+      "noise_rms_mean": 0.0,
+      "clipped_joint_fraction": 0.1666666716337204,
+      "projected_fraction": 0.0,
+      "paused_fraction": 0.0,
+      "narrow_tracking_rescore_per_control": 0.033202045866564174
+    },
+    {
+      "case": "new_saved_std",
+      "window": "after_100",
+      "transitions": 36000,
+      "reward_per_control": 0.05383978221703041,
+      "vx_mps": 0.09568309493554868,
+      "velocity_rms_error_mps": 0.28255696689555476,
+      "base_height_above_scan_m": 0.363888433781349,
+      "joint_deviation_l2": 0.7814638499919739,
+      "noise_rms_mean": 0.9676416956269078,
+      "clipped_joint_fraction": 0.10373379889047808,
+      "projected_fraction": 0.0,
+      "paused_fraction": 0.0,
+      "narrow_tracking_rescore_per_control": 0.019230291976525937
+    }
+  ],
+  "condition_equal_means": [
+    {
+      "case": "old_mean",
+      "reward_per_control": 0.07773615534888781,
+      "vx_mps": 0.31720155181294235
+    },
+    {
+      "case": "old_original_std",
+      "reward_per_control": 0.07299704218933005,
+      "vx_mps": 0.2902545724631891
+    },
+    {
+      "case": "old_std1",
+      "reward_per_control": 0.03519667167959413,
+      "vx_mps": 0.0661083618897672
+    },
+    {
+      "case": "new_mean",
+      "reward_per_control": 0.08113203625173683,
+      "vx_mps": -0.0007561184054864327
+    },
+    {
+      "case": "new_saved_std",
+      "reward_per_control": 0.05314836341679622,
+      "vx_mps": 0.09959860613171778
+    }
+  ],
+  "case_evidence": [
+    {
+      "case": "old_mean",
+      "done_count": 0,
+      "terminal_terms": {},
+      "gate_min": 0.0,
+      "gate_max": 0.0,
+      "actor_parity_max_abs": 0.0,
+      "reward_reconstruction_max_abs": 2.9802322387695312e-08
+    },
+    {
+      "case": "old_original_std",
+      "done_count": 0,
+      "terminal_terms": {},
+      "gate_min": 0.0,
+      "gate_max": 0.0,
+      "actor_parity_max_abs": 0.0,
+      "reward_reconstruction_max_abs": 2.9802322387695312e-08
+    },
+    {
+      "case": "old_std1",
+      "done_count": 4,
+      "terminal_terms": {
+        "source_terrain_tile_bounds": 2,
+        "illegal_contact": 0,
+        "bad_orientation_2": 2,
+        "source_training_safety": 2,
+        "source_training_completion": 0,
+        "source_training_timeout": 0
+      },
+      "gate_min": 0.0,
+      "gate_max": 0.0,
+      "actor_parity_max_abs": 0.0,
+      "reward_reconstruction_max_abs": 5.960464477539063e-08
+    },
+    {
+      "case": "new_mean",
+      "done_count": 0,
+      "terminal_terms": {},
+      "gate_min": 0.0,
+      "gate_max": 0.0,
+      "actor_parity_max_abs": 0.0,
+      "reward_reconstruction_max_abs": 2.9802322387695312e-08
+    },
+    {
+      "case": "new_saved_std",
+      "done_count": 48,
+      "terminal_terms": {
+        "source_terrain_tile_bounds": 1,
+        "illegal_contact": 2,
+        "bad_orientation_2": 45,
+        "source_training_safety": 45,
+        "source_training_completion": 0,
+        "source_training_timeout": 0
+      },
+      "gate_min": 0.0,
+      "gate_max": 0.0,
+      "actor_parity_max_abs": 0.0,
+      "reward_reconstruction_max_abs": 1.7881393432617188e-07
+    }
+  ],
+  "checkpoint_stds": {
+    "old": [
+      0.41239991784095764,
+      0.31498321890830994,
+      0.30774933099746704,
+      0.4118286669254303,
+      0.31518396735191345,
+      0.2974865138530731,
+      0.40851980447769165,
+      0.2883022129535675,
+      0.3272320330142975,
+      0.4235660135746002,
+      0.29552850127220154,
+      0.31504741311073303
+    ],
+    "new": [
+      0.9937705993652344,
+      0.9548600316047668,
+      1.001797080039978,
+      1.0063397884368896,
+      0.974664032459259,
+      1.0029940605163574,
+      1.010530948638916,
+      0.9452762007713318,
+      0.9980637431144714,
+      1.012760043144226,
+      0.9496170878410339,
+      1.0094548463821411
+    ]
+  },
+  "execution": {
+    "exit_code": 0,
+    "deadline_failure": null,
+    "elapsed_s": 146.05630572885275,
+    "process_group_had_remaining_children": false,
+    "budget_before": "f171d9fdbe380a20c827453c52bb30ac30c8f6ed431f45c01f796625be303435",
+    "budget_after": "f171d9fdbe380a20c827453c52bb30ac30c8f6ed431f45c01f796625be303435"
+  },
+  "diagnostic_transitions": 240000,
+  "training_transitions": 0,
+  "ppo_updates": 0,
+  "gated_source_terms": [
+    "base_height_l2",
+    "joint_torques_l2",
+    "joint_power",
+    "joint_mirror",
+    "action_rate_l2",
+    "contact_forces",
+    "foot_impact_velocity",
+    "feet_air_time_lin_xy",
+    "feet_air_time_ang_z_lite3",
+    "phase_foot_trajectory_exp"
+  ],
+  "source_checks": [
+    {
+      "path": "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "sha256": "a40aebdd285d1d114b41d727e7500c99dfee73af6220c75f3ea7640807ee7581",
+      "identical_to_training_revision": true
+    },
+    {
+      "path": "source/rl_training/rl_training/source_scan/training_env.py",
+      "sha256": "7d34191591229205e69a3dd495de21ff49fe6e62bfa682273421789f9d8c9980",
+      "identical_to_training_revision": true
+    },
+    {
+      "path": "source/rl_training/rl_training/source_scan/frozen_actor.py",
+      "sha256": "e9a791490d2fd99d89cf36a19dfe652ed7dacafe9ebd46f32411c75234840a18",
+      "identical_to_training_revision": true
+    },
+    {
+      "path": "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_training_env_cfg.py",
+      "sha256": "27ad0fb261ff540d20b3ee8c160587490e8ac49aaba433586f9e8ad88b658c28",
+      "identical_to_training_revision": true
+    },
+    {
+      "path": "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_terrain_env_cfg.py",
+      "sha256": "94fc416844afb28430d5ff8a889b7dfd93ee179b1a31d150fbab4d5255cd73cb",
+      "identical_to_training_revision": true
+    },
+    {
+      "path": "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/rough_env_cfg.py",
+      "sha256": "bf8e2c20bb2ef62fc39a6d45b42f335f6d82be82b5b0100419a424934f95515f",
+      "identical_to_training_revision": true
+    }
+  ],
+  "interpretation_limits": [
+    "single fixed geometry bank and seed; not independent terrain replicates",
+    "short reward/noise diagnosis, not a completion or selection evaluation",
+    "same standard-normal stream; states diverge and noisy cases can reset onto other columns",
+    "narrow tracking rescore changes one term on recorded states, not policy performance after retraining",
+    "historical training did not record reward components or intermediate actors; causal shares not identified"
+  ]
+}
