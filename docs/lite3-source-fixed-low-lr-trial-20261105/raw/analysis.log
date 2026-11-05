@@ -1,0 +1,85 @@
+{
+  "actors": [
+    {
+      "actor": "original",
+      "vx_mps": 0.313888843005937,
+      "velocity_rms_error_mps": 0.08056581181796676,
+      "reward_per_control": 0.09716739208822561,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": 0.0,
+      "error_change_percent": 0.0,
+      "reward_change_percent": 0.0
+    },
+    {
+      "actor": "adaptive_update2",
+      "vx_mps": 0.24023663064208167,
+      "velocity_rms_error_mps": 0.12378847391198423,
+      "reward_per_control": 0.08009348564318014,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": -23.46442506797295,
+      "error_change_percent": 53.64888793236054,
+      "reward_change_percent": -17.571642171421853
+    },
+    {
+      "actor": "actor_update_1",
+      "vx_mps": 0.31778527565403947,
+      "velocity_rms_error_mps": 0.08095869971848256,
+      "reward_per_control": 0.09695507627851466,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": 1.2413415560707852,
+      "error_change_percent": 0.48766082243856257,
+      "reward_change_percent": -0.21850520544811625
+    },
+    {
+      "actor": "actor_update_2",
+      "vx_mps": 0.31852464684264525,
+      "velocity_rms_error_mps": 0.0810781369539412,
+      "reward_per_control": 0.09696252788024888,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": 1.4768934735984063,
+      "error_change_percent": 0.635908860612,
+      "reward_change_percent": -0.21083637583966253
+    }
+  ],
+  "monitor_summary": [
+    {
+      "update": 1,
+      "minibatches": 20,
+      "max_minibatch_mean_kl_before": 0.008508911356329918,
+      "max_minibatch_mean_kl_after": 0.00848646741360426,
+      "mean_minibatch_kl_before": 0.0057091065369604625,
+      "actual_learning_rate": 1e-05
+    },
+    {
+      "update": 2,
+      "minibatches": 20,
+      "max_minibatch_mean_kl_before": 0.006798386108130217,
+      "max_minibatch_mean_kl_after": 0.007138021755963564,
+      "mean_minibatch_kl_before": 0.0025140824109257665,
+      "actual_learning_rate": 1e-05
+    }
+  ],
+  "first_rollout_checks": {
+    "mean_step_reward": true,
+    "post_step_vx_mps": true,
+    "sampled_action_clipped_fraction": true,
+    "episode_endings": true,
+    "rollout": true
+  },
+  "condition_summary": [
+    {
+      "actor": "actor_update_1",
+      "conditions_with_larger_error": 10,
+      "largest_error_increase_mps": 0.004423333597690954
+    },
+    {
+      "actor": "actor_update_2",
+      "conditions_with_larger_error": 8,
+      "largest_error_increase_mps": 0.0064385758611684996
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "status": "proposed_pending_user_consent",
+  "action": "frozen_actor_full_first_episode_comparison",
+  "reason": "The passed 400-control diagnostic lasts only 8 seconds; completion requires >=9m progress and 50 stable controls.",
+  "actors": [
+    {
+      "label": "original",
+      "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c"
+    },
+    {
+      "label": "fixed_lr_update2",
+      "sha256": "e7fc084e6beb8cc8a4b5d9d4aefd75ae97a7160a695079cbbf36216719bf822f"
+    }
+  ],
+  "device": "cuda:0",
+  "num_envs": 120,
+  "conditions": 15,
+  "terrain_level": "L1",
+  "same_geometry_and_initial_state": true,
+  "reward_profile": "lite3_source_lowspeed_v1",
+  "policy_mode": "deterministic_frozen",
+  "control_dt": 0.02,
+  "max_controls_per_actor": 2000,
+  "max_episode_seconds": 40,
+  "diagnostic_transition_cap": 480000,
+  "new_training_transitions": 0,
+  "new_ppo_updates": 0,
+  "cumulative_training_charge": 271104,
+  "completion": {
+    "min_progress_m": 9.0,
+    "consecutive_stable_controls": 50,
+    "use_existing_lifecycle": true
+  },
+  "episode_accounting": "Count only each environment first episode; subsequent resets do not add successful episodes. Count every actual environment transition toward the diagnostic cap.",
+  "measurements": [
+    "first episode completion and completion time",
+    "safety endings",
+    "out-of-bounds endings",
+    "timeouts",
+    "per-condition first episode completion counts",
+    "velocity error and reward on paired valid time windows",
+    "action clipping and scan validity"
+  ],
+  "comparison_gates": {
+    "total_completed_not_below_paired_original": true,
+    "per_condition_completed_not_below_paired_original": true,
+    "safety_endings_not_above_paired_original": true,
+    "out_of_bounds_endings_not_above_paired_original": true,
+    "max_paired_velocity_rms_error_ratio": 1.5,
+    "min_paired_reward_ratio": 0.8,
+    "max_clipped_joint_fraction": 0.01
+  },
+  "paired_metric_window": "For each matched environment, controls 101 through the earlier first-episode ending of the two actors; report exclusions and sample counts.",
+  "historical_reference": {
+    "original_completed": 87,
+    "episodes": 120,
+    "not_a_substitute_for_fresh_paired_baseline": true
+  },
+  "wall_limit_s": 600,
+  "startup_limit_s": 120,
+  "close_limit_s": 15,
+  "retry": false,
+  "automatic_extension": false,
+  "automatic_training": false,
+  "budget_reserved": false,
+  "simulator_started": false,
+  "deliverables": [
+    "paired first-episode table",
+    "15-condition comparison",
+    "failure reasons and trajectories",
+    "summary and checksums",
+    "next-stage proposal for separate consent"
+  ]
+}

@@ -1,0 +1,301 @@
+{
+  "status": "passed",
+  "execution": {
+    "exit_code": 0,
+    "deadline_failure": null,
+    "elapsed_s": 66.05708270985633,
+    "process_group_had_remaining_children": false,
+    "budget_after": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/source-ppo-ledgers/lite3-l1-v1.json",
+      "sha256": "9e54797c258c4d7c658bb07b9b3fe39d400019805944c44fe9d055946e1357b8"
+    },
+    "cumulative_charged_transitions": 271104,
+    "accepted_short_trial": true,
+    "training_transitions": 5760,
+    "ppo_updates": 2,
+    "diagnostic_transitions": 96000
+  },
+  "actors": [
+    {
+      "actor": "original",
+      "vx_mps": 0.313888843005937,
+      "velocity_rms_error_mps": 0.08056581181796676,
+      "reward_per_control": 0.09716739208822561,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": 0.0,
+      "error_change_percent": 0.0,
+      "reward_change_percent": 0.0
+    },
+    {
+      "actor": "adaptive_update2",
+      "vx_mps": 0.24023663064208167,
+      "velocity_rms_error_mps": 0.12378847391198423,
+      "reward_per_control": 0.08009348564318014,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": -23.46442506797295,
+      "error_change_percent": 53.64888793236054,
+      "reward_change_percent": -17.571642171421853
+    },
+    {
+      "actor": "actor_update_1",
+      "vx_mps": 0.31778527565403947,
+      "velocity_rms_error_mps": 0.08095869971848256,
+      "reward_per_control": 0.09695507627851466,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": 1.2413415560707852,
+      "error_change_percent": 0.48766082243856257,
+      "reward_change_percent": -0.21850520544811625
+    },
+    {
+      "actor": "actor_update_2",
+      "vx_mps": 0.31852464684264525,
+      "velocity_rms_error_mps": 0.0810781369539412,
+      "reward_per_control": 0.09696252788024888,
+      "clipped_joint_fraction": 0.0,
+      "done_count": 0,
+      "speed_change_percent": 1.4768934735984063,
+      "error_change_percent": 0.635908860612,
+      "reward_change_percent": -0.21083637583966253
+    }
+  ],
+  "evaluation_thresholds": {
+    "min_vx_mps": 0.2511110744047496,
+    "max_velocity_rms_error_mps": 0.12084871772695015,
+    "max_clipped_joint_fraction": 0.01,
+    "max_done_count": 0,
+    "min_reward_per_control": 0.0777339136705805
+  },
+  "evaluation_checks": {
+    "actor_update_1": {
+      "speed": true,
+      "velocity_error": true,
+      "clipping": true,
+      "endings": true,
+      "reward": true
+    },
+    "actor_update_2": {
+      "speed": true,
+      "velocity_error": true,
+      "clipping": true,
+      "endings": true,
+      "reward": true
+    }
+  },
+  "monitor_summary": [
+    {
+      "update": 1,
+      "minibatches": 20,
+      "max_minibatch_mean_kl_before": 0.008508911356329918,
+      "max_minibatch_mean_kl_after": 0.00848646741360426,
+      "mean_minibatch_kl_before": 0.0057091065369604625,
+      "actual_learning_rate": 1e-05
+    },
+    {
+      "update": 2,
+      "minibatches": 20,
+      "max_minibatch_mean_kl_before": 0.006798386108130217,
+      "max_minibatch_mean_kl_after": 0.007138021755963564,
+      "mean_minibatch_kl_before": 0.0025140824109257665,
+      "actual_learning_rate": 1e-05
+    }
+  ],
+  "first_rollout_checks": {
+    "mean_step_reward": true,
+    "post_step_vx_mps": true,
+    "sampled_action_clipped_fraction": true,
+    "episode_endings": true,
+    "rollout": true
+  },
+  "configuration_changes": {
+    "learning_rate": [
+      0.001,
+      1e-05
+    ],
+    "schedule": [
+      "adaptive",
+      "fixed"
+    ]
+  },
+  "history_preserved": true,
+  "condition_summary": [
+    {
+      "actor": "actor_update_1",
+      "conditions_with_larger_error": 10,
+      "largest_error_increase_mps": 0.004423333597690954
+    },
+    {
+      "actor": "actor_update_2",
+      "conditions_with_larger_error": 8,
+      "largest_error_increase_mps": 0.0064385758611684996
+    }
+  ],
+  "updates": [
+    {
+      "update": 1,
+      "training_transitions": 2880,
+      "mean_step_reward": 0.07057197669443364,
+      "sampled_action_clipped_fraction": 0.00034722223548063386,
+      "post_step_vx_mps": 0.2225100213351349,
+      "episode_endings": 0,
+      "learning_rate": 1e-05,
+      "action_std": [
+        0.4124019742012024,
+        0.3149253726005554,
+        0.3077992796897888,
+        0.4118104577064514,
+        0.3151603639125824,
+        0.2975158989429474,
+        0.40848350524902344,
+        0.28826260566711426,
+        0.3272600471973419,
+        0.4235909879207611,
+        0.29549896717071533,
+        0.3150075674057007
+      ],
+      "mean_action_std": 0.343143105506897,
+      "initial_probe_mean_shift_rms": 0.007948866114020348,
+      "initial_probe_mean_shift_max": 0.016063570976257324,
+      "rollout": {
+        "value_mean": 0.00892878882586956,
+        "return_mean": 0.6414968967437744,
+        "value_mse": 0.4735836684703827,
+        "advantage_mean": -1.0596381549987655e-08,
+        "advantage_std": 0.9999998807907104
+      },
+      "losses": {
+        "value": 0.403299143910408,
+        "surrogate": -0.012233620166080072,
+        "entropy": 4.064382791519165
+      },
+      "elapsed_s": 4.206183286383748
+    },
+    {
+      "update": 2,
+      "training_transitions": 5760,
+      "mean_step_reward": 0.08798874386896689,
+      "sampled_action_clipped_fraction": 0.00014467592942916477,
+      "post_step_vx_mps": 0.2698303423821926,
+      "episode_endings": 0,
+      "learning_rate": 1e-05,
+      "action_std": [
+        0.41237908601760864,
+        0.3149145245552063,
+        0.30779188871383667,
+        0.4118347465991974,
+        0.3151540756225586,
+        0.2975255846977234,
+        0.40847235918045044,
+        0.2882419228553772,
+        0.3272649049758911,
+        0.4235662817955017,
+        0.2954869568347931,
+        0.3149924576282501
+      ],
+      "mean_action_std": 0.34313541650772095,
+      "initial_probe_mean_shift_rms": 0.010275423526763916,
+      "initial_probe_mean_shift_max": 0.01894276589155197,
+      "rollout": {
+        "value_mean": 0.07315271347761154,
+        "return_mean": 0.7990132570266724,
+        "value_mse": 0.6253091096878052,
+        "advantage_mean": -4.238552619995062e-08,
+        "advantage_std": 0.9999999403953552
+      },
+      "losses": {
+        "value": 0.5417629107832909,
+        "surrogate": -0.005101668822317151,
+        "entropy": 4.064077234268188
+      },
+      "elapsed_s": 3.60051157977432
+    }
+  ],
+  "walking_probes": [
+    {
+      "update": 1,
+      "original_control_step": 1,
+      "observations": 120,
+      "action_shift_rms": 0.007948866114020348,
+      "action_shift_max": 0.016063570976257324,
+      "original_policy_kl_mean": 0.003261022036895156,
+      "original_policy_kl_max": 0.0032610215712338686
+    },
+    {
+      "update": 1,
+      "original_control_step": 100,
+      "observations": 120,
+      "action_shift_rms": 0.014646971598267555,
+      "action_shift_max": 0.028353393077850342,
+      "original_policy_kl_mean": 0.011020907200872898,
+      "original_policy_kl_max": 0.013698003254830837
+    },
+    {
+      "update": 1,
+      "original_control_step": 200,
+      "observations": 120,
+      "action_shift_rms": 0.013812904246151447,
+      "action_shift_max": 0.028311967849731445,
+      "original_policy_kl_mean": 0.010127159766852856,
+      "original_policy_kl_max": 0.013655922375619411
+    },
+    {
+      "update": 1,
+      "original_control_step": 400,
+      "observations": 120,
+      "action_shift_rms": 0.01269509643316269,
+      "action_shift_max": 0.029603242874145508,
+      "original_policy_kl_mean": 0.008801482617855072,
+      "original_policy_kl_max": 0.014429709874093533
+    },
+    {
+      "update": 2,
+      "original_control_step": 1,
+      "observations": 120,
+      "action_shift_rms": 0.010275423526763916,
+      "action_shift_max": 0.01894276589155197,
+      "original_policy_kl_mean": 0.005154883023351431,
+      "original_policy_kl_max": 0.005154882557690144
+    },
+    {
+      "update": 2,
+      "original_control_step": 100,
+      "observations": 120,
+      "action_shift_rms": 0.017398502677679062,
+      "action_shift_max": 0.03939008712768555,
+      "original_policy_kl_mean": 0.015744034200906754,
+      "original_policy_kl_max": 0.024398809298872948
+    },
+    {
+      "update": 2,
+      "original_control_step": 200,
+      "observations": 120,
+      "action_shift_rms": 0.01809660717844963,
+      "action_shift_max": 0.04044628143310547,
+      "original_policy_kl_mean": 0.017924325540661812,
+      "original_policy_kl_max": 0.028208917006850243
+    },
+    {
+      "update": 2,
+      "original_control_step": 400,
+      "observations": 120,
+      "action_shift_rms": 0.016560787335038185,
+      "action_shift_max": 0.051178932189941406,
+      "original_policy_kl_mean": 0.015077834017574787,
+      "original_policy_kl_max": 0.030648505315184593
+    }
+  ],
+  "checkpoint_sha256": {
+    "actor_update_1.pt": "b21473b7c1037b857d81d3b0614d7cd23d9229707879ba31599a8bbfecd4c549",
+    "actor_update_2.pt": "e7fc084e6beb8cc8a4b5d9d4aefd75ae97a7160a695079cbbf36216719bf822f",
+    "model_update_2.pt": "f3ed254c65091c85998394ccbf4700366891fa1e0721bcbb4331f7c2600ca3b4"
+  },
+  "recommendation": "both candidates pass the 8-second retention check; request approval for full first-episode comparison",
+  "limits": [
+    "same registered geometry and one training seed only",
+    "40-second episodes and the 9m completion criterion have not been evaluated",
+    "shared optimizer changes both actor and critic learning rates",
+    "near-baseline error and reward are not evidence of improved terrain performance"
+  ]
+}
