@@ -3,6 +3,12 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-05 研究路线调整：转入 EA-LPL，Source PPO 小步微调暂停。** 用户同意按
+[EA-LPL 研究方案 v1](lite3-ea-lpl-research-plan-v1-20261105.md) 推进：基础策略固定为
+model_1998 加航向闭环，按计划书做 C1-a、C1-b 在线适应。update1 阶段提出的离线奖励与观测
+设计方案不执行。执行细则见 [Codex 执行任务书](lite3-ea-lpl-codex-brief-v1-20261105.md)；新工作在
+分支 `codex/lite3-ea-lpl-20261106` 进行，进度记在 `docs/lite3-ea-lpl-progress-log.md`。
+
 **2026-11-04 合并 G2 通过，G3 在 64 步因速度上限停止：** 从 9d56d7e
 执行 G2 四批 reset/4 个零动作步，通过真实运行及独立验收，启动范围合并检查，
 没有单独 G1。随后 G3 完成 64 步/256 子步/7680 条只读，前缀预计约 4978 秒，
