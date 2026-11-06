@@ -1,6 +1,8 @@
 """EA-LPL scene: frozen base policy, optional heading hold, explicit columns and reset table."""
+from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
+from rl_training.ea_lpl.reset_table import DEFAULT_RESET_RANGES, reset_root_state_from_table
 from .source_adaptation_env_cfg import DeeproboticsLite3SourceAdaptationEnvCfg
 
 
@@ -41,3 +43,17 @@ class DeeproboticsLite3EaLplEnvCfg(DeeproboticsLite3SourceAdaptationEnvCfg):
             if len(columns) != self.source_parallel_sampler_num_envs or any(not 0 <= c < 15 for c in columns):
                 raise ValueError("ea_columns must list one registered column per environment")
             self.curriculum.source_terrain_parallel_reset_sampler.params["fixed_columns"] = columns
+        if self.ea_reset_table_seed is not None:
+            slots = None if self.ea_reset_slots is None else tuple(int(s) for s in self.ea_reset_slots)
+            if slots is not None and len(slots) != self.source_parallel_sampler_num_envs:
+                raise ValueError("ea_reset_slots must list one slot per environment")
+            if not 0 <= int(self.ea_reset_namespace) < 9:
+                raise ValueError("namespace 9 is reserved for sealed runs")
+            self.events.randomize_reset_base.func = reset_root_state_from_table
+            self.events.randomize_reset_base.params = {
+                "asset_cfg": SceneEntityCfg("robot"),
+                "table_seed": int(self.ea_reset_table_seed),
+                "namespace": int(self.ea_reset_namespace),
+                "slots": slots,
+                "ranges": dict(DEFAULT_RESET_RANGES),
+            }
