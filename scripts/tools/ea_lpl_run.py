@@ -276,7 +276,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--spec", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--gpu", default="auto", choices=("auto", "0", "1"))
+    parser.add_argument("--gpu", default="auto", choices=("auto", "0", "1", "2"))
     parser.add_argument("--child", action="store_true")
     args = parser.parse_args()
     raise SystemExit(child(args.spec, args.output) if args.child else supervise(args.spec, args.output, args.gpu))
