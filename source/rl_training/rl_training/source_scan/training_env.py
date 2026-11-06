@@ -116,7 +116,8 @@ class SourceTrainingVecEnv:
         self.env = wrapped_env
         cfg = wrapped_env.unwrapped.cfg
         seeds = SourceRunSeeds(getattr(cfg, "source_training_run", None))
-        if (cfg.source_terrain_level != "L1" or cfg.seed != seeds.ppo
+        allowed = getattr(cfg, "source_allowed_levels", ("L1",))
+        if (cfg.source_terrain_level not in allowed or cfg.seed != seeds.ppo
                 or cfg.source_parallel_sampler_seed != seeds.sampler
                 or cfg.scene.terrain.terrain_generator.seed != seeds.geometry):
             raise ValueError("Source training configuration has unregistered level or seeds")

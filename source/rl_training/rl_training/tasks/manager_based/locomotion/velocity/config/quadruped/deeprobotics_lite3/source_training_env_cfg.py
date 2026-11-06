@@ -12,10 +12,11 @@ from .source_terrain_env_cfg import DeeproboticsLite3SourceTerrainEnvCfg
 @configclass
 class DeeproboticsLite3SourceTrainingEnvCfg(DeeproboticsLite3SourceTerrainEnvCfg):
     source_training_run: int = 1
+    source_allowed_levels: tuple = ("L1",)
 
     def __post_init__(self):
         seeds = SourceRunSeeds(self.source_training_run)
-        if not self.source_parallel_sampler_enabled or self.source_terrain_level != "L1":
+        if not self.source_parallel_sampler_enabled or self.source_terrain_level not in self.source_allowed_levels:
             raise ValueError("Source training requires explicit parallel sampling and L1 only")
         self.source_parallel_sampler_seed = seeds.sampler
         super().__post_init__()

@@ -65,7 +65,8 @@ def source_terrain_reset_sampler(
 
 
 def source_terrain_parallel_reset_sampler(
-    env: ManagerBasedRLEnv, env_ids: Sequence[int], sampler_seed: int
+    env: ManagerBasedRLEnv, env_ids: Sequence[int], sampler_seed: int,
+    fixed_columns: Sequence[int] | None = None,
 ) -> None:
     """Assign one reserved-row Source tile before the selected assets reset."""
 
@@ -73,7 +74,7 @@ def source_terrain_parallel_reset_sampler(
         assign_source_terrain_for_parallel_reset,
     )
 
-    assign_source_terrain_for_parallel_reset(env, env_ids, sampler_seed)
+    assign_source_terrain_for_parallel_reset(env, env_ids, sampler_seed, fixed_columns=fixed_columns)
 
 
 def gait_level_curve(env: ManagerBasedRLEnv, env_ids: Sequence[int]) -> torch.Tensor:

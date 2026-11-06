@@ -156,8 +156,85 @@ class ReservedRowTerrainAllocator:
         return tuple(result)
 
 
+class FixedColumnTerrainAllocator:
+    """Keep every environment on one registered column for all of its episodes.
+
+    ``fixed_columns[i]`` is the column of environment i. Rows follow the
+    reserved-row layout, or ``env_id % bank_rows`` for an explicit shared bank.
+    """
+
+    def __init__(self, num_envs, block_counts, sampler_seed, fixed_columns, *, bank_rows=None):
+        ReservedRowTerrainAllocator._positive_int(num_envs, "num_envs")
+        if type(sampler_seed) is not int or sampler_seed < 0:
+            raise ValueError("sampler_seed must be an explicit nonnegative integer")
+        labels = tuple(block_counts)
+        columns = tuple(fixed_columns)
+        if len(columns) != num_envs:
+            raise ValueError("fixed_columns must list one column per environment")
+        if any(type(c) is not int or not 0 <= c < len(labels) for c in columns):
+            raise ValueError("fixed_columns must contain registered column indices")
+        if bank_rows is not None and (type(bank_rows) is not int or not 1 <= bank_rows <= num_envs):
+            raise ValueError("bank_rows must be between one and the environment count")
+        self._num_envs = num_envs
+        self._labels = labels
+        self._columns = columns
+        self._bank_rows = bank_rows
+        self.sampler_seed = sampler_seed
+        self._assignment_count = 0
+        self._active: list[TerrainAssignment | None] = [None] * num_envs
+        self._episodes = [0] * num_envs
+
+    @property
+    def grid_shape(self) -> tuple[int, int]:
+        return (self._bank_rows or self._num_envs), len(self._labels)
+
+    @property
+    def column_labels(self) -> tuple[str, ...]:
+        return self._labels
+
+    @property
+    def block_size(self) -> int:
+        return self._num_envs
+
+    @property
+    def assignments(self) -> tuple[TerrainAssignment | None, ...]:
+        return tuple(self._active)
+
+    def reset(self, env_ids: Sequence[int]) -> tuple[TerrainAssignment, ...]:
+        if not isinstance(env_ids, Sequence) or isinstance(env_ids, (str, bytes)):
+            raise ValueError("env_ids must be a sequence of integer IDs")
+        ids = tuple(env_ids)
+        if any(type(i) is not int or not 0 <= i < self._num_envs for i in ids):
+            raise ValueError("env_ids must contain in-range integer IDs")
+        if len(set(ids)) != len(ids):
+            raise ValueError("env_ids must be unique")
+        ids = tuple(sorted(ids))
+        if not ids:
+            return ()
+        if self._assignment_count == 0 and ids != tuple(range(self._num_envs)):
+            raise ValueError("the first reset must initialize every environment")
+        result = []
+        for env_id in ids:
+            column = self._columns[env_id]
+            assignment = TerrainAssignment(
+                env_id=env_id,
+                row=env_id if self._bank_rows is None else env_id % self._bank_rows,
+                column=column,
+                subterrain=self._labels[column],
+                assignment_index=self._assignment_count,
+                episode_index=self._episodes[env_id],
+                block_index=self._assignment_count // self._num_envs,
+                index_in_block=self._assignment_count % self._num_envs,
+            )
+            self._active[env_id] = assignment
+            self._episodes[env_id] += 1
+            self._assignment_count += 1
+            result.append(assignment)
+        return tuple(result)
+
+
 def assign_source_terrain_for_parallel_reset(
-    env, env_ids, sampler_seed: int
+    env, env_ids, sampler_seed: int, fixed_columns=None
 ) -> tuple[TerrainAssignment, ...]:
     """Apply scheduled row/column/origin assignments before Isaac Lab resets assets.
 
@@ -266,11 +343,16 @@ def assign_source_terrain_for_parallel_reset(
     if not bool(terrain_origins.isfinite().all().item()):
         raise RuntimeError("terrain origin grid contains non-finite values")
 
-    signature = (num_envs, labels, proportions, tuple(terrain_origins.shape), bank_rows)
+    fixed = None if fixed_columns is None else tuple(int(c) for c in fixed_columns)
+    signature = (num_envs, labels, proportions, tuple(terrain_origins.shape), bank_rows, fixed)
     current_allocator = getattr(env, "_source_parallel_terrain_allocator", None)
     is_new_allocator = current_allocator is None
     if is_new_allocator:
-        if bank_rows is None:
+        if fixed is not None:
+            candidate_allocator = FixedColumnTerrainAllocator(
+                num_envs, SOURCE_RESET_BLOCK_COUNTS, sampler_seed, fixed, bank_rows=bank_rows
+            )
+        elif bank_rows is None:
             candidate_allocator = ReservedRowTerrainAllocator(
                 num_envs, SOURCE_RESET_BLOCK_COUNTS, sampler_seed
             )
@@ -408,6 +490,7 @@ def _normalize_reset_ids(env_ids, num_envs: int) -> tuple[int, ...]:
 
 
 __all__ = [
+    "FixedColumnTerrainAllocator",
     "ReservedRowTerrainAllocator",
     "SOURCE_RESET_BLOCK_COUNTS",
     "TerrainAssignment",
