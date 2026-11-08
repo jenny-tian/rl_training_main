@@ -133,6 +133,7 @@ class SourceTrainingVecEnv:
         self.exposure = SourceExposureLedger(labels, wrapped_env.device)
         self.exposure.record(self.unwrapped.scene.terrain.terrain_types, reset=True)
         self.last_trace = None
+        self._residual_bridge = None
 
     def __getattr__(self, name):
         return getattr(self.env, name)
@@ -153,7 +154,17 @@ class SourceTrainingVecEnv:
     def step(self, actions):
         if actions.shape != (self.num_envs, 12):
             raise ValueError("Source PPO requires [num_envs, 12] sampled actions")
-        trace = self.runtime.bridge.step(actions, self.runtime.zeros)
+        return self._advance(self.runtime.bridge.step(actions, self.runtime.zeros))
+
+    def step_residual(self, base_actions, residual_request):
+        if base_actions.shape != (self.num_envs, 12) or residual_request.shape != (self.num_envs, 12):
+            raise ValueError("residual steps require [num_envs, 12] base actions and residual requests")
+        if self._residual_bridge is None:
+            from rl_training.ea_lpl.residual_bridge import ResidualSafetyBridge
+            self._residual_bridge = ResidualSafetyBridge(self.runtime, self.runtime.safety)
+        return self._advance(self._residual_bridge.step(base_actions, residual_request, self.runtime.zeros))
+
+    def _advance(self, trace):
         if bool(trace.decision.paused.any()):
             raise RuntimeError("Source pre-action safety pause: invalid reset or missing post-step termination")
         old_columns = self.unwrapped.scene.terrain.terrain_types.clone()
