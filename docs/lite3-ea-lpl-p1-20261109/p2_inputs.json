@@ -1,0 +1,39 @@
+{
+  "schema": "ea_lpl_p2_inputs_v1",
+  "basis": "roll",
+  "scores": {
+    "sag": 0,
+    "roll": 0.9375,
+    "hipx": 0
+  },
+  "targets": [
+    {
+      "level": "L1",
+      "column": 5,
+      "terrain": "slope_cross_slope_right",
+      "oracle_u": [
+        -2.0,
+        2.0
+      ],
+      "oracle_code": "roll:-2,+2",
+      "confirmed_gain": 0.9375
+    }
+  ],
+  "ea": {
+    "c1a_go": false,
+    "c1b_go": true,
+    "c1a": {
+      "p_proj": 0.000170309815769208,
+      "p_guard": 3.332148569397548e-05,
+      "samples": 1890672
+    },
+    "c1b": {
+      "decisions": 56411,
+      "informative_fraction_single": 0.9877506160146071,
+      "informative_fraction_macro": 0.8174292247965822,
+      "median_prediction_error": 0.21600869297981262,
+      "projection_activation": 0.6409954653466228
+    },
+    "c1b_basis": "roll"
+  }
+}

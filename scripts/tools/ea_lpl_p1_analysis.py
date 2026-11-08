@@ -166,11 +166,17 @@ def main():
     s.add_argument("--evidence", type=Path, required=True)
     s.add_argument("--inputs", type=Path, required=True)
     s.add_argument("--out", type=Path, required=True)
+    e = sub.add_parser("ea", help="recompute ea_diagnostics.json only")
+    e.add_argument("--evidence", type=Path, required=True)
+    e.add_argument("--out", type=Path, required=True)
     f = sub.add_parser("final")
     f.add_argument("--evidence", type=Path, required=True)
     f.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
-    screen(args) if args.cmd == "screen" else final(args)
+    if args.cmd == "ea":
+        (args.out / "ea_diagnostics.json").write_text(json.dumps(ea_diagnostics(args.evidence), indent=2) + "\n")
+    else:
+        screen(args) if args.cmd == "screen" else final(args)
 
 
 if __name__ == "__main__":
