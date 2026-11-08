@@ -1,6 +1,10 @@
 """Run specifications for the EA-LPL runner (P0 subset; later phases extend validate_spec)."""
 from __future__ import annotations
 
+import math
+
+from .basis import BASIS_NAMES
+
 SPEC_SCHEMA = "ea_lpl_run_spec_v1"
 NUM_ENVS = 120
 LEVELS = ("L1", "L2")
@@ -38,8 +42,20 @@ def validate_spec(spec):
         raise ValueError("namespace must be in 0..8; 9 is reserved for sealed runs")
     if spec["slots"] is not None and (seed is None or not _int_list(spec["slots"], length=NUM_ENVS, low=0)):
         raise ValueError("slots need a reset table seed and 120 nonnegative integers")
-    if spec["codes"] is not None:
-        raise ValueError("residual codes are added in P1")
+    codes = spec["codes"]
+    if codes is not None:
+        if set(codes) != {"basis", "u", "code_name", "record_replay"}:
+            raise ValueError("codes must define basis, u, code_name and record_replay")
+        if spec["columns"] is None:
+            raise ValueError("residual codes require fixed columns")
+        if len(codes["basis"]) != NUM_ENVS or any(b not in BASIS_NAMES for b in codes["basis"]):
+            raise ValueError("codes.basis must name one registered basis per environment")
+        if len(codes["u"]) != NUM_ENVS or any(
+                len(u) != 2 or any(type(x) not in (int, float) or not math.isfinite(x) or abs(x) > 3 for x in u)
+                for u in codes["u"]):
+            raise ValueError("codes.u must hold 120 finite pairs with |u| <= 3")
+        if len(codes["code_name"]) != NUM_ENVS or type(codes["record_replay"]) is not bool:
+            raise ValueError("codes.code_name must have 120 entries and record_replay must be boolean")
     if type(spec["wall_limit_s"]) not in (int, float) or spec["wall_limit_s"] <= 0:
         raise ValueError("wall_limit_s must be positive")
     return spec

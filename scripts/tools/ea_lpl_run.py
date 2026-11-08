@@ -89,6 +89,15 @@ def collect_fixed(wrapped, actor, spec, folder, app, report):
     if spec["columns"] is not None and [a["column"] for a in identity["assignments"]] != spec["columns"]:
         raise ValueError("initial terrain columns differ from the spec")
     check_initial_state(base, spec)
+    request = replay = None
+    if spec["codes"] is not None:
+        from rl_training.ea_lpl.basis import BASIS_NAMES, residual_request, stacked_bases
+        index = torch.tensor([BASIS_NAMES.index(b) for b in spec["codes"]["basis"]], device=base.device)
+        codes_u = torch.tensor(spec["codes"]["u"], device=base.device, dtype=torch.float32)
+        request = residual_request(index, codes_u, stacked_bases(device=base.device))
+        if spec["codes"]["record_replay"]:
+            replay = {key: [] for key in ("base_action", "executed_action", "gravity_xy", "base_height",
+                                          "joint_vel", "nonfoot_contact", "control_timed_out")}
     observations = wrapped.get_observations()
     manager = base.reward_manager
     original_compute = manager.compute
@@ -125,13 +134,30 @@ def collect_fixed(wrapped, actor, spec, folder, app, report):
                 if not app.is_running():
                     raise RuntimeError("simulator stopped")
                 action = actor(observations)
-                observations, reward, done, extras = wrapped.step(action)
+                if request is None:
+                    observations, reward, done, extras = wrapped.step(action)
+                else:
+                    observations, reward, done, extras = wrapped.step_residual(action, request)
                 report["transitions"] += n
                 trace = wrapped.last_trace
+                if replay is not None:
+                    state_now = trace.safety_state
+                    for key, value in (("base_action", trace.base_action), ("executed_action", trace.executed_action),
+                                       ("gravity_xy", state_now.projected_gravity_xy),
+                                       ("base_height", state_now.base_height), ("joint_vel", state_now.joint_vel),
+                                       ("nonfoot_contact", state_now.nonfoot_contact),
+                                       ("control_timed_out", state_now.control_timed_out)):
+                        replay[key].append(value.cpu().numpy().copy())
+                    if "joint_lower" not in replay:
+                        replay.update(joint_lower=state_now.joint_lower.cpu().numpy(),
+                                      joint_upper=state_now.joint_upper.cpu().numpy(),
+                                      default_joint_pos=state_now.default_joint_pos.cpu().numpy(),
+                                      action_scale=state_now.action_scale.cpu().numpy())
                 metrics = torch.stack((
                     action.square().mean(-1).sqrt(), (trace.raw_policy_action != trace.base_action).float().mean(-1),
                     trace.decision.projected[:, 0].float(), trace.decision.paused[:, 0].float(),
-                    (trace.executed_action - action).abs().amax(-1)), dim=-1)
+                    (trace.executed_action - (action if request is None else trace.base_action + request)).abs().amax(-1)),
+                    dim=-1)
                 for key in ("rewards", "state", "columns"):
                     chunks[key].append(captured[key].cpu().numpy().copy())
                 chunks["actions"].append(metrics.cpu().numpy().copy())
@@ -166,8 +192,18 @@ def collect_fixed(wrapped, actor, spec, folder, app, report):
         raise RuntimeError("some environments did not finish their registered episodes")
     records = episode_records(arrays, events, identity["assignments"], episodes_per_env=target,
                               control_dt=base.step_dt)
+    if replay is not None:
+        first_end = np.array([next(r["steps"] for r in records if r["env_id"] == i and r["episode_index"] == 0)
+                              for i in range(n)])
+        arrays_out = {k: np.asarray(v) for k, v in replay.items()
+                      if k not in ("joint_lower", "joint_upper", "default_joint_pos", "action_scale")}
+        np.savez_compressed(folder / f"{spec['label']}_replay.npz", **arrays_out,
+                            joint_lower=replay["joint_lower"], joint_upper=replay["joint_upper"],
+                            default_joint_pos=replay["default_joint_pos"], action_scale=replay["action_scale"],
+                            request=request.cpu().numpy(), basis_index=index.cpu().numpy(),
+                            u=codes_u.cpu().numpy(), episode_end=first_end)
     return dict(label=spec["label"], initial=identity, records=records, controls=len(arrays["done"]),
-                state_names=STATE_NAMES, action_names=ACTION_NAMES)
+                state_names=STATE_NAMES, action_names=ACTION_NAMES, codes=spec["codes"])
 
 
 def child(spec_path, folder):
@@ -198,6 +234,7 @@ def child(spec_path, folder):
         actor = load_frozen_source_actor(OLD, device="cuda:0")
         phase("controls", 600 * spec["episodes_per_env"])
         report["case"] = collect_fixed(wrapped, actor, spec, folder, app, report)
+        report.update(level=spec["level"], slots=spec["slots"])
         report["status"] = "passed"
     except Exception:
         report.update(status="failed", error=traceback.format_exc())
