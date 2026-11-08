@@ -47,3 +47,27 @@ def test_nonfinite_request_is_rejected():
     request[0, 0] = float("nan")
     with pytest.raises(FloatingPointError):
         bridge.step(torch.zeros(2, 12), request, torch.zeros(2, 1, dtype=torch.bool))
+
+
+@pytest.mark.parametrize("contact", [False, True])
+def test_zero_residual_matches_frozen_bridge(contact):
+    from rl_training.source_scan.bridge import FrozenPolicySafetyBridge
+
+    torch.manual_seed(0)
+    frozen_filter, residual_filter = SafetyFilter(LIMITS), SafetyFilter(LIMITS)
+    adapter = FixedAdapter(nominal_state(contact=contact))
+    frozen = FrozenPolicySafetyBridge(lambda action: action, adapter, frozen_filter)
+    residual = ResidualSafetyBridge(adapter, residual_filter)
+    timed_out = torch.zeros(2, 1, dtype=torch.bool)
+    for _ in range(6):
+        action = torch.randn(2, 12)
+        a = frozen.step(action, timed_out)
+        b = residual.step(action, torch.zeros(2, 12), timed_out)
+        assert torch.equal(a.executed_action, b.executed_action)
+        assert torch.equal(a.base_action, b.base_action)
+        assert torch.equal(a.requested_action, b.requested_action)
+        for name in ("residual", "paused", "projected"):
+            assert torch.equal(getattr(a.decision, name), getattr(b.decision, name)), name
+        assert a.decision.reasons == b.decision.reasons
+        for name in ("_previous_residual", "_paused", "_stable_steps", "_contact_steps"):
+            assert torch.equal(getattr(frozen_filter, name), getattr(residual_filter, name)), name
