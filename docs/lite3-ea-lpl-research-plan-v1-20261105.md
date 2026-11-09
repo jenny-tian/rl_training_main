@@ -2,6 +2,7 @@
 
 日期：2026-11-05
 状态：用户已同意方向；用户把 Codex 执行任务书交给 Codex 时生效
+更新（2026-11-09）：P2 及以后各阶段已由 [研究方案 v2](lite3-ea-lpl-research-plan-v2-20261109.md) 取代。P0、P1 的结果继续有效。
 用途：Claude 自留的总体方案和审查依据。执行步骤见 [Codex 执行任务书](lite3-ea-lpl-codex-brief-v1-20261105.md)。
 依据：用户计划书 `/home/tjx/Documents/组会/Lite3_C1a_C1b_EA-LPL实施计划书.docx`（2026-11-05 版，下称计划书）。
 

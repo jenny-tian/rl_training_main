@@ -1,5 +1,7 @@
 # EA-LPL P2：C1-a 并行 session 在线学习 Implementation Plan
 
+> **已取代（2026-11-09）：** 本计划没有执行。用户要求先让基础策略掌握六种 Source 地形，再在线学习更难的地形，见 [研究方案 v2](../../lite3-ea-lpl-research-plan-v2-20261109.md)。C1-a session 的设计并入 v2 的阶段三。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在 P1 选出的动作基和目标条件上，比较 Frozen（A）与 Updated（B）两组各 120 个并行 session 的 C1-a 在线学习，用独立评估起点上的冻结快照判断在线权重更新是否带来收益。
