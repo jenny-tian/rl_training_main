@@ -33,6 +33,18 @@ from rl_training.tasks.manager_based.locomotion.velocity.terrains.source_terrain
 from .flat_env_cfg import DeeproboticsLite3FlatEnvCfg
 
 
+def spawn_source_curriculum_robot(prim_path, cfg, translation=None, orientation=None, **kwargs):
+    """Keep the pre-reset GridCloner grid above terrain during PhysX warmup.
+
+    Terrain origins are applied by the first environment reset. Until then,
+    ordinary grid positions can put the robot inside an elevated slope. Only
+    the USD spawn translation changes; default_root_state still comes from
+    ArticulationCfg.init_state and resets use the registered 0.375 m height.
+    """
+    x, y, _z = translation if translation is not None else (0.0, 0.0, 0.0)
+    return sim_utils.spawn_from_usd(prim_path, cfg, translation=(x, y, 3.0), orientation=orientation, **kwargs)
+
+
 @configclass
 class DeeproboticsLite3SourceCurriculumEnvCfg(DeeproboticsLite3FlatEnvCfg):
     # Record only: the Flat cfg already sets reward_mdp.gait_level = 1.0 at module level.
@@ -44,6 +56,14 @@ class DeeproboticsLite3SourceCurriculumEnvCfg(DeeproboticsLite3FlatEnvCfg):
     def __post_init__(self):
         super().__post_init__()
         self.episode_length_s = 40.0
+        # PhysX requested 229478192 bytes with 2048 Source envs. Its default
+        # 64 MiB stack drops contacts; reserve 256 MiB for this terrain task.
+        self.sim.physx.gpu_collision_stack_size = 2**28
+        # GPU env-ID replication exhausted 24 GiB at 2048 envs on this global
+        # map. Authored USD collision groups used 5.1 GiB with the same scene.
+        self.scene.replicate_physics = False
+        self.scene.clone_in_fabric = False
+        self.scene.filter_collisions = True
         self.scene.terrain = SourceTerrainImporterCfg(
             prim_path="/World/ground", terrain_type="generator",
             terrain_generator=TerrainGeneratorCfg(
@@ -64,6 +84,9 @@ class DeeproboticsLite3SourceCurriculumEnvCfg(DeeproboticsLite3FlatEnvCfg):
             mesh_prim_paths=[MultiMeshRayCasterCfg.RaycastTargetCfg(
                 prim_expr="/World/ground", merge_prim_meshes=True, track_mesh_transforms=False)])
         self.scene.robot.init_state.pos = (0.0, 0.0, DEEPROBOTICS_LITE3_CFG.init_state.pos[2])
+        if self.scene.robot.spawn.func is not sim_utils.spawn_from_usd:
+            raise ValueError("Source curriculum startup expects the standard USD robot spawner")
+        self.scene.robot.spawn.func = spawn_source_curriculum_robot
         self.rewards.base_height_l2.params["sensor_cfg"] = SceneEntityCfg("height_scanner_base")
 
         old = self.commands.base_velocity

@@ -22,6 +22,34 @@ def test_env_cfg_pins_grid_seed_and_termination_values():
         assert needle in text, needle
 
 
+def test_env_cfg_reserves_the_measured_source_collision_stack():
+    # Native PhysX requested 229478192 bytes at 2048 envs; 64 MiB drops contacts.
+    text = _source(ENV_CFG)
+    assert "self.sim.physx.gpu_collision_stack_size = 2**28" in text
+
+
+def test_env_cfg_uses_usd_collision_groups_for_the_shared_map():
+    text = _source(ENV_CFG)
+    assert "self.scene.replicate_physics = False" in text
+    assert "self.scene.clone_in_fabric = False" in text
+    assert "self.scene.filter_collisions = True" in text
+
+
+def test_startup_spawn_only_overrides_usd_translation():
+    from types import SimpleNamespace
+    calls = []
+    namespace = {"sim_utils": SimpleNamespace(spawn_from_usd=lambda *args, **kwargs: calls.append((args, kwargs)))}
+    tree = ast.parse(ENV_CFG.read_text())
+    function = next(node for node in tree.body if isinstance(node, ast.FunctionDef)
+                    and node.name == "spawn_source_curriculum_robot")
+    exec(compile(ast.Module(body=[function], type_ignores=[]), str(ENV_CFG), "exec"), namespace)
+    cfg = SimpleNamespace(init_state=SimpleNamespace(pos=(0., 0., .375)))
+    namespace["spawn_source_curriculum_robot"]("/Robot", cfg, translation=(1., 2., .375),
+                                                 orientation=(1.,0.,0.,0.), visible=True)
+    assert calls == [(("/Robot", cfg), {"translation": (1., 2., 3.), "orientation": (1.,0.,0.,0.), "visible": True})]
+    assert cfg.init_state.pos == (0., 0., .375)
+
+
 def _registered_ids(path):
     ids = []
     for node in ast.walk(ast.parse(path.read_text())):
