@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -208,6 +209,9 @@ def write_policy(evidence, name, actor, kind="qualify"):
                     initial_state_sha256=hashlib.sha256(str(spec["slots"]).encode()).hexdigest()))
         write_json(folder / "result.json", dict(status="passed", label=spec["label"], level=spec["level"],
                                                slots=spec["slots"], case=case))
+        write_json(folder / "execution.json", dict(status="passed", exit_code=0, deadline_failure=None,
+                                                   process_group_empty=True))
+        (folder / "runtime.log").write_text("[ea-lpl] evaluation and cleanup finished\n")
 
 
 @pytest.fixture
@@ -221,7 +225,11 @@ def evidence(tmp_path):
         retention = tmp_path / f"{name}_retention.json"
         write_json(retention, dict(status="passed", checkpoint=str(path), checkpoint_sha256=cli.sha256(path),
                                    task="Flat-Deeprobotics-Lite3-v0", num_envs=1024, seed=20261109,
-                                   requested_steps=3000, completed_steps=3000, metrics=METRICS))
+                                   requested_steps=3000, completed_steps=3000, metrics=METRICS,
+                                   clip_actions=100, policy_observation_corruption=False, safety_filter=False,
+                                   termination_terms=["bad_orientation_2", "illegal_contact", "time_out"],
+                                   cleanup=dict(environment="returned", application="returned"),
+                                   runtime=dict(child_exit=0, fatal_messages=[], deadline_failure=None)))
         retentions[name] = retention
     return tmp_path, actors, retentions
 
@@ -243,7 +251,7 @@ def test_retry_resolves_one_first_passed_attempt_and_does_not_pool(evidence):
     original = path / label
     retry = path / (label + "_retry1")
     retry.mkdir()
-    for filename in ("spec.json", "manifest.json", "result.json"):
+    for filename in ("spec.json", "manifest.json", "result.json", "execution.json", "runtime.log"):
         (retry / filename).write_bytes((original / filename).read_bytes())
     # Both passed: original wins. Corrupt retry would fail if it were loaded.
     write_json(retry / "manifest.json", {})
@@ -255,6 +263,80 @@ def test_retry_resolves_one_first_passed_attempt_and_does_not_pool(evidence):
     data = cli.load_policy(path, "seed42", actors["seed42"], kind="qualify")
     assert data["runs"][label]["folder"] == str(retry)
     assert len(data["records"]["L1"]) == 480
+
+
+def corrupt_attempt(folder, corruption):
+    if corruption == "missing_receipt":
+        (folder / "execution.json").unlink()
+    elif corruption == "malformed_receipt":
+        (folder / "execution.json").write_text("{unfinished")
+    elif corruption == "nonobject_receipt":
+        write_json(folder / "execution.json", [])
+    elif corruption in ("nonzero_exit", "boolean_exit", "float_exit", "deadline", "process_group", "receipt_status",
+                        "missing_deadline"):
+        receipt = cli.read_json(folder / "execution.json")
+        field, value = {
+            "nonzero_exit": ("exit_code", -15), "boolean_exit": ("exit_code", False),
+            "float_exit": ("exit_code", 0.0), "deadline": ("deadline_failure", "environment_close exceeded 30s"),
+            "process_group": ("process_group_empty", False), "receipt_status": ("status", "failed"),
+            "missing_deadline": ("deadline_failure", None),
+        }[corruption]
+        receipt[field] = value
+        if corruption == "missing_deadline":
+            del receipt[field]
+        write_json(folder / "execution.json", receipt)
+    elif corruption == "missing_runtime":
+        (folder / "runtime.log").unlink()
+    elif corruption == "malformed_runtime":
+        (folder / "runtime.log").write_bytes(b"\xff")
+    elif corruption.startswith("native:"):
+        (folder / "runtime.log").write_text("cleanup\n" + corruption.removeprefix("native:") + "\n")
+    else:
+        part, field, value = {
+            "spec": ("spec", "namespace", 3), "identity": ("manifest", "actor_sha256", "b" * 64),
+            "samples": ("result", None, None), "malformed_result": ("result", None, None),
+        }[corruption]
+        report = cli.read_json(folder / f"{part}.json")
+        if corruption == "samples":
+            report["case"]["records"][0]["forward_progress_m"] = float("nan")
+        elif corruption == "malformed_result":
+            (folder / "result.json").write_text("{unfinished")
+            return
+        else:
+            report[field] = value
+        write_json(folder / f"{part}.json", report)
+
+
+ADMISSION_FAILURES = [
+    "missing_receipt", "malformed_receipt", "nonobject_receipt", "nonzero_exit", "boolean_exit", "float_exit",
+    "deadline", "process_group", "receipt_status", "missing_deadline", "missing_runtime", "malformed_runtime",
+    *["native:" + marker for marker in ("PhysX error: stale state", "Scene state is corrupted", "CUDA error",
+                                       "CUDA_ERROR_ILLEGAL_ADDRESS", "failed to allocate", "out of memory",
+                                       "buffer overflow", "buffer capacity exceeded")],
+]
+
+
+@pytest.mark.parametrize("corruption", ADMISSION_FAILURES)
+def test_unfinalized_or_unhealthy_terrain_evidence_prevents_selection(evidence, corruption):
+    path, actors, retentions = evidence
+    corrupt_attempt(path / "s1q_baseline_l1_0", corruption)
+    report = cli.summarize(path, actors, retentions, kind="qualify")
+    assert report["selected_seed"] is None
+    assert report["selected_actor"] is None
+    assert any("terrain evidence:" in error for error in report["policies"]["baseline"]["errors"])
+
+
+@pytest.mark.parametrize("corruption", ADMISSION_FAILURES + ["spec", "identity", "samples", "malformed_result"])
+def test_first_fully_valid_retry_wins_over_invalid_original(evidence, corruption):
+    path, actors, _ = evidence
+    label = "s1q_seed42_l1_0"
+    original, retry = path / label, path / (label + "_retry1")
+    shutil.copytree(original, retry)
+    corrupt_attempt(original, corruption)
+    data = cli.load_policy(path, "seed42", actors["seed42"], kind="qualify")
+    assert data["runs"][label]["folder"] == str(retry)
+    assert len(data["records"]["L1"]) == 480
+    assert len({(r["namespace"], r["slot"], r["episode_index"]) for r in data["records"]["L1"]}) == 480
 
 
 @pytest.mark.parametrize("part,field,value", [
@@ -337,6 +419,47 @@ def test_retention_identity_and_completion_are_required(evidence, field, value):
     write_json(filename, report)
     with pytest.raises(ValueError, match="incomplete or differs"):
         cli.load_retention(filename, actors["seed42"])
+
+
+@pytest.mark.parametrize("field,value", [
+    ("cleanup", None), ("cleanup", {}),
+    ("cleanup", dict(environment="closing", application="returned")),
+    ("cleanup", dict(environment="returned", application="failed")),
+    ("runtime", None), ("runtime", {}),
+    ("runtime", dict(child_exit=-15, fatal_messages=[], deadline_failure=None)),
+    ("runtime", dict(child_exit=False, fatal_messages=[], deadline_failure=None)),
+    ("runtime", dict(child_exit=0.0, fatal_messages=[], deadline_failure=None)),
+    ("runtime", dict(child_exit=0, fatal_messages=["PhysX error: cleanup"], deadline_failure=None)),
+    ("runtime", dict(child_exit=0, fatal_messages=None, deadline_failure=None)),
+    ("runtime", dict(child_exit=0, fatal_messages=[], deadline_failure="application_close exceeded 30s")),
+    ("runtime", dict(child_exit=0, fatal_messages=[])),
+    ("clip_actions", None), ("clip_actions", 1),
+    ("policy_observation_corruption", True), ("policy_observation_corruption", 0),
+    ("safety_filter", True), ("safety_filter", 0),
+    ("termination_terms", ["time_out", "illegal_contact"]),
+    ("termination_terms", ["bad_orientation_2", "illegal_contact", "time_out", "source_curriculum_safety"]),
+    ("termination_terms", ["bad_orientation_2", "illegal_contact", "time_out", "time_out"]),
+])
+def test_retention_requires_parent_finalization_and_exact_flat_settings(evidence, field, value):
+    path, actors, retentions = evidence
+    # A bad baseline must deny both candidate seeds even when all terrain evidence passes.
+    filename = retentions["baseline"]
+    report = cli.read_json(filename)
+    if value is None:
+        del report[field]
+    else:
+        report[field] = value
+    write_json(filename, report)
+    summary = cli.summarize(path, actors, retentions, kind="qualify")
+    assert summary["selected_seed"] is None and summary["selected_actor"] is None
+    assert all(not summary["policies"][name]["verdicts"]["Q4"]["pass"] for name in ("seed42", "seed43"))
+    assert any("retention evidence:" in error for error in summary["policies"]["baseline"]["errors"])
+
+
+def test_finalized_retention_producer_schema_is_accepted(evidence):
+    _, actors, retentions = evidence
+    for name in actors:
+        assert cli.load_retention(retentions[name], actors[name]) == METRICS
 
 
 def test_cli_writes_reviewable_json_and_markdown_from_explicit_final_actors(evidence):

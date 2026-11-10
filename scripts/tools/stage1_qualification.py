@@ -10,9 +10,12 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "source/rl_training"), str(ROOT / "scripts/tools")]
-from ea_lpl_p0_summary import load, resolve_run  # noqa: E402
+from ea_lpl_p0_summary import load  # noqa: E402
+from source_curriculum_check import runtime_failure  # noqa: E402
 from rl_training.ea_lpl.specs import stage1_specs  # noqa: E402
-from rl_training.ea_lpl.stage1 import CONDITIONS, LEVELS, choose_seed, family_table, validate_records, verdicts  # noqa: E402
+from rl_training.ea_lpl.stage1 import (  # noqa: E402
+    CONDITIONS, LEVELS, choose_seed, family_table, validate_record, validate_records, verdicts,
+)
 from rl_training.ea_lpl.summary import condition_table  # noqa: E402
 
 
@@ -24,52 +27,77 @@ def sha256(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def load_attempt(folder, expected, actor):
+    """Admit only finalized, healthy attempts with valid identities and samples."""
+    label, level = expected["label"], expected["level"]
+    receipt = read_json(folder / "execution.json")
+    if (receipt["status"] != "passed" or type(receipt["exit_code"]) is not int or receipt["exit_code"] != 0
+            or receipt["deadline_failure"] is not None or receipt["process_group_empty"] is not True):
+        raise ValueError(f"{label}: execution receipt is not finalized and healthy")
+    with (folder / "runtime.log").open() as stream:
+        for line in stream:
+            if runtime_failure(line):
+                raise ValueError(f"{label}: native runtime failure: {line.strip()}")
+    spec, manifest, report = (read_json(folder / f"{part}.json") for part in ("spec", "manifest", "result"))
+    if json.dumps(spec, sort_keys=True, allow_nan=False) != json.dumps(expected, sort_keys=True, allow_nan=False):
+        raise ValueError(f"{label}: spec differs from the declared policy/design")
+    if (manifest["schema"] != "ea_lpl_run_manifest_v1" or manifest["label"] != label
+            or manifest["spec_sha256"] != sha256(folder / "spec.json")
+            or manifest["actor_sha256"] != actor["sha256"] or manifest["actor_path"] != actor["path"]):
+        raise ValueError(f"{label}: manifest/spec/actor identity mismatch")
+    case = load(folder)
+    if (report["label"] != label or report["level"] != level or report["slots"] != spec["slots"]
+            or case["label"] != label or case["codes"] is not None):
+        raise ValueError(f"{label}: result identity mismatch")
+    assignments = case["initial"]["assignments"]
+    initial_sha = case["initial"]["initial_state_sha256"]
+    if not isinstance(initial_sha, str) or re.fullmatch(r"[0-9a-f]{64}", initial_sha) is None:
+        raise ValueError(f"{label}: invalid initial-state hash")
+    if not isinstance(assignments, list) or len(assignments) != 120:
+        raise ValueError(f"{label}: expected 120 initial assignments")
+    for env_id, assignment in enumerate(assignments):
+        column = spec["columns"][env_id]
+        if (type(assignment["env_id"]) is not int or assignment["env_id"] != env_id
+                or type(assignment["column"]) is not int or assignment["column"] != column
+                or assignment["subterrain"] != CONDITIONS[column]):
+            raise ValueError(f"{label}: initial terrain assignment mismatch")
+    if not isinstance(case["records"], list) or len(case["records"]) != 120:
+        raise ValueError(f"{label}: expected exactly 120 first-episode records")
+    records, env_ids = [], set()
+    for record in case["records"]:
+        env_id = record["env_id"]
+        if type(env_id) is not int or not 0 <= env_id < 120 or env_id in env_ids:
+            raise ValueError(f"{label}: duplicate or invalid env_id")
+        env_ids.add(env_id)
+        if (record["episode_index"] != 0 or record["column"] != spec["columns"][env_id]
+                or record["terrain"] != assignments[env_id]["subterrain"]):
+            raise ValueError(f"{label}: record/assignment identity mismatch")
+        row = dict(record, namespace=spec["namespace"], slot=spec["slots"][env_id])
+        validate_record(row)
+        records.append(row)
+    run = dict(folder=str(folder), level=level, slots=spec["slots"], reset_table_seed=spec["reset_table_seed"],
+               initial_state_sha256=initial_sha, spec_sha256=manifest["spec_sha256"])
+    return records, run
+
+
 def load_policy(evidence, name, actor, *, kind):
-    """Resolve exactly one passed attempt per expected label, preserving reset provenance."""
+    """Resolve one fully valid original/retry1 per label without pooling attempts."""
     records = {level: [] for level in LEVELS}
     runs = {}
     for expected in stage1_specs({name: actor}, kind=kind):
         label, level = expected["label"], expected["level"]
-        folder = resolve_run(evidence, label)
-        if folder is None:
-            raise ValueError(f"missing passed attempt: {label}")
-        spec, manifest, report = (read_json(folder / f"{part}.json") for part in ("spec", "manifest", "result"))
-        if json.dumps(spec, sort_keys=True, allow_nan=False) != json.dumps(expected, sort_keys=True, allow_nan=False):
-            raise ValueError(f"{label}: spec differs from the declared policy/design")
-        if (manifest["schema"] != "ea_lpl_run_manifest_v1" or manifest["label"] != label
-                or manifest["spec_sha256"] != sha256(folder / "spec.json")
-                or manifest["actor_sha256"] != actor["sha256"] or manifest["actor_path"] != actor["path"]):
-            raise ValueError(f"{label}: manifest/spec/actor identity mismatch")
-        case = load(folder)
-        if (report["label"] != label or report["level"] != level or report["slots"] != spec["slots"]
-                or case["label"] != label or case["codes"] is not None):
-            raise ValueError(f"{label}: result identity mismatch")
-        assignments = case["initial"]["assignments"]
-        initial_sha = case["initial"]["initial_state_sha256"]
-        if not isinstance(initial_sha, str) or re.fullmatch(r"[0-9a-f]{64}", initial_sha) is None:
-            raise ValueError(f"{label}: invalid initial-state hash")
-        if not isinstance(assignments, list) or len(assignments) != 120:
-            raise ValueError(f"{label}: expected 120 initial assignments")
-        for env_id, assignment in enumerate(assignments):
-            column = spec["columns"][env_id]
-            if (assignment["env_id"] != env_id or assignment["column"] != column
-                    or assignment["subterrain"] != CONDITIONS[column]):
-                raise ValueError(f"{label}: initial terrain assignment mismatch")
-        if not isinstance(case["records"], list) or len(case["records"]) != 120:
-            raise ValueError(f"{label}: expected exactly 120 first-episode records")
-        env_ids = set()
-        for record in case["records"]:
-            env_id = record["env_id"]
-            if type(env_id) is not int or not 0 <= env_id < 120 or env_id in env_ids:
-                raise ValueError(f"{label}: duplicate or invalid env_id")
-            env_ids.add(env_id)
-            if (record["episode_index"] != 0 or record["column"] != spec["columns"][env_id]
-                    or record["terrain"] != assignments[env_id]["subterrain"]):
-                raise ValueError(f"{label}: record/assignment identity mismatch")
-            records[level].append(dict(record, namespace=spec["namespace"], slot=spec["slots"][env_id]))
-        runs[label] = dict(folder=str(folder), level=level, slots=spec["slots"],
-                           reset_table_seed=spec["reset_table_seed"], initial_state_sha256=initial_sha,
-                           spec_sha256=manifest["spec_sha256"])
+        failures = []
+        for attempt in (label, f"{label}_retry1"):
+            try:
+                rows, run = load_attempt(evidence / attempt, expected, actor)
+            except (OSError, KeyError, TypeError, ValueError, OverflowError) as error:
+                failures.append(f"{attempt}: {error}")
+                continue
+            records[level].extend(rows)
+            runs[label] = run
+            break
+        else:
+            raise ValueError(f"no valid passed attempt for {label}: " + "; ".join(failures))
     for level in LEVELS:
         validate_records(records[level])
     return dict(records=records, runs=runs)
@@ -96,6 +124,16 @@ def load_retention(path, actor):
             or report["task"] != "Flat-Deeprobotics-Lite3-v0" or report["num_envs"] != 1024
             or report["seed"] != 20261109 or report["requested_steps"] != 3000 or report["completed_steps"] != 3000):
         raise ValueError("retention report is incomplete or differs from the declared actor/Flat evaluation")
+    runtime = report["runtime"]
+    if (report["cleanup"] != {"environment": "returned", "application": "returned"}
+            or type(runtime["child_exit"]) is not int or runtime["child_exit"] != 0
+            or runtime["fatal_messages"] != [] or runtime["deadline_failure"] is not None):
+        raise ValueError("retention report lacks finalized healthy cleanup/runtime evidence")
+    terms = report["termination_terms"]
+    if (report["clip_actions"] != 100 or report["policy_observation_corruption"] is not False
+            or report["safety_filter"] is not False or not isinstance(terms, list)
+            or sorted(terms) != ["bad_orientation_2", "illegal_contact", "time_out"]):
+        raise ValueError("retention report differs from the required Flat evaluation settings")
     return report["metrics"]
 
 

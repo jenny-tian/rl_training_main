@@ -37,29 +37,35 @@ def _number(value, name, *, minimum=None, maximum=None):
     return value
 
 
+def validate_record(record):
+    """Validate one first-episode sample and return its reset-key provenance."""
+    terrain = record["terrain"]
+    family_of(terrain)
+    column = record["column"]
+    if type(column) is not int or column != CONDITIONS.index(terrain):
+        raise ValueError("record column and condition label disagree")
+    for name in ("completed", "safety_ending", "bounds_ending", "timeout"):
+        if type(record[name]) is not bool:
+            raise ValueError(f"{name} must be boolean")
+    if type(record["steps"]) is not int or not 1 <= record["steps"] <= 2000:
+        raise ValueError("steps must be an integer in 1..2000")
+    _number(record["projected_fraction"], "projected_fraction", minimum=0, maximum=1)
+    for name in ("forward_progress_m", "terminal_lateral_m", "terminal_yaw_deg"):
+        _number(record[name], name)
+    _number(record["lateral_peak_m"], "lateral_peak_m", minimum=0)
+    key = tuple(record[name] for name in ("namespace", "slot", "episode_index"))
+    if any(type(v) is not int or v < 0 for v in key) or key[2] != 0:
+        raise ValueError("invalid reset-key provenance or non-first episode")
+    return key
+
+
 def validate_records(records):
     """Require the complete 15 x 32 design and unique (namespace, slot, episode)."""
     if not isinstance(records, list) or len(records) != 480:
         raise ValueError("each level requires exactly 480 records (15 conditions x 32 starts)")
     keys = set()
     for record in records:
-        terrain = record["terrain"]
-        family_of(terrain)
-        column = record["column"]
-        if type(column) is not int or column != CONDITIONS.index(terrain):
-            raise ValueError("record column and condition label disagree")
-        for name in ("completed", "safety_ending", "bounds_ending", "timeout"):
-            if type(record[name]) is not bool:
-                raise ValueError(f"{name} must be boolean")
-        if type(record["steps"]) is not int or not 1 <= record["steps"] <= 2000:
-            raise ValueError("steps must be an integer in 1..2000")
-        _number(record["projected_fraction"], "projected_fraction", minimum=0, maximum=1)
-        for name in ("forward_progress_m", "terminal_lateral_m", "terminal_yaw_deg"):
-            _number(record[name], name)
-        _number(record["lateral_peak_m"], "lateral_peak_m", minimum=0)
-        key = tuple(record[name] for name in ("namespace", "slot", "episode_index"))
-        if any(type(v) is not int or v < 0 for v in key) or key[2] != 0:
-            raise ValueError("invalid reset-key provenance or non-first episode")
+        key = validate_record(record)
         if key in keys:
             raise ValueError(f"duplicate reset-key provenance: {key}")
         keys.add(key)
