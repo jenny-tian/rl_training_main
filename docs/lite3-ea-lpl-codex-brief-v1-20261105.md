@@ -1,5 +1,7 @@
 # Codex 执行任务书：Lite3 EA-LPL P0 到 P2（v1）
 
+> **2026-11-10 已作废：** P2 及以后各阶段不再执行。当前进度、目标和规则见 [Codex 同步说明 v2](lite3-two-stage-codex-brief-v2-20261110.md)。
+
 日期：2026-11-05
 对象：Codex
 总方案：[EA-LPL 研究方案 v1](lite3-ea-lpl-research-plan-v1-20261105.md)，判定规则以它的第 5 节为准。
