@@ -13,7 +13,7 @@
 | 旧 P2（单一地形在线学习） | 用户否决，不执行 | — |
 | 研究方案 v2 | 用户已同意（2026-11-09，2b8a314） | [研究方案 v2](lite3-ea-lpl-research-plan-v2-20261109.md) |
 | 阶段一实施计划 | 既定训练和复评结束，两个种子延长后 Q1–Q4 均不合格，停在 S1-D；未选出 θ1 | [最终报告](lite3-two-stage-stage1-20261109/README.md) |
-| 后续工作 | 下台阶与平地退化诊断提案待用户批准；阶段二未启动 | [诊断提案](lite3-two-stage-stage1-20261109/next-step-proposal.md) |
+| S1-D 后诊断修复 | 已获用户授权并完成；定位小腿接触，修复两处学习缺陷；定向重训待阶段确认 | [诊断报告与新提案](lite3-stage1-diagnosis-20261111/README.md) |
 
 进度日志：[lite3-ea-lpl-progress-log.md](lite3-ea-lpl-progress-log.md)，最新记录在最上面。
 
