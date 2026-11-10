@@ -12,7 +12,7 @@
 | EA-LPL P1 | 完成（2026-11-09，61b9aa0） | [P1 报告](lite3-ea-lpl-p1-20261109/README.md) |
 | 旧 P2（单一地形在线学习） | 用户否决，不执行 | — |
 | 研究方案 v2 | 用户已同意（2026-11-09，2b8a314） | [研究方案 v2](lite3-ea-lpl-research-plan-v2-20261109.md) |
-| 阶段一实施计划 | 已写完并推送（2026-11-10，c04bda7），尚未开始执行 | [阶段一计划](superpowers/plans/2026-11-09-stage1-source-curriculum-training.md) |
+| 阶段一实施计划 | 任务 1–3 已完成（b230569）；Codex 接续任务 4 GPU 检查，训练尚未启动 | [阶段一计划](superpowers/plans/2026-11-09-stage1-source-curriculum-training.md) |
 
 进度日志：[lite3-ea-lpl-progress-log.md](lite3-ea-lpl-progress-log.md)，最新记录在最上面。
 
@@ -35,7 +35,7 @@
 2. Isaac Lab 接口：地形块速度指令、只对地形块生效的边界和完成判定、全向区截断、安全终止、课程升降级。
 3. 地形函数、环境配置、任务注册 `SourceCurriculum-Deeprobotics-Lite3-v0`、PPO runner。
 4. GPU 环境检查脚本。
-5. 试运行 30 次迭代，然后种子 42、43 各训练 1500 次迭代（GPU0、GPU1 并行）。
+5. 试运行 30 次迭代，然后种子 42、43 各训练 1500 次迭代；GPU1 可用显存不足时，两个种子在 GPU0 上依次训练。
 6. 评估器支持指定 actor，生成阶段一评估配置。
 7. 平地保持能力检查。
 8. Q1–Q4 判定、种子选择、训练曲线。
@@ -51,7 +51,7 @@
 
 ## 4. 分工与工作方式
 
-- 执行者：Claude 执行研究方案 v2 和阶段一计划。Codex 如果接手其中某个任务，从计划里对应任务的第一步开始，并先看进度日志确认该任务没有被做过。
+- 执行者：Claude 已完成任务 1–3，Codex 从任务 4 的失败检查接续执行阶段一，保留已有实现与执行记录，避免重复任务。
 - 工作树：`/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106`，分支 `codex/lite3-ea-lpl-20261106`，远程 `jenny-tian/rl_training_main`（私有）。旧工作树 `lite3-source-parallel-qualification-20261027` 不再推进。
 - 证据目录：`/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/`，原始数据不进 git。
 - 汇报要求（用户 2026-11-10）：每完成一个阶段，说清楚具体完成了什么，以及下一个阶段准备做什么；内容不要太多，也不要太少，大约一屏。阶段结束后停下，等用户同意再进入下一阶段。
