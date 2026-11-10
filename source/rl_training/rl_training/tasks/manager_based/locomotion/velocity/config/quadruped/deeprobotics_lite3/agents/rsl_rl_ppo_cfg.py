@@ -58,3 +58,13 @@ class DeeproboticsLite3MotionImitationPPORunnerCfg(DeeproboticsLite3FlatPPORunne
         self.num_steps_per_env = 48
         self.experiment_name = "deeprobotics_lite3_motion_imitation"
         self.algorithm.entropy_coef = 0.002
+
+
+@configclass
+class DeeproboticsLite3SourceCurriculumPPORunnerCfg(DeeproboticsLite3FlatPPORunnerCfg):
+    def __post_init__(self):
+        super().__post_init__()
+        self.max_iterations = 1500
+        self.save_interval = 50
+        self.experiment_name = "deeprobotics_lite3_source_curriculum"
+        self.algorithm.learning_rate = 3.844e-4

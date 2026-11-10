@@ -15,6 +15,7 @@ from .source_terrain_isaac import (
     encode_friction_region_colour,
     source_terrain_track,
 )
+from .source_curriculum_terrain import SourceCurriculumTrackCfg, source_curriculum_sub_terrains
 from .source_terrain_importer import SourceTerrainImporter
 from .source_terrain_importer_cfg import SourceTerrainImporterCfg
 
@@ -37,6 +38,8 @@ __all__ = [
     "source_terrain_track",
     "encode_friction_region_colour",
     "decode_friction_region_colour",
+    "SourceCurriculumTrackCfg",
+    "source_curriculum_sub_terrains",
     "SourceTerrainImporter",
     "SourceTerrainImporterCfg",
 ]
