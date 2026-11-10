@@ -1,6 +1,6 @@
 # Codex 同步说明：Lite3 两阶段研究（v2）
 
-日期：2026-11-10
+日期：2026-11-10；状态更新：2026-11-11
 对象：Codex
 取代：[Codex 任务书 v1](lite3-ea-lpl-codex-brief-v1-20261105.md)。v1 的 P2 及以后各阶段已作废，P0、P1 的结果继续有效。
 
@@ -12,7 +12,8 @@
 | EA-LPL P1 | 完成（2026-11-09，61b9aa0） | [P1 报告](lite3-ea-lpl-p1-20261109/README.md) |
 | 旧 P2（单一地形在线学习） | 用户否决，不执行 | — |
 | 研究方案 v2 | 用户已同意（2026-11-09，2b8a314） | [研究方案 v2](lite3-ea-lpl-research-plan-v2-20261109.md) |
-| 阶段一实施计划 | 任务 1–3 已完成（b230569）；Codex 接续任务 4 GPU 检查，训练尚未启动 | [阶段一计划](superpowers/plans/2026-11-09-stage1-source-curriculum-training.md) |
+| 阶段一实施计划 | 既定训练和复评结束，两个种子延长后 Q1–Q4 均不合格，停在 S1-D；未选出 θ1 | [最终报告](lite3-two-stage-stage1-20261109/README.md) |
+| 后续工作 | 下台阶与平地退化诊断提案待用户批准；阶段二未启动 | [诊断提案](lite3-two-stage-stage1-20261109/next-step-proposal.md) |
 
 进度日志：[lite3-ea-lpl-progress-log.md](lite3-ea-lpl-progress-log.md)，最新记录在最上面。
 
@@ -51,7 +52,7 @@
 
 ## 4. 分工与工作方式
 
-- 执行者：Claude 已完成任务 1–3，Codex 从任务 4 的失败检查接续执行阶段一，保留已有实现与执行记录，避免重复任务。
+- 执行者：Claude 完成任务 1–3，Codex 接续并完成任务 4–9 的既定训练、两轮资格评估与报告；因没有合格 θ1，按规则未执行 L3 预览，停在 S1-D。保留已有实现与执行记录。
 - 工作树：`/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106`，分支 `codex/lite3-ea-lpl-20261106`，远程 `jenny-tian/rl_training_main`（私有）。旧工作树 `lite3-source-parallel-qualification-20261027` 不再推进。
 - 证据目录：`/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/`，原始数据不进 git。
 - 汇报要求（用户 2026-11-10）：每完成一个阶段，说清楚具体完成了什么，以及下一个阶段准备做什么；内容不要太多，也不要太少，大约一屏。阶段结束后停下，等用户同意再进入下一阶段。
