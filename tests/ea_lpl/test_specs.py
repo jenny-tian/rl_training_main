@@ -22,7 +22,7 @@ def test_spec_rejections():
     with pytest.raises(ValueError):
         validate_spec(dict(spec, max_episode_steps=1000))
     with pytest.raises(ValueError):
-        validate_spec(dict(spec, level="L3"))
+        validate_spec(dict(spec, level="L4"))
 
 
 from rl_training.ea_lpl.headroom import grid_codes, grid_rows, pack_specs  # noqa: E402

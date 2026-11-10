@@ -8,7 +8,7 @@ from .source_adaptation_env_cfg import DeeproboticsLite3SourceAdaptationEnvCfg
 
 @configclass
 class DeeproboticsLite3EaLplEnvCfg(DeeproboticsLite3SourceAdaptationEnvCfg):
-    source_allowed_levels: tuple = ("L1", "L2")
+    source_allowed_levels: tuple = ("L1", "L2", "L3")
     ea_heading_hold: bool = True
     ea_heading_stiffness: float = 0.5
     ea_max_yaw_rate: float = 0.8

@@ -207,8 +207,9 @@ def collect_fixed(wrapped, actor, spec, folder, app, report):
 
 
 def child(spec_path, folder):
-    from rl_training.ea_lpl.specs import validate_spec
+    from rl_training.ea_lpl.specs import spec_actor, validate_spec
     spec = validate_spec(json.loads(Path(spec_path).read_text()))
+    path, sha = spec_actor(spec, default=(OLD, ACTOR_SHA256))
     report = dict(status="starting", transitions=0, label=spec["label"])
     app = wrapped = None
     stack_file = (folder / "python_stacks.log").open("w")
@@ -231,7 +232,7 @@ def child(spec_path, folder):
         torch.set_float32_matmul_precision("highest")
         phase("environment_start", 300)
         wrapped = make_ea_environment(spec)
-        actor = load_frozen_source_actor(OLD, device="cuda:0")
+        actor = load_frozen_source_actor(path, device="cuda:0", expected_sha256=sha)
         phase("controls", 600 * spec["episodes_per_env"])
         report["case"] = collect_fixed(wrapped, actor, spec, folder, app, report)
         report.update(level=spec["level"], slots=spec["slots"])
@@ -269,9 +270,10 @@ def choose_gpu(request):
 
 
 def supervise(spec_path, folder, gpu_request):
-    from rl_training.ea_lpl.specs import validate_spec
+    from rl_training.ea_lpl.specs import spec_actor, validate_spec
     spec = validate_spec(json.loads(Path(spec_path).read_text()))
-    if digest(OLD) != ACTOR_SHA256:
+    path, sha = spec_actor(spec, default=(OLD, ACTOR_SHA256))
+    if digest(path) != sha:
         raise ValueError("base actor checkpoint changed")
     if subprocess.check_output(["git", "status", "--porcelain", "--", "source", "scripts"], cwd=ROOT, text=True).strip():
         raise RuntimeError("commit source and script changes before a GPU run")
@@ -281,7 +283,7 @@ def supervise(spec_path, folder, gpu_request):
     write_json(folder / "spec.json", spec)
     write_json(folder / "manifest.json", dict(
         schema="ea_lpl_run_manifest_v1", label=spec["label"], revision=revision,
-        spec_sha256=digest(folder / "spec.json"), actor_sha256=ACTOR_SHA256, gpu=gpu,
+        spec_sha256=digest(folder / "spec.json"), actor_sha256=sha, actor_path=str(path), gpu=gpu,
         gpu_free_mib_before=gpu_free_mib()[0], python=sys.executable, argv=sys.argv, started_unix=time.time()))
     environment = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gpu))
     started, reason = time.monotonic(), None

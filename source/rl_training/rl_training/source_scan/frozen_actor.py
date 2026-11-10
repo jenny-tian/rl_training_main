@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import io
 from pathlib import Path
+import re
 
 import torch
 from torch import nn
@@ -54,10 +55,14 @@ class FrozenSourceActor(nn.Module):
         return self.mlp(observation)
 
 
-def load_frozen_source_actor(checkpoint: Path, *, device="cpu") -> FrozenSourceActor:
-    payload_bytes = checkpoint.read_bytes()
-    if hashlib.sha256(payload_bytes).hexdigest() != CHECKPOINT_SHA256:
-        raise ValueError("checkpoint hash differs from the registered model_1998.pt")
+def load_frozen_source_actor(checkpoint: Path, *, device="cpu", expected_sha256=CHECKPOINT_SHA256) -> FrozenSourceActor:
+    if not isinstance(expected_sha256, str) or re.fullmatch(r"[0-9a-f]{64}", expected_sha256) is None:
+        raise ValueError("expected_sha256 must be 64 lowercase hex characters")
+    payload_bytes = Path(checkpoint).read_bytes()
+    if hashlib.sha256(payload_bytes).hexdigest() != expected_sha256:
+        if expected_sha256 == CHECKPOINT_SHA256:
+            raise ValueError("checkpoint hash differs from the registered model_1998.pt")
+        raise ValueError("checkpoint hash differs from the expected SHA256")
     payload = torch.load(io.BytesIO(payload_bytes), map_location="cpu", weights_only=True)
     # Only actor tensors enter modules; optimizer/critic payloads are never restored.
     return FrozenSourceActor(payload["actor_state_dict"]).to(device)
