@@ -3,6 +3,9 @@ import hashlib
 import importlib.util
 import json
 import math
+import subprocess
+import sys
+import textwrap
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
@@ -199,6 +202,87 @@ def test_child_requests_graceful_shutdown_before_starting_isaac(monkeypatch, tmp
                            output=tmp_path / "retention.json")
     assert script.child(args) == 1
     assert launcher_arguments == dict(headless=True, device="cuda:0", fast_shutdown=False)
+
+
+@pytest.mark.parametrize("collection_fails", [False, True])
+def test_child_durably_finishes_before_native_wrapper_finalizers(tmp_path, collection_fails):
+    script = Path(__file__).resolve().parents[2] / "scripts/tools/stage1_flat_retention.py"
+    output = tmp_path / "retention.json"
+    # Execute the actual child in a fresh CPU process. Fake native resources exit
+    # abnormally if Python destroys them after explicit framework cleanup.
+    fixture = textwrap.dedent('''
+        import atexit, importlib.util, json, os, sys, types
+        from pathlib import Path
+        script_path, output_path, fails = sys.argv[1:]
+        fails = fails == "True"
+        spec = importlib.util.spec_from_file_location("retention_child_fixture", script_path)
+        script = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(script)
+
+        def module(name, **attributes):
+            value = types.ModuleType(name)
+            value.__dict__.update(attributes)
+            sys.modules[name] = value
+            return value
+
+        class Environment:
+            def __init__(self):
+                self.unwrapped = self
+                self.sim = types.SimpleNamespace(stop=lambda: None, is_playing=lambda: False)
+                self.termination_manager = types.SimpleNamespace(active_terms=script.EXPECTED_TERMINATIONS)
+
+            def close(self):
+                report = json.loads(Path(output_path).read_text())
+                assert report["cleanup"]["environment"] == "closing"
+                print("environment closed", end=";")
+
+        class Application:
+            closed = False
+
+            def close(self):
+                report = json.loads(Path(output_path).read_text())
+                assert report["cleanup"] == {"environment": "returned", "application": "closing"}
+                self.closed = True
+                print("application closed", end=";")
+
+            def __del__(self):
+                if self.closed:
+                    os._exit(92)
+
+        module("isaaclab.app", AppLauncher=lambda **kw: types.SimpleNamespace(app=Application()))
+        module("gymnasium", make=lambda *a, **kw: Environment())
+        module("torch", backends=types.SimpleNamespace(cuda=types.SimpleNamespace(matmul=types.SimpleNamespace()),
+               cudnn=types.SimpleNamespace()), set_float32_matmul_precision=lambda _: None)
+        module("rl_training.tasks")
+        cfg = types.SimpleNamespace(observations=types.SimpleNamespace(policy=types.SimpleNamespace()))
+        module("isaaclab_tasks.utils", parse_env_cfg=lambda *a, **kw: cfg)
+        module("isaaclab_rl.rsl_rl", RslRlVecEnvWrapper=lambda env, **kw: env)
+        module("rl_training.source_scan.frozen_actor", load_frozen_source_actor=lambda *a, **kw: None)
+
+        def collect(*args):
+            sys.stderr.write("buffered stderr evidence;")
+            if fails:
+                raise RuntimeError("injected collection failure")
+            return {"cpu_fixture": True}
+
+        script.collect = collect
+        atexit.register(lambda: os._exit(91))
+        args = types.SimpleNamespace(checkpoint=Path("unused.pt"), sha256="a" * 64, output=Path(output_path))
+        code = script.child(args)
+        print("unexpected normal frame return", flush=True)
+        raise SystemExit(code)
+    ''')
+    process = subprocess.run([sys.executable, "-c", fixture, str(script), str(output), str(collection_fails)],
+                             capture_output=True, text=True, timeout=20)
+    assert process.returncode == (1 if collection_fails else 0), process.stderr
+    report = json.loads(output.read_text())
+    assert report["cleanup"] == {"environment": "returned", "application": "returned"}
+    assert report["status"] == ("failed" if collection_fails else "passed")
+    assert report["completed_steps"] == (0 if collection_fails else 3000)
+    assert json.loads(output.with_suffix(".phase.json").read_text())["name"] == "finished"
+    assert "environment closed;application closed;" in process.stdout
+    assert "buffered stderr evidence;" in process.stderr
+    assert "unexpected normal frame return" not in process.stdout
 
 
 @pytest.mark.parametrize("failure", [None, "native", "deadline", "missing", "closing", "nonzero"])

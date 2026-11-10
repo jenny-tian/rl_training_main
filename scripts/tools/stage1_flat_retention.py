@@ -158,7 +158,15 @@ def child(args):
                 traceback.print_exc()
             atomic_json(args.output, report)
         phase(args, "finished", 30)
-    return 0 if report["status"] == "passed" else 1
+        atomic_json(args.output, report)
+    exit_code = 0 if report["status"] == "passed" else 1
+    if report["cleanup"] == {"environment": "returned", "application": "returned"}:
+        # Explicit native cleanup and durable evidence are complete. Exit before
+        # frame/interpreter teardown can destroy wrappers after Kit was released.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(exit_code)
+    return exit_code
 
 
 def stop_child(process):
