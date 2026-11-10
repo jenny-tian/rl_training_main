@@ -52,6 +52,7 @@ class DeeproboticsLite3SourceCurriculumEnvCfg(DeeproboticsLite3FlatEnvCfg):
     source_omni_columns: tuple = OMNI_COLUMNS
     source_tile_lin_vel_x: tuple = (0.25, 0.5)
     source_completion_distance_m: float = 9.25
+    source_failure_priority_bootstrap: bool = True
 
     def __post_init__(self):
         super().__post_init__()

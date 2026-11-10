@@ -185,6 +185,8 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     # wrap around environment for rsl-rl
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
+    from rl_training.source_curriculum.learning import wrap_source_curriculum_learning
+    env = wrap_source_curriculum_learning(env)
 
     # convert config to dict and create runner
     train_cfg = agent_cfg.to_dict()

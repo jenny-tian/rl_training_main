@@ -412,6 +412,10 @@ def build_and_check(app, checks, report, num_envs):
 
     # 6 + 10. frozen actor rollout
     actor = load_frozen_source_actor(OLD, device="cuda:0")
+    from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper
+    from rl_training.source_curriculum.learning import wrap_source_curriculum_learning
+    learning_env = wrap_source_curriculum_learning(RslRlVecEnvWrapper(env, clip_actions=100.0))
+    obs = learning_env.get_observations()
     ever_reset = torch.zeros(base.num_envs, dtype=torch.bool, device=base.device)
     non_finite = {"obs": 0, "reward": 0, "contact": 0}
     step_seconds = []
@@ -479,7 +483,7 @@ def build_and_check(app, checks, report, num_envs):
         pos = [at(c, 9.30), at(d, 9.30), at(e, 9.30), at(f, 2.0, 0.05), at(g, 9.30, 0.05)]
         inject(base, ids, pos, roll=[0.0, 0.0, 0.0, 1.2, 1.2])
         before = level[ids].tolist()
-        env.step(actor(obs))
+        _, _, learning_dones, learning_extras = learning_env.step(actor(obs))
         completion = term("source_curriculum_completion", ids)
         trunc = term("source_curriculum_omni_truncation", [d])
         bounds = term("source_curriculum_tile_bounds", [c, e])
@@ -495,6 +499,12 @@ def build_and_check(app, checks, report, num_envs):
         checks.add("8_curriculum_moves", ok8,
                    f"envs complete/fail/both={[e, f, g]} levels {before[2:]}->{after} reset={reset} "
                    f"terminated={failed} completion={completion[2:]} origins_follow={origin_ok}")
+        bootstrap = learning_extras['time_outs'][[e, f, g]].tolist()
+        raw_timeouts = base.reset_time_outs[[e, f, g]].tolist()
+        checks.add('11_failure_priority_bootstrap',
+                   bootstrap == [True, False, False] and raw_timeouts == [True, False, True]
+                   and learning_dones[[e, f, g]].tolist() == [1, 1, 1],
+                   f'complete/fail/both bootstrap={bootstrap} raw_timeouts={raw_timeouts}')
     checks.guard("7b_8_progress_and_moves", check_progress_and_moves)
 
     # 10. timing (report only)

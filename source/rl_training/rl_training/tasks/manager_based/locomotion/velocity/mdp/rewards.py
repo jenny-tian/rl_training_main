@@ -1064,10 +1064,14 @@ def base_height_l2(
         sensor: RayCaster = env.scene[sensor_cfg.name]
         # Adjust the target height using the sensor data
         ray_hits = sensor.data.ray_hits_w[..., 2]
-        if torch.isnan(ray_hits).any() or torch.isinf(ray_hits).any() or torch.max(torch.abs(ray_hits)) > 1e6:
-            adjusted_target_height = asset.data.root_link_pos_w[:, 2]
-        else:
-            adjusted_target_height = target_height + torch.mean(ray_hits, dim=1)
+        valid_hits = torch.isfinite(ray_hits) & (ray_hits.abs() <= 1e6)
+        valid_environment = valid_hits.all(dim=1)
+        # One invalid scan must not disable the height objective of the whole
+        # vectorized batch. Retain the previous fallback only for that row.
+        ground_height = torch.where(valid_hits, ray_hits, 0.0).mean(dim=1)
+        adjusted_target_height = torch.where(
+            valid_environment, target_height + ground_height, asset.data.root_link_pos_w[:, 2]
+        )
     else:
         # Use the provided target height directly for flat terrain
         adjusted_target_height = target_height
