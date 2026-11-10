@@ -3,6 +3,8 @@
 版本：v0.1 draft，2026-10-27
 状态：`source_training_preparation_in_progress_runtime_pending`
 
+**2026-11-10 工作已迁移，本工作树不再推进。** 当前研究在工作树 `.worktrees/lite3-ea-lpl-20261106`（分支 `codex/lite3-ea-lpl-20261106`）进行。入口文件为该分支的 `docs/lite3-two-stage-codex-brief-v2-20261110.md`，进度日志为 `docs/lite3-ea-lpl-progress-log.md`，研究方案为 `docs/lite3-ea-lpl-research-plan-v2-20261109.md`，阶段一计划为 `docs/superpowers/plans/2026-11-09-stage1-source-curriculum-training.md`。
+
 **2026-11-05 研究路线调整：转入 EA-LPL，Source PPO 小步微调暂停。** 用户同意按
 [EA-LPL 研究方案 v1](lite3-ea-lpl-research-plan-v1-20261105.md) 推进：基础策略固定为
 model_1998 加航向闭环，按计划书做 C1-a、C1-b 在线适应。update1 阶段提出的离线奖励与观测
