@@ -106,3 +106,15 @@ def test_learning_correction_requires_task_opt_in():
     raw.cfg.source_failure_priority_bootstrap = 'false'
     with pytest.raises(ValueError, match='boolean'):
         wrap_source_curriculum_learning(raw)
+
+
+def test_runner_random_episode_lengths_reach_the_underlying_environment():
+    from rl_training.source_curriculum.learning import FailurePriorityVecEnv
+    raw = FakeVecEnv()
+    raw.episode_length_buf = torch.zeros(4, dtype=torch.long)
+    wrapped = FailurePriorityVecEnv(raw)
+    assigned = torch.tensor([4, 7, 2, 9])
+    wrapped.episode_length_buf = assigned
+    assert raw.episode_length_buf is assigned
+    raw.episode_length_buf[0] = 0
+    assert wrapped.episode_length_buf[0] == 0

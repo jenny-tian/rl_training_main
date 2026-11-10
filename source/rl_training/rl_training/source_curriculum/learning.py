@@ -17,6 +17,14 @@ class FailurePriorityVecEnv:
     def unwrapped(self):
         return self.env.unwrapped
 
+    @property
+    def episode_length_buf(self):
+        return self.env.episode_length_buf
+
+    @episode_length_buf.setter
+    def episode_length_buf(self, value):
+        self.env.episode_length_buf = value
+
     def step(self, actions):
         observations, rewards, dones, extras = self.env.step(actions)
         if 'time_outs' in extras:
