@@ -4,7 +4,7 @@ import importlib.util
 import json
 import math
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 
 import pytest
 import torch
@@ -183,7 +183,25 @@ def test_gpu_admission_rejects_other_physical_gpus():
         load_script().choose_gpu("2")
 
 
-@pytest.mark.parametrize("failure", [None, "native", "deadline", "missing"])
+def test_child_requests_graceful_shutdown_before_starting_isaac(monkeypatch, tmp_path):
+    script = load_script()
+    launcher_arguments = {}
+    app_module = ModuleType("isaaclab.app")
+
+    def launcher(**kwargs):
+        launcher_arguments.update(kwargs)
+        # Stop at the real startup boundary; importing/launching Isaac is forbidden in this CPU test.
+        raise RuntimeError("CPU fixture stopped before application startup")
+
+    app_module.AppLauncher = launcher
+    monkeypatch.setitem(script.sys.modules, "isaaclab.app", app_module)
+    args = SimpleNamespace(checkpoint=tmp_path / "actor.pt", sha256="a" * 64,
+                           output=tmp_path / "retention.json")
+    assert script.child(args) == 1
+    assert launcher_arguments == dict(headless=True, device="cuda:0", fast_shutdown=False)
+
+
+@pytest.mark.parametrize("failure", [None, "native", "deadline", "missing", "closing", "nonzero"])
 def test_supervisor_checks_native_output_and_bounds_cleanup_without_gpu(monkeypatch, tmp_path, failure):
     script = load_script()
     checkpoint = tmp_path / "actor.pt"
@@ -192,6 +210,8 @@ def test_supervisor_checks_native_output_and_bounds_cleanup_without_gpu(monkeypa
     report = dict(status="passed", completed_steps=script.STEPS,
                   metrics={"rms_xy_error": 0., "rms_yaw_error": 0.},
                   cleanup={"environment": "returned", "application": "returned"})
+    if failure == "closing":
+        report["cleanup"]["application"] = "closing"
     # This real subprocess only writes JSON/log fixtures; Isaac and CUDA are never imported.
     stub = tmp_path / "cpu_child.py"
     code = "import json, pathlib, time\n"
@@ -203,6 +223,8 @@ def test_supervisor_checks_native_output_and_bounds_cleanup_without_gpu(monkeypa
         state = dict(name="environment_close", started_monotonic=0, limit_seconds=30)
         code += f"pathlib.Path({str(output.with_suffix('.phase.json'))!r}).write_text({json.dumps(state)!r})\n"
         code += "time.sleep(5)\n"
+    elif failure == "nonzero":
+        code += "raise SystemExit(7)\n"
     stub.write_text(code)
     popen = script.subprocess.Popen
     monkeypatch.setattr(script, "choose_gpu", lambda _: (1, 12288))
@@ -221,3 +243,8 @@ def test_supervisor_checks_native_output_and_bounds_cleanup_without_gpu(monkeypa
     elif failure == "missing":
         assert result["checkpoint_sha256"] == args.sha256
         assert result["completed_steps"] == 0
+    elif failure == "closing":
+        assert result["cleanup"] == {"environment": "returned", "application": "closing"}
+        assert result["runtime"]["child_exit"] == 0
+    elif failure == "nonzero":
+        assert result["runtime"]["child_exit"] == 7

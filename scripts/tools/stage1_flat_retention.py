@@ -103,7 +103,9 @@ def child(args):
     try:
         phase(args, "application_start", 180)
         from isaaclab.app import AppLauncher
-        app = AppLauncher(headless=True, device="cuda:0").app
+        # Kit fast shutdown exits inside app.close(); graceful shutdown lets us
+        # persist returned cleanup before the parent accepts the evaluation.
+        app = AppLauncher(headless=True, device="cuda:0", fast_shutdown=False).app
         import gymnasium as gym
         import torch
         import rl_training.tasks  # noqa: F401
