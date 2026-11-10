@@ -490,7 +490,8 @@ def build_and_check(app, checks, report, num_envs):
         reset = [int(base.episode_length_buf[i]) == 0 for i in (e, f, g)]
         failed = [bool(v) for v in tm.terminated[[e, f, g]].tolist()]
         origin_ok = all(torch.equal(origins[i], terrain.terrain_origins[level[i], types[i]]) for i in (e, f, g))
-        ok8 = after == [3, 1, 1] and all(reset) and failed == [False, True, True] and origin_ok
+        ok8 = (after == [3, 1, 1] and all(reset) and failed == [False, True, True]
+               and completion[2:] == [True, False, True] and origin_ok)
         checks.add("8_curriculum_moves", ok8,
                    f"envs complete/fail/both={[e, f, g]} levels {before[2:]}->{after} reset={reset} "
                    f"terminated={failed} completion={completion[2:]} origins_follow={origin_ok}")

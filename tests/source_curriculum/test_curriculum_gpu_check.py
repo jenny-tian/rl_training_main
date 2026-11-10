@@ -25,6 +25,20 @@ def test_known_visual_warning_is_not_a_physics_failure():
     assert not check.runtime_failure("[Warning] [omni.usd] Unresolved reference prim path /visuals/FR_FOOT")
 
 
+@pytest.mark.parametrize("both_completed, expected", [(True, True), (False, False)])
+def test_curriculum_move_check_requires_simultaneous_failure_and_completion(both_completed, expected):
+    import ast
+    # Evaluate the actual GPU acceptance predicate against an otherwise valid
+    # outcome. A failure-only g cannot prove failure beats simultaneous completion.
+    tree = ast.parse(Path(check.__file__).read_text())
+    predicate = next(node.value for node in ast.walk(tree) if isinstance(node, ast.Assign)
+                     and any(isinstance(target, ast.Name) and target.id == "ok8" for target in node.targets))
+    evidence = dict(after=[3, 1, 1], reset=[True, True, True], failed=[False, True, True],
+                    origin_ok=True, completion=[True, False, True, False, both_completed])
+    accepted = eval(compile(ast.Expression(predicate), check.__file__, "eval"), {}, evidence)
+    assert accepted is expected
+
+
 @pytest.mark.parametrize("message, expected", [("completed\n", True), ("PhysX error: Scene state is corrupted\n", False)])
 def test_supervisor_overrules_successful_child_report(tmp_path, monkeypatch, message, expected):
     import json
