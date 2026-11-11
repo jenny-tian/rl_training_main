@@ -1,0 +1,142 @@
+"""Package completed B2 baseline and first-segment evidence without checkpoints/logs."""
+from __future__ import annotations
+
+import csv
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import xml.etree.ElementTree as ET
+
+from source_block_b2_protocol import EVIDENCE, ROOT, Q4_LIMITS, save_json
+
+OUT = ROOT / "docs/lite3-block-b2-initialization-20261111"
+
+
+def digest(path):
+    with Path(path).open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def main():
+    records, copied, original = [], [], []
+
+    def archive(source, name):
+        source = Path(source)
+        target = OUT / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        copied.append(target)
+        original.append(source)
+        return json.loads(source.read_text()) if source.suffix == ".json" else None
+
+    checks = {}
+    for size in (120, 4096):
+        checks[str(size)] = archive(EVIDENCE / f"check{size}/checks.json", f"validation/check{size}.json")
+        archive(EVIDENCE / f"check{size}/execution.json", f"validation/execution{size}.json")
+        original.append(EVIDENCE / f"check{size}/runtime.log")
+    archive(EVIDENCE / "cpu.xml", "validation/cpu.xml")
+    baselines = {}
+    for start in ("flat1998", "terrain3497"):
+        folder = EVIDENCE / "baseline" / start
+        block = archive(folder / "blocks/evaluation.json", f"baseline/{start}_blocks.json")
+        flat = archive(folder / "flat.json", f"baseline/{start}_flat.json")
+        gate = archive(folder / "decision.json", f"baseline/{start}_decision.json")
+        baselines[start] = block
+        original.extend([folder / "blocks/runtime.log", folder / "blocks/execution.json", folder / "flat.sim.log"])
+        original.append(Path(block["checkpoint"]))
+        records.append(row(start, "baseline", 0, gate, block))
+    paired = baselines["flat1998"]["initial_state_hashes_by_column"] == baselines["terrain3497"]["initial_state_hashes_by_column"]
+    if not paired:
+        raise ValueError("baseline initial states do not match")
+    runs = []
+    for start in ("flat1998", "terrain3497"):
+        for seed in (42, 43):
+            name = f"{start}_seed{seed}"
+            folder = EVIDENCE / "training" / name
+            run = archive(folder / "training_report.json", f"training/{name}.json")
+            execution = archive(folder / "execution.json", f"training/{name}_execution.json")
+            if execution["status"] != "completed" or run["status"] not in ("budget_completed", "stopped_by_development_rule"):
+                raise ValueError(f"incomplete run: {name}")
+            original.append(folder / "runtime.log")
+            original.extend((folder / "training/params").glob("*.yaml"))
+            for gate in run["checks"]:
+                updates = gate["updates"]
+                check = folder / f"update_{updates:04d}"
+                block = archive(check / "evaluation/blocks/evaluation.json", f"evaluations/{name}_{updates}_blocks.json")
+                archive(check / "evaluation/flat.json", f"evaluations/{name}_{updates}_flat.json")
+                archive(check / "statistics.json", f"statistics/{name}_{updates}.json")
+                original.extend([check / "decision.json", check / "model.pt", check / "evaluation/flat.sim.log",
+                                 check / "evaluation/blocks/runtime.log", check / "evaluation/blocks/execution.json"])
+                if digest(check / "model.pt") != gate["sha256"]:
+                    raise ValueError("trained checkpoint identity mismatch")
+                records.append(row(start, seed, updates, gate, block))
+            runs.append(run)
+    with (OUT / "comparison.csv").open("w") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(records[0]))
+        writer.writeheader()
+        writer.writerows(records)
+    copied.append(OUT / "comparison.csv")
+    tests = ET.parse(EVIDENCE / "cpu.xml").getroot().findall("testsuite")
+    summary = dict(paired_initial_states=paired, rows=records, runs=[{
+        k: run[k] for k in ("start", "seed", "status", "completed_updates", "training_transitions")}
+        for run in runs], total_updates=sum(r["completed_updates"] for r in runs),
+        total_training_transitions=sum(r["training_transitions"] for r in runs), q4_limits=Q4_LIMITS,
+        cpu_tests=sum(int(t.attrib["tests"]) for t in tests),
+        validation={size: dict(passed=sum(c["passed"] for c in value["checks"]), total=len(value["checks"]))
+                    for size, value in checks.items()}, selected_theta1=None, final_qualification_performed=False)
+    save_json(OUT / "summary.json", summary)
+    copied.append(OUT / "summary.json")
+    plot(records)
+    copied.append(OUT / "comparison.png")
+    source_paths = subprocess.check_output(["git", "diff", "--name-only", "99616dd", "HEAD", "--", "scripts", "source", "tests"], cwd=ROOT, text=True).splitlines()
+    original.extend(ROOT / p for p in source_paths)
+    manifest = dict(schema="b2_initialization_segment_v1", source_head=subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+        raw_evidence_root=str(EVIDENCE), files=[dict(path=str(p), sha256=digest(p)) for p in sorted(set(original))])
+    save_json(OUT / "artifact_manifest.json", manifest)
+    copied.append(OUT / "artifact_manifest.json")
+    (OUT / "SHA256SUMS").write_text("".join(f"{digest(p)}  {p.relative_to(OUT)}\n" for p in sorted(copied)))
+    print(json.dumps(summary, indent=2), flush=True)
+
+
+def row(start, seed, updates, gate, block):
+    m = gate["flat_metrics"]
+    return dict(start=start, seed=seed, updates=updates, upstairs=block["columns"][4]["complete"],
+                downstairs=block["columns"][5]["complete"], rough_a=block["columns"][6]["complete"],
+                rough_b=block["columns"][15]["complete"], rms_xy=m["rms_xy_error"], rms_yaw=m["rms_yaw_error"],
+                pure_turn_rms_yaw=m["categories"]["only_ang"]["rms_yaw_error"],
+                falls=m["fall_episodes"], ended=m["ended_episodes"],
+                continue_training=gate["continue_training"], stop_reasons="; ".join(gate["reasons"]))
+
+
+def plot(records):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    fig, axes = plt.subplots(2, 2, figsize=(11, 7))
+    for start, color in (("flat1998", "#3178b8"), ("terrain3497", "#d07026")):
+        baseline = next(r for r in records if r["start"] == start and r["updates"] == 0)
+        for seed, style in ((42, "-"), (43, "--")):
+            rows = [baseline] + [r for r in records if r["start"] == start and r["seed"] == seed]
+            for ax, key, label in zip(axes.flat, ("upstairs", "downstairs", "rms_xy", "rms_yaw"),
+                                      ("Upstairs completed / 32", "Downstairs completed / 32", "Flat translation RMS (m/s)", "Flat yaw RMS (rad/s)")):
+                ax.plot([r["updates"] for r in rows], [r[key] for r in rows], style, color=color,
+                        marker="o", label=f"{start}, seed {seed}")
+                ax.set_xlabel("New PPO updates")
+                ax.set_ylabel(label)
+                ax.grid(alpha=.25)
+    axes[0, 0].set_ylim(-1, 33)
+    axes[0, 1].set_ylim(-1, 33)
+    axes[1, 0].axhline(Q4_LIMITS["rms_xy_error"], color="red", linestyle=":")
+    axes[1, 1].axhline(Q4_LIMITS["rms_yaw_error"], color="red", linestyle=":")
+    axes[0, 0].legend(fontsize=8)
+    fig.suptitle("B2 initialization comparison: development checks, not final qualification")
+    fig.tight_layout()
+    fig.savefig(OUT / "comparison.png", dpi=160)
+    plt.close(fig)
+
+
+if __name__ == "__main__":
+    main()
