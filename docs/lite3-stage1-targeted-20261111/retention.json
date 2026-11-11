@@ -1,0 +1,282 @@
+{
+  "m1998": {
+    "actor_observation_dim": 45,
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+    "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+    "cleanup": {
+      "application": "returned",
+      "environment": "returned"
+    },
+    "clip_actions": 100,
+    "completed_steps": 3000,
+    "critic_observation_dim": 48,
+    "metrics": {
+      "categories": {
+        "mixed": {
+          "rms_xy_error": 0.06622339369603392,
+          "rms_yaw_error": 0.07780409512873288,
+          "tracking_samples": 1389166
+        },
+        "only_ang": {
+          "rms_xy_error": 0.05600518425944185,
+          "rms_yaw_error": 0.15545441154302744,
+          "tracking_samples": 300189
+        },
+        "only_x": {
+          "rms_xy_error": 0.047860149181290314,
+          "rms_yaw_error": 0.046904840743035976,
+          "tracking_samples": 615793
+        },
+        "only_y": {
+          "rms_xy_error": 0.05657014723637065,
+          "rms_yaw_error": 0.05090172329108826,
+          "tracking_samples": 305362
+        },
+        "standing": {
+          "rms_xy_error": 0.031128351317779565,
+          "rms_yaw_error": 0.040874574726549526,
+          "tracking_samples": 458417
+        }
+      },
+      "ended_episodes": 3073,
+      "excluded_reset_samples": 3073,
+      "fall_episodes": 91,
+      "falls_per_episode": 0.029612756264236904,
+      "rms_xy_error": 0.05669851781912998,
+      "rms_yaw_error": 0.07779961096267259,
+      "total_env_steps": 3072000,
+      "tracking_samples": 3068927
+    },
+    "num_envs": 1024,
+    "policy_observation_corruption": false,
+    "requested_steps": 3000,
+    "runtime": {
+      "admission_free_mib": 17919,
+      "child_exit": 0,
+      "deadline_failure": null,
+      "elapsed_seconds": 241.06012842524797,
+      "fatal_messages": [],
+      "physical_gpu": 1,
+      "simulator_log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1/retention/m1998_retry2.sim.log"
+    },
+    "safety_filter": false,
+    "seed": 20261109,
+    "status": "passed",
+    "task": "Flat-Deeprobotics-Lite3-v0",
+    "termination_terms": [
+      "bad_orientation_2",
+      "illegal_contact",
+      "time_out"
+    ]
+  },
+  "starting": {
+    "actor_observation_dim": 45,
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt",
+    "checkpoint_sha256": "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c",
+    "cleanup": {
+      "application": "returned",
+      "environment": "returned"
+    },
+    "clip_actions": 100,
+    "completed_steps": 3000,
+    "critic_observation_dim": 48,
+    "metrics": {
+      "categories": {
+        "mixed": {
+          "rms_xy_error": 0.07155083002282892,
+          "rms_yaw_error": 0.07924898355137223,
+          "tracking_samples": 1341164
+        },
+        "only_ang": {
+          "rms_xy_error": 0.04368578479368557,
+          "rms_yaw_error": 0.1254824879601861,
+          "tracking_samples": 317440
+        },
+        "only_x": {
+          "rms_xy_error": 0.05535683133300518,
+          "rms_yaw_error": 0.05645167152509281,
+          "tracking_samples": 620163
+        },
+        "only_y": {
+          "rms_xy_error": 0.058979122702345045,
+          "rms_yaw_error": 0.05484941782881012,
+          "tracking_samples": 317815
+        },
+        "standing": {
+          "rms_xy_error": 0.032866044924188584,
+          "rms_yaw_error": 0.029139381589833327,
+          "tracking_samples": 472346
+        }
+      },
+      "ended_episodes": 3072,
+      "excluded_reset_samples": 3072,
+      "fall_episodes": 69,
+      "falls_per_episode": 0.0224609375,
+      "rms_xy_error": 0.059836738559757324,
+      "rms_yaw_error": 0.07388872473116274,
+      "total_env_steps": 3072000,
+      "tracking_samples": 3068928
+    },
+    "num_envs": 1024,
+    "policy_observation_corruption": false,
+    "requested_steps": 3000,
+    "runtime": {
+      "admission_free_mib": 17927,
+      "child_exit": 0,
+      "deadline_failure": null,
+      "elapsed_seconds": 236.8719596453011,
+      "fatal_messages": [],
+      "physical_gpu": 1,
+      "simulator_log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1/retention/seed42.sim.log"
+    },
+    "safety_filter": false,
+    "seed": 20261109,
+    "status": "passed",
+    "task": "Flat-Deeprobotics-Lite3-v0",
+    "termination_terms": [
+      "bad_orientation_2",
+      "illegal_contact",
+      "time_out"
+    ]
+  },
+  "seed42": {
+    "actor_observation_dim": 45,
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-09_targeted_seed42/model_4496.pt",
+    "checkpoint_sha256": "1e28d7b6c6206fa591867943acc76485f3ab75328f1774d014b4be3e26404177",
+    "cleanup": {
+      "application": "returned",
+      "environment": "returned"
+    },
+    "clip_actions": 100,
+    "completed_steps": 3000,
+    "critic_observation_dim": 48,
+    "metrics": {
+      "categories": {
+        "mixed": {
+          "rms_xy_error": 0.07527990074038068,
+          "rms_yaw_error": 0.10018795581543984,
+          "tracking_samples": 1350463
+        },
+        "only_ang": {
+          "rms_xy_error": 0.03843411612208557,
+          "rms_yaw_error": 0.34812503240004455,
+          "tracking_samples": 337975
+        },
+        "only_x": {
+          "rms_xy_error": 0.0568545941473161,
+          "rms_yaw_error": 0.05874978821760531,
+          "tracking_samples": 626483
+        },
+        "only_y": {
+          "rms_xy_error": 0.06577001339902037,
+          "rms_yaw_error": 0.07398594757165763,
+          "tracking_samples": 307686
+        },
+        "standing": {
+          "rms_xy_error": 0.030839574186326612,
+          "rms_yaw_error": 0.033866117656678484,
+          "tracking_samples": 446321
+        }
+      },
+      "ended_episodes": 3072,
+      "excluded_reset_samples": 3072,
+      "fall_episodes": 62,
+      "falls_per_episode": 0.020182291666666668,
+      "rms_xy_error": 0.06235626404071395,
+      "rms_yaw_error": 0.1385053055283686,
+      "total_env_steps": 3072000,
+      "tracking_samples": 3068928
+    },
+    "num_envs": 1024,
+    "policy_observation_corruption": false,
+    "requested_steps": 3000,
+    "runtime": {
+      "admission_free_mib": 24107,
+      "child_exit": 0,
+      "deadline_failure": null,
+      "elapsed_seconds": 156.3530232105404,
+      "fatal_messages": [],
+      "physical_gpu": 0,
+      "simulator_log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1_targeted/retention/seed42.sim.log"
+    },
+    "safety_filter": false,
+    "seed": 20261109,
+    "status": "passed",
+    "task": "Flat-Deeprobotics-Lite3-v0",
+    "termination_terms": [
+      "bad_orientation_2",
+      "illegal_contact",
+      "time_out"
+    ]
+  },
+  "seed43": {
+    "actor_observation_dim": 45,
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-10_targeted_seed43/model_4496.pt",
+    "checkpoint_sha256": "fc45e19eaf49a4b3a3dfb2af931699f9a0dfc086be23bff9fdc3defbd877c12c",
+    "cleanup": {
+      "application": "returned",
+      "environment": "returned"
+    },
+    "clip_actions": 100,
+    "completed_steps": 3000,
+    "critic_observation_dim": 48,
+    "metrics": {
+      "categories": {
+        "mixed": {
+          "rms_xy_error": 0.07607061814714479,
+          "rms_yaw_error": 0.08359822987947733,
+          "tracking_samples": 1386882
+        },
+        "only_ang": {
+          "rms_xy_error": 0.035675271206185126,
+          "rms_yaw_error": 0.2527046655898575,
+          "tracking_samples": 306649
+        },
+        "only_x": {
+          "rms_xy_error": 0.059007600790171165,
+          "rms_yaw_error": 0.06003777009717773,
+          "tracking_samples": 593875
+        },
+        "only_y": {
+          "rms_xy_error": 0.06690194664898035,
+          "rms_yaw_error": 0.057736021131017654,
+          "tracking_samples": 305696
+        },
+        "standing": {
+          "rms_xy_error": 0.029950762904535192,
+          "rms_yaw_error": 0.029843459764630847,
+          "tracking_samples": 475826
+        }
+      },
+      "ended_episodes": 3072,
+      "excluded_reset_samples": 3072,
+      "fall_episodes": 28,
+      "falls_per_episode": 0.009114583333333334,
+      "rms_xy_error": 0.0632532757862564,
+      "rms_yaw_error": 0.10347367043417838,
+      "total_env_steps": 3072000,
+      "tracking_samples": 3068928
+    },
+    "num_envs": 1024,
+    "policy_observation_corruption": false,
+    "requested_steps": 3000,
+    "runtime": {
+      "admission_free_mib": 23473,
+      "child_exit": 0,
+      "deadline_failure": null,
+      "elapsed_seconds": 190.76777938194573,
+      "fatal_messages": [],
+      "physical_gpu": 1,
+      "simulator_log": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1_targeted/retention/seed43.sim.log"
+    },
+    "safety_filter": false,
+    "seed": 20261109,
+    "status": "passed",
+    "task": "Flat-Deeprobotics-Lite3-v0",
+    "termination_terms": [
+      "bad_orientation_2",
+      "illegal_contact",
+      "time_out"
+    ]
+  }
+}

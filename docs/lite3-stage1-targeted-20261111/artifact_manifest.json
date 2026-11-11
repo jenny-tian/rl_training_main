@@ -1,0 +1,145 @@
+{
+  "schema": "stage1_targeted_artifacts_v1",
+  "actors": {
+    "m1998": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+      "sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c"
+    },
+    "starting": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt",
+      "sha256": "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c"
+    },
+    "seed42": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-09_targeted_seed42/model_4496.pt",
+      "sha256": "1e28d7b6c6206fa591867943acc76485f3ab75328f1774d014b4be3e26404177"
+    },
+    "seed43": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-10_targeted_seed43/model_4496.pt",
+      "sha256": "fc45e19eaf49a4b3a3dfb2af931699f9a0dfc086be23bff9fdc3defbd877c12c"
+    }
+  },
+  "raw_evidence": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1_targeted",
+  "training": {
+    "pilot30": {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-14-20_targeted_pilot30",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-14-20_targeted_pilot30/model_3526.pt",
+      "sha256": "689511c7b42245896e8361ad61d9f91f96fe39f044f1031fa0565c0629cfb7c9",
+      "source_commit": "d6f0500ebce1f20bb79c502d03d812b82926f3f7",
+      "updates": 30
+    },
+    "seed42": {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-09_targeted_seed42",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-09_targeted_seed42/model_4496.pt",
+      "sha256": "1e28d7b6c6206fa591867943acc76485f3ab75328f1774d014b4be3e26404177",
+      "source_commit": "d6f0500ebce1f20bb79c502d03d812b82926f3f7",
+      "updates": 1000
+    },
+    "seed43": {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-10_targeted_seed43",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-10_targeted_seed43/model_4496.pt",
+      "sha256": "fc45e19eaf49a4b3a3dfb2af931699f9a0dfc086be23bff9fdc3defbd877c12c",
+      "source_commit": "d6f0500ebce1f20bb79c502d03d812b82926f3f7",
+      "updates": 1000
+    }
+  },
+  "retentions": {
+    "m1998": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1/retention/m1998_retry2.json",
+    "starting": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1/retention/seed42.json",
+    "seed42": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1_targeted/retention/seed42.json",
+    "seed43": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/.git/ea-lpl-evidence/stage1_targeted/retention/seed43.json"
+  },
+  "selected_seed": null,
+  "selected_actor": null,
+  "requested_visualization": {
+    "metadata": {
+      "task": "SourceCurriculum-Targeted-Deeprobotics-Lite3-v0",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-09_targeted_seed42/model_4100.pt",
+      "checkpoint_sha256": "3710ba87f4563ee9b4d6a43315b61b5adc64fdadeb4c0373ed5f9773354840ef",
+      "checkpoint_iteration": 4100,
+      "training_updates_at_checkpoint": 604,
+      "num_envs": 120,
+      "training_num_envs": 4096,
+      "screenshot_row": 4,
+      "video_initial_row": 9,
+      "steps": 600,
+      "dt": 0.02,
+      "rendered_fps": 12.5,
+      "endings": [
+        {
+          "step": 499,
+          "terminated": true,
+          "truncated": false,
+          "terms": [
+            "illegal_contact"
+          ]
+        }
+      ],
+      "selected_env_ids": {
+        "flat": 92,
+        "rough": 44,
+        "slope": 0,
+        "stairs_up": 16,
+        "stairs_down": 20,
+        "slope_rough": 104,
+        "friction": 48
+      },
+      "note": "Visualization only, not qualification. Noise disabled; other replicas visually hidden.",
+      "all_screenshots_real_simulation": true
+    },
+    "excluded_from_qualification": true,
+    "raw_directory": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/targeted/visual_model4100_retry1"
+  },
+  "requested_final_visualization": {
+    "metadata": {
+      "task": "SourceCurriculum-Targeted-Deeprobotics-Lite3-v0",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-11_09-18-09_targeted_seed42/model_4496.pt",
+      "checkpoint_sha256": "1e28d7b6c6206fa591867943acc76485f3ab75328f1774d014b4be3e26404177",
+      "checkpoint_iteration": 4496,
+      "training_updates_at_checkpoint": 1000,
+      "num_envs": 120,
+      "training_num_envs": 4096,
+      "screenshot_row": 4,
+      "video_initial_row": 9,
+      "steps": 1232,
+      "dt": 0.02,
+      "rendered_fps": 12.5,
+      "endings": [
+        {
+          "step": 1231,
+          "elapsed_seconds": 24.64,
+          "progress_before_last_step_m": 9.242607116699219,
+          "terminated": false,
+          "truncated": true,
+          "terms": [
+            "source_curriculum_completion"
+          ]
+        }
+      ],
+      "selected_env_ids": {
+        "flat": 92,
+        "rough": 44,
+        "slope": 0,
+        "stairs_up": 16,
+        "stairs_down": 20,
+        "slope_rough": 104,
+        "friction": 48
+      },
+      "note": "Visualization only, not qualification. Noise disabled; other replicas visually hidden.",
+      "all_screenshots_real_simulation": true
+    },
+    "excluded_from_qualification": true,
+    "raw_directory": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/targeted/visual_final_seed42"
+  },
+  "stage_resolution": {
+    "status": "completed_no_qualified_theta1",
+    "formal_updates_per_seed": 1000,
+    "paired_terrain_runs": 32,
+    "new_flat_retention_checks": 2,
+    "preview_runs": 0,
+    "automatic_extension": false,
+    "next_stage": "B1 six-family fixed-L2 block task implementation, validation and 30-update pilot",
+    "next_stage_scope_selected_by_user": true,
+    "next_stage_execution_approved": false,
+    "next_stage_proposal": "block-training-proposal.md"
+  }
+}
