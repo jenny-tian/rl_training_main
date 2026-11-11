@@ -45,8 +45,17 @@ def block_completed(root_progress, foot_progress, omni):
 
 
 class BlockStats:
-    """Physical rows are replicas, never difficulty labels. All interactions are L2."""
-    def __init__(self, device):
+    """Physical rows are replicas; reference roughness has its own difficulty label."""
+    def __init__(self, device, rough_profile="source_l2"):
+        if rough_profile not in ("source_l2", "reference_uniform"):
+            raise ValueError(f"unknown block rough profile: {rough_profile}")
+        self.rough_profile = rough_profile
+        self.column_names = [name for name, _ in COLUMN_SPECS]
+        self.column_difficulties = ["L2"] * NUM_COLUMNS
+        if rough_profile == "reference_uniform":
+            for column in (6, 15):
+                self.column_names[column] = self.column_names[column].replace("multi_scale", "reference_uniform")
+                self.column_difficulties[column] = "reference_rough"
         self.starts = torch.zeros(NUM_COLUMNS, NUM_ROWS, 4, dtype=torch.long, device=device)
         self.outcomes = torch.zeros(NUM_COLUMNS, NUM_ROWS, 4, 3, dtype=torch.long, device=device)
         self.transitions = torch.zeros(NUM_COLUMNS, 4, dtype=torch.long, device=device)
@@ -93,16 +102,19 @@ class BlockStats:
         ends = self.outcomes.sum((1, 2)).cpu().tolist()
         transitions = self.transitions.sum(1).cpu().tolist()
         out = {}
-        for i, (name, _) in enumerate(COLUMN_SPECS):
+        for i, name in enumerate(self.column_names):
             out[f"blocks/{name}/starts"] = starts[i]
-            out[f"blocks/{name}/L2_transitions"] = transitions[i]
+            out[f"blocks/{name}/{self.column_difficulties[i]}_transitions"] = transitions[i]
             for j, outcome in enumerate(OUTCOME_NAMES):
                 out[f"blocks/{name}/{outcome}"] = ends[i][j]
         return out
 
     def snapshot(self):
-        return dict(schema="source_block_l2_counts_v1", physical_difficulty="L2", rows_are="spatial_replicas",
-                    columns=[name for name, _ in COLUMN_SPECS], directions=["east", "north", "west", "south"],
+        reference = self.rough_profile == "reference_uniform"
+        return dict(schema="source_block_reference_rough_counts_v1" if reference else "source_block_l2_counts_v1",
+                    physical_difficulty="L2_except_reference_uniform_rough" if reference else "L2",
+                    rough_profile=self.rough_profile, physical_difficulty_by_column=self.column_difficulties,
+                    rows_are="spatial_replicas", columns=self.column_names, directions=["east", "north", "west", "south"],
                     outcomes=list(OUTCOME_NAMES), starts_by_column_replica_direction=self.starts.cpu().tolist(),
                     endings_by_column_replica_direction_outcome=self.outcomes.cpu().tolist(),
                     transitions_by_column_direction=self.transitions.cpu().tolist(),

@@ -21,7 +21,7 @@ class BlockState:
         self.env = env
         self.episode_numbers = torch.full((env.num_envs,), -1, dtype=torch.long, device=env.device)
         self.axes = torch.zeros(env.num_envs, dtype=torch.long, device=env.device)
-        self.stats = BlockStats(env.device)
+        self.stats = BlockStats(env.device, rough_profile=env.cfg.source_block_rough_profile)
         self.omni = torch.isin(env.scene.terrain.terrain_types, torch.tensor(OMNI_COLUMNS, device=env.device))
         self.foot_ids = env.scene["robot"].find_bodies(".*_FOOT")[0]
         sensor = env.scene["contact_forces"]
@@ -87,8 +87,9 @@ def reset_source_block_root(env, env_ids, pose_range, velocity_range, asset_cfg=
     sample = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=env.device)
     yaw = sample[:, 5] + env.source_block_state.axes[env_ids] * (math.pi / 2)
     orientations = math_utils.quat_mul(roots[:, 3:7], math_utils.quat_from_euler_xyz(sample[:, 3], sample[:, 4], yaw))
-    # Every generator returns the true flat centre height, including -0.175 m
-    # for ascending stairs. Jitter remains entirely on the centre platform.
+    # Flat/stair origins are the true centre height. Reference rough origins
+    # are the central 2x2 m maximum, safely above every jittered starting foot.
+    # Add the default 0.375 m to that support height; never assume world z=0.
     positions = roots[:, :3] + env.scene.env_origins[env_ids] + sample[:, :3]
     ranges = torch.tensor([velocity_range.get(k, (0., 0.)) for k in ("x", "y", "z", "roll", "pitch", "yaw")], device=env.device)
     velocities = roots[:, 7:13] + math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(env_ids), 6), device=env.device)

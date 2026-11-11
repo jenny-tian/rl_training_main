@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import functools
 import hashlib
 import json
 import math
@@ -11,6 +12,7 @@ import sys
 from types import SimpleNamespace
 
 import numpy as np
+import scipy.interpolate as interpolate
 import trimesh
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,17 +26,21 @@ def load_block_function():
     isaac = Path("/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains")
     root = ROOT / "source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains"
     factory, _, _, _ = load_offline_pipeline(ROOT, isaac.parents[3])
-    native = {"np": np, "trimesh": trimesh}
+    native = {"np": np, "trimesh": trimesh, "copy": copy, "functools": functools, "interpolate": interpolate}
     _definitions(isaac / "trimesh/utils.py", native, names={"make_border"})
     _definitions(isaac / "trimesh/mesh_terrains.py", native,
                  names={"pyramid_stairs_terrain", "inverted_pyramid_stairs_terrain"})
+    _definitions(isaac / "height_field/utils.py", native,
+                 names={"height_field_to_mesh", "convert_height_field_to_mesh"})
+    _definitions(isaac / "height_field/hf_terrains.py", native, names={"random_uniform_terrain"})
     base = factory("L2")
     namespace = dict(copy=copy, math=math, np=np, trimesh=trimesh, BLOCK_SIZE=BLOCK_SIZE, NUM_ROWS=NUM_ROWS,
                      curriculum_row_parameters=curriculum_row_parameters, row_from_difficulty=row_from_difficulty,
                      track_overrides=track_overrides, source_terrain_track=next(iter(base.values())).function,
+                     HfRandomUniformTerrainCfg=lambda **kw: SimpleNamespace(**kw, function=native["random_uniform_terrain"]),
                      MeshPyramidStairsTerrainCfg=lambda **kw: SimpleNamespace(**kw, function=native["pyramid_stairs_terrain"]),
                      MeshInvertedPyramidStairsTerrainCfg=lambda **kw: SimpleNamespace(**kw, function=native["inverted_pyramid_stairs_terrain"]))
-    _definitions(root / "source_block_terrain.py", namespace, names={"source_block_terrain"})
+    _definitions(root / "source_block_terrain.py", namespace, names={"reference_block_rough", "source_block_terrain"})
     return namespace["source_block_terrain"], next(iter(base.values())), isaac / "trimesh/mesh_terrains.py"
 
 

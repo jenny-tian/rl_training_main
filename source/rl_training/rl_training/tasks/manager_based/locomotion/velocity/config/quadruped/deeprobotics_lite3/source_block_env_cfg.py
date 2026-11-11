@@ -16,6 +16,7 @@ from .source_curriculum_env_cfg import DeeproboticsLite3SourceCurriculumTargeted
 @configclass
 class DeeproboticsLite3SourceBlockL2EnvCfg(DeeproboticsLite3SourceCurriculumTargetedEnvCfg):
     source_fixed_difficulty: str = "L2"
+    source_block_rough_profile: str = "source_l2"
 
     def __post_init__(self):
         super().__post_init__()
@@ -26,7 +27,7 @@ class DeeproboticsLite3SourceBlockL2EnvCfg(DeeproboticsLite3SourceCurriculumTarg
                 setattr(terrain, name, copy.deepcopy(getattr(old, name)))
         terrain.terrain_generator.seed = BLOCK_SEED
         terrain.terrain_generator.size = BLOCK_SIZE
-        terrain.terrain_generator.sub_terrains = source_block_sub_terrains()
+        terrain.terrain_generator.sub_terrains = source_block_sub_terrains(self.source_block_rough_profile)
         terrain.max_init_terrain_level = 9  # spatial spread only; geometry is L2 in every row
         self.scene.terrain = terrain
         old = self.commands.base_velocity
@@ -48,3 +49,13 @@ class DeeproboticsLite3SourceBlockL2EnvCfg(DeeproboticsLite3SourceCurriculumTarg
             params={"asset_cfg": SceneEntityCfg("robot", body_names=".*"), "omni": True})
         self.terminations.source_curriculum_completion = TerminationTermCfg(
             func=source_block_completion, time_out=True)
+
+
+@configclass
+class DeeproboticsLite3SourceBlockReferenceRoughEnvCfg(DeeproboticsLite3SourceBlockL2EnvCfg):
+    """B1.1: reference uniform roughness; other families retain B1 L2 geometry.
+
+    The inherited source_fixed_difficulty selects the other families' L2
+    anchors. The rough profile is separate and is not the original L2 test.
+    """
+    source_block_rough_profile: str = "reference_uniform"

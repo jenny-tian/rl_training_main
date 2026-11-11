@@ -12,6 +12,7 @@ import traceback
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "source/rl_training"), str(ROOT / "scripts/tools")]
 TASK = "SourceBlock-L2-Deeprobotics-Lite3-v0"
+REFERENCE_TASK = "SourceBlock-ReferenceRough-Deeprobotics-Lite3-v0"
 CHECKPOINT = ROOT / "logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt"
 CHECKPOINT_SHA = "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c"
 
@@ -32,23 +33,31 @@ def check(args, checks, report):
     if not Path(rl_training.__file__).resolve().is_relative_to(ROOT / "source/rl_training"):
         raise ValueError("wrong rl_training package")
     install_collision_recorder()
-    cfg = parse_env_cfg(TASK, device="cuda:0", num_envs=args.num_envs)
+    reference = getattr(args, "reference_rough", False)
+    task = REFERENCE_TASK if reference else TASK
+    cfg = parse_env_cfg(task, device="cuda:0", num_envs=args.num_envs)
     cfg.seed = 42
     cfg.observations.policy.enable_corruption = False
     started = time.monotonic()
-    env = gym.make(TASK, cfg=cfg)
+    env = gym.make(task, cfg=cfg)
     base = env.unwrapped
     robot, terrain = base.scene["robot"], base.scene.terrain
     report["gym_make_s"] = time.monotonic() - started
     checks.add("startup_height", bool((robot.data.root_link_pos_w[:, 2] > 2.9).all()), "pre-reset warmup above map")
     report["collision_groups"] = audit_collision_groups(base.scene)
     checks.add("collision_groups", True, "robot environments isolated; shared ground")
-    checks.add("fixed_l2_task", cfg.source_fixed_difficulty == "L2" and tuple(terrain.terrain_origins.shape) == (10, 20, 3)
-               and tuple(cfg.scene.terrain.terrain_generator.size) == (8., 8.), "200 blocks, 8x8m, fixed L2")
+    checks.add("block_geometry_profile", cfg.source_fixed_difficulty == "L2" and tuple(terrain.terrain_origins.shape) == (10, 20, 3)
+               and tuple(cfg.scene.terrain.terrain_generator.size) == (8., 8.)
+               and cfg.source_block_rough_profile == ("reference_uniform" if reference else "source_l2"),
+               "200 blocks, 8x8m; " + ("reference rough, other families L2" if reference else "all families L2"))
     checks.add("observation_dimensions", tuple(base.observation_manager.group_obs_dim["policy"]) == (45,)
                and tuple(base.observation_manager.group_obs_dim["critic"]) == (48,), str(base.observation_manager.group_obs_dim))
     obs, _ = env.reset()
     state = base.source_block_state
+    rough_probe = None
+    if reference:
+        from source_block_reference_rough_check import ReferenceRoughProbe
+        rough_probe = ReferenceRoughProbe(base, checks, report)
     counts = torch.bincount(terrain.terrain_types, minlength=20).tolist()
     report["environment_column_counts"] = counts
     checks.add("allocation", counts == targeted_column_counts(args.num_envs), str(counts))
@@ -69,13 +78,24 @@ def check(args, checks, report):
         clearance = robot.data.root_link_pos_w[:, 2] - hits[..., 2].amax(-1)
         clearance_min = min(clearance_min, float(clearance.min()))
         clearance_max = max(clearance_max, float(clearance.max()))
-        scan_ok &= bool(torch.isfinite(hits).all()) and bool(((clearance - .375).abs() < 2e-4).all())
+        expected = ((clearance - .375).abs() < 2e-4)
+        if rough_probe is not None:
+            expected[rough_probe.mask] = ((clearance[rough_probe.mask] >= .375 - 2e-4)
+                                           & (clearance[rough_probe.mask] <= .425 + 2e-4))
+            rough_probe.observe_reset()
+        scan_ok &= bool(torch.isfinite(hits).all()) and bool(expected.all())
     checks.add("all_replicas_reachable", bool(seen.all()), f"visited={int(seen.sum())}/200 in ten resets")
-    checks.add("reset_clearance", scan_ok, f"root minus scan=[{clearance_min},{clearance_max}] expected .375m")
+    checks.add("reset_clearance", scan_ok, f"root minus scan=[{clearance_min},{clearance_max}] "
+               + ("rough .375-.425m; other tiles .375m" if reference else "expected .375m"))
+    if rough_probe is not None:
+        rough_probe.finish_resets()
     checks.add("manual_resets_not_outcomes", int(state.stats.outcomes.sum()) == 0, f"endings={int(state.stats.outcomes.sum())}")
     body_cfg = SceneEntityCfg("robot", body_names=".*")
     body_cfg.resolve(base.scene)
-    ids = torch.nonzero((terrain.terrain_types == 4) | (terrain.terrain_types == 5)).flatten()
+    endpoint_mask = (terrain.terrain_types == 4) | (terrain.terrain_types == 5)
+    if rough_probe is not None:
+        endpoint_mask |= rough_probe.mask
+    ids = torch.nonzero(endpoint_mask).flatten()
     pose = robot.data.root_state_w[ids, :7].clone()
     # A point just beyond the threshold avoids floating-point cancellation
     # at distant world origins (3.4 can reconstruct as 3.3999996).
@@ -112,12 +132,16 @@ def check(args, checks, report):
     for _ in range(100):
         obs, reward, terminated, truncated, _ = env.step(actor(obs).clamp(-100, 100))
         finite &= bool(torch.isfinite(reward).all()) and all(bool(torch.isfinite(v).all()) for v in obs.values())
+        if rough_probe is not None:
+            rough_probe.observe_step()
     torch.cuda.synchronize()
     report["rollout_seconds"] = time.monotonic() - started
     checks.add("finite_rollout", finite, "100 frozen-policy steps, finite observations/rewards")
     checks.add("exact_transition_counts", int(state.stats.transitions.sum()) - before == args.num_envs * 100,
                f"new transitions={int(state.stats.transitions.sum()) - before}")
-    checks.add("all_conditions_sampled", bool((state.stats.transitions.sum(1) > 0).all()), "all 20 conditions at L2")
+    checks.add("all_conditions_sampled", bool((state.stats.transitions.sum(1) > 0).all()), "all 20 conditions sampled")
+    if rough_probe is not None:
+        rough_probe.finish_rollout()
     report["statistics"] = state.stats.snapshot()
     report["physical_row_histogram"] = torch.bincount(terrain.terrain_levels, minlength=10).tolist()
     report["checkpoint"] = str(CHECKPOINT)
@@ -130,17 +154,21 @@ def main():
     parser.add_argument("--num-envs", type=int, choices=(120, 4096), required=True)
     parser.add_argument("--gpu", type=int, choices=(0, 1), default=0)
     parser.add_argument("--child", action="store_true")
+    parser.add_argument("--reference-rough", action="store_true")
     args = parser.parse_args()
     args.output = args.output.resolve()
     if not args.child:
         from source_block_runtime import run
-        return run([sys.executable, str(Path(__file__).resolve()), "--child", "--num-envs", str(args.num_envs),
-                    "--output", str(args.output)], gpu=args.gpu, output=args.output)
+        command = [sys.executable, str(Path(__file__).resolve()), "--child", "--num-envs", str(args.num_envs),
+                   "--output", str(args.output)]
+        if args.reference_rough:
+            command.append("--reference-rough")
+        return run(command, gpu=args.gpu, output=args.output)
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=True, device="cuda:0").app
     from source_curriculum_check import Checks
     checks = Checks()
-    report = dict(task=TASK, num_envs=args.num_envs, checks=checks.results)
+    report = dict(task=REFERENCE_TASK if args.reference_rough else TASK, num_envs=args.num_envs, checks=checks.results)
     try:
         check(args, checks, report)
     except Exception as exc:
