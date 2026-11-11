@@ -54,7 +54,7 @@ def package():
     montage.save(OUT / "visuals/terrain_montage.png")
     with (OUT / "exposure.csv").open("w", newline="") as output:
         fields = ["name", "environments", "transitions", "transitions_per_training_second", "starts", "completion", "failure", "timeout", "completed_fraction"]
-        writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
+        writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
         writer.writerows(pilot["groups"])
     # Confirm the entire trained task implementation matches its recorded
