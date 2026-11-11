@@ -1,0 +1,38 @@
+diff --git a/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_block_env_cfg.py b/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_block_env_cfg.py
+--- a/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_block_env_cfg.py
++++ b/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_block_env_cfg.py
+@@ -75,3 +75,14 @@ class DeeproboticsLite3SourceBlockB2EnvCfg(DeeproboticsLite3SourceBlockReferenceRough
+         from rl_training.source_curriculum.allocation import B2_PROFILE, PURE_TURN_COLUMN
+         self.scene.terrain.source_curriculum_allocation = B2_PROFILE
+         self.commands.base_velocity.pure_turn_column = PURE_TURN_COLUMN
++
++
++@configclass
++class DeeproboticsLite3SourceBlockTurnGateEnvCfg(DeeproboticsLite3SourceBlockB2EnvCfg):
++    """Single intervention: standing posture penalty checks all command axes."""
++
++    def __post_init__(self):
++        super().__post_init__()
++        from rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards import stand_still_without_cmd
++
++        self.rewards.stand_still.func = stand_still_without_cmd
+diff --git a/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/__init__.py b/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/__init__.py
+--- a/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/__init__.py
++++ b/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/__init__.py
+@@ -188,6 +188,16 @@ gym.register(
+     },
+ )
+ 
++gym.register(
++    id="SourceBlock-TurnGate-Deeprobotics-Lite3-v0",
++    entry_point="isaaclab.envs:ManagerBasedRLEnv",
++    disable_env_checker=True,
++    kwargs={
++        "env_cfg_entry_point": f"{__name__}.source_block_env_cfg:DeeproboticsLite3SourceBlockTurnGateEnvCfg",
++        "rsl_rl_cfg_entry_point": f"{agents.__name__}.rsl_rl_ppo_cfg:DeeproboticsLite3SourceCurriculumPPORunnerCfg",
++    },
++)
++
+ gym.register(
+     id="SourceBlock-ReferenceRough-Deeprobotics-Lite3-v0",
+     entry_point="isaaclab.envs:ManagerBasedRLEnv",

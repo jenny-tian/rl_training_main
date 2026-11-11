@@ -37,3 +37,14 @@ def test_reset_samples_never_enter_metrics():
     assert row["reward_rates"]["yaw"] == 1.5
     assert row["seconds"] == pytest.approx(.08)
     assert report["episodes"]["all"]["failures"] == 2
+
+
+def test_actual_installed_standing_reward_conflicts_with_pure_turn():
+    if not Path("/home/tjx/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/mdp/rewards.py").is_file():
+        pytest.skip("installed Isaac Lab source is required for this host audit")
+    from source_block_b3_reward_reproducer import reproduce
+    report = reproduce()
+    assert report["status"] == "passed"
+    assert report["original_weighted_rate"][1] < 0
+    assert report["candidate_weighted_rate"][1] == 0
+    assert report["original_weighted_rate"][0] == report["candidate_weighted_rate"][0]

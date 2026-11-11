@@ -187,7 +187,7 @@ def collect(args, app):
             position = data.root_pos_w[args.video_env].cpu().numpy()
             base.sim.set_camera_view(eye=(position + [2., -2.5, 1.3]).tolist(), target=position.tolist())
             for _ in range(3 if index == 0 else 1):
-                frame = env.render(recompute=True)
+                frame = base.render(recompute=True)
             frames.append(frame.copy())
             frame_steps.append(index + 1)
         first_alive[:] &= ~ended[index]

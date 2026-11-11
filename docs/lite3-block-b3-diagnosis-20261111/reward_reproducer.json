@@ -1,0 +1,84 @@
+{
+  "status": "passed",
+  "method": "AST-extracted actual function bodies; mock state, no simulator or training",
+  "sources": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/mdp/rewards.py",
+      "sha256": "918a18c90ecf9815ca646973de05060dbcd90f6615cd93b0fd4e6d629490191d",
+      "line": 180,
+      "source": "def joint_deviation_l1(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg(\"robot\")) -> torch.Tensor:\n    \"\"\"Penalize joint positions that deviate from the default one.\"\"\"\n    # extract the used quantities (to enable type-hinting)\n    asset: Articulation = env.scene[asset_cfg.name]\n    # compute out of limits constraints\n    angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]\n    return torch.sum(torch.abs(angle), dim=1)"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "sha256": "7904feeb2a0fc6b412ba6aa1f062a1428883535958f57fcff8dec0348e0cef56",
+      "line": 113,
+      "source": "def stand_still_joint_deviation_l1(\n    env, command_name: str, command_threshold: float = 0.06, asset_cfg: SceneEntityCfg = SceneEntityCfg(\"robot\")\n) -> torch.Tensor:\n    \"\"\"Penalize offsets from the default joint positions when the command is very small.\"\"\"\n    command = env.command_manager.get_command(command_name)\n    # Penalize motion when command is nearly zero.\n    return mdp.joint_deviation_l1(env, asset_cfg) * (torch.norm(command[:, :2], dim=1) < command_threshold)"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "sha256": "6fe9dd4e55dffe8cc63301a5dffe02de5fb61180e2d466c215203542219a6098",
+      "line": 191,
+      "source": "def stand_still_without_cmd(\n    env: ManagerBasedRLEnv,\n    command_name: str,\n    command_threshold: float,\n    asset_cfg: SceneEntityCfg = SceneEntityCfg(\"robot\"),\n) -> torch.Tensor:\n    \"\"\"Penalize joint positions that deviate from the default one when no command.\"\"\"\n    # extract the used quantities (to enable type-hinting)\n    asset: Articulation = env.scene[asset_cfg.name]\n    # compute out of limits constraints\n    diff_angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]\n    reward = torch.sum(torch.abs(diff_angle), dim=1)\n    reward *= torch.linalg.norm(env.command_manager.get_command(command_name), dim=1) < command_threshold\n    # reward *= torch.clamp(-env.scene[\"robot\"].data.projected_gravity_b[:, 2], 0, 0.7) / 0.7\n    return reward"
+    }
+  ],
+  "weight": -0.2,
+  "command_threshold": 0.1,
+  "joint_deviation_l1": 1.2,
+  "commands": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.5
+    ],
+    [
+      0.0,
+      0.0,
+      -0.5
+    ],
+    [
+      0.0,
+      0.0,
+      0.15000000596046448
+    ],
+    [
+      0.0,
+      0.0,
+      0.05000000074505806
+    ],
+    [
+      0.25,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.30000001192092896,
+      0.0
+    ]
+  ],
+  "original_weighted_rate": [
+    -0.24000003933906555,
+    -0.24000003933906555,
+    -0.24000003933906555,
+    -0.24000003933906555,
+    -0.24000003933906555,
+    -0.0,
+    -0.0
+  ],
+  "candidate_weighted_rate": [
+    -0.24000003933906555,
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.24000003933906555,
+    -0.0,
+    -0.0
+  ],
+  "conclusion": "Current stand_still penalizes pure turning. Existing local all-command gate suppresses it at abs(wz)>=0.1.",
+  "limitation": "This proves reward gating, not that changing the reward will repair a learned policy."
+}
