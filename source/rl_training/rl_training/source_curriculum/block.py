@@ -14,6 +14,46 @@ STAIR_EDGES_M = (1.0, 1.5, 2.0, 2.5, 3.0)
 STAIR_COLUMNS = (4, 5)
 
 
+def apply_pure_turn(command, heading, standing, ids, *, generator=None):
+    """Persistent signed yaw velocity, independent of heading-target convergence."""
+    count = ids.numel()
+    magnitude = .2 + .6 * torch.rand(count, device=command.device, generator=generator)
+    sign = torch.randint(0, 2, (count,), device=command.device, generator=generator) * 2 - 1
+    command[ids, :2] = 0.
+    command[ids, 2] = magnitude * sign
+    heading[ids] = False
+    standing[ids] = False
+
+
+class BlockContactDiagnostics:
+    """Capture terminal non-foot forces before automatic reset clears the sensor."""
+    def __init__(self, num_envs, names, device):
+        self.names = list(names)
+        self.current = torch.zeros(num_envs, len(names), device=device)
+        self.peak = torch.zeros_like(self.current)
+        self.last_terminal = torch.zeros_like(self.current)
+        self.last_peak = torch.zeros_like(self.current)
+        self.failure_contacts = torch.zeros(NUM_COLUMNS, len(names), dtype=torch.long, device=device)
+
+    def observe(self, forces):
+        self.current.copy_(forces)
+        self.peak = torch.maximum(self.peak, forces)
+
+    def finish(self, ids, columns, failed):
+        self.last_terminal[ids] = self.current[ids]
+        self.last_peak[ids] = self.peak[ids]
+        self.failure_contacts.index_add_(0, columns, ((self.current[ids] > 5.) & failed[:, None]).long())
+
+    def reset(self, ids):
+        self.current[ids] = 0.
+        self.peak[ids] = 0.
+
+    def snapshot(self):
+        return dict(body_names=self.names, threshold_newtons=5.,
+                    terminal_failure_contacts_by_column_body=self.failure_contacts.cpu().tolist(),
+                    meaning="terminal sensor-history peak above 5 N on failed episodes; bodies may overlap")
+
+
 def replica_rows(columns):
     """Balance each column across all ten spatial replicas, including small scenes."""
     counts = torch.bincount(columns.long(), minlength=NUM_COLUMNS)

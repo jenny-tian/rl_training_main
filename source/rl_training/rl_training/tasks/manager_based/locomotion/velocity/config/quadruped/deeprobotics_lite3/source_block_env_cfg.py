@@ -59,3 +59,15 @@ class DeeproboticsLite3SourceBlockReferenceRoughEnvCfg(DeeproboticsLite3SourceBl
     anchors. The rough profile is separate and is not the original L2 test.
     """
     source_block_rough_profile: str = "reference_uniform"
+
+
+@configclass
+class DeeproboticsLite3SourceBlockB2EnvCfg(DeeproboticsLite3SourceBlockReferenceRoughEnvCfg):
+    """Balanced stairs with a persistent pure-yaw group and contact diagnostics."""
+    source_block_contact_diagnostics: bool = True
+
+    def __post_init__(self):
+        super().__post_init__()
+        from rl_training.source_curriculum.allocation import B2_PROFILE, PURE_TURN_COLUMN
+        self.scene.terrain.source_curriculum_allocation = B2_PROFILE
+        self.commands.base_velocity.pure_turn_column = PURE_TURN_COLUMN

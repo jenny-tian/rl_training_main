@@ -8,7 +8,7 @@ from isaaclab.utils import configclass
 from isaaclab.utils import math as math_utils
 
 from rl_training.source_curriculum.block import (
-    BlockStats, STAIR_EDGES_M, block_axis, block_completed, block_progress)
+    BlockContactDiagnostics, BlockStats, STAIR_EDGES_M, apply_pure_turn, block_axis, block_completed, block_progress)
 from rl_training.source_curriculum.logic import wrap_to_pi
 from rl_training.source_curriculum.rows import NUM_ROWS, OMNI_COLUMNS
 from rl_training.source_scan.tile_bounds import source_tile_bounds_terminated
@@ -27,6 +27,9 @@ class BlockState:
         sensor = env.scene["contact_forces"]
         self.foot_sensor_ids = sensor.find_bodies(".*_FOOT")[0]
         self.nonfoot_sensor_ids = [i for i, n in enumerate(sensor.body_names) if not n.endswith("_FOOT")]
+        self.contact_diagnostics = (BlockContactDiagnostics(env.num_envs,
+            [sensor.body_names[i] for i in self.nonfoot_sensor_ids], env.device)
+            if getattr(env.cfg, "source_block_contact_diagnostics", False) else None)
         self.support_progress = torch.full((env.num_envs, 4), -float("inf"), device=env.device)
         self.crossed_edges = torch.zeros(env.num_envs, dtype=torch.long, device=env.device)
         self.last_step = 0
@@ -43,6 +46,9 @@ class BlockState:
             return
         self.last_step = env.common_step_counter
         forces = env.scene["contact_forces"].data.net_forces_w.norm(dim=-1)
+        if self.contact_diagnostics is not None:
+            history = env.scene["contact_forces"].data.net_forces_w_history
+            self.contact_diagnostics.observe(history[:, :, self.nonfoot_sensor_ids].norm(dim=-1).amax(1))
         contact = forces[:, self.foot_sensor_ids] > 1.
         self.stats.observe(env.scene.terrain.terrain_types, self.axes, contact.any(-1),
                            (forces[:, self.nonfoot_sensor_ids] > 1.).any(-1), self.omni,
@@ -62,6 +68,9 @@ class SourceBlockVelocityCommand(SourceCurriculumVelocityCommand):
     def _resample_command(self, env_ids):
         UniformThresholdVelocityCommand._resample_command(self, env_ids)
         ids = torch.as_tensor(env_ids, device=self.device, dtype=torch.long)
+        if self.cfg.pure_turn_column is not None:
+            turn_ids = ids[self._env.scene.terrain.terrain_types[ids] == self.cfg.pure_turn_column]
+            apply_pure_turn(self.vel_command_b, self.is_heading_env, self.is_standing_env, turn_ids)
         ids = ids[self.tile_mask[ids]]
         if ids.numel():
             low, high = self.cfg.tile_lin_vel_x
@@ -78,6 +87,7 @@ class SourceBlockVelocityCommand(SourceCurriculumVelocityCommand):
 @configclass
 class SourceBlockVelocityCommandCfg(SourceCurriculumVelocityCommandCfg):
     class_type: type = SourceBlockVelocityCommand
+    pure_turn_column: int | None = None
 
 
 def reset_source_block_root(env, env_ids, pose_range, velocity_range, asset_cfg=SceneEntityCfg("robot")):
@@ -128,11 +138,17 @@ class SourceBlockResets(ManagerTermBase):
         state, terrain, tm = env.source_block_state, env.scene.terrain, env.termination_manager
         ended = ids[(env.episode_length_buf[ids] > 0) & tm.dones[ids]]
         if ended.numel():
+            diagnostics = getattr(state, "contact_diagnostics", None)
+            if diagnostics is not None:
+                diagnostics.finish(ended, terrain.terrain_types[ended], tm.terminated[ended])
             self.column_stats.record_endings(
                 terrain.terrain_types[ended], terrain.terrain_levels[ended], state.axes[ended],
                 tm.get_term("source_curriculum_completion")[ended], tm.terminated[ended],
                 tm.time_outs[ended], state.crossed_edges[ended],
                 {name: tm.get_term(name)[ended] for name in tm.active_terms})
+        diagnostics = getattr(state, "contact_diagnostics", None)
+        if diagnostics is not None:
+            diagnostics.reset(ids)
         initialized = state.episode_numbers[ids] >= 0
         terrain.terrain_levels[ids] = (terrain.terrain_levels[ids] + initialized.long()) % NUM_ROWS
         terrain.env_origins[ids] = terrain.terrain_origins[terrain.terrain_levels[ids], terrain.terrain_types[ids]]

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "source/rl_training"), str(ROOT / "scripts/tools")]
 TASK = "SourceBlock-L2-Deeprobotics-Lite3-v0"
 REFERENCE_TASK = "SourceBlock-ReferenceRough-Deeprobotics-Lite3-v0"
+B2_TASK = "SourceBlock-B2-Deeprobotics-Lite3-v0"
 CHECKPOINT = ROOT / "logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt"
 CHECKPOINT_SHA = "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c"
 
@@ -24,7 +25,7 @@ def check(args, checks, report):
     import rl_training.tasks
     from isaaclab_tasks.utils import parse_env_cfg
     from isaaclab.managers import SceneEntityCfg
-    from rl_training.source_curriculum.allocation import targeted_column_counts
+    from rl_training.source_curriculum.allocation import b2_column_counts, targeted_column_counts
     from rl_training.source_curriculum.block import axis_vectors
     from rl_training.source_curriculum.rows import COLUMN_SPECS
     from rl_training.source_scan.frozen_actor import load_frozen_source_actor
@@ -33,8 +34,9 @@ def check(args, checks, report):
     if not Path(rl_training.__file__).resolve().is_relative_to(ROOT / "source/rl_training"):
         raise ValueError("wrong rl_training package")
     install_collision_recorder()
-    reference = getattr(args, "reference_rough", False)
-    task = REFERENCE_TASK if reference else TASK
+    b2 = getattr(args, "b2", False)
+    reference = getattr(args, "reference_rough", False) or b2
+    task = B2_TASK if b2 else REFERENCE_TASK if reference else TASK
     cfg = parse_env_cfg(task, device="cuda:0", num_envs=args.num_envs)
     cfg.seed = 42
     cfg.observations.policy.enable_corruption = False
@@ -60,9 +62,16 @@ def check(args, checks, report):
         rough_probe = ReferenceRoughProbe(base, checks, report)
     counts = torch.bincount(terrain.terrain_types, minlength=20).tolist()
     report["environment_column_counts"] = counts
-    checks.add("allocation", counts == targeted_column_counts(args.num_envs), str(counts))
+    checks.add("allocation", counts == (b2_column_counts if b2 else targeted_column_counts)(args.num_envs), str(counts))
     command = base.command_manager.get_term("base_velocity")
     tile = ~state.omni
+    def check_turn():
+        turn = terrain.terrain_types == 9
+        c = command.command[turn]
+        return (bool((c[:, :2] == 0).all()) and bool((c[:, 2].abs() >= .2).all())
+                and bool((c[:, 2].abs() <= .8).all()) and not bool(command.is_heading_env[turn].any())
+                and not bool(command.is_standing_env[turn].any()))
+    turn_ok = True
     checks.add("exit_heading", bool((torch.remainder(command.heading_target[tile] - state.axes[tile] * (torch.pi / 2) + torch.pi,
                2 * torch.pi) - torch.pi).abs().max() < 1e-5), "commands follow selected world axis")
     checks.add("tile_velocity", bool(((command.command[tile, 0] >= .25) & (command.command[tile, 0] <= .5)).all())
@@ -73,6 +82,8 @@ def check(args, checks, report):
     for k in range(10):
         if k:
             obs, _ = env.reset()
+        if b2:
+            turn_ok &= check_turn()
         seen[terrain.terrain_levels, terrain.terrain_types] = True
         hits = base.scene["height_scanner_base"].data.ray_hits_w
         clearance = robot.data.root_link_pos_w[:, 2] - hits[..., 2].amax(-1)
@@ -131,6 +142,8 @@ def check(args, checks, report):
     finite = True
     for _ in range(100):
         obs, reward, terminated, truncated, _ = env.step(actor(obs).clamp(-100, 100))
+        if b2:
+            turn_ok &= check_turn()
         finite &= bool(torch.isfinite(reward).all()) and all(bool(torch.isfinite(v).all()) for v in obs.values())
         if rough_probe is not None:
             rough_probe.observe_step()
@@ -142,6 +155,13 @@ def check(args, checks, report):
     checks.add("all_conditions_sampled", bool((state.stats.transitions.sum(1) > 0).all()), "all 20 conditions sampled")
     if rough_probe is not None:
         rough_probe.finish_rollout()
+    if b2:
+        command._resample_command(torch.arange(base.num_envs, device=base.device))
+        command._update_command()
+        checks.add("persistent_pure_turn", turn_ok and check_turn(), "ten resets, 100 steps, resample and heading update")
+        checks.add("contact_diagnostics", state.contact_diagnostics is not None,
+                   "terminal history saved before automatic reset")
+        report["contact_diagnostics"] = state.contact_diagnostics.snapshot()
     report["statistics"] = state.stats.snapshot()
     report["physical_row_histogram"] = torch.bincount(terrain.terrain_levels, minlength=10).tolist()
     report["checkpoint"] = str(CHECKPOINT)
@@ -155,6 +175,7 @@ def main():
     parser.add_argument("--gpu", type=int, choices=(0, 1), default=0)
     parser.add_argument("--child", action="store_true")
     parser.add_argument("--reference-rough", action="store_true")
+    parser.add_argument("--b2", action="store_true")
     args = parser.parse_args()
     args.output = args.output.resolve()
     if not args.child:
@@ -163,12 +184,15 @@ def main():
                    "--output", str(args.output)]
         if args.reference_rough:
             command.append("--reference-rough")
+        if args.b2:
+            command.append("--b2")
         return run(command, gpu=args.gpu, output=args.output)
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=True, device="cuda:0").app
     from source_curriculum_check import Checks
     checks = Checks()
-    report = dict(task=REFERENCE_TASK if args.reference_rough else TASK, num_envs=args.num_envs, checks=checks.results)
+    report = dict(task=B2_TASK if args.b2 else REFERENCE_TASK if args.reference_rough else TASK,
+                  num_envs=args.num_envs, checks=checks.results)
     try:
         check(args, checks, report)
     except Exception as exc:

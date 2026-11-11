@@ -50,11 +50,11 @@ class SourceTerrainImporter(TerrainImporter):
         self._shared_bank_rows = getattr(cfg, "shared_bank_rows", None)
         self._curriculum_allocation = getattr(cfg, "source_curriculum_allocation", None)
         if self._curriculum_allocation is not None:
-            from rl_training.source_curriculum.allocation import TARGETED_PROFILE
+            from rl_training.source_curriculum.allocation import B2_PROFILE, TARGETED_PROFILE
             from rl_training.source_curriculum.rows import NUM_COLUMNS, NUM_ROWS
 
             generator_cfg = cfg.terrain_generator
-            if (self._curriculum_allocation != TARGETED_PROFILE or self._parallel_reset_sampler_enabled
+            if (self._curriculum_allocation not in (TARGETED_PROFILE, B2_PROFILE) or self._parallel_reset_sampler_enabled
                     or cfg.terrain_type != "generator" or not cfg.use_terrain_origins
                     or generator_cfg is None or not generator_cfg.curriculum
                     or generator_cfg.num_rows != NUM_ROWS or generator_cfg.num_cols != NUM_COLUMNS
