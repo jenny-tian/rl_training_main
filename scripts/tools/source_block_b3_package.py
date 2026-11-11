@@ -63,7 +63,7 @@ def package():
             end = selected["step"]
             values = replay["trace"][:end, env_id]
             with (target / "failure_trace.csv").open("w", newline="") as stream:
-                writer = csv.writer(stream)
+                writer = csv.writer(stream, lineterminator="\n")
                 writer.writerow(["time_s", *report["fields"]])
                 for i, row in enumerate(values):
                     writer.writerow([(i+1)*.02, *row.tolist()])
