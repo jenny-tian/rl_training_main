@@ -1,0 +1,320 @@
+{
+  "status": "budget_completed",
+  "branch": "turngate",
+  "seed": 43,
+  "task": "SourceBlock-TurnGate-Deeprobotics-Lite3-v0",
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt",
+  "checkpoint_sha256": "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c",
+  "restored_exact": true,
+  "restore_fields": [
+    "actor",
+    "critic",
+    "learned_std",
+    "Adam"
+  ],
+  "all_parameters_trainable": true,
+  "initial_iteration": 3497,
+  "initial_algorithm_learning_rate": 0.0003844,
+  "initial_optimizer_group_lrs": [
+    0.0002562890625000001
+  ],
+  "initial_hashes": {
+    "root": "17362c40312893cce0d40e8c363494d6decdbcc3f6231d983a92e1f191c8dfd5",
+    "joints": "f3a4fb6e9fe0e6f7b90e063528fa9022b4e233f794fa5b282dec3c1b4049e521",
+    "joint_velocity": "3381de4ca9f3a477f25989dfc8b744e7916046b7aa369f61a9a2f7dc0963ec9e",
+    "commands": "e723c2147a1ec4174af05f480bf4686390f7dca45ad6c7fcb5d5c5212c783bf8",
+    "materials": "dfd76137eec93d3f6a1b126a1b8c425f7ac3522c6f775df08c9607c8e29ebad8",
+    "terrain_columns": "3cd20da123ceadf2266af80e850c8bd698500ebd78b91c214f8f3af15ab3c7bd",
+    "torch_cpu_rng": "223edbd9bd89a5f7c3dc0a184857deecf6bb8d6ceb7e484b4e9220385c8f7e97",
+    "torch_cuda_rng": "7161d7c550d795dac727207a0f8bd207dd0fff29b2c8d4c7886a123843e7639a"
+  },
+  "environment_column_counts": [
+    88,
+    88,
+    88,
+    88,
+    819,
+    819,
+    88,
+    88,
+    88,
+    410,
+    273,
+    273,
+    273,
+    88,
+    88,
+    88,
+    88,
+    87,
+    87,
+    87
+  ],
+  "max_updates": 25,
+  "completed_updates": 25,
+  "environment_steps": 600,
+  "update_metrics": [
+    {
+      "update": 1,
+      "learning_rate": 0.00017084444444444446,
+      "losses": {
+        "value": 0.014887408493086696,
+        "surrogate": -0.002790574661048595,
+        "entropy": 4.570184230804443
+      },
+      "mean_action_std": 0.3554913103580475
+    },
+    {
+      "update": 2,
+      "learning_rate": 0.0001138962962962963,
+      "losses": {
+        "value": 0.0035135089070536195,
+        "surrogate": -0.005509215427446179,
+        "entropy": 4.548647809028625
+      },
+      "mean_action_std": 0.3544706702232361
+    },
+    {
+      "update": 3,
+      "learning_rate": 0.00011389629629629632,
+      "losses": {
+        "value": 0.0031424331245943904,
+        "surrogate": -0.0030410711420699953,
+        "entropy": 4.512954616546631
+      },
+      "mean_action_std": 0.3534962236881256
+    },
+    {
+      "update": 4,
+      "learning_rate": 0.00017084444444444448,
+      "losses": {
+        "value": 0.1736058160662651,
+        "surrogate": -0.0032067482563434167,
+        "entropy": 4.491647410392761
+      },
+      "mean_action_std": 0.3535281717777252
+    },
+    {
+      "update": 5,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.4829264521598816,
+        "surrogate": -0.002709151932504028,
+        "entropy": 4.5226003408432005
+      },
+      "mean_action_std": 0.35487979650497437
+    },
+    {
+      "update": 6,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.6423226743936539,
+        "surrogate": -0.003928066984144607,
+        "entropy": 4.578618597984314
+      },
+      "mean_action_std": 0.35677075386047363
+    },
+    {
+      "update": 7,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.5081593617796898,
+        "surrogate": -0.0033775790841900745,
+        "entropy": 4.652185344696045
+      },
+      "mean_action_std": 0.3590691089630127
+    },
+    {
+      "update": 8,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.47866418212652206,
+        "surrogate": -0.0026422238428494894,
+        "entropy": 4.708900380134582
+      },
+      "mean_action_std": 0.3602316677570343
+    },
+    {
+      "update": 9,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.45242223143577576,
+        "surrogate": -0.003172392732813023,
+        "entropy": 4.754011034965515
+      },
+      "mean_action_std": 0.36188068985939026
+    },
+    {
+      "update": 10,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.33545231372117995,
+        "surrogate": -0.002514384223104571,
+        "entropy": 4.803930282592773
+      },
+      "mean_action_std": 0.36300840973854065
+    },
+    {
+      "update": 11,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3589934051036835,
+        "surrogate": -0.0036789058649446815,
+        "entropy": 4.842216968536377
+      },
+      "mean_action_std": 0.3644188940525055
+    },
+    {
+      "update": 12,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.4188522890210152,
+        "surrogate": -0.003549099067458883,
+        "entropy": 4.900563025474549
+      },
+      "mean_action_std": 0.3664441704750061
+    },
+    {
+      "update": 13,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.4433236584067345,
+        "surrogate": -0.0023841328962589613,
+        "entropy": 4.959568691253662
+      },
+      "mean_action_std": 0.3679746687412262
+    },
+    {
+      "update": 14,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.35942057967185975,
+        "surrogate": -0.003368829839018872,
+        "entropy": 5.008382177352905
+      },
+      "mean_action_std": 0.36944976449012756
+    },
+    {
+      "update": 15,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.3516926556825638,
+        "surrogate": -0.0030245449219364674,
+        "entropy": 5.057965922355652
+      },
+      "mean_action_std": 0.37103569507598877
+    },
+    {
+      "update": 16,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.33471346497535703,
+        "surrogate": -0.002539311713189818,
+        "entropy": 5.110699844360352
+      },
+      "mean_action_std": 0.37266260385513306
+    },
+    {
+      "update": 17,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.3173109859228134,
+        "surrogate": -0.002877336274832487,
+        "entropy": 5.169714426994323
+      },
+      "mean_action_std": 0.37469056248664856
+    },
+    {
+      "update": 18,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.2700712695717812,
+        "surrogate": -0.0034426547936163843,
+        "entropy": 5.225333833694458
+      },
+      "mean_action_std": 0.3759920299053192
+    },
+    {
+      "update": 19,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.31962651312351226,
+        "surrogate": -0.0023930745024699717,
+        "entropy": 5.263619112968445
+      },
+      "mean_action_std": 0.37714338302612305
+    },
+    {
+      "update": 20,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.37158713638782503,
+        "surrogate": -0.004151277903292794,
+        "entropy": 5.300692868232727
+      },
+      "mean_action_std": 0.378549188375473
+    },
+    {
+      "update": 21,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3707655742764473,
+        "surrogate": -0.0040583278692793105,
+        "entropy": 5.34221203327179
+      },
+      "mean_action_std": 0.3796541392803192
+    },
+    {
+      "update": 22,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.2902482017874718,
+        "surrogate": -0.003857622143550543,
+        "entropy": 5.3722068786621096
+      },
+      "mean_action_std": 0.3805534839630127
+    },
+    {
+      "update": 23,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.2814366713166237,
+        "surrogate": -0.0034678373757515146,
+        "entropy": 5.413892316818237
+      },
+      "mean_action_std": 0.3823995590209961
+    },
+    {
+      "update": 24,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.2862613365054131,
+        "surrogate": -0.002888697649905225,
+        "entropy": 5.4711266040802
+      },
+      "mean_action_std": 0.38398799300193787
+    },
+    {
+      "update": 25,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.2866154581308365,
+        "surrogate": -0.0031608785240678115,
+        "entropy": 5.518178510665893
+      },
+      "mean_action_std": 0.3855806887149811
+    }
+  ],
+  "evaluation_automatic_extension": false,
+  "first_action_sha256": "c8725dfe44855db84354ddfea7049cf938b91745a3d8c20c6fa7a24b1ab9a902",
+  "first_episode_length_sha256": "92e73933b2ab786d5a0cb31f93ba5f630c99ee75339759bba3abb41634c75efb",
+  "output_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b4/training/turngate_seed43/model_0025.pt",
+  "output_sha256": "d38c210fa0d950df5edcd3d73db7558c9d305bbda8b3ff21826bb743c30775ae",
+  "training_transitions": 2457600,
+  "optimizer_step_increase": 500,
+  "final_algorithm_learning_rate": 0.00038440000000000013,
+  "final_optimizer_group_lrs": [
+    0.00038440000000000013
+  ],
+  "final_iteration": 3521
+}

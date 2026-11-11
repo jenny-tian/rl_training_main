@@ -1,0 +1,123 @@
+{
+  "models": [
+    {
+      "name": "control_seed42",
+      "branch": "control",
+      "seed": 42,
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b4/training/control_seed42/model_0025.pt",
+      "sha256": "211f0cb100c927d7c1cc9bd189702c5491853c4e32c16d1c8b4069baa07b7df9"
+    },
+    {
+      "name": "turngate_seed42",
+      "branch": "turngate",
+      "seed": 42,
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b4/training/turngate_seed42/model_0025.pt",
+      "sha256": "4ff2bc4d02c0ac33c44b0ac5024046440a603e8e4896a855cb39466bf13db7d7"
+    },
+    {
+      "name": "control_seed43",
+      "branch": "control",
+      "seed": 43,
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b4/training/control_seed43/model_0025.pt",
+      "sha256": "fb392f43cb9f5ab0ad4805d18f55a96b2b14dfe94407452f327a413c68882e43"
+    },
+    {
+      "name": "turngate_seed43",
+      "branch": "turngate",
+      "seed": 43,
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b4/training/turngate_seed43/model_0025.pt",
+      "sha256": "d38c210fa0d950df5edcd3d73db7558c9d305bbda8b3ff21826bb743c30775ae"
+    }
+  ],
+  "rows": [
+    {
+      "model": "terrain3497",
+      "seed": null,
+      "updates": 0,
+      "rms_xy_error": 0.059836738559757324,
+      "rms_yaw_error": 0.07388872473116274,
+      "falls_per_episode": 0.0224609375,
+      "q4_pass": true,
+      "upstairs": 23,
+      "downstairs": 1,
+      "rough_a": 32,
+      "rough_b": 32
+    },
+    {
+      "model": "control_seed42",
+      "seed": 42,
+      "updates": 25,
+      "rms_xy_error": 0.06349235610214583,
+      "rms_yaw_error": 0.0944997783876784,
+      "falls_per_episode": 0.036458333333333336,
+      "q4_pass": false,
+      "upstairs": 21,
+      "downstairs": 2,
+      "rough_a": 32,
+      "rough_b": 32
+    },
+    {
+      "model": "turngate_seed42",
+      "seed": 42,
+      "updates": 25,
+      "rms_xy_error": 0.06085924105872591,
+      "rms_yaw_error": 0.07836536216467446,
+      "falls_per_episode": 0.030598958333333332,
+      "q4_pass": true,
+      "upstairs": 25,
+      "downstairs": 1,
+      "rough_a": 32,
+      "rough_b": 32
+    },
+    {
+      "model": "control_seed43",
+      "seed": 43,
+      "updates": 25,
+      "rms_xy_error": 0.06184305495224809,
+      "rms_yaw_error": 0.12686002241180905,
+      "falls_per_episode": 0.027958387516254877,
+      "q4_pass": false,
+      "upstairs": 21,
+      "downstairs": 3,
+      "rough_a": 32,
+      "rough_b": 32
+    },
+    {
+      "model": "turngate_seed43",
+      "seed": 43,
+      "updates": 25,
+      "rms_xy_error": 0.06324490197058567,
+      "rms_yaw_error": 0.0831834241979662,
+      "falls_per_episode": 0.018880208333333332,
+      "q4_pass": false,
+      "upstairs": 27,
+      "downstairs": 1,
+      "rough_a": 32,
+      "rough_b": 32
+    }
+  ],
+  "candidate_gates": {
+    "42": {
+      "eligible_for_discussion": true,
+      "reasons": [],
+      "upstairs": 25,
+      "downstairs": 1,
+      "automatic_extension": false
+    },
+    "43": {
+      "eligible_for_discussion": false,
+      "reasons": [
+        "Q4/rms_xy_error"
+      ],
+      "upstairs": 27,
+      "downstairs": 1,
+      "automatic_extension": false
+    }
+  },
+  "both_seeds_eligible_for_discussion": false,
+  "automatic_extension": false,
+  "training_interactions": 9830400,
+  "new_controlled_first_episodes": 4096,
+  "q4_interactions": 12288000,
+  "paired_comparison_limitation": "Conditional on shared first-episode survival; 32 paired starts per case, not independent training seeds. No multiplicity correction."
+}

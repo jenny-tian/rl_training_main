@@ -1,0 +1,320 @@
+{
+  "status": "budget_completed",
+  "branch": "control",
+  "seed": 42,
+  "task": "SourceBlock-B2-Deeprobotics-Lite3-v0",
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt",
+  "checkpoint_sha256": "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c",
+  "restored_exact": true,
+  "restore_fields": [
+    "actor",
+    "critic",
+    "learned_std",
+    "Adam"
+  ],
+  "all_parameters_trainable": true,
+  "initial_iteration": 3497,
+  "initial_algorithm_learning_rate": 0.0003844,
+  "initial_optimizer_group_lrs": [
+    0.0002562890625000001
+  ],
+  "initial_hashes": {
+    "root": "0990f4724a942f9dad5e7534483f871952a244b3d2f429368ce4291057263bd0",
+    "joints": "f3a4fb6e9fe0e6f7b90e063528fa9022b4e233f794fa5b282dec3c1b4049e521",
+    "joint_velocity": "3381de4ca9f3a477f25989dfc8b744e7916046b7aa369f61a9a2f7dc0963ec9e",
+    "commands": "c3a99c7bb77be9105db88cc2f1b98db6083c6f4a6d74403ef5430964667a0d39",
+    "materials": "3e35edbd25553db3d0a0aa769bb74dee779e033ea5c469d536d86c0eab236ee9",
+    "terrain_columns": "3cd20da123ceadf2266af80e850c8bd698500ebd78b91c214f8f3af15ab3c7bd",
+    "torch_cpu_rng": "4c252d3dcb1c1af8e9e753ef7a0ca79bb263a2085a1c36fc75dc1e50fc0a941e",
+    "torch_cuda_rng": "ce89b45d24ce6657a0f1f009a670a7dbdce8d1553327e804d405d9c14522a0fc"
+  },
+  "environment_column_counts": [
+    88,
+    88,
+    88,
+    88,
+    819,
+    819,
+    88,
+    88,
+    88,
+    410,
+    273,
+    273,
+    273,
+    88,
+    88,
+    88,
+    88,
+    87,
+    87,
+    87
+  ],
+  "max_updates": 25,
+  "completed_updates": 25,
+  "environment_steps": 600,
+  "update_metrics": [
+    {
+      "update": 1,
+      "learning_rate": 5.0620576131687245e-05,
+      "losses": {
+        "value": 0.017262214701622723,
+        "surrogate": 0.0018428126728395,
+        "entropy": 4.5709024429321286
+      },
+      "mean_action_std": 0.355612188577652
+    },
+    {
+      "update": 2,
+      "learning_rate": 5.0620576131687245e-05,
+      "losses": {
+        "value": 0.003323401603847742,
+        "surrogate": -0.002070632393588312,
+        "entropy": 4.561295294761658
+      },
+      "mean_action_std": 0.3551841378211975
+    },
+    {
+      "update": 3,
+      "learning_rate": 7.593086419753088e-05,
+      "losses": {
+        "value": 0.007447409327141941,
+        "surrogate": -0.004199243627954275,
+        "entropy": 4.544211411476136
+      },
+      "mean_action_std": 0.35467177629470825
+    },
+    {
+      "update": 4,
+      "learning_rate": 0.00011389629629629632,
+      "losses": {
+        "value": 0.2389647178351879,
+        "surrogate": -0.0034637187200132757,
+        "entropy": 4.53518226146698
+      },
+      "mean_action_std": 0.354788213968277
+    },
+    {
+      "update": 5,
+      "learning_rate": 0.00017084444444444448,
+      "losses": {
+        "value": 0.5207231849431991,
+        "surrogate": -0.0033166275912662967,
+        "entropy": 4.559757256507874
+      },
+      "mean_action_std": 0.35596299171447754
+    },
+    {
+      "update": 6,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.5647133946418762,
+        "surrogate": -0.004171914217295125,
+        "entropy": 4.60869710445404
+      },
+      "mean_action_std": 0.35760417580604553
+    },
+    {
+      "update": 7,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.6641750186681747,
+        "surrogate": -0.002847443154314533,
+        "entropy": 4.657898759841919
+      },
+      "mean_action_std": 0.3588227927684784
+    },
+    {
+      "update": 8,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.39713028222322466,
+        "surrogate": -0.0033724507375154644,
+        "entropy": 4.7025164604187015
+      },
+      "mean_action_std": 0.36036911606788635
+    },
+    {
+      "update": 9,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.4291929334402084,
+        "surrogate": -0.0036525101080769674,
+        "entropy": 4.754262471199036
+      },
+      "mean_action_std": 0.36204493045806885
+    },
+    {
+      "update": 10,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.3526299923658371,
+        "surrogate": -0.0030447229932178744,
+        "entropy": 4.808029365539551
+      },
+      "mean_action_std": 0.363314151763916
+    },
+    {
+      "update": 11,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3755760908126831,
+        "surrogate": -0.003784466488286853,
+        "entropy": 4.85285587310791
+      },
+      "mean_action_std": 0.3650546073913574
+    },
+    {
+      "update": 12,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.4189878925681114,
+        "surrogate": -0.0030247578004491517,
+        "entropy": 4.908330011367798
+      },
+      "mean_action_std": 0.3665846288204193
+    },
+    {
+      "update": 13,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3690651342272758,
+        "surrogate": -0.0037050468701636417,
+        "entropy": 4.956102681159973
+      },
+      "mean_action_std": 0.36809778213500977
+    },
+    {
+      "update": 14,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.4521662458777428,
+        "surrogate": -0.0022460536019934807,
+        "entropy": 5.0022245168685915
+      },
+      "mean_action_std": 0.36930349469184875
+    },
+    {
+      "update": 15,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3287863954901695,
+        "surrogate": -0.0036639795056544245,
+        "entropy": 5.046942710876465
+      },
+      "mean_action_std": 0.3710184097290039
+    },
+    {
+      "update": 16,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.35299802720546725,
+        "surrogate": -0.0030981808027718215,
+        "entropy": 5.100949692726135
+      },
+      "mean_action_std": 0.37246766686439514
+    },
+    {
+      "update": 17,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3385948151350021,
+        "surrogate": -0.0028643117286264895,
+        "entropy": 5.14247076511383
+      },
+      "mean_action_std": 0.3737301230430603
+    },
+    {
+      "update": 18,
+      "learning_rate": 0.00038440000000000013,
+      "losses": {
+        "value": 0.3452975988388062,
+        "surrogate": -0.0032977409689920025,
+        "entropy": 5.196561622619629
+      },
+      "mean_action_std": 0.37593454122543335
+    },
+    {
+      "update": 19,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.35486304610967634,
+        "surrogate": -0.003579886950683431,
+        "entropy": 5.26434440612793
+      },
+      "mean_action_std": 0.37776920199394226
+    },
+    {
+      "update": 20,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.34679982960224154,
+        "surrogate": -0.002599666136666201,
+        "entropy": 5.306236743927002
+      },
+      "mean_action_std": 0.37877389788627625
+    },
+    {
+      "update": 21,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.38958523869514466,
+        "surrogate": -0.003254813849343918,
+        "entropy": 5.344170475006104
+      },
+      "mean_action_std": 0.3800734877586365
+    },
+    {
+      "update": 22,
+      "learning_rate": 0.0001708444444444445,
+      "losses": {
+        "value": 0.35846753269433973,
+        "surrogate": -0.002837203850504011,
+        "entropy": 5.39579451084137
+      },
+      "mean_action_std": 0.3819882571697235
+    },
+    {
+      "update": 23,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.3655226081609726,
+        "surrogate": -0.0042061207728693265,
+        "entropy": 5.447126317024231
+      },
+      "mean_action_std": 0.38342878222465515
+    },
+    {
+      "update": 24,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.31469572335481644,
+        "surrogate": -0.0025323126115836202,
+        "entropy": 5.497424364089966
+      },
+      "mean_action_std": 0.38495180010795593
+    },
+    {
+      "update": 25,
+      "learning_rate": 0.00025626666666666675,
+      "losses": {
+        "value": 0.31680684089660643,
+        "surrogate": -0.003611591807566583,
+        "entropy": 5.538491034507752
+      },
+      "mean_action_std": 0.3862270414829254
+    }
+  ],
+  "evaluation_automatic_extension": false,
+  "first_action_sha256": "187ab6f68e223086747d7072c5b411af7dff97d27a5bbb7f8b9efca91d2b78aa",
+  "first_episode_length_sha256": "ce40b206691bc04417b865113b5a770fa8d6c2e1e76861c3a25eac1563b375fd",
+  "output_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b4/training/control_seed42/model_0025.pt",
+  "output_sha256": "211f0cb100c927d7c1cc9bd189702c5491853c4e32c16d1c8b4069baa07b7df9",
+  "training_transitions": 2457600,
+  "optimizer_step_increase": 500,
+  "final_algorithm_learning_rate": 0.00025626666666666675,
+  "final_optimizer_group_lrs": [
+    0.00025626666666666675
+  ],
+  "final_iteration": 3521
+}
