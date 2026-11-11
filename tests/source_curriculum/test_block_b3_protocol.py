@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/tools"))
-from source_block_b3_protocol import CASES, FIELDS, first_episode_masks, schedule, summarize
+from source_block_b3_protocol import CASES, FIELDS, categories, first_episode_masks, schedule, summarize
 
 
 def test_command_boundaries_and_directions():
@@ -48,3 +48,11 @@ def test_actual_installed_standing_reward_conflicts_with_pure_turn():
     assert report["original_weighted_rate"][1] < 0
     assert report["candidate_weighted_rate"][1] == 0
     assert report["original_weighted_rate"][0] == report["candidate_weighted_rate"][0]
+
+
+def test_native_command_categories_partition_all_samples():
+    commands = np.array([[0, 0, 0], [0, 0, .1], [0, 0, -.5], [.3, 0, 0],
+                         [0, -.3, 0], [.2, .3, 0], [.2, .3, 1e-8], [.3, 0, .2]])
+    masks = categories(commands)
+    assert np.array_equal(sum(masks.values()), np.ones(len(commands)))
+    assert masks["mixed"][5:8].all()

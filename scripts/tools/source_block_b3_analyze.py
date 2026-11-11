@@ -9,7 +9,7 @@ import shutil
 
 import numpy as np
 
-from source_block_b3_protocol import CASES, FIELDS, REPEATS, ROOT, first_episode_masks, models, schedule
+from source_block_b3_protocol import CASES, FIELDS, REPEATS, ROOT, first_episode_masks, models, schedule, summarize
 
 RAW = ROOT / "logs/stage1/block_b3/matrix"
 OUT = ROOT / "docs/lite3-block-b3-diagnosis-20261111"
@@ -53,9 +53,25 @@ def main():
                     reference = report["initial_hashes"]
                 assert report["initial_hashes"] == reference, f"unpaired initial state: {directory}"
                 pairing[f"{domain}/{mode}"] = dict(models=6, all_initial_fields_exact=True, hashes=reference)
+                loaded = np.load(directory / "trace.npz")
+                trace = loaded["trace"]
+                first, valid = first_episode_masks(loaded["ended"])
+                if mode == "native":
+                    columns = loaded["columns"]
+                    group_masks = {"original_flat": np.ones(report["num_envs"], bool)} if domain == "flat" else {
+                        "dedicated_turn_c09": columns == 9, "other_omni_c10_12": np.isin(columns, [10, 11, 12]),
+                        "straight_flat_c13": columns == 13, "other_terrain": ~np.isin(columns, [9, 10, 11, 12, 13]),
+                        "stairs_up_c04": columns == 4, "stairs_down_c05": columns == 5}
+                    report["metrics"] = summarize(trace, loaded["ended"], loaded["terminated"], group_masks,
+                        report["reward_names"], report["step_dt"], mode)
+                    report["postprocessing"] = "Recompute exhaustive mixed-command bin from preserved raw trace; include combined x/y with zero yaw."
+                    for group in group_masks:
+                        rows = [r for r in report["metrics"]["rows"] if r["group"] == group]
+                        assert sum(r["samples"] for r in rows if r["category"] != "all") == next(r["samples"] for r in rows if r["category"] == "all")
                 destination = OUT / "runs" / domain / mode / spec["name"]
                 destination.mkdir(parents=True, exist_ok=True)
-                for filename in ("report.json", "execution.json", "config.json"):
+                save(destination / "report.json", report)
+                for filename in ("execution.json", "config.json"):
                     shutil.copyfile(directory / filename, destination / filename)
                 executions.append(dict(model=spec["name"], domain=domain, mode=mode,
                     elapsed_s=execution["elapsed_s"], peak_gpu_mib=execution["peak_total_gpu_used_mib"],
@@ -71,9 +87,6 @@ def main():
                     all_rows.append(record)
                 for group, row in report["metrics"]["episodes"].items():
                     episodes.append(dict(model=spec["name"], domain=domain, mode=mode, group=group, **row))
-                loaded = np.load(directory / "trace.npz")
-                trace = loaded["trace"]
-                first, valid = first_episode_masks(loaded["ended"])
                 if mode == "controlled":
                     assert report["num_envs"] == 512
                     assert all(e["starts"] == 32 for e in report["metrics"]["episodes"].values())

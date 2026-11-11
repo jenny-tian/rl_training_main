@@ -186,8 +186,12 @@ def collect(args, app):
         if args.video_env is not None and first_alive[args.video_env] and (index % 5 == 0 or ended[index, args.video_env]):
             position = data.root_pos_w[args.video_env].cpu().numpy()
             base.sim.set_camera_view(eye=(position + [2., -2.5, 1.3]).tolist(), target=position.tolist())
-            for _ in range(3 if index == 0 else 1):
-                frame = base.render(recompute=True)
+            # This installed render() skips sim.render() when recompute=True.
+            # Use the working public path and warm up the RGB annotator first.
+            for _ in range(12 if index == 0 else 2):
+                frame = env.render()
+            if frame.shape != (540, 960, 3) or frame.std() < 2:
+                raise RuntimeError("blank or malformed simulator frame")
             frames.append(frame.copy())
             frame_steps.append(index + 1)
         first_alive[:] &= ~ended[index]
@@ -272,7 +276,8 @@ def main():
     try:
         from isaaclab.app import AppLauncher
         app = AppLauncher(headless=True, enable_cameras=args.video_env is not None, device="cuda:0",
-            fast_shutdown=False, kit_args="--/renderer/multiGpu/enabled=False --/renderer/activeGpu=0").app
+            fast_shutdown=args.video_env is not None,
+            kit_args="--/renderer/multiGpu/enabled=False --/renderer/activeGpu=0").app
         report = collect(args, app)
     except Exception:
         traceback.print_exc()
@@ -286,6 +291,9 @@ def main():
                     if name == "environment":
                         resource.unwrapped.sim._disable_app_control_on_stop_handle = True
                         resource.unwrapped.sim.stop()
+                    if name == "application" and args.video_env is not None:
+                        report["cleanup"][name] = "requested_fast_shutdown_exit"
+                        save(args.output / "report.json", report)
                     resource.close()
                     report["cleanup"][name] = "returned"
                 except Exception:

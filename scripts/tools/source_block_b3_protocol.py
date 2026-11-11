@@ -77,7 +77,7 @@ def categories(command):
             "turn_high": pure & (abs(yaw) >= .2),
             "forward": (abs(x) >= 1e-6) & (abs(y) < 1e-6) & (abs(yaw) < 1e-6),
             "lateral": (abs(x) < 1e-6) & (abs(y) >= 1e-6) & (abs(yaw) < 1e-6),
-            "mixed": ~pure & (abs(yaw) >= 1e-6)}
+            "mixed": ~pure & ((abs(yaw) >= 1e-6) | ((abs(x) >= 1e-6) & (abs(y) >= 1e-6)))}
 
 
 def summarize(trace, ended, terminated, groups, reward_names, dt, mode):
