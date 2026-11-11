@@ -94,6 +94,16 @@ def collect(wrapped, actor, app):
     return metrics.summary()
 
 
+def initial_state_hashes(wrapped):
+    """Read-only pairing evidence; do not compute observations or consume RNG."""
+    base = wrapped.unwrapped
+    robot = base.scene["robot"]
+    initial = dict(root=robot.data.root_state_w, joint_pos=robot.data.joint_pos,
+        joint_vel=robot.data.joint_vel, command=base.command_manager.get_command("base_velocity"),
+        materials=robot.root_physx_view.get_material_properties(), episode_length=base.episode_length_buf)
+    return {name: hashlib.sha256(value.cpu().numpy().tobytes()).hexdigest() for name, value in initial.items()}
+
+
 def child(args):
     report = dict(task=TASK, checkpoint=str(args.checkpoint), checkpoint_sha256=args.sha256, seed=SEED,
                   num_envs=NUM_ENVS, requested_steps=STEPS, completed_steps=0, clip_actions=100,
@@ -125,6 +135,7 @@ def child(args):
         wrapped = RslRlVecEnvWrapper(raw, clip_actions=100)
         actor = load_frozen_source_actor(args.checkpoint, device="cuda:0", expected_sha256=args.sha256)
         report["termination_terms"] = sorted(wrapped.unwrapped.termination_manager.active_terms)
+        report["initial_state_hashes"] = initial_state_hashes(wrapped)
         phase(args, "controls", 1800)
         report["metrics"] = collect(wrapped, actor, app)
         report.update(status="passed", completed_steps=STEPS, actor_observation_dim=45, critic_observation_dim=48)

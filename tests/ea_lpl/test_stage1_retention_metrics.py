@@ -266,6 +266,7 @@ def test_child_durably_finishes_before_native_wrapper_finalizers(tmp_path, colle
             return {"cpu_fixture": True}
 
         script.collect = collect
+        script.initial_state_hashes = lambda _: {"cpu_fixture": "paired"}
         atexit.register(lambda: os._exit(91))
         args = types.SimpleNamespace(checkpoint=Path("unused.pt"), sha256="a" * 64, output=Path(output_path))
         code = script.child(args)
