@@ -71,3 +71,14 @@ class DeeproboticsLite3SourceBlockB2EnvCfg(DeeproboticsLite3SourceBlockReference
         from rl_training.source_curriculum.allocation import B2_PROFILE, PURE_TURN_COLUMN
         self.scene.terrain.source_curriculum_allocation = B2_PROFILE
         self.commands.base_velocity.pure_turn_column = PURE_TURN_COLUMN
+
+
+@configclass
+class DeeproboticsLite3SourceBlockTurnGateEnvCfg(DeeproboticsLite3SourceBlockB2EnvCfg):
+    """Single intervention: standing posture penalty checks all command axes."""
+
+    def __post_init__(self):
+        super().__post_init__()
+        from rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards import stand_still_without_cmd
+
+        self.rewards.stand_still.func = stand_still_without_cmd

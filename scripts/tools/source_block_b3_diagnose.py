@@ -67,7 +67,8 @@ def collect(args, app):
     terrain = base.scene.terrain
     term = base.command_manager.get_term("base_velocity")
     sensor = base.scene["contact_forces"]
-    spec = next(m for m in models() if m["name"] == args.model)
+    spec = (dict(name=args.model, checkpoint=str(args.checkpoint), sha256=args.sha256)
+            if args.checkpoint is not None else next(m for m in models() if m["name"] == args.model))
     actor = load_frozen_source_actor(Path(spec["checkpoint"]), device=base.device, expected_sha256=spec["sha256"])
     actor_before = {k: digest(v.cpu().numpy()) for k, v in actor.state_dict().items()}
     columns = (terrain.terrain_types.cpu().numpy().copy() if args.domain == "block" else np.full(num_envs, -1))
@@ -265,6 +266,8 @@ def collect(args, app):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
+    parser.add_argument("--checkpoint", type=Path)
+    parser.add_argument("--sha256")
     parser.add_argument("--domain", choices=("flat", "block"), required=True)
     parser.add_argument("--mode", choices=("controlled", "native"), required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -273,6 +276,12 @@ def main():
     parser.add_argument("--video-env", type=int)
     parser.add_argument("--child", action="store_true")
     args = parser.parse_args()
+    if (args.checkpoint is None) != (args.sha256 is None):
+        parser.error("--checkpoint and --sha256 must be supplied together")
+    if args.checkpoint is not None:
+        args.checkpoint = args.checkpoint.resolve()
+        if hashlib.sha256(args.checkpoint.read_bytes()).hexdigest() != args.sha256:
+            raise ValueError("explicit diagnostic checkpoint hash mismatch")
     args.output = args.output.resolve()
     if not args.child:
         from source_block_runtime import run
