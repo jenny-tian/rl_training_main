@@ -1,0 +1,59 @@
+{
+  "status": "passed",
+  "jobs": [
+    {
+      "name": "smoke_v4",
+      "mode": "smoke",
+      "status": "passed",
+      "updates": 0,
+      "interactions": 12000,
+      "peak_total_gpu_used_mib": 3279,
+      "elapsed_s": 37.05811578966677,
+      "error_lines": [],
+      "warning_lines": 509
+    },
+    {
+      "name": "full_scale_v1",
+      "mode": "validate",
+      "status": "passed",
+      "updates": 3,
+      "interactions": 294912,
+      "peak_total_gpu_used_mib": 7783,
+      "elapsed_s": 52.47460325434804,
+      "error_lines": [],
+      "warning_lines": 16413
+    }
+  ],
+  "cpu_tests": 8,
+  "reference_commit": "127b4ff1081b1c7a2f08842298d06dcc5e9460e4",
+  "reference_tracked_files_unchanged": true,
+  "formal_training_started": false,
+  "initialization": "random",
+  "stage": "awaiting_next_phase_confirmation",
+  "source_files": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_lite3_loader.py",
+      "sha256": "b3ed55d4f1f002d248f89500fb2a0100d265dd46bab97a5fa53a1ea2ef995a8e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_package.py",
+      "sha256": "6154f22bea6429463caf38541a61eaebb5f535c16282bbe26682cc99e8f545cb"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py",
+      "sha256": "e25faf87435287d18587810e8835f949aa7b2962df1375e7a4ebaa158ee8b602"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py",
+      "sha256": "a32b8fe70e4f9927af2136e6cddf0ca4009da8073b82572eea4ba6f0a0631fba"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/source_curriculum/test_reference_six_contract.py",
+      "sha256": "48a502c539563c9d6e924ef994e0ef7b70bea0cc3e65b3f6ae6ce8b42c728b9e"
+    }
+  ],
+  "limitations": [
+    "Startup and numerical checks do not establish terrain locomotion performance.",
+    "Raw USD visual warnings retained; collision checks passed."
+  ]
+}

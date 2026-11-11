@@ -1,0 +1,98 @@
+[
+  {
+    "name": "smoke_v1",
+    "execution": {
+      "command": [
+        "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+        "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py",
+        "--mode",
+        "smoke",
+        "--gpu",
+        "0",
+        "--output",
+        "logs/reference_six/validation/smoke_v1",
+        "--child"
+      ],
+      "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+      "physical_gpu": 0,
+      "admission_free_mib": 24107,
+      "peak_total_gpu_used_mib": 405,
+      "sampling_interval_seconds": 2,
+      "status": "failed",
+      "source_commit": "83f5563453e6ac00a4102bffd96c1c343c5055fc",
+      "source_status": "?? .superpowers/\n?? docs/lite3-block-b4-turngate-20261111/README.md\n?? docs/lite3-block-b4-turngate-20261111/artifact_manifest.json\n?? docs/lite3-block-b4-turngate-20261111/block_responses.pdf\n?? docs/lite3-block-b4-turngate-20261111/block_responses.png\n?? docs/lite3-block-b4-turngate-20261111/comparison.csv\n?? docs/lite3-block-b4-turngate-20261111/episodes.csv\n?? docs/lite3-block-b4-turngate-20261111/evaluations/\n?? docs/lite3-block-b4-turngate-20261111/execution_audit.json\n?? docs/lite3-block-b4-turngate-20261111/flat_responses.pdf\n?? docs/lite3-block-b4-turngate-20261111/flat_responses.png\n?? docs/lite3-block-b4-turngate-20261111/method.md\n?? docs/lite3-block-b4-turngate-20261111/paired_comparisons.csv\n?? docs/lite3-block-b4-turngate-20261111/pairing.json\n?? docs/lite3-block-b4-turngate-20261111/response_metrics.csv\n?? docs/lite3-block-b4-turngate-20261111/summary.json\n?? docs/lite3-block-b4-turngate-20261111/training/\n?? docs/lite3-block-b4-turngate-20261111/validation.json\n?? docs/lite3-block-b4-turngate-20261111/validation/smoke/\n?? scripts/tools/reference_lite3_loader.py\n?? scripts/tools/reference_six_terrain_cfg.py\n?? scripts/tools/reference_six_train.py\n?? scripts/tools/source_block_b4_verify.py\n?? scripts/tools/source_block_reference_audit.py\n",
+      "pid": 3492940,
+      "exit_code": 1,
+      "failure": null,
+      "fatal_messages": [],
+      "elapsed_s": 10.275079435668886
+    },
+    "error": {
+      "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 298, in main\n    worker(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 191, in worker\n    base = ManagerBasedRLEnv(cfg=cfg)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py\", line 80, in __init__\n    super().__init__(cfg=cfg)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_env.py\", line 142, in __init__\n    self.scene = InteractiveScene(self.cfg.scene)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py\", line 185, in __init__\n    self._add_entities_from_cfg()\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py\", line 744, in _add_entities_from_cfg\n    self._articulations[asset_name] = asset_cfg.class_type(asset_cfg)\n                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/assets/articulation/articulation.py\", line 106, in __init__\n    super().__init__(cfg)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/assets/asset_base.py\", line 84, in __init__\n    self.cfg.spawn.func(\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/utils/prims.py\", line 715, in wrapper\n    prim = func(prim_paths[0], cfg, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/spawners/from_files/from_files.py\", line 76, in spawn_from_usd\n    return _spawn_from_usd_file(prim_path, cfg.usd_path, cfg, translation, orientation)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/sim/spawners/from_files/from_files.py\", line 307, in _spawn_from_usd_file\n    raise FileNotFoundError(f\"USD file not found at path at: '{usd_path}'.\")\nFileNotFoundError: USD file not found at path at: '/home/tjx/rl_training/source/rl_training/../../deep_robotics_model/Lite3/Lite3_usd/Lite3.usd'.\n"
+    }
+  },
+  {
+    "name": "smoke_v2",
+    "execution": {
+      "command": [
+        "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+        "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py",
+        "--mode",
+        "smoke",
+        "--gpu",
+        "0",
+        "--output",
+        "logs/reference_six/validation/smoke_v2",
+        "--child"
+      ],
+      "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+      "physical_gpu": 0,
+      "admission_free_mib": 24107,
+      "peak_total_gpu_used_mib": 405,
+      "sampling_interval_seconds": 2,
+      "status": "failed",
+      "source_commit": "83f5563453e6ac00a4102bffd96c1c343c5055fc",
+      "source_status": "?? .superpowers/\n?? docs/lite3-block-b4-turngate-20261111/README.md\n?? docs/lite3-block-b4-turngate-20261111/SHA256SUMS\n?? docs/lite3-block-b4-turngate-20261111/artifact_manifest.json\n?? docs/lite3-block-b4-turngate-20261111/block_responses.pdf\n?? docs/lite3-block-b4-turngate-20261111/block_responses.png\n?? docs/lite3-block-b4-turngate-20261111/comparison.csv\n?? docs/lite3-block-b4-turngate-20261111/episodes.csv\n?? docs/lite3-block-b4-turngate-20261111/evaluations/\n?? docs/lite3-block-b4-turngate-20261111/execution_audit.json\n?? docs/lite3-block-b4-turngate-20261111/flat_responses.pdf\n?? docs/lite3-block-b4-turngate-20261111/flat_responses.png\n?? docs/lite3-block-b4-turngate-20261111/method.md\n?? docs/lite3-block-b4-turngate-20261111/paired_comparisons.csv\n?? docs/lite3-block-b4-turngate-20261111/pairing.json\n?? docs/lite3-block-b4-turngate-20261111/response_metrics.csv\n?? docs/lite3-block-b4-turngate-20261111/summary.json\n?? docs/lite3-block-b4-turngate-20261111/training/\n?? docs/lite3-block-b4-turngate-20261111/validation.json\n?? docs/lite3-block-b4-turngate-20261111/validation/smoke/\n?? scripts/tools/reference_lite3_loader.py\n?? scripts/tools/reference_six_terrain_cfg.py\n?? scripts/tools/reference_six_train.py\n?? scripts/tools/source_block_b4_verify.py\n?? scripts/tools/source_block_reference_audit.py\n",
+      "pid": 3495542,
+      "exit_code": 1,
+      "failure": null,
+      "fatal_messages": [],
+      "elapsed_s": 10.265188419260085
+    },
+    "error": {
+      "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 300, in main\n    worker(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 193, in worker\n    base = ManagerBasedRLEnv(cfg=cfg)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py\", line 80, in __init__\n    super().__init__(cfg=cfg)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_env.py\", line 142, in __init__\n    self.scene = InteractiveScene(self.cfg.scene)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py\", line 185, in __init__\n    self._add_entities_from_cfg()\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py\", line 742, in _add_entities_from_cfg\n    self._terrain = asset_cfg.class_type(asset_cfg)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer.py\", line 108, in __init__\n    super().__init__(cfg)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/terrain_importer.py\", line 89, in __init__\n    terrain_generator = self.cfg.terrain_generator.class_type(\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/terrain_generator.py\", line 160, in __init__\n    self._generate_curriculum_terrains()\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/terrain_generator.py\", line 264, in _generate_curriculum_terrains\n    mesh, origin = self._get_terrain_mesh(difficulty, sub_terrains_cfgs[sub_indices[sub_col]])\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/terrain_generator.py\", line 381, in _get_terrain_mesh\n    meshes, origin = cfg.function(difficulty, cfg)\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py\", line 42, in centered_friction\n    meshes, _ = source_terrain_track(difficulty, cfg)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_isaac.py\", line 137, in source_terrain_track\n    geometry = generate_source_terrain_geometry(difficulty, cfg)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_isaac.py\", line 102, in generate_source_terrain_geometry\n    [int(cfg.seed) & 0xFFFFFFFF, int(cfg.seed) >> 32, family_index, difficulty_word]\n     ^^^^^^^^^^^^^\nTypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'\n"
+    }
+  },
+  {
+    "name": "smoke_v3",
+    "execution": {
+      "command": [
+        "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+        "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py",
+        "--mode",
+        "smoke",
+        "--gpu",
+        "0",
+        "--output",
+        "logs/reference_six/validation/smoke_v3",
+        "--child"
+      ],
+      "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+      "physical_gpu": 0,
+      "admission_free_mib": 24107,
+      "peak_total_gpu_used_mib": 579,
+      "sampling_interval_seconds": 2,
+      "status": "failed",
+      "source_commit": "83f5563453e6ac00a4102bffd96c1c343c5055fc",
+      "source_status": "?? .superpowers/\n?? docs/lite3-block-b4-turngate-20261111/README.md\n?? docs/lite3-block-b4-turngate-20261111/SHA256SUMS\n?? docs/lite3-block-b4-turngate-20261111/artifact_manifest.json\n?? docs/lite3-block-b4-turngate-20261111/block_responses.pdf\n?? docs/lite3-block-b4-turngate-20261111/block_responses.png\n?? docs/lite3-block-b4-turngate-20261111/comparison.csv\n?? docs/lite3-block-b4-turngate-20261111/episodes.csv\n?? docs/lite3-block-b4-turngate-20261111/evaluations/\n?? docs/lite3-block-b4-turngate-20261111/execution_audit.json\n?? docs/lite3-block-b4-turngate-20261111/flat_responses.pdf\n?? docs/lite3-block-b4-turngate-20261111/flat_responses.png\n?? docs/lite3-block-b4-turngate-20261111/method.md\n?? docs/lite3-block-b4-turngate-20261111/paired_comparisons.csv\n?? docs/lite3-block-b4-turngate-20261111/pairing.json\n?? docs/lite3-block-b4-turngate-20261111/response_metrics.csv\n?? docs/lite3-block-b4-turngate-20261111/summary.json\n?? docs/lite3-block-b4-turngate-20261111/training/\n?? docs/lite3-block-b4-turngate-20261111/validation.json\n?? docs/lite3-block-b4-turngate-20261111/validation/smoke/\n?? scripts/tools/reference_lite3_loader.py\n?? scripts/tools/reference_six_terrain_cfg.py\n?? scripts/tools/reference_six_train.py\n?? scripts/tools/source_block_b4_verify.py\n?? scripts/tools/source_block_reference_audit.py\n",
+      "pid": 3497190,
+      "exit_code": 1,
+      "failure": null,
+      "fatal_messages": [],
+      "elapsed_s": 14.529679733328521
+    },
+    "error": {
+      "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 300, in main\n    worker(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 193, in worker\n    base = ManagerBasedRLEnv(cfg=cfg)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py\", line 80, in __init__\n    super().__init__(cfg=cfg)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_env.py\", line 142, in __init__\n    self.scene = InteractiveScene(self.cfg.scene)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py\", line 185, in __init__\n    self._add_entities_from_cfg()\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/scene/interactive_scene.py\", line 786, in _add_entities_from_cfg\n    self._sensors[asset_name] = asset_cfg.class_type(asset_cfg)\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/ray_caster/ray_caster.py\", line 85, in __init__\n    super().__init__(cfg)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/sensors/sensor_base.py\", line 57, in __init__\n    cfg.validate()\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/configclass.py\", line 291, in _validate\n    missing_fields.extend(_validate(value, prefix=current_path))\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/configclass.py\", line 291, in _validate\n    missing_fields.extend(_validate(value, prefix=current_path))\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/configclass.py\", line 291, in _validate\n    missing_fields.extend(_validate(value, prefix=current_path))\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  [Previous line repeated 983 more times]\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/configclass.py\", line 270, in _validate\n    elif isinstance(obj, (list, tuple)):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRecursionError: maximum recursion depth exceeded in __instancecheck__\n"
+    }
+  }
+]
