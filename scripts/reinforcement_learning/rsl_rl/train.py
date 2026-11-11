@@ -207,6 +207,19 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # run training
     runner.learn(num_learning_iterations=agent_cfg.max_iterations, init_at_random_ep_len=True)
 
+    if getattr(env.unwrapped.cfg, "source_column_statistics", False):
+        import json
+        manager = env.unwrapped.curriculum_manager
+        term = manager._term_cfgs[manager.active_terms.index("source_curriculum_levels")].func
+        snapshot = term.column_stats.snapshot()
+        snapshot["allocation_profile"] = env.unwrapped.scene.terrain.cfg.source_curriculum_allocation
+        snapshot["environment_column_counts"] = torch.bincount(
+            env.unwrapped.scene.terrain.terrain_types, minlength=20).cpu().tolist()
+        # TensorBoard averages episode logs within each update. Preserve exact
+        # final integer counters separately for the acceptance report.
+        with open(os.path.join(log_dir, "column_statistics.json"), "w") as output:
+            json.dump(snapshot, output, indent=2, allow_nan=False)
+
     # close the simulator
     env.close()
 

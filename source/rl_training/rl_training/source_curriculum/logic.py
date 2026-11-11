@@ -5,7 +5,7 @@ import math
 
 import torch
 
-from .rows import COLUMN_SPECS, NUM_COLUMNS, OMNI_COLUMNS
+from .rows import ANCHOR_ROWS, COLUMN_SPECS, NUM_COLUMNS, NUM_ROWS, OMNI_COLUMNS
 
 TILE_FAMILY_NAMES = ("flat", "multi_scale_rough", "slope", "multi_step_stairs", "slope_plus_rough",
                      "friction_variation")
@@ -132,3 +132,49 @@ class FamilyStats:
             for k, outcome in enumerate(OUTCOME_NAMES):
                 out[f"{name}/{outcome}_ema"] = float(self.rates[family, k])
         return out
+
+
+class ColumnStats:
+    """Exact cumulative episode counts at their actual row before promotion/demotion.
+
+    Starts include the initial reset; endings count only actual termination flags.
+    Timeout is distinct from completion. Simultaneous failure always wins.
+    """
+
+    def __init__(self, device, num_rows=NUM_ROWS):
+        self.num_rows = num_rows
+        self.l1_row, self.l2_row = ANCHOR_ROWS[num_rows]
+        self.starts = torch.zeros(NUM_COLUMNS, num_rows, dtype=torch.long, device=device)
+        self.outcomes = torch.zeros(NUM_COLUMNS, num_rows, 3, dtype=torch.long, device=device)
+
+    def record_starts(self, columns, levels):
+        indices = columns.long() * self.num_rows + levels.long()
+        self.starts += torch.bincount(indices, minlength=NUM_COLUMNS * self.num_rows).reshape(self.starts.shape)
+
+    def update(self, columns, levels, completed, failed, timed_out):
+        outcomes = torch.stack(resolve_outcomes(completed, failed, timed_out), dim=-1)
+        indices = (columns.long() * self.num_rows + levels.long())[:, None] * 3
+        indices = (indices + torch.arange(3, device=columns.device))[outcomes]
+        self.outcomes += torch.bincount(indices, minlength=NUM_COLUMNS * self.num_rows * 3).reshape(self.outcomes.shape)
+
+    def report(self):
+        # One device transfer instead of a CUDA synchronization for each scalar.
+        starts, outcomes = self.starts.cpu(), self.outcomes.cpu()
+        out = {}
+        for column, (name, _) in enumerate(COLUMN_SPECS):
+            for scope, row in (("all", None), ("L1", self.l1_row), ("L2", self.l2_row)):
+                counts = (outcomes[column].sum(0) if row is None else outcomes[column, row]).tolist()
+                prefix = f"columns/{name}/{scope}"
+                out[f"{prefix}/starts"] = int(starts[column].sum() if row is None else starts[column, row])
+                out[f"{prefix}/endings"] = sum(counts)
+                for outcome, count in zip(OUTCOME_NAMES, counts):
+                    out[f"{prefix}/{outcome}_count"] = count
+                for outcome, count in zip(OUTCOME_NAMES[:2], counts[:2]):
+                    out[f"{prefix}/{outcome}_rate"] = count / sum(counts) if sum(counts) else 0.0
+        return out
+
+    def snapshot(self):
+        return dict(schema="source_curriculum_column_counts_v1", columns=[name for name, _ in COLUMN_SPECS],
+                    outcomes=list(OUTCOME_NAMES), l1_row=self.l1_row, l2_row=self.l2_row,
+                    starts_by_column_row=self.starts.cpu().tolist(),
+                    endings_by_column_row_outcome=self.outcomes.cpu().tolist(), metrics=self.report())

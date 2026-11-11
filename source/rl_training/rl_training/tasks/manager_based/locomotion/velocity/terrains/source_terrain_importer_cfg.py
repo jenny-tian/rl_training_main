@@ -16,6 +16,7 @@ class SourceTerrainImporterCfg(TerrainImporterCfg):
     parallel_reset_sampler_enabled: bool = False
     parallel_reset_sampler_num_envs: int | None = None
     shared_bank_rows: int | None = None
+    source_curriculum_allocation: str | None = None
 
 
 __all__ = ["SourceTerrainImporterCfg"]

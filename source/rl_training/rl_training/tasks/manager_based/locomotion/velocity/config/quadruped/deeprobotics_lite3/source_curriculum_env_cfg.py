@@ -141,4 +141,16 @@ class DeeproboticsLite3SourceCurriculumEnvCfg(DeeproboticsLite3FlatEnvCfg):
         self.disable_zero_weight_rewards()
 
 
-__all__ = ["DeeproboticsLite3SourceCurriculumEnvCfg"]
+@configclass
+class DeeproboticsLite3SourceCurriculumTargetedEnvCfg(DeeproboticsLite3SourceCurriculumEnvCfg):
+    """Approved targeted retraining profile; keep the original task reproducible."""
+    source_column_statistics: bool = True
+
+    def __post_init__(self):
+        super().__post_init__()
+        from rl_training.source_curriculum.allocation import TARGETED_PROFILE
+
+        self.scene.terrain.source_curriculum_allocation = TARGETED_PROFILE
+
+
+__all__ = ["DeeproboticsLite3SourceCurriculumEnvCfg", "DeeproboticsLite3SourceCurriculumTargetedEnvCfg"]

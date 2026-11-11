@@ -48,6 +48,20 @@ class SourceTerrainImporter(TerrainImporter):
             getattr(cfg, "parallel_reset_sampler_enabled", False)
         )
         self._shared_bank_rows = getattr(cfg, "shared_bank_rows", None)
+        self._curriculum_allocation = getattr(cfg, "source_curriculum_allocation", None)
+        if self._curriculum_allocation is not None:
+            from rl_training.source_curriculum.allocation import TARGETED_PROFILE
+            from rl_training.source_curriculum.rows import NUM_COLUMNS, NUM_ROWS
+
+            generator_cfg = cfg.terrain_generator
+            if (self._curriculum_allocation != TARGETED_PROFILE or self._parallel_reset_sampler_enabled
+                    or cfg.terrain_type != "generator" or not cfg.use_terrain_origins
+                    or generator_cfg is None or not generator_cfg.curriculum
+                    or generator_cfg.num_rows != NUM_ROWS or generator_cfg.num_cols != NUM_COLUMNS
+                    or tuple(generator_cfg.sub_terrains) != tuple(f"c{i:02d}" for i in range(NUM_COLUMNS))
+                    or any(abs(float(sub.proportion) - 1 / NUM_COLUMNS) > 1e-12
+                           for sub in generator_cfg.sub_terrains.values())):
+                raise ValueError("targeted allocation requires the original equal-proportion 10 x 20 curriculum grid")
         if self._shared_bank_rows is not None and not self._parallel_reset_sampler_enabled:
             raise ValueError("shared Source bank requires the explicit parallel reset sampler")
         if self._parallel_reset_sampler_enabled:
@@ -344,7 +358,12 @@ class SourceTerrainImporter(TerrainImporter):
         """Reserve one terrain row per environment before scene startup/reset."""
 
         if not self._parallel_reset_sampler_enabled:
-            return super()._compute_env_origins_curriculum(num_envs, origins)
+            result = super()._compute_env_origins_curriculum(num_envs, origins)
+            if self._curriculum_allocation is not None:
+                from rl_training.source_curriculum.allocation import apply_targeted_origins
+
+                result = apply_targeted_origins(self, num_envs, origins)
+            return result
         if num_envs != self.cfg.parallel_reset_sampler_num_envs:
             raise ValueError(
                 "parallel Source terrain origin count differs from the configured environment count"

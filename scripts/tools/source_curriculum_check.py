@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "source/rl_training"), str(ROOT / "scripts/tools")]
 
 TASK = "SourceCurriculum-Deeprobotics-Lite3-v0"
+TARGETED_TASK = "SourceCurriculum-Targeted-Deeprobotics-Lite3-v0"
 NUM_ENVS = 4096
 FROZEN_STEPS = 50
 EXPECTED_TERMINATIONS = {"time_out", "illegal_contact", "bad_orientation_2", "source_curriculum_safety",
@@ -54,6 +55,8 @@ def supervise(args):
     child_env = {**os.environ, "CUDA_VISIBLE_DEVICES": visible, "PYTHONUNBUFFERED": "1"}
     command = [sys.executable, str(Path(__file__).resolve()), "--child", "--num-envs", str(args.num_envs),
                "--output", str(args.output)]
+    if getattr(args, "targeted", False):
+        command.append("--targeted")
     started = time.monotonic()
     memory_samples = []
     monitor_stop = threading.Event()
@@ -289,7 +292,7 @@ def inject(base, ids, pos, roll=None):
     robot.write_root_velocity_to_sim(torch.zeros(len(ids), 6, device=base.device), env_ids=ids_t)
 
 
-def build_and_check(app, checks, report, num_envs):
+def build_and_check(app, checks, report, num_envs, *, targeted=False):
     import gymnasium as gym
     import torch
     import rl_training
@@ -307,7 +310,8 @@ def build_and_check(app, checks, report, num_envs):
         raise RuntimeError(f"rl_training imported from {rl_training.__file__}, expected {source_root}")
     tiles = install_row_recorder()
     install_collision_recorder()
-    env_cfg = parse_env_cfg(TASK, device="cuda:0", num_envs=num_envs)
+    task = TARGETED_TASK if targeted else TASK
+    env_cfg = parse_env_cfg(task, device="cuda:0", num_envs=num_envs)
     env_cfg.seed = 42
     env_cfg.observations.policy.enable_corruption = False  # obs noise off for the check only
     print("SCENE " + json.dumps({"replicate_physics": env_cfg.scene.replicate_physics,
@@ -315,7 +319,7 @@ def build_and_check(app, checks, report, num_envs):
           "robot_collision_group": env_cfg.scene.robot.collision_group,
           "num_envs": env_cfg.scene.num_envs}), flush=True)
     setup_start = time.perf_counter()
-    env = gym.make(TASK, cfg=env_cfg)
+    env = gym.make(task, cfg=env_cfg)
     report["gym_make_seconds"] = time.perf_counter() - setup_start
     base = env.unwrapped
     robot = base.scene["robot"]
@@ -331,7 +335,7 @@ def build_and_check(app, checks, report, num_envs):
     terrain = base.scene.terrain
     command = base.command_manager.get_term("base_velocity")
     curriculum_timings = []
-    timed_curriculum(base, curriculum_timings)
+    curriculum = timed_curriculum(base, curriculum_timings)
     report["curriculum_timings"] = curriculum_timings
 
     # 9. tile rows (the grid is generated inside gym.make)
@@ -375,15 +379,33 @@ def build_and_check(app, checks, report, num_envs):
         expected_origins = terrain.terrain_origins[levels.long(), types.long()]
         origin_err = float((terrain.env_origins - expected_origins).abs().max())
         tl, ol = levels[tile], levels[omni]
+        if targeted:
+            from rl_training.source_curriculum.allocation import TARGETED_PROFILE, targeted_column_counts
+            expected_counts = torch.tensor(targeted_column_counts(base.num_envs), device=types.device)
+            allocation_ok = (torch.equal(counts, expected_counts)
+                             and terrain.cfg.source_curriculum_allocation == TARGETED_PROFILE
+                             and torch.equal(command.tile_mask, tile)
+                             and torch.equal(curriculum.omni, omni))
+        else:
+            allocation_ok = (float((counts.float() - mean).abs().max()) <= 5
+                             and abs(int(omni.sum()) - base.num_envs * len(OMNI_COLUMNS) / NUM_COLUMNS) <= 20)
+        report["environment_column_counts"] = counts.tolist()
         ok = (int(tl.min()) >= 0 and int(tl.max()) <= 4 and int(ol.min()) >= 1 and int(ol.max()) <= 8
-              and float((counts.float() - mean).abs().max()) <= 5
-              and abs(int(omni.sum()) - base.num_envs * len(OMNI_COLUMNS) / NUM_COLUMNS) <= 20
+              and allocation_ok and bool((counts > 0).all())
               and counts.numel() == NUM_COLUMNS and origin_err <= 1e-6)
         checks.add("3_levels_columns_origins", ok,
                    f"tile_levels=[{int(tl.min())},{int(tl.max())}] omni_levels=[{int(ol.min())},{int(ol.max())}] "
                    f"column_counts=[{int(counts.min())},{int(counts.max())}] mean={mean:.1f} omni={int(omni.sum())} "
                    f"origin_err={origin_err:.2e}")
     checks.guard("3_levels_columns_origins", check_levels)
+
+    if targeted:
+        def check_initial_counts():
+            stats = curriculum.column_stats
+            checks.add("12_initial_column_counts", int(stats.outcomes.sum()) == 0
+                       and int(stats.starts.sum()) == base.num_envs,
+                       f"starts={int(stats.starts.sum())} endings={int(stats.outcomes.sum())}")
+        checks.guard("12_initial_column_counts", check_initial_counts)
 
     # 4. clearance over the 9-ray base scan after reset
     def check_scan_reset():
@@ -507,6 +529,32 @@ def build_and_check(app, checks, report, num_envs):
                    f'complete/fail/both bootstrap={bootstrap} raw_timeouts={raw_timeouts}')
     checks.guard("7b_8_progress_and_moves", check_progress_and_moves)
 
+    if targeted:
+        def check_anchor_counts():
+            # Use real termination/manager flow on flat columns at rows 4/9;
+            # stairs' physical contact is covered by the unchanged evaluator.
+            ids = pick(flat_tile & alive(), 4, 20261111)
+            rows = torch.tensor([4, 4, 9, 9], device=base.device)
+            terrain.terrain_levels[ids] = rows
+            terrain.env_origins[ids] = terrain.terrain_origins[rows, types[ids]]
+            positions = []
+            for i in ids:
+                origin = terrain.env_origins[i]
+                positions.append([float(origin[0]) + 9.30, float(origin[1]), float(origin[2] + default_z[i]) + .05])
+            previous = curriculum.column_stats.outcomes.clone()
+            inject(base, ids, positions, roll=[0., 1.2, 0., 1.2])
+            learning_env.step(actor(obs))
+            delta = curriculum.column_stats.outcomes - previous
+            raw_c = term("source_curriculum_completion", ids)
+            raw_f = tm.terminated[ids].tolist()
+            ok = (raw_c == [True] * 4 and raw_f == [False, True, False, True]
+                  and all(int(delta[int(types[i]), int(row), outcome]) >= 1
+                          for i, row, outcome in zip(ids, rows, [0, 1, 0, 1])))
+            checks.add("13_anchor_outcome_counts", ok,
+                       f"envs={ids} before_rows={rows.tolist()} completion={raw_c} failure={raw_f}")
+            report["column_statistics"] = curriculum.column_stats.snapshot()
+        checks.guard("13_anchor_outcome_counts", check_anchor_counts)
+
     # 10. timing (report only)
     rollout_calls = curriculum_timings[first_curriculum_call:]
     triggered = [t for t in rollout_calls if t["num_reset_envs"] > 0]
@@ -534,6 +582,7 @@ def main():
     parser.add_argument("--num-envs", type=int, choices=(2048, 4096), default=NUM_ENVS,
                         help="2048 is the research plan's memory-pressure fallback")
     parser.add_argument("--child", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--targeted", action="store_true", help="check the approved 30/20/50 retraining profile")
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -545,10 +594,10 @@ def main():
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=True, device="cuda:0").app
     checks = Checks()
-    report = {"task": TASK, "num_envs": args.num_envs, "checks": checks.results}
+    report = {"task": TARGETED_TASK if args.targeted else TASK, "num_envs": args.num_envs, "checks": checks.results}
     env = None
     try:
-        env = build_and_check(app, checks, report, args.num_envs)
+        env = build_and_check(app, checks, report, args.num_envs, targeted=args.targeted)
     except Exception as exc:
         traceback.print_exc()
         checks.add("setup", False, f"exception: {type(exc).__name__}: {exc}")

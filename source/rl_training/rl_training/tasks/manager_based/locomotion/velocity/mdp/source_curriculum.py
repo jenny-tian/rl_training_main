@@ -6,7 +6,7 @@ from isaaclab.managers import ManagerTermBase
 from isaaclab.utils import configclass
 
 from rl_training.source_curriculum.logic import (
-    FamilyStats, OMNI_FAMILY_ID, apply_tile_commands, column_family_ids, curriculum_moves,
+    ColumnStats, FamilyStats, OMNI_FAMILY_ID, apply_tile_commands, column_family_ids, curriculum_moves,
     omni_levels, outside_bounds, safety_unsafe)
 from rl_training.source_curriculum.rows import OMNI_COLUMNS
 
@@ -126,12 +126,22 @@ class SourceCurriculumLevels(ManagerTermBase):
         self.env_family_ids = self.family_by_column[types.long()]
         self.omni = self.env_family_ids == OMNI_FAMILY_ID
         self.stats = FamilyStats(env.device)
+        self.column_stats = (ColumnStats(env.device, env.scene.terrain.max_terrain_level)
+                             if getattr(env.cfg, "source_column_statistics", False) else None)
 
     def __call__(self, env, env_ids, omni_columns):
         terrain = env.scene.terrain
         ids = _env_ids(env_ids, env.num_envs, env.device)
         tile = ids[~self.omni[ids]]
         omni = ids[self.omni[ids]]
+        if self.column_stats is not None:
+            tm = env.termination_manager
+            # Initial/manual resets of zero-length episodes are not outcomes.
+            ended = ids[env.episode_length_buf[ids] > 0]
+            self.column_stats.update(
+                terrain.terrain_types[ended], terrain.terrain_levels[ended],
+                tm.get_term("source_curriculum_completion")[ended], tm.terminated[ended],
+                tm.get_term("time_out")[ended] | tm.get_term("source_curriculum_omni_truncation")[ended])
         if tile.numel():
             tm = env.termination_manager
             completed = tm.get_term("source_curriculum_completion")[tile]
@@ -146,4 +156,8 @@ class SourceCurriculumLevels(ManagerTermBase):
             levels = omni_levels(omni.numel(), num_rows=terrain.max_terrain_level, device=env.device)
             terrain.terrain_levels[omni] = levels
             terrain.env_origins[omni] = terrain.terrain_origins[levels, terrain.terrain_types[omni]]
-        return self.stats.report(terrain.terrain_levels, self.env_family_ids, top_row=terrain.max_terrain_level - 1)
+        report = self.stats.report(terrain.terrain_levels, self.env_family_ids, top_row=terrain.max_terrain_level - 1)
+        if self.column_stats is not None:
+            self.column_stats.record_starts(terrain.terrain_types[ids], terrain.terrain_levels[ids])
+            report.update(self.column_stats.report())
+        return report
