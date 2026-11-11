@@ -37,6 +37,7 @@ def main():
         archive(EVIDENCE / f"check{size}/execution.json", f"validation/execution{size}.json")
         original.append(EVIDENCE / f"check{size}/runtime.log")
     archive(EVIDENCE / "cpu.xml", "validation/cpu.xml")
+    archive(EVIDENCE / "cpu_importer.xml", "validation/cpu_importer.xml")
     baselines = {}
     for start in ("flat1998", "terrain3497"):
         folder = EVIDENCE / "baseline" / start
@@ -50,13 +51,14 @@ def main():
     paired = baselines["flat1998"]["initial_state_hashes_by_column"] == baselines["terrain3497"]["initial_state_hashes_by_column"]
     if not paired:
         raise ValueError("baseline initial states do not match")
-    runs = []
+    runs, audits, training_heads = [], [], set()
     for start in ("flat1998", "terrain3497"):
         for seed in (42, 43):
             name = f"{start}_seed{seed}"
             folder = EVIDENCE / "training" / name
             run = archive(folder / "training_report.json", f"training/{name}.json")
             execution = archive(folder / "execution.json", f"training/{name}_execution.json")
+            training_heads.add(execution["source_commit"])
             if execution["status"] != "completed" or run["status"] not in ("budget_completed", "stopped_by_development_rule"):
                 raise ValueError(f"incomplete run: {name}")
             original.append(folder / "runtime.log")
@@ -66,11 +68,19 @@ def main():
                 check = folder / f"update_{updates:04d}"
                 block = archive(check / "evaluation/blocks/evaluation.json", f"evaluations/{name}_{updates}_blocks.json")
                 archive(check / "evaluation/flat.json", f"evaluations/{name}_{updates}_flat.json")
-                archive(check / "statistics.json", f"statistics/{name}_{updates}.json")
+                stats = archive(check / "statistics.json", f"statistics/{name}_{updates}.json")
                 original.extend([check / "decision.json", check / "model.pt", check / "evaluation/flat.sim.log",
                                  check / "evaluation/blocks/runtime.log", check / "evaluation/blocks/execution.json"])
                 if digest(check / "model.pt") != gate["sha256"]:
                     raise ValueError("trained checkpoint identity mismatch")
+                if block["initial_state_hashes_by_column"] != baselines[start]["initial_state_hashes_by_column"]:
+                    raise ValueError("checkpoint evaluation is not paired to its baseline")
+                if sum(map(sum, stats["transitions_by_column_direction"])) != updates * 4096 * 24:
+                    raise ValueError("training transition count differs from update budget")
+                expected = [n * updates * 24 for n in stats["environment_column_counts"]]
+                if list(map(sum, stats["transitions_by_column_direction"])) != expected:
+                    raise ValueError("per-column interaction count differs from allocation")
+                audits.append(audit_model(run, check / "model.pt", updates))
                 records.append(row(start, seed, updates, gate, block))
             runs.append(run)
     with (OUT / "comparison.csv").open("w") as stream:
@@ -78,7 +88,8 @@ def main():
         writer.writeheader()
         writer.writerows(records)
     copied.append(OUT / "comparison.csv")
-    tests = ET.parse(EVIDENCE / "cpu.xml").getroot().findall("testsuite")
+    tests = [t for path in (EVIDENCE / "cpu.xml", EVIDENCE / "cpu_importer.xml")
+             for t in ET.parse(path).getroot().findall("testsuite")]
     summary = dict(paired_initial_states=paired, rows=records, runs=[{
         k: run[k] for k in ("start", "seed", "status", "completed_updates", "training_transitions")}
         for run in runs], total_updates=sum(r["completed_updates"] for r in runs),
@@ -88,17 +99,50 @@ def main():
                     for size, value in checks.items()}, selected_theta1=None, final_qualification_performed=False)
     save_json(OUT / "summary.json", summary)
     copied.append(OUT / "summary.json")
+    save_json(OUT / "model_audit.json", audits)
+    copied.append(OUT / "model_audit.json")
     plot(records)
     copied.append(OUT / "comparison.png")
     source_paths = subprocess.check_output(["git", "diff", "--name-only", "99616dd", "HEAD", "--", "scripts", "source", "tests"], cwd=ROOT, text=True).splitlines()
     original.extend(ROOT / p for p in source_paths)
-    manifest = dict(schema="b2_initialization_segment_v1", source_head=subprocess.check_output(
+    manifest = dict(schema="b2_initialization_segment_v1", training_source_heads=sorted(training_heads),
+        packaging_source_head=subprocess.check_output(
         ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
         raw_evidence_root=str(EVIDENCE), files=[dict(path=str(p), sha256=digest(p)) for p in sorted(set(original))])
     save_json(OUT / "artifact_manifest.json", manifest)
     copied.append(OUT / "artifact_manifest.json")
+    copied.extend(path for path in (OUT / "plan.md", OUT / "README.md", OUT / "next-stage-proposal.md") if path.exists())
     (OUT / "SHA256SUMS").write_text("".join(f"{digest(p)}  {p.relative_to(OUT)}\n" for p in sorted(copied)))
     print(json.dumps(summary, indent=2), flush=True)
+
+
+def audit_model(run, path, updates):
+    import torch
+    original = torch.load(run["checkpoint"], map_location="cpu", weights_only=True)
+    current = torch.load(path, map_location="cpu", weights_only=True)
+    changes = {}
+    for component in ("actor_state_dict", "critic_state_dict"):
+        before, after = original[component], current[component]
+        if before.keys() != after.keys() or not all(torch.isfinite(v).all() for v in after.values()):
+            raise ValueError("model schema or finite check failed")
+        keys = [k for k in before if k.startswith("mlp.")]
+        changed = [k for k in keys if not torch.equal(before[k], after[k])]
+        if len(changed) != len(keys):
+            raise ValueError("a learned MLP tensor did not change")
+        changes[component] = dict(changed_mlp_tensors=len(changed), total_mlp_tensors=len(keys),
+            weight_change_l2=sum(float((after[k].double() - before[k].double()).square().sum()) for k in keys) ** .5)
+    before = original["optimizer_state_dict"]["state"]
+    after = current["optimizer_state_dict"]["state"]
+    increments = sorted({int(after[k]["step"]) - int(before[k]["step"]) for k in before})
+    if increments != [updates * 20]:
+        raise ValueError("Adam step audit failed")
+    return dict(start=run["start"], seed=run["seed"], updates=updates, checkpoint=str(path),
+                sha256=digest(path), initial_full_state_restore_exact=run["restored_exact"],
+                optimizer_step_increments=increments, changes=changes,
+                initial_algorithm_learning_rate=run["initial_algorithm_learning_rate"],
+                initial_optimizer_group_lrs=run["initial_optimizer_group_lrs"],
+                action_std_before=original["actor_state_dict"]["distribution.log_std_param"].exp().tolist(),
+                action_std_after=current["actor_state_dict"]["distribution.log_std_param"].exp().tolist())
 
 
 def row(start, seed, updates, gate, block):
