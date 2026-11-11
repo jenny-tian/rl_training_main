@@ -234,14 +234,14 @@ def evidence(tmp_path):
     return tmp_path, actors, retentions
 
 
-@pytest.mark.parametrize("kind", ["qualify", "extend"])
+@pytest.mark.parametrize("kind", ["qualify", "extend", "targeted"])
 def test_cli_loads_complete_design_with_real_schema_and_diagnostics(tmp_path, kind):
     actor = dict(path="/actors/final.pt", sha256="a" * 64)
     write_policy(tmp_path, "final", actor, kind=kind)
     loaded = cli.load_policy(tmp_path, "final", actor, kind=kind)
     assert all(len(rows) == 480 for rows in loaded["records"].values())
-    assert {r["slot"] for r in loaded["records"]["L1"]} == set(range(480 if kind == "extend" else 0,
-                                                                 960 if kind == "extend" else 480))
+    offset = {"qualify": 0, "extend": 480, "targeted": 1080}[kind]
+    assert {r["slot"] for r in loaded["records"]["L1"]} == set(range(offset, offset + 480))
     assert len(loaded["runs"]) == 8
 
 
@@ -407,6 +407,23 @@ def test_bad_baseline_evidence_prevents_qualification_of_both_seeds(evidence):
     report = cli.summarize(path, actors, retentions, kind="qualify")
     assert report["selected_seed"] is None
     assert all(not report["policies"][name]["verdicts"]["Q1"]["pass"] for name in ("seed42", "seed43"))
+
+
+def test_targeted_comparator_is_required_but_never_selected(evidence):
+    path, actors, retentions = evidence
+    # Sharing the actor here is deliberate: policy roles, not path heuristics,
+    # determine which checkpoints are candidates.
+    actors["starting"] = dict(actors["baseline"])
+    retentions["starting"] = retentions["baseline"]
+    for name, actor in actors.items():
+        write_policy(path, name, actor, kind="targeted")
+    result = cli.summarize(path, actors, retentions, kind="targeted")
+    assert result["selected_policy"] == "seed42"
+    assert result["policies"]["starting"]["seed"] is None
+    assert all(q["pass"] for q in result["policies"]["starting"]["verdicts"].values())
+    corrupt_attempt(path / "s1t_starting_l2_3", "missing_receipt")
+    result = cli.summarize(path, actors, retentions, kind="targeted")
+    assert result["selected_seed"] is None and "incomplete" in result["selection_reason"]
 
 
 @pytest.mark.parametrize("field,value", [("checkpoint_sha256", "c" * 64), ("checkpoint", "/wrong.pt"),

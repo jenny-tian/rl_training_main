@@ -201,6 +201,8 @@ def summarize(evidence, actors, retention_paths, *, kind, baseline_name="baselin
                               l2_completion_rate=sum(r["completed"] for r in records["L2"]) / 480 if data else None,
                               total_safety_endings=sum(r["safety_ending"] for rows in records.values() for r in rows) if data else None)
     selected, reason = choose_seed([policies[name] for name in seed_names])
+    if kind == "targeted" and (len(actors) != 4 or any(errors.values())):
+        selected, reason = None, "Targeted design incomplete: all four paired policies and their retention evidence are required."
     selected_name = next((name for name, seed in seed_names.items() if seed == selected), None)
     return dict(schema="ea_lpl_stage1_qualification_v1", kind=kind, baseline=baseline_name, policies=policies,
                 selected_seed=selected, selected_policy=selected_name,
@@ -220,20 +222,29 @@ def assignments(parser, items, option):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence", type=Path, required=True)
-    parser.add_argument("--kind", choices=("qualify", "extend"), default="qualify")
+    parser.add_argument("--kind", choices=("qualify", "extend", "targeted"), default="qualify")
     parser.add_argument("--policy", action="append", required=True, metavar="NAME=PATH",
                         help="explicit final checkpoint for each policy; no checkpoint search or intermediate selection")
     parser.add_argument("--retention", action="append", required=True, metavar="NAME=PATH")
     parser.add_argument("--baseline", default="baseline", help="baseline policy name")
     parser.add_argument("--seed42", default="seed42", help="policy name for seed 42's declared final checkpoint")
     parser.add_argument("--seed43", default="seed43", help="policy name for seed 43's declared final checkpoint")
+    parser.add_argument("--starting", help="starting-model comparator, required only for the four-policy targeted design")
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     policies = assignments(parser, args.policy, "--policy")
     retention_paths = assignments(parser, args.retention, "--retention")
     names = {args.baseline, args.seed42, args.seed43}
-    if len(names) != 3 or set(policies) != names or set(retention_paths) != names:
-        parser.error("provide exactly the baseline, seed42 and seed43 policy and retention entries")
+    expected_count = 3
+    if args.kind == "targeted":
+        if not args.starting:
+            parser.error("--kind targeted requires --starting for the initial model comparator")
+        names.add(args.starting)
+        expected_count = 4
+    elif args.starting:
+        parser.error("--starting is only valid with --kind targeted")
+    if len(names) != expected_count or set(policies) != names or set(retention_paths) != names:
+        parser.error("provide exactly the distinct baseline, seed42, seed43 and (for targeted) starting entries")
     actors = {name: dict(path=str(path), sha256=sha256(path)) for name, path in policies.items()}
     report = summarize(args.evidence, actors, retention_paths, kind=args.kind, baseline_name=args.baseline,
                        seed_names={args.seed42: 42, args.seed43: 43})

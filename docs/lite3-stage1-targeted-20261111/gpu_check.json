@@ -1,0 +1,6922 @@
+{
+  "all_passed": true,
+  "checks": [
+    {
+      "detail": "startup_root_z=[2.999,2.999] default_root_z=[0.375,0.375]",
+      "name": "0_startup_placement",
+      "passed": true
+    },
+    {
+      "detail": "{\"inverted\": true, \"isolated_environment_groups\": 4096, \"ground_global\": true}",
+      "name": "0_collision_groups",
+      "passed": true
+    },
+    {
+      "detail": "tiles=200 distinct=200 mismatched=[]",
+      "name": "9_tile_rows",
+      "passed": true
+    },
+    {
+      "detail": "terminations=['bad_orientation_2', 'illegal_contact', 'source_curriculum_completion', 'source_curriculum_omni_truncation', 'source_curriculum_safety', 'source_curriculum_tile_bounds', 'time_out'] curriculum=['source_curriculum_levels']",
+      "name": "1_active_terms",
+      "passed": true
+    },
+    {
+      "detail": "policy=(45,) critic=(48,) gait_level=1.0 importer=SourceTerrainImporter palette=[0.5, 0.6667, 0.8333, 1.0]",
+      "name": "2_obs_dims_gait_palette",
+      "passed": true
+    },
+    {
+      "detail": "tile_levels=[0,4] omni_levels=[1,8] column_counts=[136,819] mean=204.8 omni=1229 origin_err=0.00e+00",
+      "name": "3_levels_columns_origins",
+      "passed": true
+    },
+    {
+      "detail": "starts=4096 endings=0",
+      "name": "12_initial_column_counts",
+      "passed": true
+    },
+    {
+      "detail": "envs=4096 rays=9 bad=0 non_finite=0 clearance=[0.375,0.375] max_xy=0.0707",
+      "name": "4_scan_after_reset",
+      "passed": true
+    },
+    {
+      "detail": "tile_vx=[0.250,0.500] tile_|vy|max=0.000 tile_heading=True tile_standing=0 omni n=1229 standing=184 lateral=704 backward=426 tile_like=0",
+      "name": "5_commands",
+      "passed": true
+    },
+    {
+      "detail": "steps=50 reset_envs=2 non_finite={'obs': 0, 'reward': 0, 'contact': 0} envs=4094 rays=9 bad=0 non_finite=0 clearance=[0.290,0.354] max_xy=0.0707",
+      "name": "6_frozen_rollout",
+      "passed": true
+    },
+    {
+      "detail": "tile_env=669 omni_env=2167 tile_bounds=[True, False] omni_trunc=[False, True]",
+      "name": "7a_far_outside_masks",
+      "passed": true
+    },
+    {
+      "detail": "tile_env=3222 omni_env=2789 completion=[True, False] omni_trunc=[False] tile_bounds=[False, False]",
+      "name": "7b_completion_masks",
+      "passed": true
+    },
+    {
+      "detail": "envs complete/fail/both=[3346, 3238, 3172] levels [2, 2, 2]->[3, 1, 1] reset=[True, True, True] terminated=[False, True, True] completion=[True, False, True] origins_follow=True",
+      "name": "8_curriculum_moves",
+      "passed": true
+    },
+    {
+      "detail": "complete/fail/both bootstrap=[True, False, False] raw_timeouts=[True, False, True]",
+      "name": "11_failure_priority_bootstrap",
+      "passed": true
+    },
+    {
+      "detail": "envs=[3284, 3260, 1767, 1873] before_rows=[4, 4, 9, 9] completion=[True, True, True, True] failure=[False, True, False, True]",
+      "name": "13_anchor_outcome_counts",
+      "passed": true
+    },
+    {
+      "detail": "mean_env_step=0.1790s (n=50, 4096 envs) curriculum_mean=0.008797403424978256 over 4 rollout resets, curriculum_full_reset={'seconds': 0.02796702366322279, 'num_reset_envs': 4096}, curriculum_max=0.02796702366322279",
+      "name": "10_step_time",
+      "passed": true
+    },
+    {
+      "detail": "child_exit=0 fatal_messages=[]",
+      "name": "runtime_simulation_health",
+      "passed": true
+    }
+  ],
+  "collision_geometry": {
+    "all_finite_within_tile": true,
+    "colliders": [
+      {
+        "bounds": [
+          [
+            -60.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -36.0,
+            0.1134579220334142
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -36.0,
+            0.22698500169636016
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -36.0,
+            0.3406505653397681
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -36.0,
+            0.4545242776328182
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -36.0,
+            0.5686763129185061
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -36.0,
+            0.6373305723355803
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -36.0,
+            0.706125968317924
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -36.0,
+            0.7750780744235898
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -36.0,
+            0.8442026041599785
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -40.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -36.0,
+            0.9135154255655443
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c00",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -36.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -36.0,
+            -1.0135154255655443
+          ],
+          [
+            60.0,
+            -32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c01",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -28.0,
+            0.03491012985643517
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -28.0,
+            0.06984153898349546
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -28.0,
+            0.10481555856608242
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -28.0,
+            0.13985362388702083
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -28.0,
+            0.17497732705184801
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -28.0,
+            0.1961017145647938
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -28.0,
+            0.2172695287132073
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -28.0,
+            0.23848556136110455
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -28.0,
+            0.25975464743383964
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -32.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -28.0,
+            0.2810816694047829
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c02",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -24.0,
+            0.03491012985643517
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -24.0,
+            0.06984153898349546
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -24.0,
+            0.10481555856608242
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -24.0,
+            0.13985362388702083
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -24.0,
+            0.17497732705184801
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -24.0,
+            0.1961017145647938
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -24.0,
+            0.2172695287132073
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -24.0,
+            0.23848556136110455
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -24.0,
+            0.25975464743383964
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -28.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -24.0,
+            0.2810816694047829
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c03",
+        "triangles": 10560
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -20.0,
+            0.015
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c04",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -20.0,
+            0.026250000000000002
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c04",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -20.0,
+            0.037500000000000006
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c04",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -20.0,
+            0.04875
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c04",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -20.0,
+            0.06
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c04",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -20.0,
+            0.069
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c04",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -20.0,
+            0.10400000000000001
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c04",
+        "triangles": 44
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -20.0,
+            0.116
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c04",
+        "triangles": 44
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -20.0,
+            0.16
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c04",
+        "triangles": 52
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -24.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -20.0,
+            0.17500000000000002
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c04",
+        "triangles": 52
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -16.0,
+            0.015
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c05",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -16.0,
+            0.026250000000000002
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c05",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -16.0,
+            0.037500000000000006
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c05",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -16.0,
+            0.04875
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c05",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -16.0,
+            0.06
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c05",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -16.0,
+            0.069
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c05",
+        "triangles": 36
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -16.0,
+            0.10400000000000001
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c05",
+        "triangles": 44
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -16.0,
+            0.116
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c05",
+        "triangles": 44
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -16.0,
+            0.16
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c05",
+        "triangles": 52
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -20.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -16.0,
+            0.17500000000000002
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c05",
+        "triangles": 52
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -12.0,
+            0.003123677555615706
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -12.0,
+            0.00614015775777916
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -12.0,
+            0.007821704106040519
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -12.0,
+            0.01068103105748138
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -12.0,
+            0.012839748864985644
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -12.0,
+            0.012848836531587117
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -12.0,
+            0.0176697939631886
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -12.0,
+            0.016065698230739694
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -12.0,
+            0.01469488241715647
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -16.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -12.0,
+            0.016270365170388046
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c06",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            12.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            24.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            36.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            48.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -4.0,
+            -1.0
+          ],
+          [
+            60.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c09",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            0.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            0.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            0.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            0.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            0.0,
+            -1.0
+          ],
+          [
+            0.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            0.0,
+            -1.0
+          ],
+          [
+            12.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            0.0,
+            -1.0
+          ],
+          [
+            24.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            0.0,
+            -1.0
+          ],
+          [
+            36.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            0.0,
+            -1.0
+          ],
+          [
+            48.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            0.0,
+            -1.0
+          ],
+          [
+            60.0,
+            4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c10",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            4.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            4.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            4.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            4.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            4.0,
+            -1.0
+          ],
+          [
+            0.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            4.0,
+            -1.0
+          ],
+          [
+            12.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            4.0,
+            -1.0
+          ],
+          [
+            24.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            4.0,
+            -1.0
+          ],
+          [
+            36.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            4.0,
+            -1.0
+          ],
+          [
+            48.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            4.0,
+            -1.0
+          ],
+          [
+            60.0,
+            8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c11",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            8.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            8.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            8.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            8.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            8.0,
+            -1.0
+          ],
+          [
+            0.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            8.0,
+            -1.0
+          ],
+          [
+            12.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            8.0,
+            -1.0
+          ],
+          [
+            24.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            8.0,
+            -1.0
+          ],
+          [
+            36.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            8.0,
+            -1.0
+          ],
+          [
+            48.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            8.0,
+            -1.0
+          ],
+          [
+            60.0,
+            12.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c12",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            12.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            12.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            12.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            12.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            12.0,
+            -1.0
+          ],
+          [
+            0.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            12.0,
+            -1.0
+          ],
+          [
+            12.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            12.0,
+            -1.0
+          ],
+          [
+            24.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            12.0,
+            -1.0
+          ],
+          [
+            36.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            12.0,
+            -1.0
+          ],
+          [
+            48.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            12.0,
+            -1.0
+          ],
+          [
+            60.0,
+            16.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c13",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            20.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            24.0,
+            0.0035412566843357226
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            20.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            24.0,
+            0.006301227610696783
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            20.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            24.0,
+            0.007932818764023162
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            20.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            24.0,
+            0.00959357666267152
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            20.0,
+            -1.0
+          ],
+          [
+            0.0,
+            24.0,
+            0.013448343618874023
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            20.0,
+            -1.0
+          ],
+          [
+            12.0,
+            24.0,
+            0.014900757790542871
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            20.0,
+            -1.0
+          ],
+          [
+            24.0,
+            24.0,
+            0.013560275935516463
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            20.0,
+            -1.0
+          ],
+          [
+            36.0,
+            24.0,
+            0.011886800215324393
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            20.0,
+            -1.0
+          ],
+          [
+            48.0,
+            24.0,
+            0.015193449062835344
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            20.0,
+            -1.0
+          ],
+          [
+            60.0,
+            24.0,
+            0.017091749961900056
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c15",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            24.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            28.0,
+            0.11346824395701577
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            24.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            28.0,
+            0.2269972988690155
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            24.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            28.0,
+            0.34076211409960355
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            24.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            28.0,
+            0.4545681557769074
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            24.0,
+            -1.0
+          ],
+          [
+            0.0,
+            28.0,
+            0.5687064413968594
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            24.0,
+            -1.0
+          ],
+          [
+            12.0,
+            28.0,
+            0.6373526230777085
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            24.0,
+            -1.0
+          ],
+          [
+            24.0,
+            28.0,
+            0.7061612380939677
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            24.0,
+            -1.0
+          ],
+          [
+            36.0,
+            28.0,
+            0.7750861839453946
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            24.0,
+            -1.0
+          ],
+          [
+            48.0,
+            28.0,
+            0.8442425591833841
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            24.0,
+            -1.0
+          ],
+          [
+            60.0,
+            28.0,
+            0.9135154255655462
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c16",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            28.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            32.0,
+            2.759977616073696e-06
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            28.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            32.0,
+            9.179387512678231e-07
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            28.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            32.0,
+            1.0082677852028539e-05
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            28.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            32.0,
+            1.8871900937382534e-05
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            28.0,
+            -1.0
+          ],
+          [
+            0.0,
+            32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            28.0,
+            -1.0
+          ],
+          [
+            12.0,
+            32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            28.0,
+            -1.0
+          ],
+          [
+            24.0,
+            32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            28.0,
+            -1.0
+          ],
+          [
+            36.0,
+            32.0,
+            1.062442751649284e-05
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            28.0,
+            -1.0
+          ],
+          [
+            48.0,
+            32.0,
+            7.1332865876899e-06
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            28.0,
+            -1.0135241903523469
+          ],
+          [
+            60.0,
+            32.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c17",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            32.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            36.0,
+            0.0358462901470446
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            32.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            36.0,
+            0.07148962113106051
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            32.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            36.0,
+            0.10664448002940242
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            32.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            36.0,
+            0.14413810798223348
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            32.0,
+            -1.0
+          ],
+          [
+            0.0,
+            36.0,
+            0.1797691403075684
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            32.0,
+            -1.0
+          ],
+          [
+            12.0,
+            36.0,
+            0.20110692103736402
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            32.0,
+            -1.0
+          ],
+          [
+            24.0,
+            36.0,
+            0.2225768571778813
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            32.0,
+            -1.0
+          ],
+          [
+            36.0,
+            36.0,
+            0.2447397942592053
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            32.0,
+            -1.0
+          ],
+          [
+            48.0,
+            36.0,
+            0.26522402587575633
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            32.0,
+            -1.0
+          ],
+          [
+            60.0,
+            36.0,
+            0.2864488297010487
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c18",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            36.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            40.0,
+            0.0356974004231489
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0000_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            36.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            40.0,
+            0.07134718677421097
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0001_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            36.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            40.0,
+            0.10791495045185878
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0002_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            36.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            40.0,
+            0.14219292332213612
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0003_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            36.0,
+            -1.0
+          ],
+          [
+            0.0,
+            40.0,
+            0.17995418860301418
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0004_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            36.0,
+            -1.0
+          ],
+          [
+            12.0,
+            40.0,
+            0.1989716938901101
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0005_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            36.0,
+            -1.0
+          ],
+          [
+            24.0,
+            40.0,
+            0.22429388729476135
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0006_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            36.0,
+            -1.0
+          ],
+          [
+            36.0,
+            40.0,
+            0.2456274129196729
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0007_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            36.0,
+            -1.0
+          ],
+          [
+            48.0,
+            40.0,
+            0.26763490457333877
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0008_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            36.0,
+            -1.0
+          ],
+          [
+            60.0,
+            40.0,
+            0.28633528731186253
+          ]
+        ],
+        "path": "/World/ground/terrain/ordinary/tile_r0009_c19",
+        "triangles": 40320
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0000_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0001_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0002_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0003_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0004_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0005_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0006_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0007_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0008_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0009_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -54.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -51.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0000_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -45.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -42.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0001_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -27.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0002_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -21.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -18.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0003_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -3.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0004_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            9.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0005_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            15.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0006_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            33.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0007_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            39.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0008_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            54.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            57.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0009_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -54.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0000_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -42.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0001_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -30.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0002_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -18.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0003_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -6.0,
+            18.0,
+            -1.0
+          ],
+          [
+            0.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0004_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            6.0,
+            18.0,
+            -1.0
+          ],
+          [
+            12.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0005_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            16.0,
+            -1.0
+          ],
+          [
+            18.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0006_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            18.0,
+            -1.0
+          ],
+          [
+            30.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0007_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            42.0,
+            18.0,
+            -1.0
+          ],
+          [
+            48.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0008_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            18.0,
+            -1.0
+          ],
+          [
+            54.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00500000/tile_r0009_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0000_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0001_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0002_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0003_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0004_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0005_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0006_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0007_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0008_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0009_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -57.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0000_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -39.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0001_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -30.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -27.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0002_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -21.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0003_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -6.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -3.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0004_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            3.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            6.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0005_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            21.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0006_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            27.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0007_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            45.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0008_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            57.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0009_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -54.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0000_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -42.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0001_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -30.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0002_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -18.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0003_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -6.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0004_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            16.0,
+            -1.0
+          ],
+          [
+            6.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0005_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            18.0,
+            16.0,
+            -1.0
+          ],
+          [
+            24.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0006_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            30.0,
+            16.0,
+            -1.0
+          ],
+          [
+            36.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0007_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            42.0,
+            16.0,
+            -1.0
+          ],
+          [
+            48.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0008_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            54.0,
+            18.0,
+            -1.0
+          ],
+          [
+            60.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00666667/tile_r0009_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0000_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0001_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0002_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0003_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0004_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0005_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0006_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0007_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0008_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0009_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -51.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0000_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -42.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -39.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0001_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -33.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -30.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0002_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -15.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0003_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -9.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -6.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0004_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            3.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0005_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            18.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            21.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0006_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            27.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            30.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0007_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            42.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            45.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0008_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            51.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0009_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -54.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0000_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -42.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0001_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -30.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0002_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -18.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0003_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            16.0,
+            -1.0
+          ],
+          [
+            -6.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0004_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            18.0,
+            -1.0
+          ],
+          [
+            6.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0005_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            18.0,
+            18.0,
+            -1.0
+          ],
+          [
+            24.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0006_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            16.0,
+            -1.0
+          ],
+          [
+            30.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0007_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            16.0,
+            -1.0
+          ],
+          [
+            42.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0008_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            16.0,
+            -1.0
+          ],
+          [
+            54.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_00833333/tile_r0009_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            -48.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0000_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -11.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            -10.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0001_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            -24.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0002_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -24.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0003_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            0.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0004_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            0.0,
+            -9.0,
+            -1.0
+          ],
+          [
+            12.0,
+            -8.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0005_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            24.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0006_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            24.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            36.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0007_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            -12.0,
+            -1.0
+          ],
+          [
+            48.0,
+            -11.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0008_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            48.0,
+            -10.0,
+            -1.0
+          ],
+          [
+            60.0,
+            -9.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0009_c07",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -57.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -54.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0000_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -48.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -45.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0001_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -33.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0002_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -18.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -15.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0003_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -12.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            -9.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0004_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            6.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            9.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0005_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            15.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            18.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0006_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            30.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            33.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0007_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            39.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            42.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0008_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            51.0,
+            -8.0,
+            -1.0
+          ],
+          [
+            54.0,
+            -4.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0009_c08",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -60.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -54.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0000_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -42.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -36.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0001_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -36.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -30.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0002_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -18.0,
+            18.0,
+            -1.0
+          ],
+          [
+            -12.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0003_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            -6.0,
+            16.0,
+            -1.0
+          ],
+          [
+            0.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0004_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            6.0,
+            16.0,
+            -1.0
+          ],
+          [
+            12.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0005_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            12.0,
+            18.0,
+            -1.0
+          ],
+          [
+            18.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0006_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            30.0,
+            18.0,
+            -1.0
+          ],
+          [
+            36.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0007_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            36.0,
+            18.0,
+            -1.0
+          ],
+          [
+            42.0,
+            20.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0008_c14",
+        "triangles": 12
+      },
+      {
+        "bounds": [
+          [
+            54.0,
+            16.0,
+            -1.0
+          ],
+          [
+            60.0,
+            18.0,
+            0.0
+          ]
+        ],
+        "path": "/World/ground/terrain/friction_01000000/tile_r0009_c14",
+        "triangles": 12
+      }
+    ],
+    "max_part_triangles": 40320,
+    "parts": 290,
+    "total_triangles": 2844456
+  },
+  "column_statistics": {
+    "columns": [
+      "slope_uphill",
+      "slope_downhill",
+      "slope_cross_slope_left",
+      "slope_cross_slope_right",
+      "stairs_ascending",
+      "stairs_descending",
+      "multi_scale_rough_a",
+      "friction_left_right_bands",
+      "friction_front_back_bands",
+      "omni_flat_0",
+      "omni_flat_1",
+      "omni_flat_2",
+      "omni_flat_3",
+      "flat",
+      "friction_alternating_regions",
+      "multi_scale_rough_b",
+      "slope_rough_uphill",
+      "slope_rough_downhill",
+      "slope_rough_cross_slope_left",
+      "slope_rough_cross_slope_right"
+    ],
+    "endings_by_column_row_outcome": [
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    ],
+    "l1_row": 4,
+    "l2_row": 9,
+    "metrics": {
+      "columns/flat/L1/completion_count": 0,
+      "columns/flat/L1/completion_rate": 0.0,
+      "columns/flat/L1/endings": 1,
+      "columns/flat/L1/failure_count": 1,
+      "columns/flat/L1/failure_rate": 1.0,
+      "columns/flat/L1/starts": 54,
+      "columns/flat/L1/timeout_count": 0,
+      "columns/flat/L2/completion_count": 0,
+      "columns/flat/L2/completion_rate": 0.0,
+      "columns/flat/L2/endings": 0,
+      "columns/flat/L2/failure_count": 0,
+      "columns/flat/L2/failure_rate": 0.0,
+      "columns/flat/L2/starts": 0,
+      "columns/flat/L2/timeout_count": 0,
+      "columns/flat/all/completion_count": 1,
+      "columns/flat/all/completion_rate": 0.25,
+      "columns/flat/all/endings": 4,
+      "columns/flat/all/failure_count": 3,
+      "columns/flat/all/failure_rate": 0.75,
+      "columns/flat/all/starts": 276,
+      "columns/flat/all/timeout_count": 0,
+      "columns/friction_alternating_regions/L1/completion_count": 1,
+      "columns/friction_alternating_regions/L1/completion_rate": 1.0,
+      "columns/friction_alternating_regions/L1/endings": 1,
+      "columns/friction_alternating_regions/L1/failure_count": 0,
+      "columns/friction_alternating_regions/L1/failure_rate": 0.0,
+      "columns/friction_alternating_regions/L1/starts": 66,
+      "columns/friction_alternating_regions/L1/timeout_count": 0,
+      "columns/friction_alternating_regions/L2/completion_count": 0,
+      "columns/friction_alternating_regions/L2/completion_rate": 0.0,
+      "columns/friction_alternating_regions/L2/endings": 0,
+      "columns/friction_alternating_regions/L2/failure_count": 0,
+      "columns/friction_alternating_regions/L2/failure_rate": 0.0,
+      "columns/friction_alternating_regions/L2/starts": 0,
+      "columns/friction_alternating_regions/L2/timeout_count": 0,
+      "columns/friction_alternating_regions/all/completion_count": 2,
+      "columns/friction_alternating_regions/all/completion_rate": 1.0,
+      "columns/friction_alternating_regions/all/endings": 2,
+      "columns/friction_alternating_regions/all/failure_count": 0,
+      "columns/friction_alternating_regions/all/failure_rate": 0.0,
+      "columns/friction_alternating_regions/all/starts": 274,
+      "columns/friction_alternating_regions/all/timeout_count": 0,
+      "columns/friction_front_back_bands/L1/completion_count": 0,
+      "columns/friction_front_back_bands/L1/completion_rate": 0.0,
+      "columns/friction_front_back_bands/L1/endings": 0,
+      "columns/friction_front_back_bands/L1/failure_count": 0,
+      "columns/friction_front_back_bands/L1/failure_rate": 0.0,
+      "columns/friction_front_back_bands/L1/starts": 64,
+      "columns/friction_front_back_bands/L1/timeout_count": 0,
+      "columns/friction_front_back_bands/L2/completion_count": 0,
+      "columns/friction_front_back_bands/L2/completion_rate": 0.0,
+      "columns/friction_front_back_bands/L2/endings": 1,
+      "columns/friction_front_back_bands/L2/failure_count": 1,
+      "columns/friction_front_back_bands/L2/failure_rate": 1.0,
+      "columns/friction_front_back_bands/L2/starts": 0,
+      "columns/friction_front_back_bands/L2/timeout_count": 0,
+      "columns/friction_front_back_bands/all/completion_count": 0,
+      "columns/friction_front_back_bands/all/completion_rate": 0.0,
+      "columns/friction_front_back_bands/all/endings": 1,
+      "columns/friction_front_back_bands/all/failure_count": 1,
+      "columns/friction_front_back_bands/all/failure_rate": 1.0,
+      "columns/friction_front_back_bands/all/starts": 275,
+      "columns/friction_front_back_bands/all/timeout_count": 0,
+      "columns/friction_left_right_bands/L1/completion_count": 0,
+      "columns/friction_left_right_bands/L1/completion_rate": 0.0,
+      "columns/friction_left_right_bands/L1/endings": 0,
+      "columns/friction_left_right_bands/L1/failure_count": 0,
+      "columns/friction_left_right_bands/L1/failure_rate": 0.0,
+      "columns/friction_left_right_bands/L1/starts": 46,
+      "columns/friction_left_right_bands/L1/timeout_count": 0,
+      "columns/friction_left_right_bands/L2/completion_count": 1,
+      "columns/friction_left_right_bands/L2/completion_rate": 1.0,
+      "columns/friction_left_right_bands/L2/endings": 1,
+      "columns/friction_left_right_bands/L2/failure_count": 0,
+      "columns/friction_left_right_bands/L2/failure_rate": 0.0,
+      "columns/friction_left_right_bands/L2/starts": 0,
+      "columns/friction_left_right_bands/L2/timeout_count": 0,
+      "columns/friction_left_right_bands/all/completion_count": 1,
+      "columns/friction_left_right_bands/all/completion_rate": 1.0,
+      "columns/friction_left_right_bands/all/endings": 1,
+      "columns/friction_left_right_bands/all/failure_count": 0,
+      "columns/friction_left_right_bands/all/failure_rate": 0.0,
+      "columns/friction_left_right_bands/all/starts": 275,
+      "columns/friction_left_right_bands/all/timeout_count": 0,
+      "columns/multi_scale_rough_a/L1/completion_count": 0,
+      "columns/multi_scale_rough_a/L1/completion_rate": 0.0,
+      "columns/multi_scale_rough_a/L1/endings": 0,
+      "columns/multi_scale_rough_a/L1/failure_count": 0,
+      "columns/multi_scale_rough_a/L1/failure_rate": 0.0,
+      "columns/multi_scale_rough_a/L1/starts": 48,
+      "columns/multi_scale_rough_a/L1/timeout_count": 0,
+      "columns/multi_scale_rough_a/L2/completion_count": 0,
+      "columns/multi_scale_rough_a/L2/completion_rate": 0.0,
+      "columns/multi_scale_rough_a/L2/endings": 0,
+      "columns/multi_scale_rough_a/L2/failure_count": 0,
+      "columns/multi_scale_rough_a/L2/failure_rate": 0.0,
+      "columns/multi_scale_rough_a/L2/starts": 0,
+      "columns/multi_scale_rough_a/L2/timeout_count": 0,
+      "columns/multi_scale_rough_a/all/completion_count": 0,
+      "columns/multi_scale_rough_a/all/completion_rate": 0.0,
+      "columns/multi_scale_rough_a/all/endings": 0,
+      "columns/multi_scale_rough_a/all/failure_count": 0,
+      "columns/multi_scale_rough_a/all/failure_rate": 0.0,
+      "columns/multi_scale_rough_a/all/starts": 274,
+      "columns/multi_scale_rough_a/all/timeout_count": 0,
+      "columns/multi_scale_rough_b/L1/completion_count": 0,
+      "columns/multi_scale_rough_b/L1/completion_rate": 0.0,
+      "columns/multi_scale_rough_b/L1/endings": 0,
+      "columns/multi_scale_rough_b/L1/failure_count": 0,
+      "columns/multi_scale_rough_b/L1/failure_rate": 0.0,
+      "columns/multi_scale_rough_b/L1/starts": 68,
+      "columns/multi_scale_rough_b/L1/timeout_count": 0,
+      "columns/multi_scale_rough_b/L2/completion_count": 0,
+      "columns/multi_scale_rough_b/L2/completion_rate": 0.0,
+      "columns/multi_scale_rough_b/L2/endings": 0,
+      "columns/multi_scale_rough_b/L2/failure_count": 0,
+      "columns/multi_scale_rough_b/L2/failure_rate": 0.0,
+      "columns/multi_scale_rough_b/L2/starts": 0,
+      "columns/multi_scale_rough_b/L2/timeout_count": 0,
+      "columns/multi_scale_rough_b/all/completion_count": 0,
+      "columns/multi_scale_rough_b/all/completion_rate": 0.0,
+      "columns/multi_scale_rough_b/all/endings": 0,
+      "columns/multi_scale_rough_b/all/failure_count": 0,
+      "columns/multi_scale_rough_b/all/failure_rate": 0.0,
+      "columns/multi_scale_rough_b/all/starts": 272,
+      "columns/multi_scale_rough_b/all/timeout_count": 0,
+      "columns/omni_flat_0/L1/completion_count": 0,
+      "columns/omni_flat_0/L1/completion_rate": 0.0,
+      "columns/omni_flat_0/L1/endings": 0,
+      "columns/omni_flat_0/L1/failure_count": 0,
+      "columns/omni_flat_0/L1/failure_rate": 0.0,
+      "columns/omni_flat_0/L1/starts": 64,
+      "columns/omni_flat_0/L1/timeout_count": 0,
+      "columns/omni_flat_0/L2/completion_count": 0,
+      "columns/omni_flat_0/L2/completion_rate": 0.0,
+      "columns/omni_flat_0/L2/endings": 0,
+      "columns/omni_flat_0/L2/failure_count": 0,
+      "columns/omni_flat_0/L2/failure_rate": 0.0,
+      "columns/omni_flat_0/L2/starts": 0,
+      "columns/omni_flat_0/L2/timeout_count": 0,
+      "columns/omni_flat_0/all/completion_count": 0,
+      "columns/omni_flat_0/all/completion_rate": 0.0,
+      "columns/omni_flat_0/all/endings": 1,
+      "columns/omni_flat_0/all/failure_count": 1,
+      "columns/omni_flat_0/all/failure_rate": 1.0,
+      "columns/omni_flat_0/all/starts": 617,
+      "columns/omni_flat_0/all/timeout_count": 0,
+      "columns/omni_flat_1/L1/completion_count": 0,
+      "columns/omni_flat_1/L1/completion_rate": 0.0,
+      "columns/omni_flat_1/L1/endings": 0,
+      "columns/omni_flat_1/L1/failure_count": 0,
+      "columns/omni_flat_1/L1/failure_rate": 0.0,
+      "columns/omni_flat_1/L1/starts": 79,
+      "columns/omni_flat_1/L1/timeout_count": 0,
+      "columns/omni_flat_1/L2/completion_count": 0,
+      "columns/omni_flat_1/L2/completion_rate": 0.0,
+      "columns/omni_flat_1/L2/endings": 0,
+      "columns/omni_flat_1/L2/failure_count": 0,
+      "columns/omni_flat_1/L2/failure_rate": 0.0,
+      "columns/omni_flat_1/L2/starts": 0,
+      "columns/omni_flat_1/L2/timeout_count": 0,
+      "columns/omni_flat_1/all/completion_count": 0,
+      "columns/omni_flat_1/all/completion_rate": 0.0,
+      "columns/omni_flat_1/all/endings": 0,
+      "columns/omni_flat_1/all/failure_count": 0,
+      "columns/omni_flat_1/all/failure_rate": 0.0,
+      "columns/omni_flat_1/all/starts": 614,
+      "columns/omni_flat_1/all/timeout_count": 0,
+      "columns/omni_flat_2/L1/completion_count": 0,
+      "columns/omni_flat_2/L1/completion_rate": 0.0,
+      "columns/omni_flat_2/L1/endings": 0,
+      "columns/omni_flat_2/L1/failure_count": 0,
+      "columns/omni_flat_2/L1/failure_rate": 0.0,
+      "columns/omni_flat_2/L1/starts": 88,
+      "columns/omni_flat_2/L1/timeout_count": 0,
+      "columns/omni_flat_2/L2/completion_count": 0,
+      "columns/omni_flat_2/L2/completion_rate": 0.0,
+      "columns/omni_flat_2/L2/endings": 0,
+      "columns/omni_flat_2/L2/failure_count": 0,
+      "columns/omni_flat_2/L2/failure_rate": 0.0,
+      "columns/omni_flat_2/L2/starts": 0,
+      "columns/omni_flat_2/L2/timeout_count": 0,
+      "columns/omni_flat_2/all/completion_count": 0,
+      "columns/omni_flat_2/all/completion_rate": 0.0,
+      "columns/omni_flat_2/all/endings": 1,
+      "columns/omni_flat_2/all/failure_count": 1,
+      "columns/omni_flat_2/all/failure_rate": 1.0,
+      "columns/omni_flat_2/all/starts": 615,
+      "columns/omni_flat_2/all/timeout_count": 0,
+      "columns/omni_flat_3/L1/completion_count": 0,
+      "columns/omni_flat_3/L1/completion_rate": 0.0,
+      "columns/omni_flat_3/L1/endings": 0,
+      "columns/omni_flat_3/L1/failure_count": 0,
+      "columns/omni_flat_3/L1/failure_rate": 0.0,
+      "columns/omni_flat_3/L1/starts": 68,
+      "columns/omni_flat_3/L1/timeout_count": 0,
+      "columns/omni_flat_3/L2/completion_count": 0,
+      "columns/omni_flat_3/L2/completion_rate": 0.0,
+      "columns/omni_flat_3/L2/endings": 0,
+      "columns/omni_flat_3/L2/failure_count": 0,
+      "columns/omni_flat_3/L2/failure_rate": 0.0,
+      "columns/omni_flat_3/L2/starts": 0,
+      "columns/omni_flat_3/L2/timeout_count": 0,
+      "columns/omni_flat_3/all/completion_count": 0,
+      "columns/omni_flat_3/all/completion_rate": 0.0,
+      "columns/omni_flat_3/all/endings": 1,
+      "columns/omni_flat_3/all/failure_count": 1,
+      "columns/omni_flat_3/all/failure_rate": 1.0,
+      "columns/omni_flat_3/all/starts": 615,
+      "columns/omni_flat_3/all/timeout_count": 0,
+      "columns/slope_cross_slope_left/L1/completion_count": 0,
+      "columns/slope_cross_slope_left/L1/completion_rate": 0.0,
+      "columns/slope_cross_slope_left/L1/endings": 0,
+      "columns/slope_cross_slope_left/L1/failure_count": 0,
+      "columns/slope_cross_slope_left/L1/failure_rate": 0.0,
+      "columns/slope_cross_slope_left/L1/starts": 70,
+      "columns/slope_cross_slope_left/L1/timeout_count": 0,
+      "columns/slope_cross_slope_left/L2/completion_count": 0,
+      "columns/slope_cross_slope_left/L2/completion_rate": 0.0,
+      "columns/slope_cross_slope_left/L2/endings": 0,
+      "columns/slope_cross_slope_left/L2/failure_count": 0,
+      "columns/slope_cross_slope_left/L2/failure_rate": 0.0,
+      "columns/slope_cross_slope_left/L2/starts": 0,
+      "columns/slope_cross_slope_left/L2/timeout_count": 0,
+      "columns/slope_cross_slope_left/all/completion_count": 0,
+      "columns/slope_cross_slope_left/all/completion_rate": 0.0,
+      "columns/slope_cross_slope_left/all/endings": 0,
+      "columns/slope_cross_slope_left/all/failure_count": 0,
+      "columns/slope_cross_slope_left/all/failure_rate": 0.0,
+      "columns/slope_cross_slope_left/all/starts": 274,
+      "columns/slope_cross_slope_left/all/timeout_count": 0,
+      "columns/slope_cross_slope_right/L1/completion_count": 0,
+      "columns/slope_cross_slope_right/L1/completion_rate": 0.0,
+      "columns/slope_cross_slope_right/L1/endings": 0,
+      "columns/slope_cross_slope_right/L1/failure_count": 0,
+      "columns/slope_cross_slope_right/L1/failure_rate": 0.0,
+      "columns/slope_cross_slope_right/L1/starts": 44,
+      "columns/slope_cross_slope_right/L1/timeout_count": 0,
+      "columns/slope_cross_slope_right/L2/completion_count": 0,
+      "columns/slope_cross_slope_right/L2/completion_rate": 0.0,
+      "columns/slope_cross_slope_right/L2/endings": 0,
+      "columns/slope_cross_slope_right/L2/failure_count": 0,
+      "columns/slope_cross_slope_right/L2/failure_rate": 0.0,
+      "columns/slope_cross_slope_right/L2/starts": 0,
+      "columns/slope_cross_slope_right/L2/timeout_count": 0,
+      "columns/slope_cross_slope_right/all/completion_count": 0,
+      "columns/slope_cross_slope_right/all/completion_rate": 0.0,
+      "columns/slope_cross_slope_right/all/endings": 0,
+      "columns/slope_cross_slope_right/all/failure_count": 0,
+      "columns/slope_cross_slope_right/all/failure_rate": 0.0,
+      "columns/slope_cross_slope_right/all/starts": 274,
+      "columns/slope_cross_slope_right/all/timeout_count": 0,
+      "columns/slope_downhill/L1/completion_count": 0,
+      "columns/slope_downhill/L1/completion_rate": 0.0,
+      "columns/slope_downhill/L1/endings": 0,
+      "columns/slope_downhill/L1/failure_count": 0,
+      "columns/slope_downhill/L1/failure_rate": 0.0,
+      "columns/slope_downhill/L1/starts": 60,
+      "columns/slope_downhill/L1/timeout_count": 0,
+      "columns/slope_downhill/L2/completion_count": 0,
+      "columns/slope_downhill/L2/completion_rate": 0.0,
+      "columns/slope_downhill/L2/endings": 0,
+      "columns/slope_downhill/L2/failure_count": 0,
+      "columns/slope_downhill/L2/failure_rate": 0.0,
+      "columns/slope_downhill/L2/starts": 0,
+      "columns/slope_downhill/L2/timeout_count": 0,
+      "columns/slope_downhill/all/completion_count": 0,
+      "columns/slope_downhill/all/completion_rate": 0.0,
+      "columns/slope_downhill/all/endings": 0,
+      "columns/slope_downhill/all/failure_count": 0,
+      "columns/slope_downhill/all/failure_rate": 0.0,
+      "columns/slope_downhill/all/starts": 274,
+      "columns/slope_downhill/all/timeout_count": 0,
+      "columns/slope_rough_cross_slope_left/L1/completion_count": 0,
+      "columns/slope_rough_cross_slope_left/L1/completion_rate": 0.0,
+      "columns/slope_rough_cross_slope_left/L1/endings": 0,
+      "columns/slope_rough_cross_slope_left/L1/failure_count": 0,
+      "columns/slope_rough_cross_slope_left/L1/failure_rate": 0.0,
+      "columns/slope_rough_cross_slope_left/L1/starts": 58,
+      "columns/slope_rough_cross_slope_left/L1/timeout_count": 0,
+      "columns/slope_rough_cross_slope_left/L2/completion_count": 0,
+      "columns/slope_rough_cross_slope_left/L2/completion_rate": 0.0,
+      "columns/slope_rough_cross_slope_left/L2/endings": 0,
+      "columns/slope_rough_cross_slope_left/L2/failure_count": 0,
+      "columns/slope_rough_cross_slope_left/L2/failure_rate": 0.0,
+      "columns/slope_rough_cross_slope_left/L2/starts": 0,
+      "columns/slope_rough_cross_slope_left/L2/timeout_count": 0,
+      "columns/slope_rough_cross_slope_left/all/completion_count": 0,
+      "columns/slope_rough_cross_slope_left/all/completion_rate": 0.0,
+      "columns/slope_rough_cross_slope_left/all/endings": 0,
+      "columns/slope_rough_cross_slope_left/all/failure_count": 0,
+      "columns/slope_rough_cross_slope_left/all/failure_rate": 0.0,
+      "columns/slope_rough_cross_slope_left/all/starts": 272,
+      "columns/slope_rough_cross_slope_left/all/timeout_count": 0,
+      "columns/slope_rough_cross_slope_right/L1/completion_count": 0,
+      "columns/slope_rough_cross_slope_right/L1/completion_rate": 0.0,
+      "columns/slope_rough_cross_slope_right/L1/endings": 0,
+      "columns/slope_rough_cross_slope_right/L1/failure_count": 0,
+      "columns/slope_rough_cross_slope_right/L1/failure_rate": 0.0,
+      "columns/slope_rough_cross_slope_right/L1/starts": 54,
+      "columns/slope_rough_cross_slope_right/L1/timeout_count": 0,
+      "columns/slope_rough_cross_slope_right/L2/completion_count": 0,
+      "columns/slope_rough_cross_slope_right/L2/completion_rate": 0.0,
+      "columns/slope_rough_cross_slope_right/L2/endings": 0,
+      "columns/slope_rough_cross_slope_right/L2/failure_count": 0,
+      "columns/slope_rough_cross_slope_right/L2/failure_rate": 0.0,
+      "columns/slope_rough_cross_slope_right/L2/starts": 0,
+      "columns/slope_rough_cross_slope_right/L2/timeout_count": 0,
+      "columns/slope_rough_cross_slope_right/all/completion_count": 0,
+      "columns/slope_rough_cross_slope_right/all/completion_rate": 0.0,
+      "columns/slope_rough_cross_slope_right/all/endings": 0,
+      "columns/slope_rough_cross_slope_right/all/failure_count": 0,
+      "columns/slope_rough_cross_slope_right/all/failure_rate": 0.0,
+      "columns/slope_rough_cross_slope_right/all/starts": 272,
+      "columns/slope_rough_cross_slope_right/all/timeout_count": 0,
+      "columns/slope_rough_downhill/L1/completion_count": 0,
+      "columns/slope_rough_downhill/L1/completion_rate": 0.0,
+      "columns/slope_rough_downhill/L1/endings": 0,
+      "columns/slope_rough_downhill/L1/failure_count": 0,
+      "columns/slope_rough_downhill/L1/failure_rate": 0.0,
+      "columns/slope_rough_downhill/L1/starts": 44,
+      "columns/slope_rough_downhill/L1/timeout_count": 0,
+      "columns/slope_rough_downhill/L2/completion_count": 0,
+      "columns/slope_rough_downhill/L2/completion_rate": 0.0,
+      "columns/slope_rough_downhill/L2/endings": 0,
+      "columns/slope_rough_downhill/L2/failure_count": 0,
+      "columns/slope_rough_downhill/L2/failure_rate": 0.0,
+      "columns/slope_rough_downhill/L2/starts": 0,
+      "columns/slope_rough_downhill/L2/timeout_count": 0,
+      "columns/slope_rough_downhill/all/completion_count": 0,
+      "columns/slope_rough_downhill/all/completion_rate": 0.0,
+      "columns/slope_rough_downhill/all/endings": 0,
+      "columns/slope_rough_downhill/all/failure_count": 0,
+      "columns/slope_rough_downhill/all/failure_rate": 0.0,
+      "columns/slope_rough_downhill/all/starts": 272,
+      "columns/slope_rough_downhill/all/timeout_count": 0,
+      "columns/slope_rough_uphill/L1/completion_count": 0,
+      "columns/slope_rough_uphill/L1/completion_rate": 0.0,
+      "columns/slope_rough_uphill/L1/endings": 0,
+      "columns/slope_rough_uphill/L1/failure_count": 0,
+      "columns/slope_rough_uphill/L1/failure_rate": 0.0,
+      "columns/slope_rough_uphill/L1/starts": 50,
+      "columns/slope_rough_uphill/L1/timeout_count": 0,
+      "columns/slope_rough_uphill/L2/completion_count": 0,
+      "columns/slope_rough_uphill/L2/completion_rate": 0.0,
+      "columns/slope_rough_uphill/L2/endings": 0,
+      "columns/slope_rough_uphill/L2/failure_count": 0,
+      "columns/slope_rough_uphill/L2/failure_rate": 0.0,
+      "columns/slope_rough_uphill/L2/starts": 0,
+      "columns/slope_rough_uphill/L2/timeout_count": 0,
+      "columns/slope_rough_uphill/all/completion_count": 0,
+      "columns/slope_rough_uphill/all/completion_rate": 0.0,
+      "columns/slope_rough_uphill/all/endings": 0,
+      "columns/slope_rough_uphill/all/failure_count": 0,
+      "columns/slope_rough_uphill/all/failure_rate": 0.0,
+      "columns/slope_rough_uphill/all/starts": 272,
+      "columns/slope_rough_uphill/all/timeout_count": 0,
+      "columns/slope_uphill/L1/completion_count": 0,
+      "columns/slope_uphill/L1/completion_rate": 0.0,
+      "columns/slope_uphill/L1/endings": 0,
+      "columns/slope_uphill/L1/failure_count": 0,
+      "columns/slope_uphill/L1/failure_rate": 0.0,
+      "columns/slope_uphill/L1/starts": 44,
+      "columns/slope_uphill/L1/timeout_count": 0,
+      "columns/slope_uphill/L2/completion_count": 0,
+      "columns/slope_uphill/L2/completion_rate": 0.0,
+      "columns/slope_uphill/L2/endings": 0,
+      "columns/slope_uphill/L2/failure_count": 0,
+      "columns/slope_uphill/L2/failure_rate": 0.0,
+      "columns/slope_uphill/L2/starts": 0,
+      "columns/slope_uphill/L2/timeout_count": 0,
+      "columns/slope_uphill/all/completion_count": 0,
+      "columns/slope_uphill/all/completion_rate": 0.0,
+      "columns/slope_uphill/all/endings": 0,
+      "columns/slope_uphill/all/failure_count": 0,
+      "columns/slope_uphill/all/failure_rate": 0.0,
+      "columns/slope_uphill/all/starts": 274,
+      "columns/slope_uphill/all/timeout_count": 0,
+      "columns/stairs_ascending/L1/completion_count": 0,
+      "columns/stairs_ascending/L1/completion_rate": 0.0,
+      "columns/stairs_ascending/L1/endings": 0,
+      "columns/stairs_ascending/L1/failure_count": 0,
+      "columns/stairs_ascending/L1/failure_rate": 0.0,
+      "columns/stairs_ascending/L1/starts": 48,
+      "columns/stairs_ascending/L1/timeout_count": 0,
+      "columns/stairs_ascending/L2/completion_count": 0,
+      "columns/stairs_ascending/L2/completion_rate": 0.0,
+      "columns/stairs_ascending/L2/endings": 0,
+      "columns/stairs_ascending/L2/failure_count": 0,
+      "columns/stairs_ascending/L2/failure_rate": 0.0,
+      "columns/stairs_ascending/L2/starts": 0,
+      "columns/stairs_ascending/L2/timeout_count": 0,
+      "columns/stairs_ascending/all/completion_count": 0,
+      "columns/stairs_ascending/all/completion_rate": 0.0,
+      "columns/stairs_ascending/all/endings": 1,
+      "columns/stairs_ascending/all/failure_count": 1,
+      "columns/stairs_ascending/all/failure_rate": 1.0,
+      "columns/stairs_ascending/all/starts": 275,
+      "columns/stairs_ascending/all/timeout_count": 0,
+      "columns/stairs_descending/L1/completion_count": 0,
+      "columns/stairs_descending/L1/completion_rate": 0.0,
+      "columns/stairs_descending/L1/endings": 0,
+      "columns/stairs_descending/L1/failure_count": 0,
+      "columns/stairs_descending/L1/failure_rate": 0.0,
+      "columns/stairs_descending/L1/starts": 318,
+      "columns/stairs_descending/L1/timeout_count": 0,
+      "columns/stairs_descending/L2/completion_count": 0,
+      "columns/stairs_descending/L2/completion_rate": 0.0,
+      "columns/stairs_descending/L2/endings": 0,
+      "columns/stairs_descending/L2/failure_count": 0,
+      "columns/stairs_descending/L2/failure_rate": 0.0,
+      "columns/stairs_descending/L2/starts": 0,
+      "columns/stairs_descending/L2/timeout_count": 0,
+      "columns/stairs_descending/all/completion_count": 0,
+      "columns/stairs_descending/all/completion_rate": 0.0,
+      "columns/stairs_descending/all/endings": 0,
+      "columns/stairs_descending/all/failure_count": 0,
+      "columns/stairs_descending/all/failure_rate": 0.0,
+      "columns/stairs_descending/all/starts": 1638,
+      "columns/stairs_descending/all/timeout_count": 0
+    },
+    "outcomes": [
+      "completion",
+      "failure",
+      "timeout"
+    ],
+    "schema": "source_curriculum_column_counts_v1",
+    "starts_by_column_row": [
+      [
+        38,
+        64,
+        52,
+        76,
+        44,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        50,
+        48,
+        72,
+        44,
+        60,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        52,
+        58,
+        38,
+        56,
+        70,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        40,
+        70,
+        64,
+        56,
+        44,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        59,
+        66,
+        52,
+        50,
+        48,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        276,
+        360,
+        348,
+        336,
+        318,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        42,
+        68,
+        52,
+        64,
+        48,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        66,
+        52,
+        55,
+        56,
+        46,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        46,
+        46,
+        50,
+        68,
+        64,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        75,
+        88,
+        74,
+        64,
+        89,
+        71,
+        78,
+        78,
+        0
+      ],
+      [
+        0,
+        80,
+        76,
+        73,
+        79,
+        88,
+        63,
+        63,
+        92,
+        0
+      ],
+      [
+        0,
+        80,
+        68,
+        80,
+        88,
+        94,
+        69,
+        71,
+        65,
+        0
+      ],
+      [
+        0,
+        65,
+        71,
+        93,
+        68,
+        82,
+        79,
+        68,
+        89,
+        0
+      ],
+      [
+        50,
+        50,
+        64,
+        58,
+        54,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        48,
+        52,
+        60,
+        47,
+        66,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        44,
+        66,
+        54,
+        40,
+        68,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        54,
+        42,
+        66,
+        60,
+        50,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        42,
+        56,
+        68,
+        62,
+        44,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        44,
+        62,
+        50,
+        58,
+        58,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        68,
+        58,
+        58,
+        34,
+        54,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ]
+  },
+  "curriculum_timings": [
+    {
+      "num_reset_envs": 4096,
+      "seconds": 0.02796702366322279
+    },
+    {
+      "num_reset_envs": 4096,
+      "seconds": 0.005781766027212143
+    },
+    {
+      "num_reset_envs": 2,
+      "seconds": 0.006304220296442509
+    },
+    {
+      "num_reset_envs": 2,
+      "seconds": 0.018102006055414677
+    },
+    {
+      "num_reset_envs": 4,
+      "seconds": 0.00518700759857893
+    },
+    {
+      "num_reset_envs": 4,
+      "seconds": 0.00559637974947691
+    }
+  ],
+  "environment_column_counts": [
+    137,
+    137,
+    137,
+    137,
+    137,
+    819,
+    137,
+    137,
+    137,
+    308,
+    307,
+    307,
+    307,
+    136,
+    136,
+    136,
+    136,
+    136,
+    136,
+    136
+  ],
+  "frozen_actor_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "gym_make_seconds": 57.56548407766968,
+  "num_envs": 4096,
+  "rollout_termination_counts_per_step": {
+    "bad_orientation_2": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "illegal_contact": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "source_curriculum_completion": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "source_curriculum_omni_truncation": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "source_curriculum_safety": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "source_curriculum_tile_bounds": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "time_out": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "runtime": {
+    "admission_free_mib": 24080,
+    "child_exit": 0,
+    "fatal_messages": [],
+    "gpu_memory_sample_count": 149,
+    "gpu_memory_sample_interval_seconds": 0.5,
+    "peak_total_gpu_used_mib_sampled": 5410,
+    "physical_gpu": 0,
+    "simulator_log": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/targeted/gpu_check.sim.log",
+    "wall_seconds": 82.33926333952695
+  },
+  "task": "SourceCurriculum-Targeted-Deeprobotics-Lite3-v0",
+  "timing": {
+    "curriculum_call_s_max": 0.02796702366322279,
+    "curriculum_call_s_mean": 0.008797403424978256,
+    "curriculum_calls": 6,
+    "curriculum_reset_env_call_s": {
+      "num_reset_envs": 4096,
+      "seconds": 0.02796702366322279
+    },
+    "env_step_s_max": 1.879506602883339,
+    "env_step_s_min": 0.10909792501479387,
+    "mean_env_step_s": 0.17901491342112422
+  },
+  "usd_collision_graph": {
+    "ground_global": true,
+    "inverted": true,
+    "isolated_environment_groups": 4096
+  }
+}

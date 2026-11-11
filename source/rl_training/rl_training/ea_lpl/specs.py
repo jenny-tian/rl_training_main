@@ -94,11 +94,12 @@ def spec_actor(spec, *, default):
 
 def stage1_specs(policies, *, kind):
     """Build paired qualification, preview or extension runs for named actors."""
-    if kind not in ("qualify", "preview", "extend"):
+    if kind not in ("qualify", "preview", "extend", "targeted", "targeted_preview"):
         raise ValueError(f"unknown stage-1 spec kind: {kind!r}")
-    levels = {"qualify": ("L1", "L2"), "preview": ("L3",), "extend": ("L1", "L2")}[kind]
-    prefix = {"qualify": "s1q", "preview": "s1p", "extend": "s1x"}[kind]
-    offset = 480 if kind == "extend" else 0
+    levels = ("L3",) if kind in ("preview", "targeted_preview") else ("L1", "L2")
+    prefix = {"qualify": "s1q", "preview": "s1p", "extend": "s1x", "targeted": "s1t",
+              "targeted_preview": "s1tp"}[kind]
+    offset = {"extend": 480, "targeted": 1080, "targeted_preview": 1080}.get(kind, 0)
     specs = []
     for name, actor in policies.items():
         for level in levels:

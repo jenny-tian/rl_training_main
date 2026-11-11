@@ -25,6 +25,8 @@ def policies(count):
     ("qualify", 3, 24, ("L1", "L2"), "s1q", 0),
     ("preview", 2, 8, ("L3",), "s1p", 0),
     ("extend", 2, 16, ("L1", "L2"), "s1x", 480),
+    ("targeted", 4, 32, ("L1", "L2"), "s1t", 1080),
+    ("targeted_preview", 2, 8, ("L3",), "s1tp", 1080),
 ])
 def test_stage1_spec_counts_pairing_and_actor_identity(kind, count, total, levels, prefix, offset):
     actors = policies(count)
@@ -62,6 +64,13 @@ def test_stage1_unknown_kind_and_default_actor():
         stage1_specs(policies(1), kind="unknown")
     default = (Path("/registered/actor.pt"), "a" * 64)
     assert spec_actor(p0_specs()[0], default=default) is default
+
+
+def test_targeted_slots_follow_all_previous_and_diagnostic_starts():
+    specs = stage1_specs(policies(4), kind="targeted")
+    slots = {slot for spec in specs for slot in spec["slots"]}
+    assert slots == set(range(1080, 1560))
+    assert slots.isdisjoint(range(1080))
 
 
 @pytest.mark.parametrize("actor", [

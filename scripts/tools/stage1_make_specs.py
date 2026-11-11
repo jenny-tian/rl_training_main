@@ -14,7 +14,7 @@ from rl_training.ea_lpl.specs import stage1_specs  # noqa: E402
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--policy", action="append", required=True, metavar="NAME=PATH")
-    parser.add_argument("--kind", required=True, choices=("qualify", "preview", "extend"))
+    parser.add_argument("--kind", required=True, choices=("qualify", "preview", "extend", "targeted", "targeted_preview"))
     parser.add_argument("--out-dir", type=Path, required=True)
     args = parser.parse_args()
     policies = {}
