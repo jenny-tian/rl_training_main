@@ -73,6 +73,24 @@ def train(args):
     dump_yaml(str(log_dir / "params/agent.yaml"), agent)
     raw = gym.make(TASK, cfg=cfg)
     env = wrap_source_curriculum_learning(RslRlVecEnvWrapper(raw, clip_actions=agent.clip_actions))
+    from rl_training.source_curriculum.allocation import b2_column_counts
+    actual_counts = torch.bincount(raw.unwrapped.scene.terrain.terrain_types, minlength=20).cpu().tolist()
+    if actual_counts != b2_column_counts(4096):
+        raise ValueError("training allocation differs from registered B2 counts")
+    dimensions = raw.unwrapped.observation_manager.group_obs_dim
+    if tuple(dimensions["policy"]) != (45,) or tuple(dimensions["critic"]) != (48,):
+        raise ValueError("training observation dimensions changed")
+    original_step = env.step
+
+    def finite_step(actions):
+        if not torch.isfinite(actions).all():
+            raise FloatingPointError("nonfinite training actions")
+        observations, rewards, dones, extras = original_step(actions)
+        if not torch.isfinite(rewards).all() or not all(torch.isfinite(v).all() for v in observations.values()):
+            raise FloatingPointError("nonfinite training observations or rewards")
+        return observations, rewards, dones, extras
+
+    env.step = finite_step
     runner = OnPolicyRunner(env, agent.to_dict(), log_dir=str(log_dir), device="cuda:0")
     runner.add_git_repo_to_log(__file__)
     runner.load(str(checkpoint))
@@ -87,9 +105,13 @@ def train(args):
                   initial_algorithm_learning_rate=runner.alg.learning_rate,
                   initial_optimizer_group_lrs=[g["lr"] for g in runner.alg.optimizer.param_groups],
                   max_updates=300, completed_updates=0, checks=[])
+    report["environment_column_counts"] = actual_counts
     original_log = runner.logger.log
 
     def checked_log(**kwargs):
+        import math
+        if not all(math.isfinite(float(v)) for v in kwargs["loss_dict"].values()):
+            raise FloatingPointError("nonfinite training loss")
         original_log(**kwargs)
         report["completed_updates"] += 1
         updates = report["completed_updates"]
