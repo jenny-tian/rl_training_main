@@ -84,7 +84,7 @@ def main():
                 records.append(row(start, seed, updates, gate, block))
             runs.append(run)
     with (OUT / "comparison.csv").open("w") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(records[0]))
+        writer = csv.DictWriter(stream, fieldnames=list(records[0]), lineterminator="\n")
         writer.writeheader()
         writer.writerows(records)
     copied.append(OUT / "comparison.csv")
