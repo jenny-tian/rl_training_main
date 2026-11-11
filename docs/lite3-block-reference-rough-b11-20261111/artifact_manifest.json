@@ -1,0 +1,308 @@
+{
+  "implementation_commit": "56fa0196467a82b0a0c5b8caf1372b5267789087",
+  "b11_complete": true,
+  "b2_started": false,
+  "runs_executed_from_worktree_before_commit": true,
+  "note": "Final checks use the committed code. Visuals_v2 preceded only the statistics-label correction; terrain/reset/render code unchanged. First check runs and dark preview are retained as history.",
+  "source_files": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/source_curriculum/block.py",
+      "bytes": 7127,
+      "sha256": "dab10e05ee41181cbc7f47f0b50890c9ac48a2cad0f4d19fcef98d430495e197"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/source_block.py",
+      "bytes": 8068,
+      "sha256": "9937d1bbe1304a63ba36d2afc89bc5002c91b0ed6a4360be51d47e2c57583a27"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_block_terrain.py",
+      "bytes": 4744,
+      "sha256": "290a96bc8f80e34bd77378ccb89cafbe25ca79dde0b5489fc21751c74dcdf55a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_block_env_cfg.py",
+      "bytes": 3277,
+      "sha256": "558da2691b865053c6f097827561850d238fe03c333ec360183bc9aaab4f950a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/__init__.py",
+      "bytes": 5897,
+      "sha256": "35e457d7343ba0d9a14624d5868a9e619590af0567beb94c58aec36e7312bd6b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_check.py",
+      "bytes": 10699,
+      "sha256": "15bae3edf117dc1984df115f055d8c3ec11d484cc2cca62c33829df7af716871"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_geometry_audit.py",
+      "bytes": 7574,
+      "sha256": "1c36e4501257159df31369f64f0118a8758637768c4b1c50e17379f9bb370805"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_reference_rough_check.py",
+      "bytes": 6758,
+      "sha256": "407fc707bf5e719b44a469acc7382b01aac32fb75e624ed31d8e67d3505a819c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_reference_rough_audit.py",
+      "bytes": 4628,
+      "sha256": "8cc015dad0337116dbd7687ba60a239114613e28423f3d1aeab135876e32cefa"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_reference_rough_visualize.py",
+      "bytes": 7871,
+      "sha256": "f4742b29e817d848725cfccc396a07373f0467b910135bdc7a819bca085864dd"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/source_curriculum/test_block_reference_rough.py",
+      "bytes": 2884,
+      "sha256": "25297aa66ce8a0e5699f08d0372c600196cca79ea9f55801c264452d751ed661"
+    }
+  ],
+  "references": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/height_field/hf_terrains.py",
+      "bytes": 18808,
+      "sha256": "830971981a5920d3feed55512d6f2bd820396a16af3476a593d26b97daaaeed1"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/height_field/utils.py",
+      "bytes": 8076,
+      "sha256": "a8820498ecb5ba6535a27bf3d8c5baf9069d2314d8e7fd9d950f60912e301725"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/config/rough.py",
+      "bytes": 1830,
+      "sha256": "286241292927189a511cfb2cb6d3b04c7e370de439b042dddcf51f9e0674cb12"
+    },
+    {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/rough_env_cfg.py",
+      "bytes": 10902,
+      "sha256": "6cc5b22dfdb350c644702e770cd4520782febb60eac0788fef9a50581a6c278c"
+    }
+  ],
+  "original_artifacts": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/execution.json",
+      "bytes": 1756,
+      "sha256": "0cf153c2bc1cd998b7af1774997e199e456aefd4cf7e61389754a36953d48fb2"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/metadata.json",
+      "bytes": 6200,
+      "sha256": "2e5ed29e8fab86005e1c6b8155ef11e6c8856fad4dff8fcfffccc336d2f2568e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/montage.png",
+      "bytes": 481445,
+      "sha256": "43c25a689164a1d930dfb3255f652bcfabe8982e58d194041fdcd985b48a1dc6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/overview.png",
+      "bytes": 289556,
+      "sha256": "5fb1f8b792abed89e7856603f9eccbb8ecc79372b85980176f3ffd052f5d4788"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/rough_close.png",
+      "bytes": 198783,
+      "sha256": "af3f72651e61f4cd64f2a30a3da6f6be455cb679307c392129ae6ea36d4bb28b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/rough_oblique.png",
+      "bytes": 187978,
+      "sha256": "a387e7652cd47c46e0ab2221dd7e39fb40f92e303fdd7555e375017ec800ec2e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/rough_top.png",
+      "bytes": 196687,
+      "sha256": "bcc7659f7d10c88fac45653f2d3abe24e8f1b7bc5d8930708dac25a38c96d1b0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/runtime.log",
+      "bytes": 315117,
+      "sha256": "974a5abc8e928d8d6c1347847bca828f5d68cb66dcb712d3fa793e4640fecec4"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/stairs_down_top.png",
+      "bytes": 257967,
+      "sha256": "2affe34831750aebb2cbd9fd2e1a6a34b14af241b32bf4284c9ef788c664a52b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/baseline_visuals_v1/stairs_up_top.png",
+      "bytes": 250767,
+      "sha256": "70b1315e8bc9f1e71b958db24977770ffb13379c74ba9f62073466dd447cd59e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check120_v1/checks.json",
+      "bytes": 91744,
+      "sha256": "a29669fbf3f51816ba910fd754604f091019ca4755f4eb3280c98ace95759ea1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check120_v1/execution.json",
+      "bytes": 1533,
+      "sha256": "e28cd0de270570212be305e0aa391e48ccbe8294e5c21462ad72bcd30a14af2d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check120_v1/runtime.log",
+      "bytes": 352654,
+      "sha256": "dbdbb10388771ae37bc3c60cc120df1fbca6c4497d7206dde2d7570d66318a18"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check120_v2/checks.json",
+      "bytes": 92414,
+      "sha256": "8e65f51b3da0a63615004f150cde65f537d9c07a7899cff233eefddfccc07583"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check120_v2/execution.json",
+      "bytes": 1656,
+      "sha256": "f792ea20fa45c76a5851f5abd39ec3a77c15fb7aa7eb571a52dc2eb000deb100"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check120_v2/runtime.log",
+      "bytes": 352764,
+      "sha256": "d7a52ca1321ba8f5a2a4ecd0d9a6d30dd780a49cd54ad22697b96bc284331b12"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check4096_v1/checks.json",
+      "bytes": 92530,
+      "sha256": "2f25d584cc77d600a1633db51949b8809f05cc1573b8ca006203619be19a30a7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check4096_v1/execution.json",
+      "bytes": 1535,
+      "sha256": "eba07440aabc025811c31d0dd2058c265fa8dce033c1dd3354819418a2752639"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check4096_v1/runtime.log",
+      "bytes": 10241953,
+      "sha256": "e5bb1982bf660d6cc98edf6482f406511b8670c492b6b636661f5681f717cacf"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check4096_v2/checks.json",
+      "bytes": 93200,
+      "sha256": "b7f49367abef85edfdb1e79dc9bea1eb05295b46d702fed074b9eaf4b213ba1d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check4096_v2/execution.json",
+      "bytes": 1708,
+      "sha256": "9e78f4c02ee6a3033be6aab5f36ac142c804baad25e822f954e496fe23ba2104"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/check4096_v2/runtime.log",
+      "bytes": 10242063,
+      "sha256": "5d0cd5d96934eacd98ed94b13374d1a1d1b9948cbd4a55594f84debccdb255a9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/cpu_tests.xml",
+      "bytes": 26442,
+      "sha256": "4abf36db915ef3dc62b07afd015e365d7300a2b4b2d7aa244e85cdd38f676ee8"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/geometry_v1.json",
+      "bytes": 11477,
+      "sha256": "b164de2dc586af2aaaf97eedc4fcc9053a765740db7ded00a69c5afe3f27cffc"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/execution.json",
+      "bytes": 1558,
+      "sha256": "c41176991313ac4a9a15740acbe1853fa3e12af6018f4ea10301e89883a474c3"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/metadata.json",
+      "bytes": 2228,
+      "sha256": "d592924113b9a2d95147fda9fd6f6125f5c228382f688574dcf1ce5a69bd24c2"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/montage.png",
+      "bytes": 1263659,
+      "sha256": "4af6f30690e2f850cbfdd96c18d99c2fbb450b643b81db115e500c2e2ef7b118"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/overview.png",
+      "bytes": 336505,
+      "sha256": "988751653638651715f1c1b170eed6368fb0dc33ff2a8049b589eada3ccf5d36"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/rough_close.png",
+      "bytes": 870925,
+      "sha256": "f3fe8b1fba3d17c220421b95a5ef6dbae16696837955bba19af2448e230350f7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/rough_oblique.png",
+      "bytes": 856840,
+      "sha256": "541d020d8c9a0552228763dd37388e694903e9feb454fae51432cfa340548bf4"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/rough_top.png",
+      "bytes": 1046995,
+      "sha256": "d0e4f3608ba27912979610f1581824a22ce3617805c415a69a539791c36fc89e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/runtime.log",
+      "bytes": 314921,
+      "sha256": "faeab8dda2973077d27dce0aa260b50c7a757fabd09199cc5e32e09a6933ca48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/stairs_down_top.png",
+      "bytes": 283535,
+      "sha256": "af4fb578c4c571477dd5ba0970abdde8fe78633526636572f09f897e736e534b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v1/stairs_up_top.png",
+      "bytes": 244266,
+      "sha256": "0179c86e91a7d3f5e8d19d4a3f69c97a222103b677c9caaa75ebc92d3aeeb4f7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/execution.json",
+      "bytes": 1558,
+      "sha256": "8197b5bc32a990bcaa4fb6fa55bbe7b2f8ab2e78e4e5172efbe4b4a11f5d50e2"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/metadata.json",
+      "bytes": 6327,
+      "sha256": "762114f60a84e3c5584cdfc842c906844bf01aeb2e9612137c651a037b97315c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/montage.png",
+      "bytes": 964148,
+      "sha256": "75460e809fb3e4570d8199f1d9aa45ee6eb8f5d6c08a41833aeba57042281408"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/overview.png",
+      "bytes": 293884,
+      "sha256": "b988c9ccdd5679647e79cd4d4508619b30d8a34b1ff49be4bf5003322c9bd6c9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/rough_close.png",
+      "bytes": 578286,
+      "sha256": "987a626ffe282702a13a2ae840cf7ee1c3932fcba62d9b2af13fda5697b893e6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/rough_oblique.png",
+      "bytes": 544542,
+      "sha256": "9564af6c9ef58b7de027e426247cd59f82144470957000767d5cb8cd4e050eee"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/rough_top.png",
+      "bytes": 757236,
+      "sha256": "ebd1d6e3558e86dcf97d2eab6b34e8ef8c89e6064ac8ab80df23ae3957b0f428"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/runtime.log",
+      "bytes": 315104,
+      "sha256": "31f64ab439a84faa3b530dc88ef09ed9715577bf6f51eafdbfd3a721e71aaf5c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/stairs_down_top.png",
+      "bytes": 280059,
+      "sha256": "bc342231c7c7d373a4253d52decf758ae918d27581f2e0b460b5f07c43ff584c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_reference_rough/visuals_v2/stairs_up_top.png",
+      "bytes": 250683,
+      "sha256": "74508f35a8e2b6a314cf1eb21fbb5542228168d6e05160531d5433b766ac5af3"
+    }
+  ]
+}
