@@ -145,6 +145,13 @@ def collect(args, app):
         for i, path in enumerate(base.scene.env_prim_paths):
             if i != args.video_env:
                 UsdGeom.Imageable(base.scene.stage.GetPrimAtPath(path)).MakeInvisible()
+        # USD clones inherit env_0 opinions. Author visibility on the selected
+        # clone after hiding the source so its robot does not inherit invisibility.
+        selected_path = base.scene.env_prim_paths[args.video_env]
+        selected = UsdGeom.Imageable(base.scene.stage.GetPrimAtPath(selected_path))
+        selected.MakeVisible()
+        if selected.ComputeVisibility() == UsdGeom.Tokens.invisible:
+            raise RuntimeError("selected robot inherited hidden source visibility")
     original_reward_compute = base.reward_manager.compute
     index = 0
     pre_command = None
