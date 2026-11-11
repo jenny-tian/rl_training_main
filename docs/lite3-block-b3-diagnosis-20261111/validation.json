@@ -1,0 +1,90 @@
+{
+  "status": "passed",
+  "cpu_test_command": "PYTHONPATH=source/rl_training python -m pytest -q -p no:typeguard tests/source_curriculum tests/ea_lpl/test_stage1_retention_metrics.py",
+  "cpu_test_result": "108 passed in 4.86s; observed during this stage, not rerun by this sealing script",
+  "numerical_jobs": 24,
+  "paired_controlled_starts": 6144,
+  "native_starts": 12288,
+  "actor_updated": false,
+  "repaired_reward_enabled": false,
+  "candidate_patch_applies": true,
+  "raw_files_verified": 168,
+  "previous_b2_files_verified": 40,
+  "cross_domain_root_orientation_and_velocity_exact": true,
+  "selected_replays_verified": 3,
+  "cross_gpu_block_replays_velocity_and_endings_exact": 2,
+  "graphical_error_jobs": 12,
+  "graphical_errors_disclosed": true,
+  "rejected_video_attempts": 3,
+  "simulation_workers_remaining": 0,
+  "source_files": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py",
+      "sha256": "974977825dbbd916460b4f9bb12176ab2cde41026fadc05e1de02d8fbbc94725"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/managers/reward_manager.py",
+      "sha256": "6be44a98df5aed8a0ebac2913ebea33010633e007e816697a6d99f7ccfd731db"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "sha256": "7904feeb2a0fc6b412ba6aa1f062a1428883535958f57fcff8dec0348e0cef56"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_analyze.py",
+      "sha256": "e31210e4bd0a7a2446df5ce7ea38a03b1fb51213779f61a4c6c1910ce261125b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_diagnose.py",
+      "sha256": "3026a666e4d272514bd553ca04cb3d8d2d48ae4339dd17b29d9300c51609fd69"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_matrix.py",
+      "sha256": "854417cb4eeef47734552159b567c576877c78578e08e489cbbf8767844a7e49"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_package.py",
+      "sha256": "feba6694b845d0832be2a827da900eed324bd9f43f415b6d497192fcd133f877"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_protocol.py",
+      "sha256": "929e1a36dff84d08cf021a23fdb5b57ee435cc73811994f8d029e30506d03798"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_reward_reproducer.py",
+      "sha256": "66b6dbde91cab2bdc383f5b4e20d38161322f4c85c1fc599dc51f5482743b1f9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_b3_verify.py",
+      "sha256": "9faca1575ffed47438403292ce6457cc76dc8cc5869490d1ad7027d3ace08d61"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/flat_env_cfg.py",
+      "sha256": "5366e8393f1ef5826aea1640d812f5e7ffcac093d72acf994add0d5025df5c81"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_block_env_cfg.py",
+      "sha256": "ec85d062c216507c8b1da474def1955079782536062bc1e8839625278f418483"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/source_curriculum_env_cfg.py",
+      "sha256": "a313a198c371db970487e7bdccfd9d16ba34fbcac527b1a8d1207ac3fe2ce2f5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+      "sha256": "6b9b8ba9eb357cd92ded661f4111dd2c934295e8ff63eb6bd38a5dd41ba8f13c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "sha256": "6fe9dd4e55dffe8cc63301a5dffe02de5fb61180e2d466c215203542219a6098"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/source_block.py",
+      "sha256": "d82b414df56b688e9a2dbb53e328fa853fe33cf96e941488b89b9f6822ecbb24"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/source_curriculum/test_block_b3_protocol.py",
+      "sha256": "1a34c93e6c6219c69a9688549fc135cd8d4cfba162dda0f8a7fa60f6dd7d6dfa"
+    }
+  ]
+}

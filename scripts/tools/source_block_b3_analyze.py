@@ -68,7 +68,7 @@ def main():
                     for group in group_masks:
                         rows = [r for r in report["metrics"]["rows"] if r["group"] == group]
                         assert sum(r["samples"] for r in rows if r["category"] != "all") == next(r["samples"] for r in rows if r["category"] == "all")
-                destination = OUT / "runs" / domain / mode / spec["name"]
+                destination = OUT / "evaluations" / domain / mode / spec["name"]
                 destination.mkdir(parents=True, exist_ok=True)
                 save(destination / "report.json", report)
                 for filename in ("execution.json", "config.json"):
@@ -129,6 +129,7 @@ def main():
         assert delta <= 1e-5
         assert np.array_equal(a["observation"], b["observation"])
         assert np.array_equal(a["materials"], b["materials"])
+        assert np.array_equal(a["root"][:, 3:], b["root"][:, 3:])
         cross_domain[spec["name"]] = dict(max_relative_position_delta_m=delta,
             observation_exact=True, material_exact=True)
 

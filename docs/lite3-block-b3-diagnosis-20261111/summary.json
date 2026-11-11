@@ -1,0 +1,895 @@
+{
+  "status": "passed",
+  "frozen_jobs": 24,
+  "controlled_first_episode_starts": 6144,
+  "native_first_episode_starts": 12288,
+  "requested_interactions": 21504000,
+  "pairing": {
+    "flat/controlled": {
+      "models": 6,
+      "all_initial_fields_exact": true,
+      "hashes": {
+        "root": "d63bb30d83a6f23a3b39a296e9a02334ea51b0b6b2f51975ac4c1d51844388b3",
+        "joint_pos": "7cf0b42572a240496659c025a06dbb7469a42e6688bcb9427be34bfab808486e",
+        "joint_vel": "de676bae28a480011d3d012db14bef539324e62a841a9627863c689bea168af3",
+        "command": "fd9243e1ba57263ed469c3bdbd7ade6ec5254e7ed924a9f5737fa44749933cc0",
+        "observation": "44120612e79e464884f34befbeab245f0f7ae203b019bff1aa27cd7e32b92aac",
+        "materials": "2aeea83e78529889c46715b896e08ef4cae77737327e55232e9543d88c75fe40",
+        "origins": "98346dc0f9b404f7d36d9f823d6dd9b41bff17a7da4bcd7decbc350060500508",
+        "columns": "f47a8ec3e9aff2318d896942282ad4fe37d6391c82914f54a5da8a37de1300c6"
+      }
+    },
+    "flat/native": {
+      "models": 6,
+      "all_initial_fields_exact": true,
+      "hashes": {
+        "root": "93cbfef71e697ef8dc147b486bb82fb2dd7388ec25c6d7ae3c6c23f037836983",
+        "joint_pos": "ada76a8503ddf9edae4d611a0bbdd3bde71c1d99f954442fc5aecacb61400320",
+        "joint_vel": "2aae7dc846aaf25f1cadf55f1666862046c6db9d65d84bdc07fa039dac405606",
+        "command": "d6a410498a0d9834c174cdca1085157f30ea69ce8a583ed61970580bfd906f80",
+        "observation": "e40bd485d97b6a362df1122b6936f0d8f525f5fd2421628bec240da327be8be3",
+        "materials": "6296c54b7001a68d85f92a2d2fd7da61988c9f8775939d7021d1ee7f8039ea7d",
+        "origins": "66c06764106e13eedfe5c1c7a7ed64a78b42a4a261ae46ba662bd9f99b8b6760",
+        "columns": "7d2c7ac4888bfd75cd5f56e8d61f69595121183afc81556c876732fd3782c62f"
+      }
+    },
+    "block/controlled": {
+      "models": 6,
+      "all_initial_fields_exact": true,
+      "hashes": {
+        "root": "b713ea0275548785eb4d26141e03a89830e1200a6c257f905f00dbf47fb0e2e1",
+        "joint_pos": "7cf0b42572a240496659c025a06dbb7469a42e6688bcb9427be34bfab808486e",
+        "joint_vel": "de676bae28a480011d3d012db14bef539324e62a841a9627863c689bea168af3",
+        "command": "fd9243e1ba57263ed469c3bdbd7ade6ec5254e7ed924a9f5737fa44749933cc0",
+        "observation": "44120612e79e464884f34befbeab245f0f7ae203b019bff1aa27cd7e32b92aac",
+        "materials": "2aeea83e78529889c46715b896e08ef4cae77737327e55232e9543d88c75fe40",
+        "origins": "61300716a34a5545eb54f4456c2bf7aa84c1609455950ced8d4910beef68ec5d",
+        "columns": "35fc36da97cd4234f81c579d859859260d9dbe7f4c7b21f10c7d3e3230c9cd5f"
+      }
+    },
+    "block/native": {
+      "models": 6,
+      "all_initial_fields_exact": true,
+      "hashes": {
+        "root": "11d538873f1f1700213614378657f125073b4c971db437648214c3e2d69ea817",
+        "joint_pos": "ada76a8503ddf9edae4d611a0bbdd3bde71c1d99f954442fc5aecacb61400320",
+        "joint_vel": "2aae7dc846aaf25f1cadf55f1666862046c6db9d65d84bdc07fa039dac405606",
+        "command": "fafaa8d6bfdd03a1921f3b39e20f667c84ac857b105e1a406e0967c132dd179f",
+        "observation": "2879912039a499fda2ff9741f33690721a061220e45bb9d5483153c2df2a7bb8",
+        "materials": "593ec940af533b8928f6da9ca76c699839a7aab51e0383e3a71fb36da9a6b668",
+        "origins": "ff6e903c3501877499fd3b274267b4f923fe65e7c51e9f64df5458715ea0276c",
+        "columns": "1fd9f7d4796f32010d3110ee4bd42123e7d8e350fcc3ee6b645fb6288138e278"
+      }
+    }
+  },
+  "cross_domain_initial_checks": {
+    "flat1998": {
+      "max_relative_position_delta_m": 1.9073486328125e-06,
+      "observation_exact": true,
+      "material_exact": true
+    },
+    "terrain3497": {
+      "max_relative_position_delta_m": 1.9073486328125e-06,
+      "observation_exact": true,
+      "material_exact": true
+    },
+    "flat1998_seed42": {
+      "max_relative_position_delta_m": 1.9073486328125e-06,
+      "observation_exact": true,
+      "material_exact": true
+    },
+    "flat1998_seed43": {
+      "max_relative_position_delta_m": 1.9073486328125e-06,
+      "observation_exact": true,
+      "material_exact": true
+    },
+    "terrain3497_seed42": {
+      "max_relative_position_delta_m": 1.9073486328125e-06,
+      "observation_exact": true,
+      "material_exact": true
+    },
+    "terrain3497_seed43": {
+      "max_relative_position_delta_m": 1.9073486328125e-06,
+      "observation_exact": true,
+      "material_exact": true
+    }
+  },
+  "executions": [
+    {
+      "model": "flat1998",
+      "domain": "flat",
+      "mode": "controlled",
+      "elapsed_s": 72.06107320543379,
+      "peak_gpu_mib": 2717,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "terrain3497",
+      "domain": "flat",
+      "mode": "controlled",
+      "elapsed_s": 74.0152390403673,
+      "peak_gpu_mib": 2717,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "flat1998_seed42",
+      "domain": "flat",
+      "mode": "controlled",
+      "elapsed_s": 69.9678217023611,
+      "peak_gpu_mib": 2717,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "flat1998_seed43",
+      "domain": "flat",
+      "mode": "controlled",
+      "elapsed_s": 71.99564075097442,
+      "peak_gpu_mib": 2717,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "terrain3497_seed42",
+      "domain": "flat",
+      "mode": "controlled",
+      "elapsed_s": 76.15330550540239,
+      "peak_gpu_mib": 2717,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "terrain3497_seed43",
+      "domain": "flat",
+      "mode": "controlled",
+      "elapsed_s": 67.84479067567736,
+      "peak_gpu_mib": 2717,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "flat1998",
+      "domain": "flat",
+      "mode": "native",
+      "elapsed_s": 78.35123225674033,
+      "peak_gpu_mib": 2859,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "terrain3497",
+      "domain": "flat",
+      "mode": "native",
+      "elapsed_s": 80.36459029931575,
+      "peak_gpu_mib": 2859,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "flat1998_seed42",
+      "domain": "flat",
+      "mode": "native",
+      "elapsed_s": 82.36539328470826,
+      "peak_gpu_mib": 2872,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "flat1998_seed43",
+      "domain": "flat",
+      "mode": "native",
+      "elapsed_s": 76.29992425534874,
+      "peak_gpu_mib": 2859,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "terrain3497_seed42",
+      "domain": "flat",
+      "mode": "native",
+      "elapsed_s": 80.35983796883374,
+      "peak_gpu_mib": 2859,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "terrain3497_seed43",
+      "domain": "flat",
+      "mode": "native",
+      "elapsed_s": 80.34723990224302,
+      "peak_gpu_mib": 2859,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": []
+    },
+    {
+      "model": "flat1998",
+      "domain": "block",
+      "mode": "controlled",
+      "elapsed_s": 110.96134931780398,
+      "peak_gpu_mib": 4878,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:03:44Z [5,414ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:03:44Z [5,587ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:05:15Z [96,414ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:05:15Z [96,482ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "terrain3497",
+      "domain": "block",
+      "mode": "controlled",
+      "elapsed_s": 106.87494149897248,
+      "peak_gpu_mib": 4878,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:08:46Z [5,059ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:08:46Z [5,109ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:10:14Z [92,130ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:10:14Z [92,197ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "flat1998_seed42",
+      "domain": "block",
+      "mode": "controlled",
+      "elapsed_s": 106.87672241870314,
+      "peak_gpu_mib": 4878,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:13:45Z [5,024ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:13:45Z [5,086ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:15:12Z [92,208ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:15:12Z [92,272ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "flat1998_seed43",
+      "domain": "block",
+      "mode": "controlled",
+      "elapsed_s": 113.03750406764448,
+      "peak_gpu_mib": 4878,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:18:39Z [4,947ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:18:39Z [5,000ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:20:12Z [97,425ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:20:12Z [97,491ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "terrain3497_seed42",
+      "domain": "block",
+      "mode": "controlled",
+      "elapsed_s": 107.06859244406223,
+      "peak_gpu_mib": 4878,
+      "source_commit": "3eb7e0a492dc6225816917e82c6aa4a104fd80f2",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:23:42Z [5,110ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:23:42Z [5,170ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:25:09Z [91,494ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:25:09Z [91,563ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "terrain3497_seed43",
+      "domain": "block",
+      "mode": "controlled",
+      "elapsed_s": 111.48500692658126,
+      "peak_gpu_mib": 4878,
+      "source_commit": "b188e91f4ce8fede067370f809fc79e04635d9cd",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:28:33Z [5,235ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:28:33Z [5,306ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:30:04Z [96,095ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:30:04Z [96,158ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "flat1998",
+      "domain": "block",
+      "mode": "native",
+      "elapsed_s": 191.20237698033452,
+      "peak_gpu_mib": 5086,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:05:35Z [4,981ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:05:35Z [5,042ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:08:27Z [177,279ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:08:27Z [177,343ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "terrain3497",
+      "domain": "block",
+      "mode": "native",
+      "elapsed_s": 191.15820349939167,
+      "peak_gpu_mib": 5086,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:10:34Z [5,013ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:10:34Z [5,090ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:13:25Z [176,291ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:13:25Z [176,355ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "flat1998_seed42",
+      "domain": "block",
+      "mode": "native",
+      "elapsed_s": 186.97700369078666,
+      "peak_gpu_mib": 5086,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:15:32Z [5,291ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:15:32Z [5,357ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:18:20Z [172,709ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:18:20Z [172,772ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "flat1998_seed43",
+      "domain": "block",
+      "mode": "native",
+      "elapsed_s": 189.32734007854015,
+      "peak_gpu_mib": 5086,
+      "source_commit": "f163306f1fd897d41d1563c67d8ee9112bd0d281",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:20:33Z [5,076ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:20:33Z [5,132ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:23:22Z [174,429ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:23:22Z [174,493ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "terrain3497_seed42",
+      "domain": "block",
+      "mode": "native",
+      "elapsed_s": 183.28752779774368,
+      "peak_gpu_mib": 5086,
+      "source_commit": "3eb7e0a492dc6225816917e82c6aa4a104fd80f2",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:25:30Z [5,243ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:25:30Z [5,295ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:28:12Z [167,311ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:28:12Z [167,378ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    },
+    {
+      "model": "terrain3497_seed43",
+      "domain": "block",
+      "mode": "native",
+      "elapsed_s": 184.84498124942183,
+      "peak_gpu_mib": 5086,
+      "source_commit": "b188e91f4ce8fede067370f809fc79e04635d9cd",
+      "status": "completed",
+      "error_log_lines": [
+        "2026-11-11T09:30:25Z [5,200ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:30:25Z [5,255ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters.",
+        "2026-11-11T09:33:10Z [170,026ms] [Error] [gpu.foundation.plugin] No device could be created. Some known system issues:",
+        "2026-11-11T09:33:10Z [170,101ms] [Error] [gpu.foundation.plugin] Invalid getDeviceInfo parameters."
+      ]
+    }
+  ],
+  "command_audits": [
+    {
+      "domain": "flat",
+      "model": "flat1998",
+      "group": "all",
+      "valid_samples": 1012572,
+      "pure_turn_samples": 101633,
+      "pure_low_yaw_samples": 68773,
+      "heading_fraction": 0.5993964076042175,
+      "standing_fraction": 0.1660405397415161,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 299769,
+      "negative_yaw_samples": 250205,
+      "stand_still_rate": -0.09016103297472,
+      "candidate_rate_change_on_same_states": 0.026171205565333366,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "flat",
+      "model": "terrain3497",
+      "group": "all",
+      "valid_samples": 1015991,
+      "pure_turn_samples": 109415,
+      "pure_low_yaw_samples": 72873,
+      "heading_fraction": 0.6074680089950562,
+      "standing_fraction": 0.15007416903972626,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 279396,
+      "negative_yaw_samples": 282886,
+      "stand_still_rate": -0.08378506451845169,
+      "candidate_rate_change_on_same_states": 0.029185034334659576,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "flat",
+      "model": "flat1998_seed42",
+      "group": "all",
+      "valid_samples": 1012337,
+      "pure_turn_samples": 94822,
+      "pure_low_yaw_samples": 25481,
+      "heading_fraction": 0.5981674194335938,
+      "standing_fraction": 0.15592041611671448,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 294342,
+      "negative_yaw_samples": 256806,
+      "stand_still_rate": -0.08467884361743927,
+      "candidate_rate_change_on_same_states": 0.03954634815454483,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "flat",
+      "model": "flat1998_seed43",
+      "group": "all",
+      "valid_samples": 1002157,
+      "pure_turn_samples": 87390,
+      "pure_low_yaw_samples": 33152,
+      "heading_fraction": 0.5951223373413086,
+      "standing_fraction": 0.15802514553070068,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 352003,
+      "negative_yaw_samples": 186990,
+      "stand_still_rate": -0.06631794571876526,
+      "candidate_rate_change_on_same_states": 0.03166564926505089,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "flat",
+      "model": "terrain3497_seed42",
+      "group": "all",
+      "valid_samples": 1013690,
+      "pure_turn_samples": 108989,
+      "pure_low_yaw_samples": 63856,
+      "heading_fraction": 0.6070011258125305,
+      "standing_fraction": 0.1504296213388443,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 296252,
+      "negative_yaw_samples": 264627,
+      "stand_still_rate": -0.08314747363328934,
+      "candidate_rate_change_on_same_states": 0.0344557911157608,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "flat",
+      "model": "terrain3497_seed43",
+      "group": "all",
+      "valid_samples": 1002762,
+      "pure_turn_samples": 108034,
+      "pure_low_yaw_samples": 64123,
+      "heading_fraction": 0.6085611581802368,
+      "standing_fraction": 0.1498042345046997,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 277348,
+      "negative_yaw_samples": 278936,
+      "stand_still_rate": -0.08325909823179245,
+      "candidate_rate_change_on_same_states": 0.031360529363155365,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998",
+      "group": "dedicated_turn_c09",
+      "valid_samples": 124847,
+      "pure_turn_samples": 124847,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 0.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": 0.20376774668693542,
+      "pure_yaw_max": 0.795234739780426,
+      "positive_yaw_samples": 64701,
+      "negative_yaw_samples": 60146,
+      "stand_still_rate": -0.3548430800437927,
+      "candidate_rate_change_on_same_states": 0.3548430800437927,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998",
+      "group": "other_omni_c10_12",
+      "valid_samples": 162469,
+      "pure_turn_samples": 18585,
+      "pure_low_yaw_samples": 13056,
+      "heading_fraction": 0.5641322135925293,
+      "standing_fraction": 0.18163464963436127,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 45718,
+      "negative_yaw_samples": 37441,
+      "stand_still_rate": -0.09682634472846985,
+      "candidate_rate_change_on_same_states": 0.03326629102230072,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998",
+      "group": "straight_flat_c13",
+      "valid_samples": 10121,
+      "pure_turn_samples": 0,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 1.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": null,
+      "pure_yaw_max": null,
+      "positive_yaw_samples": 8522,
+      "negative_yaw_samples": 1577,
+      "stand_still_rate": 0.0,
+      "candidate_rate_change_on_same_states": 0.0,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497",
+      "group": "dedicated_turn_c09",
+      "valid_samples": 153000,
+      "pure_turn_samples": 153000,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 0.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": 0.20259904861450195,
+      "pure_yaw_max": 0.7994150519371033,
+      "positive_yaw_samples": 74500,
+      "negative_yaw_samples": 78500,
+      "stand_still_rate": -0.3920348882675171,
+      "candidate_rate_change_on_same_states": 0.3920348882675171,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497",
+      "group": "other_omni_c10_12",
+      "valid_samples": 164160,
+      "pure_turn_samples": 18518,
+      "pure_low_yaw_samples": 12467,
+      "heading_fraction": 0.629331111907959,
+      "standing_fraction": 0.16021564602851868,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 46437,
+      "negative_yaw_samples": 47579,
+      "stand_still_rate": -0.0885416567325592,
+      "candidate_rate_change_on_same_states": 0.03270571678876877,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497",
+      "group": "straight_flat_c13",
+      "valid_samples": 9789,
+      "pure_turn_samples": 0,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 1.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": null,
+      "pure_yaw_max": null,
+      "positive_yaw_samples": 343,
+      "negative_yaw_samples": 9424,
+      "stand_still_rate": 0.0,
+      "candidate_rate_change_on_same_states": 0.0,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998_seed42",
+      "group": "dedicated_turn_c09",
+      "valid_samples": 137599,
+      "pure_turn_samples": 137599,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 0.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": 0.20376774668693542,
+      "pure_yaw_max": 0.7939066290855408,
+      "positive_yaw_samples": 71543,
+      "negative_yaw_samples": 66056,
+      "stand_still_rate": -0.48390692472457886,
+      "candidate_rate_change_on_same_states": 0.48390692472457886,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998_seed42",
+      "group": "other_omni_c10_12",
+      "valid_samples": 160598,
+      "pure_turn_samples": 22175,
+      "pure_low_yaw_samples": 6543,
+      "heading_fraction": 0.5980398058891296,
+      "standing_fraction": 0.15255482494831085,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 47264,
+      "negative_yaw_samples": 43285,
+      "stand_still_rate": -0.0973360687494278,
+      "candidate_rate_change_on_same_states": 0.052151769399642944,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998_seed42",
+      "group": "straight_flat_c13",
+      "valid_samples": 9433,
+      "pure_turn_samples": 0,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 1.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": null,
+      "pure_yaw_max": null,
+      "positive_yaw_samples": 2224,
+      "negative_yaw_samples": 7187,
+      "stand_still_rate": 0.0,
+      "candidate_rate_change_on_same_states": 0.0,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998_seed43",
+      "group": "dedicated_turn_c09",
+      "valid_samples": 69909,
+      "pure_turn_samples": 69909,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 0.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": 0.20376774668693542,
+      "pure_yaw_max": 0.7979205846786499,
+      "positive_yaw_samples": 49500,
+      "negative_yaw_samples": 20409,
+      "stand_still_rate": -0.42473921179771423,
+      "candidate_rate_change_on_same_states": 0.42473921179771423,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998_seed43",
+      "group": "other_omni_c10_12",
+      "valid_samples": 155233,
+      "pure_turn_samples": 14036,
+      "pure_low_yaw_samples": 5684,
+      "heading_fraction": 0.553361713886261,
+      "standing_fraction": 0.18037401139736176,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 50809,
+      "negative_yaw_samples": 28097,
+      "stand_still_rate": -0.06871824711561203,
+      "candidate_rate_change_on_same_states": 0.03008362092077732,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "flat1998_seed43",
+      "group": "straight_flat_c13",
+      "valid_samples": 9656,
+      "pure_turn_samples": 0,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 1.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": null,
+      "pure_yaw_max": null,
+      "positive_yaw_samples": 8899,
+      "negative_yaw_samples": 735,
+      "stand_still_rate": 0.0,
+      "candidate_rate_change_on_same_states": 0.0,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497_seed42",
+      "group": "dedicated_turn_c09",
+      "valid_samples": 153000,
+      "pure_turn_samples": 153000,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 0.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": 0.20376774668693542,
+      "pure_yaw_max": 0.7869501113891602,
+      "positive_yaw_samples": 79500,
+      "negative_yaw_samples": 73500,
+      "stand_still_rate": -0.4868939518928528,
+      "candidate_rate_change_on_same_states": 0.4868939518928528,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497_seed42",
+      "group": "other_omni_c10_12",
+      "valid_samples": 164817,
+      "pure_turn_samples": 15000,
+      "pure_low_yaw_samples": 7823,
+      "heading_fraction": 0.5784779191017151,
+      "standing_fraction": 0.17291904985904694,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 40986,
+      "negative_yaw_samples": 46863,
+      "stand_still_rate": -0.08143647760152817,
+      "candidate_rate_change_on_same_states": 0.032719291746616364,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497_seed42",
+      "group": "straight_flat_c13",
+      "valid_samples": 9588,
+      "pure_turn_samples": 0,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 1.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": null,
+      "pure_yaw_max": null,
+      "positive_yaw_samples": 4412,
+      "negative_yaw_samples": 5154,
+      "stand_still_rate": 0.0,
+      "candidate_rate_change_on_same_states": 0.0,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497_seed43",
+      "group": "dedicated_turn_c09",
+      "valid_samples": 143424,
+      "pure_turn_samples": 143424,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 0.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": 0.20174261927604675,
+      "pure_yaw_max": 0.7990723848342896,
+      "positive_yaw_samples": 70424,
+      "negative_yaw_samples": 73000,
+      "stand_still_rate": -0.46937817335128784,
+      "candidate_rate_change_on_same_states": 0.46937817335128784,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497_seed43",
+      "group": "other_omni_c10_12",
+      "valid_samples": 173288,
+      "pure_turn_samples": 26209,
+      "pure_low_yaw_samples": 14818,
+      "heading_fraction": 0.5797747373580933,
+      "standing_fraction": 0.18754905462265015,
+      "pure_yaw_min": 0.0,
+      "pure_yaw_max": 0.800000011920929,
+      "positive_yaw_samples": 47336,
+      "negative_yaw_samples": 45138,
+      "stand_still_rate": -0.10949139297008514,
+      "candidate_rate_change_on_same_states": 0.04790783300995827,
+      "scan_invalid_fraction": 0.0
+    },
+    {
+      "domain": "block",
+      "model": "terrain3497_seed43",
+      "group": "straight_flat_c13",
+      "valid_samples": 10299,
+      "pure_turn_samples": 0,
+      "pure_low_yaw_samples": 0,
+      "heading_fraction": 1.0,
+      "standing_fraction": 0.0,
+      "pure_yaw_min": null,
+      "pure_yaw_max": null,
+      "positive_yaw_samples": 7462,
+      "negative_yaw_samples": 2815,
+      "stand_still_rate": 0.0,
+      "candidate_rate_change_on_same_states": 0.0,
+      "scan_invalid_fraction": 0.0
+    }
+  ],
+  "training_exposure": [
+    {
+      "run": "flat1998_seed42_100",
+      "total_steps": 9830400,
+      "dedicated_turn_steps": 984000,
+      "other_omni_steps": 1965600,
+      "command_categories": [
+        "standing",
+        "pure_turn",
+        "backward",
+        "lateral",
+        "translation"
+      ],
+      "command_steps": [
+        568224,
+        1079400,
+        517240,
+        815750,
+        1301976
+      ],
+      "definition": "B2 categories use linear norm .1 and yaw .1 thresholds; categories can overlap; not B3 exact-axis bins"
+    },
+    {
+      "run": "flat1998_seed43_100",
+      "total_steps": 9830400,
+      "dedicated_turn_steps": 984000,
+      "other_omni_steps": 1965600,
+      "command_categories": [
+        "standing",
+        "pure_turn",
+        "backward",
+        "lateral",
+        "translation"
+      ],
+      "command_steps": [
+        549702,
+        1080268,
+        512638,
+        821670,
+        1319630
+      ],
+      "definition": "B2 categories use linear norm .1 and yaw .1 thresholds; categories can overlap; not B3 exact-axis bins"
+    },
+    {
+      "run": "terrain3497_seed42_100",
+      "total_steps": 9830400,
+      "dedicated_turn_steps": 984000,
+      "other_omni_steps": 1965600,
+      "command_categories": [
+        "standing",
+        "pure_turn",
+        "backward",
+        "lateral",
+        "translation"
+      ],
+      "command_steps": [
+        565470,
+        1086933,
+        507150,
+        808285,
+        1297197
+      ],
+      "definition": "B2 categories use linear norm .1 and yaw .1 thresholds; categories can overlap; not B3 exact-axis bins"
+    },
+    {
+      "run": "terrain3497_seed43_100",
+      "total_steps": 9830400,
+      "dedicated_turn_steps": 984000,
+      "other_omni_steps": 1965600,
+      "command_categories": [
+        "standing",
+        "pure_turn",
+        "backward",
+        "lateral",
+        "translation"
+      ],
+      "command_steps": [
+        595013,
+        1075992,
+        498211,
+        810759,
+        1278595
+      ],
+      "definition": "B2 categories use linear norm .1 and yaw .1 thresholds; categories can overlap; not B3 exact-axis bins"
+    }
+  ]
+}
