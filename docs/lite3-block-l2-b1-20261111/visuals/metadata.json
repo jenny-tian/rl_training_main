@@ -1,0 +1,66 @@
+{
+  "task": "SourceBlock-L2-Deeprobotics-Lite3-v0",
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt",
+  "checkpoint_sha256": "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c",
+  "num_envs": 120,
+  "all_screenshots_real_simulation": true,
+  "policy_noise": false,
+  "selected_env_ids": {
+    "flat": 92,
+    "rough": 44,
+    "slope": 0,
+    "stairs_up": 16,
+    "stairs_down": 20,
+    "slope_rough": 104,
+    "friction": 48
+  },
+  "videos": [
+    {
+      "name": "stairs_up",
+      "env_id": 16,
+      "axis": 1,
+      "initial_origin": [
+        -28.0,
+        -44.0,
+        -0.17499999701976776
+      ],
+      "frames": 108,
+      "simulated_seconds": 8.58,
+      "ending": {
+        "step": 429,
+        "seconds": 8.58,
+        "progress_before_last_step_m": 3.3977127075195312,
+        "terminated": false,
+        "truncated": true,
+        "terms": [
+          "source_curriculum_completion"
+        ]
+      },
+      "display_limit_seconds": 20
+    },
+    {
+      "name": "stairs_down",
+      "env_id": 20,
+      "axis": 3,
+      "initial_origin": [
+        -12.0,
+        -36.0,
+        0.17499999701976776
+      ],
+      "frames": 42,
+      "simulated_seconds": 3.36,
+      "ending": {
+        "step": 168,
+        "seconds": 3.36,
+        "progress_before_last_step_m": 0.8540153503417969,
+        "terminated": true,
+        "truncated": false,
+        "terms": [
+          "illegal_contact"
+        ]
+      },
+      "display_limit_seconds": 20
+    }
+  ],
+  "note": "B1 scene validation using the unchanged starting actor; no qualification claim. Other robot visuals hidden in closeups only."
+}

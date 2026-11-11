@@ -48,8 +48,14 @@ def child(args):
             raise RuntimeError("blank simulator rendering")
         return Image.fromarray(frame)
 
-    overview = render((110., 80., 155.), (0., 0., 0.))
+    overview = render((160., 120., 230.), (0., 0., 0.))
     overview.save(args.output / "terrain_overview.png")
+    if args.overview_only:
+        (args.output / "metadata.json").write_text(json.dumps(dict(
+            task=TASK, num_envs=120, scene_seed=42, all_screenshots_real_simulation=True,
+            eye=[160., 120., 230.], target=[0., 0., 0.], purpose="complete-map framing"), indent=2))
+        print("OVERVIEW_COMPLETE", flush=True)
+        os._exit(0)
     views = [("flat", 13, "平地"), ("rough", 6, "多尺度粗糙"), ("slope", 0, "坡面"),
              ("stairs_up", 4, "上台阶：中心低，向外走"), ("stairs_down", 5, "下台阶：中心高，向外走"),
              ("slope_rough", 16, "坡面叠加粗糙"), ("friction", 7, "摩擦变化（物理材质不同）")]
@@ -121,11 +127,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--child", action="store_true")
+    parser.add_argument("--overview-only", action="store_true")
     args = parser.parse_args()
     args.output = args.output.resolve()
     if args.child:
         child(args)
     else:
         from source_block_runtime import run
-        sys.exit(run([sys.executable, str(Path(__file__).resolve()), "--child", "--output", str(args.output)],
-                     gpu=0, output=args.output))
+        command = [sys.executable, str(Path(__file__).resolve()), "--child", "--output", str(args.output)]
+        if args.overview_only:
+            command.append("--overview-only")
+        sys.exit(run(command, gpu=0, output=args.output))
