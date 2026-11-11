@@ -1,0 +1,134 @@
+{
+  "status": "stopped_by_development_rule",
+  "start": "terrain3497",
+  "seed": 43,
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt",
+  "sha256": "47889ee59d07416287332164a38566a812d6ebbc0be637e13752829f8891d49c",
+  "load_rule": "full actor, critic, learned action std and Adam; adaptive LR starts from common config",
+  "restored_exact": true,
+  "initial_iteration": 3497,
+  "initial_algorithm_learning_rate": 0.0003844,
+  "initial_optimizer_group_lrs": [
+    0.0002562890625000001
+  ],
+  "max_updates": 300,
+  "completed_updates": 100,
+  "checks": [
+    {
+      "continue_training": false,
+      "reasons": [
+        "Q4/rms_xy_error: 0.06574318218670001 > 0.06236837",
+        "Q4/rms_yaw_error: 0.1009086757427201 > 0.08557957",
+        "Q4/falls_per_episode: 0.041015625 > 0.039613"
+      ],
+      "baseline_stair_floors": {
+        "4": 21,
+        "5": 0
+      },
+      "q4_limits": {
+        "rms_xy_error": 0.06236837,
+        "rms_yaw_error": 0.08557957,
+        "falls_per_episode": 0.039613
+      },
+      "upstairs": {
+        "column": 4,
+        "name": "stairs_ascending",
+        "episodes": 32,
+        "complete": 32,
+        "failure": 0,
+        "timeout": 0
+      },
+      "downstairs": {
+        "column": 5,
+        "name": "stairs_descending",
+        "episodes": 32,
+        "complete": 26,
+        "failure": 6,
+        "timeout": 0
+      },
+      "rough": [
+        {
+          "column": 6,
+          "name": "reference_uniform_rough_a",
+          "episodes": 32,
+          "complete": 32,
+          "failure": 0,
+          "timeout": 0
+        },
+        {
+          "column": 15,
+          "name": "reference_uniform_rough_b",
+          "episodes": 32,
+          "complete": 32,
+          "failure": 0,
+          "timeout": 0
+        }
+      ],
+      "flat_metrics": {
+        "categories": {
+          "mixed": {
+            "rms_xy_error": 0.07877677801754958,
+            "rms_yaw_error": 0.09748861662649083,
+            "tracking_samples": 1375613
+          },
+          "only_ang": {
+            "rms_xy_error": 0.05117945862512127,
+            "rms_yaw_error": 0.22018993841551587,
+            "tracking_samples": 298633
+          },
+          "only_x": {
+            "rms_xy_error": 0.058793565117283994,
+            "rms_yaw_error": 0.05529242430935174,
+            "tracking_samples": 630271
+          },
+          "only_y": {
+            "rms_xy_error": 0.06421815943604951,
+            "rms_yaw_error": 0.06762744302913663,
+            "tracking_samples": 295011
+          },
+          "standing": {
+            "rms_xy_error": 0.03423579180224392,
+            "rms_yaw_error": 0.02993926109764079,
+            "tracking_samples": 469400
+          }
+        },
+        "ended_episodes": 3072,
+        "excluded_reset_samples": 3072,
+        "fall_episodes": 126,
+        "falls_per_episode": 0.041015625,
+        "rms_xy_error": 0.06574318218670001,
+        "rms_yaw_error": 0.1009086757427201,
+        "total_env_steps": 3072000,
+        "tracking_samples": 3068928
+      },
+      "updates": 100,
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/stage1/block_b2/training/terrain3497_seed43/update_0100/model.pt",
+      "sha256": "2f9bf6faa8bb420b239f6572c88ed47d44bf8f20f8b6401c32b686f6d6458d16",
+      "adaptive_learning_rate": 0.0002562666666666667,
+      "optimizer_step_increase": 2000
+    }
+  ],
+  "environment_column_counts": [
+    88,
+    88,
+    88,
+    88,
+    819,
+    819,
+    88,
+    88,
+    88,
+    410,
+    273,
+    273,
+    273,
+    88,
+    88,
+    88,
+    88,
+    87,
+    87,
+    87
+  ],
+  "training_transitions": 9830400
+}

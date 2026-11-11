@@ -1,0 +1,7643 @@
+{
+  "status": "passed",
+  "task": "SourceBlock-B2-Deeprobotics-Lite3-v0",
+  "seed": 20261112,
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-online-adaptation/logs/rsl_rl/deeprobotics_lite3_flat_adapted/2026-08-05_14-00-57_lite3_lowspeed_finetune1499_seed42_20260805/model_1998.pt",
+  "checkpoint_sha256": "87ec1cd3ab44079045d8da627c70b61e4918c22a715a21d5f7204acb73fbbc3c",
+  "num_envs": 640,
+  "policy_observation_corruption": false,
+  "initial_state_hashes_by_column": [
+    "225f51f673d919d1f91f7c56b3a08fcd49e07cf321824e65fc55fcce4137e994",
+    "718c7ab5f05396ffb8984494c9df32235b09dd0995109b935d49f3dc87428ec5",
+    "25507a284c6aa50be09048ee55bb42bb230dade833fb6c2fe6625b36e84f30c3",
+    "9e4380b2f33dc781559a2ce40f3e09d88d292abd86ec883bb55a6b420083bb0c",
+    "02371041b5b4ea4affcc9dae7a04f1dfb4a274a04d4561e53077aeb9497c007d",
+    "131ad58cb0505c8f08d0e52de428e39c8111ee0a6b400f83d5d5deb42fca6ca6",
+    "fc65ed68c2e099d966f3c1f88cd06a2621f5458ea8adee568c260f953af1d2ad",
+    "70bd309578b9bc27111ada72bc828bd78a41bbcfc974df86f8733fb0333673c2",
+    "36999409275699c4dfe9ce78d877abaab183accf8efa7ddbf2602a36cce5ee43",
+    "8c0edd4861e15204a747285801788e4c5b5d6309d1b3a92f5e3d4b8b75007183",
+    "1a371e0b3ee91fa34db3749414c0a6475818a9c56479f2912509d2073e1569e1",
+    "39e4b4e2ec200e6f90c28eaf6d4162d25fb07f18b0394bd6249910bf3d6e08bc",
+    "431e654aaeffbf1558afd1f55c1ccb99234989b10955ba784f69c420a4e63434",
+    "9bb3602901ea51485347e2ced26057ff90f680892a8dc162330a684ec9400487",
+    "393191f906f744408a723ac532bd7499d9228a92dcdba17325c83323810ac62b",
+    "9c8c622324e16e7407c5562a9ae36fd0151a5754b130a77138752e7c76bac913",
+    "4be742b670c8bf90bd3c2df45f3ac6c51810e9ba76cb7164dc94d3b9fd496e14",
+    "14ff38b52ea27b1a9713abe949b6e51e2a6813629239c2b13edca5389e3d1cdb",
+    "a6712bab773192598532eeaf7e26e74feb72399f1de431f9cbf0a076a0b18e3b",
+    "2e568c92f27d0aca4991bfc6f9e6e3fd1f9a4350ce7216ca46f19d116913c939"
+  ],
+  "columns": [
+    {
+      "column": 0,
+      "name": "slope_uphill",
+      "episodes": 32,
+      "complete": 26,
+      "failure": 0,
+      "timeout": 6
+    },
+    {
+      "column": 1,
+      "name": "slope_downhill",
+      "episodes": 32,
+      "complete": 32,
+      "failure": 0,
+      "timeout": 0
+    },
+    {
+      "column": 2,
+      "name": "slope_cross_slope_left",
+      "episodes": 32,
+      "complete": 19,
+      "failure": 11,
+      "timeout": 2
+    },
+    {
+      "column": 3,
+      "name": "slope_cross_slope_right",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 32,
+      "timeout": 0
+    },
+    {
+      "column": 4,
+      "name": "stairs_ascending",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 16,
+      "timeout": 16
+    },
+    {
+      "column": 5,
+      "name": "stairs_descending",
+      "episodes": 32,
+      "complete": 7,
+      "failure": 25,
+      "timeout": 0
+    },
+    {
+      "column": 6,
+      "name": "reference_uniform_rough_a",
+      "episodes": 32,
+      "complete": 27,
+      "failure": 5,
+      "timeout": 0
+    },
+    {
+      "column": 7,
+      "name": "friction_left_right_bands",
+      "episodes": 32,
+      "complete": 32,
+      "failure": 0,
+      "timeout": 0
+    },
+    {
+      "column": 8,
+      "name": "friction_front_back_bands",
+      "episodes": 32,
+      "complete": 32,
+      "failure": 0,
+      "timeout": 0
+    },
+    {
+      "column": 9,
+      "name": "omni_flat_0",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 13,
+      "timeout": 19
+    },
+    {
+      "column": 10,
+      "name": "omni_flat_1",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 2,
+      "timeout": 30
+    },
+    {
+      "column": 11,
+      "name": "omni_flat_2",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 1,
+      "timeout": 31
+    },
+    {
+      "column": 12,
+      "name": "omni_flat_3",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 2,
+      "timeout": 30
+    },
+    {
+      "column": 13,
+      "name": "flat",
+      "episodes": 32,
+      "complete": 32,
+      "failure": 0,
+      "timeout": 0
+    },
+    {
+      "column": 14,
+      "name": "friction_alternating_regions",
+      "episodes": 32,
+      "complete": 32,
+      "failure": 0,
+      "timeout": 0
+    },
+    {
+      "column": 15,
+      "name": "reference_uniform_rough_b",
+      "episodes": 32,
+      "complete": 28,
+      "failure": 4,
+      "timeout": 0
+    },
+    {
+      "column": 16,
+      "name": "slope_rough_uphill",
+      "episodes": 32,
+      "complete": 17,
+      "failure": 2,
+      "timeout": 13
+    },
+    {
+      "column": 17,
+      "name": "slope_rough_downhill",
+      "episodes": 32,
+      "complete": 32,
+      "failure": 0,
+      "timeout": 0
+    },
+    {
+      "column": 18,
+      "name": "slope_rough_cross_slope_left",
+      "episodes": 32,
+      "complete": 13,
+      "failure": 15,
+      "timeout": 4
+    },
+    {
+      "column": 19,
+      "name": "slope_rough_cross_slope_right",
+      "episodes": 32,
+      "complete": 0,
+      "failure": 32,
+      "timeout": 0
+    }
+  ],
+  "records": [
+    {
+      "env_id": 0,
+      "column": 0,
+      "step": 1846,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 1,
+      "column": 0,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 2,
+      "column": 0,
+      "step": 674,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 3,
+      "column": 0,
+      "step": 1292,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 4,
+      "column": 0,
+      "step": 1789,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 5,
+      "column": 0,
+      "step": 1525,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 6,
+      "column": 0,
+      "step": 1067,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 7,
+      "column": 0,
+      "step": 871,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 8,
+      "column": 0,
+      "step": 1055,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 9,
+      "column": 0,
+      "step": 1989,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 10,
+      "column": 0,
+      "step": 1058,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 11,
+      "column": 0,
+      "step": 1703,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 12,
+      "column": 0,
+      "step": 1229,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 13,
+      "column": 0,
+      "step": 1731,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 14,
+      "column": 0,
+      "step": 1327,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 15,
+      "column": 0,
+      "step": 964,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 16,
+      "column": 0,
+      "step": 692,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 17,
+      "column": 0,
+      "step": 1727,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 18,
+      "column": 0,
+      "step": 853,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 19,
+      "column": 0,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 20,
+      "column": 0,
+      "step": 797,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 21,
+      "column": 0,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 22,
+      "column": 0,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 23,
+      "column": 0,
+      "step": 1004,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 24,
+      "column": 0,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 25,
+      "column": 0,
+      "step": 1979,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 26,
+      "column": 0,
+      "step": 1108,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 27,
+      "column": 0,
+      "step": 1024,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 28,
+      "column": 0,
+      "step": 1007,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 29,
+      "column": 0,
+      "step": 922,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 30,
+      "column": 0,
+      "step": 1013,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 31,
+      "column": 0,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 32,
+      "column": 1,
+      "step": 323,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 33,
+      "column": 1,
+      "step": 280,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 34,
+      "column": 1,
+      "step": 311,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 35,
+      "column": 1,
+      "step": 349,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 36,
+      "column": 1,
+      "step": 290,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 37,
+      "column": 1,
+      "step": 320,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 38,
+      "column": 1,
+      "step": 338,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 39,
+      "column": 1,
+      "step": 457,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 40,
+      "column": 1,
+      "step": 281,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 41,
+      "column": 1,
+      "step": 296,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 42,
+      "column": 1,
+      "step": 346,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 43,
+      "column": 1,
+      "step": 289,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 44,
+      "column": 1,
+      "step": 318,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 45,
+      "column": 1,
+      "step": 303,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 46,
+      "column": 1,
+      "step": 341,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 47,
+      "column": 1,
+      "step": 270,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 48,
+      "column": 1,
+      "step": 408,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 49,
+      "column": 1,
+      "step": 300,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 50,
+      "column": 1,
+      "step": 289,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 51,
+      "column": 1,
+      "step": 303,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 52,
+      "column": 1,
+      "step": 369,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 53,
+      "column": 1,
+      "step": 361,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 54,
+      "column": 1,
+      "step": 316,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 55,
+      "column": 1,
+      "step": 289,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 56,
+      "column": 1,
+      "step": 393,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 57,
+      "column": 1,
+      "step": 402,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 58,
+      "column": 1,
+      "step": 316,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 59,
+      "column": 1,
+      "step": 409,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 60,
+      "column": 1,
+      "step": 334,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 61,
+      "column": 1,
+      "step": 324,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 62,
+      "column": 1,
+      "step": 282,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 63,
+      "column": 1,
+      "step": 380,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 64,
+      "column": 2,
+      "step": 1174,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 65,
+      "column": 2,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 66,
+      "column": 2,
+      "step": 625,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 67,
+      "column": 2,
+      "step": 557,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 68,
+      "column": 2,
+      "step": 395,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 69,
+      "column": 2,
+      "step": 587,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 12.971750259399414
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 31.247570037841797
+      }
+    },
+    {
+      "env_id": 70,
+      "column": 2,
+      "step": 631,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 71,
+      "column": 2,
+      "step": 499,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 72,
+      "column": 2,
+      "step": 411,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 73,
+      "column": 2,
+      "step": 656,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 74,
+      "column": 2,
+      "step": 650,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 94.41378784179688
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 235.10011291503906
+      }
+    },
+    {
+      "env_id": 75,
+      "column": 2,
+      "step": 587,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 322.3619079589844
+      }
+    },
+    {
+      "env_id": 76,
+      "column": 2,
+      "step": 722,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 332.32257080078125
+      }
+    },
+    {
+      "env_id": 77,
+      "column": 2,
+      "step": 531,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 78,
+      "column": 2,
+      "step": 446,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 79,
+      "column": 2,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 80,
+      "column": 2,
+      "step": 559,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 81,
+      "column": 2,
+      "step": 675,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 6.782543659210205
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 8.884682655334473
+      }
+    },
+    {
+      "env_id": 82,
+      "column": 2,
+      "step": 916,
+      "outcome": "failure",
+      "terms": [
+        "source_curriculum_tile_bounds"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 83,
+      "column": 2,
+      "step": 1405,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 84,
+      "column": 2,
+      "step": 1071,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 54.506591796875
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 81.74340057373047
+      }
+    },
+    {
+      "env_id": 85,
+      "column": 2,
+      "step": 460,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 86,
+      "column": 2,
+      "step": 931,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 39.857322692871094
+      }
+    },
+    {
+      "env_id": 87,
+      "column": 2,
+      "step": 543,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 24.800758361816406
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 213.58798217773438
+      }
+    },
+    {
+      "env_id": 88,
+      "column": 2,
+      "step": 616,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 89,
+      "column": 2,
+      "step": 483,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 90,
+      "column": 2,
+      "step": 477,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 91,
+      "column": 2,
+      "step": 386,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 92,
+      "column": 2,
+      "step": 555,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 93,
+      "column": 2,
+      "step": 531,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 94,
+      "column": 2,
+      "step": 503,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 95,
+      "column": 2,
+      "step": 464,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 96,
+      "column": 3,
+      "step": 428,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 97,
+      "column": 3,
+      "step": 449,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 98,
+      "column": 3,
+      "step": 329,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 99,
+      "column": 3,
+      "step": 383,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 100,
+      "column": 3,
+      "step": 433,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 101,
+      "column": 3,
+      "step": 433,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 102,
+      "column": 3,
+      "step": 377,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 103,
+      "column": 3,
+      "step": 447,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 104,
+      "column": 3,
+      "step": 390,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 105,
+      "column": 3,
+      "step": 490,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 106,
+      "column": 3,
+      "step": 332,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 107,
+      "column": 3,
+      "step": 376,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 108,
+      "column": 3,
+      "step": 353,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 109,
+      "column": 3,
+      "step": 500,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 110,
+      "column": 3,
+      "step": 470,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 111,
+      "column": 3,
+      "step": 342,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 112,
+      "column": 3,
+      "step": 377,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 113,
+      "column": 3,
+      "step": 420,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 114,
+      "column": 3,
+      "step": 429,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 115,
+      "column": 3,
+      "step": 470,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 116,
+      "column": 3,
+      "step": 392,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 117,
+      "column": 3,
+      "step": 429,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 118,
+      "column": 3,
+      "step": 426,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 119,
+      "column": 3,
+      "step": 429,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 120,
+      "column": 3,
+      "step": 497,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 121,
+      "column": 3,
+      "step": 559,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 122,
+      "column": 3,
+      "step": 407,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 123,
+      "column": 3,
+      "step": 417,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 124,
+      "column": 3,
+      "step": 445,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 125,
+      "column": 3,
+      "step": 592,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 126,
+      "column": 3,
+      "step": 614,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 127,
+      "column": 3,
+      "step": 490,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 128,
+      "column": 4,
+      "step": 399,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 129,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 130,
+      "column": 4,
+      "step": 447,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 131,
+      "column": 4,
+      "step": 303,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 132,
+      "column": 4,
+      "step": 453,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 73.9787826538086
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 102.36224365234375
+      }
+    },
+    {
+      "env_id": 133,
+      "column": 4,
+      "step": 443,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 134,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HL_SHANK": 28.178926467895508
+      }
+    },
+    {
+      "env_id": 135,
+      "column": 4,
+      "step": 245,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 136,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 137,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 138,
+      "column": 4,
+      "step": 334,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 139,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 140,
+      "column": 4,
+      "step": 756,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 141,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 142,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 143,
+      "column": 4,
+      "step": 1397,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 144,
+      "column": 4,
+      "step": 242,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 145,
+      "column": 4,
+      "step": 413,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 146,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 147,
+      "column": 4,
+      "step": 465,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 148,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 149,
+      "column": 4,
+      "step": 1726,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 150,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 151,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 152,
+      "column": 4,
+      "step": 374,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 9.134021759033203
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 9.134021759033203
+      }
+    },
+    {
+      "env_id": 153,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 154,
+      "column": 4,
+      "step": 432,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 155,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 156,
+      "column": 4,
+      "step": 494,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 157,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 158,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 159,
+      "column": 4,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 160,
+      "column": 5,
+      "step": 153,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 47.029972076416016
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 78.56954956054688
+      }
+    },
+    {
+      "env_id": 161,
+      "column": 5,
+      "step": 366,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "FR_SHANK": 50.725181579589844,
+        "HR_SHANK": 37.662071228027344
+      }
+    },
+    {
+      "env_id": 162,
+      "column": 5,
+      "step": 324,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HL_SHANK": 43.96638107299805,
+        "HR_SHANK": 28.01444435119629
+      }
+    },
+    {
+      "env_id": 163,
+      "column": 5,
+      "step": 201,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 54.54231262207031
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 25.736587524414062,
+        "FR_SHANK": 54.54231262207031
+      }
+    },
+    {
+      "env_id": 164,
+      "column": 5,
+      "step": 179,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 52.46001434326172
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 59.38855743408203
+      }
+    },
+    {
+      "env_id": 165,
+      "column": 5,
+      "step": 459,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 38.34135437011719
+      }
+    },
+    {
+      "env_id": 166,
+      "column": 5,
+      "step": 390,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HL_SHANK": 44.03523635864258
+      }
+    },
+    {
+      "env_id": 167,
+      "column": 5,
+      "step": 111,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 52.15571594238281
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 52.15571594238281
+      }
+    },
+    {
+      "env_id": 168,
+      "column": 5,
+      "step": 357,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 51.439029693603516
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 81.28362274169922,
+        "HR_SHANK": 25.89258575439453
+      }
+    },
+    {
+      "env_id": 169,
+      "column": 5,
+      "step": 153,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 26.13393211364746
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 41.01865768432617
+      }
+    },
+    {
+      "env_id": 170,
+      "column": 5,
+      "step": 111,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 54.066593170166016
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 56.039825439453125
+      }
+    },
+    {
+      "env_id": 171,
+      "column": 5,
+      "step": 202,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 55.24740219116211
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 57.38560485839844,
+        "HL_SHANK": 29.2552490234375
+      }
+    },
+    {
+      "env_id": 172,
+      "column": 5,
+      "step": 237,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 46.56099319458008
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 53.945743560791016,
+        "HR_SHANK": 30.94959259033203
+      }
+    },
+    {
+      "env_id": 173,
+      "column": 5,
+      "step": 287,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 22.72806167602539
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 43.79894256591797,
+        "HR_SHANK": 36.14222717285156
+      }
+    },
+    {
+      "env_id": 174,
+      "column": 5,
+      "step": 115,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 51.34387969970703
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 51.469261169433594
+      }
+    },
+    {
+      "env_id": 175,
+      "column": 5,
+      "step": 200,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 59.270477294921875
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 64.96112060546875,
+        "FR_SHANK": 76.02999114990234
+      }
+    },
+    {
+      "env_id": 176,
+      "column": 5,
+      "step": 219,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 29.812631607055664
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 52.66339111328125
+      }
+    },
+    {
+      "env_id": 177,
+      "column": 5,
+      "step": 162,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 54.928016662597656
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 59.78087615966797
+      }
+    },
+    {
+      "env_id": 178,
+      "column": 5,
+      "step": 140,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 41.01816177368164
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 52.727596282958984,
+        "FR_SHANK": 68.29932403564453
+      }
+    },
+    {
+      "env_id": 179,
+      "column": 5,
+      "step": 111,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 43.07529830932617
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 52.20508575439453
+      }
+    },
+    {
+      "env_id": 180,
+      "column": 5,
+      "step": 140,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 42.56899642944336
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 49.171993255615234
+      }
+    },
+    {
+      "env_id": 181,
+      "column": 5,
+      "step": 128,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 5.12625789642334
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 46.76591873168945
+      }
+    },
+    {
+      "env_id": 182,
+      "column": 5,
+      "step": 147,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 43.85075759887695
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 48.81229782104492
+      }
+    },
+    {
+      "env_id": 183,
+      "column": 5,
+      "step": 321,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 24.02507209777832
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 70.31571197509766,
+        "HL_SHANK": 49.83784484863281
+      }
+    },
+    {
+      "env_id": 184,
+      "column": 5,
+      "step": 399,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 45.90644073486328
+      }
+    },
+    {
+      "env_id": 185,
+      "column": 5,
+      "step": 360,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "FR_SHANK": 31.674453735351562
+      }
+    },
+    {
+      "env_id": 186,
+      "column": 5,
+      "step": 97,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 20.24614715576172
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 44.48161315917969
+      }
+    },
+    {
+      "env_id": 187,
+      "column": 5,
+      "step": 139,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 20.88367462158203
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 64.68174743652344,
+        "FR_SHANK": 37.15632247924805
+      }
+    },
+    {
+      "env_id": 188,
+      "column": 5,
+      "step": 443,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "FR_SHANK": 66.86448669433594,
+        "HL_SHANK": 58.116729736328125
+      }
+    },
+    {
+      "env_id": 189,
+      "column": 5,
+      "step": 119,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 43.58625793457031
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 57.22250747680664
+      }
+    },
+    {
+      "env_id": 190,
+      "column": 5,
+      "step": 211,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 27.907886505126953
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 45.26811599731445
+      }
+    },
+    {
+      "env_id": 191,
+      "column": 5,
+      "step": 150,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FR_SHANK": 44.87130355834961
+      },
+      "episode_peak_contacts": {
+        "FR_SHANK": 55.6971321105957
+      }
+    },
+    {
+      "env_id": 192,
+      "column": 6,
+      "step": 556,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 193,
+      "column": 6,
+      "step": 447,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 194,
+      "column": 6,
+      "step": 688,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 195,
+      "column": 6,
+      "step": 501,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 196,
+      "column": 6,
+      "step": 705,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 197,
+      "column": 6,
+      "step": 647,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 198,
+      "column": 6,
+      "step": 832,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 199,
+      "column": 6,
+      "step": 686,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 200,
+      "column": 6,
+      "step": 491,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 201,
+      "column": 6,
+      "step": 688,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 202,
+      "column": 6,
+      "step": 460,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 203,
+      "column": 6,
+      "step": 413,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 204,
+      "column": 6,
+      "step": 717,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 205,
+      "column": 6,
+      "step": 612,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 206,
+      "column": 6,
+      "step": 638,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 207,
+      "column": 6,
+      "step": 463,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 208,
+      "column": 6,
+      "step": 699,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 209,
+      "column": 6,
+      "step": 557,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 210,
+      "column": 6,
+      "step": 400,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 211,
+      "column": 6,
+      "step": 117,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 212,
+      "column": 6,
+      "step": 209,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 213,
+      "column": 6,
+      "step": 496,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 214,
+      "column": 6,
+      "step": 466,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 215,
+      "column": 6,
+      "step": 514,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 216,
+      "column": 6,
+      "step": 766,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 217,
+      "column": 6,
+      "step": 440,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 218,
+      "column": 6,
+      "step": 704,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 219,
+      "column": 6,
+      "step": 487,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 220,
+      "column": 6,
+      "step": 493,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 221,
+      "column": 6,
+      "step": 594,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 222,
+      "column": 6,
+      "step": 197,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 223,
+      "column": 6,
+      "step": 786,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 224,
+      "column": 7,
+      "step": 447,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 225,
+      "column": 7,
+      "step": 396,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 226,
+      "column": 7,
+      "step": 389,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 227,
+      "column": 7,
+      "step": 396,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 228,
+      "column": 7,
+      "step": 562,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 229,
+      "column": 7,
+      "step": 616,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 230,
+      "column": 7,
+      "step": 505,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 231,
+      "column": 7,
+      "step": 401,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 232,
+      "column": 7,
+      "step": 445,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 233,
+      "column": 7,
+      "step": 366,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 234,
+      "column": 7,
+      "step": 496,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 235,
+      "column": 7,
+      "step": 473,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 236,
+      "column": 7,
+      "step": 500,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 237,
+      "column": 7,
+      "step": 392,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 238,
+      "column": 7,
+      "step": 372,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 239,
+      "column": 7,
+      "step": 449,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 240,
+      "column": 7,
+      "step": 387,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 241,
+      "column": 7,
+      "step": 589,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 242,
+      "column": 7,
+      "step": 610,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 243,
+      "column": 7,
+      "step": 512,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 244,
+      "column": 7,
+      "step": 411,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 245,
+      "column": 7,
+      "step": 367,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 246,
+      "column": 7,
+      "step": 359,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 247,
+      "column": 7,
+      "step": 480,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 248,
+      "column": 7,
+      "step": 548,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 249,
+      "column": 7,
+      "step": 581,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 250,
+      "column": 7,
+      "step": 359,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 251,
+      "column": 7,
+      "step": 603,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 252,
+      "column": 7,
+      "step": 375,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 253,
+      "column": 7,
+      "step": 575,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 254,
+      "column": 7,
+      "step": 512,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 255,
+      "column": 7,
+      "step": 386,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 256,
+      "column": 8,
+      "step": 552,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 257,
+      "column": 8,
+      "step": 632,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 258,
+      "column": 8,
+      "step": 403,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 259,
+      "column": 8,
+      "step": 416,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 260,
+      "column": 8,
+      "step": 343,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 261,
+      "column": 8,
+      "step": 591,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 262,
+      "column": 8,
+      "step": 634,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 263,
+      "column": 8,
+      "step": 503,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 264,
+      "column": 8,
+      "step": 372,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 265,
+      "column": 8,
+      "step": 581,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 266,
+      "column": 8,
+      "step": 372,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 267,
+      "column": 8,
+      "step": 449,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 268,
+      "column": 8,
+      "step": 556,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 269,
+      "column": 8,
+      "step": 595,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 270,
+      "column": 8,
+      "step": 554,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 271,
+      "column": 8,
+      "step": 594,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 272,
+      "column": 8,
+      "step": 360,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 273,
+      "column": 8,
+      "step": 535,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 274,
+      "column": 8,
+      "step": 484,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 275,
+      "column": 8,
+      "step": 394,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 276,
+      "column": 8,
+      "step": 530,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 277,
+      "column": 8,
+      "step": 456,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 278,
+      "column": 8,
+      "step": 470,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 279,
+      "column": 8,
+      "step": 407,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 280,
+      "column": 8,
+      "step": 339,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 281,
+      "column": 8,
+      "step": 363,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 282,
+      "column": 8,
+      "step": 322,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 283,
+      "column": 8,
+      "step": 524,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 284,
+      "column": 8,
+      "step": 352,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 285,
+      "column": 8,
+      "step": 352,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 286,
+      "column": 8,
+      "step": 570,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 287,
+      "column": 8,
+      "step": 504,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 288,
+      "column": 9,
+      "step": 420,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 86.21368408203125
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 95.02039337158203,
+        "HR_SHANK": 535.9705200195312
+      }
+    },
+    {
+      "env_id": 289,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 290,
+      "column": 9,
+      "step": 1034,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 57.35313415527344
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 138.11117553710938
+      }
+    },
+    {
+      "env_id": 291,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 292,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 293,
+      "column": 9,
+      "step": 1888,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 21.887453079223633
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 257.33770751953125,
+        "HR_SHANK": 519.0057983398438
+      }
+    },
+    {
+      "env_id": 294,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 295,
+      "column": 9,
+      "step": 1741,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 51.32107162475586
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 402.0555114746094
+      }
+    },
+    {
+      "env_id": 296,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 297,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 298,
+      "column": 9,
+      "step": 1261,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 77.74124145507812,
+        "HR_SHANK": 87.40621185302734
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 77.74124145507812,
+        "HR_SHANK": 641.3424682617188
+      }
+    },
+    {
+      "env_id": 299,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 300,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 301,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 302,
+      "column": 9,
+      "step": 392,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 46.34949493408203
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 372.6058044433594
+      }
+    },
+    {
+      "env_id": 303,
+      "column": 9,
+      "step": 840,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 108.05716705322266
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 260.3558044433594
+      }
+    },
+    {
+      "env_id": 304,
+      "column": 9,
+      "step": 377,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 61.95515823364258,
+        "HR_SHANK": 39.56196212768555
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 178.69815063476562,
+        "HR_SHANK": 578.2047729492188
+      }
+    },
+    {
+      "env_id": 305,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 306,
+      "column": 9,
+      "step": 350,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 66.90694427490234
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 115.44607543945312,
+        "HL_SHANK": 197.46641540527344
+      }
+    },
+    {
+      "env_id": 307,
+      "column": 9,
+      "step": 403,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 68.61143493652344,
+        "HR_SHANK": 22.487693786621094
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 68.61143493652344,
+        "HR_SHANK": 672.7954711914062
+      }
+    },
+    {
+      "env_id": 308,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 309,
+      "column": 9,
+      "step": 1439,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 40.44012451171875
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 395.222412109375
+      }
+    },
+    {
+      "env_id": 310,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 311,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 312,
+      "column": 9,
+      "step": 783,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 52.73979949951172,
+        "HR_SHANK": 430.4787292480469
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 295.7913818359375,
+        "HR_SHANK": 430.4787292480469
+      }
+    },
+    {
+      "env_id": 313,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 314,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 315,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 316,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "FL_SHANK": 73.29297637939453
+      }
+    },
+    {
+      "env_id": 317,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 318,
+      "column": 9,
+      "step": 1332,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 87.72579956054688
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 288.63519287109375
+      }
+    },
+    {
+      "env_id": 319,
+      "column": 9,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 320,
+      "column": 10,
+      "step": 328,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 321,
+      "column": 10,
+      "step": 763,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 322,
+      "column": 10,
+      "step": 236,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 323,
+      "column": 10,
+      "step": 1239,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 324,
+      "column": 10,
+      "step": 424,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 325,
+      "column": 10,
+      "step": 1129,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 326,
+      "column": 10,
+      "step": 1233,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 327,
+      "column": 10,
+      "step": 236,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 328,
+      "column": 10,
+      "step": 362,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 329,
+      "column": 10,
+      "step": 1274,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 330,
+      "column": 10,
+      "step": 853,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 331,
+      "column": 10,
+      "step": 296,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 332,
+      "column": 10,
+      "step": 797,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 333,
+      "column": 10,
+      "step": 1352,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 334,
+      "column": 10,
+      "step": 1375,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 335,
+      "column": 10,
+      "step": 1296,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 336,
+      "column": 10,
+      "step": 1289,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 54.91387939453125,
+        "HR_SHANK": 76.4640884399414
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 54.91387939453125,
+        "HR_SHANK": 665.294189453125
+      }
+    },
+    {
+      "env_id": 337,
+      "column": 10,
+      "step": 370,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 338,
+      "column": 10,
+      "step": 398,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 339,
+      "column": 10,
+      "step": 280,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 340,
+      "column": 10,
+      "step": 424,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 341,
+      "column": 10,
+      "step": 1590,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 342,
+      "column": 10,
+      "step": 470,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 42.914306640625
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 256.9808044433594,
+        "HR_SHANK": 672.0633544921875
+      }
+    },
+    {
+      "env_id": 343,
+      "column": 10,
+      "step": 308,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 344,
+      "column": 10,
+      "step": 421,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 345,
+      "column": 10,
+      "step": 778,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 346,
+      "column": 10,
+      "step": 369,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 347,
+      "column": 10,
+      "step": 205,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 348,
+      "column": 10,
+      "step": 398,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 349,
+      "column": 10,
+      "step": 1903,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 350,
+      "column": 10,
+      "step": 271,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 351,
+      "column": 10,
+      "step": 310,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 352,
+      "column": 11,
+      "step": 894,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 353,
+      "column": 11,
+      "step": 238,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 354,
+      "column": 11,
+      "step": 401,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 355,
+      "column": 11,
+      "step": 494,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 356,
+      "column": 11,
+      "step": 1059,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 357,
+      "column": 11,
+      "step": 898,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 358,
+      "column": 11,
+      "step": 318,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 359,
+      "column": 11,
+      "step": 1566,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 360,
+      "column": 11,
+      "step": 594,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 361,
+      "column": 11,
+      "step": 330,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 362,
+      "column": 11,
+      "step": 387,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 363,
+      "column": 11,
+      "step": 891,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 364,
+      "column": 11,
+      "step": 421,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 365,
+      "column": 11,
+      "step": 1571,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 68.75548553466797
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 636.8974609375
+      }
+    },
+    {
+      "env_id": 366,
+      "column": 11,
+      "step": 1267,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 367,
+      "column": 11,
+      "step": 273,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 368,
+      "column": 11,
+      "step": 1829,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 369,
+      "column": 11,
+      "step": 409,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 370,
+      "column": 11,
+      "step": 338,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 371,
+      "column": 11,
+      "step": 1091,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 372,
+      "column": 11,
+      "step": 435,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 373,
+      "column": 11,
+      "step": 370,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 374,
+      "column": 11,
+      "step": 318,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 375,
+      "column": 11,
+      "step": 216,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 376,
+      "column": 11,
+      "step": 1724,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 377,
+      "column": 11,
+      "step": 921,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 378,
+      "column": 11,
+      "step": 1961,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 379,
+      "column": 11,
+      "step": 701,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 380,
+      "column": 11,
+      "step": 1366,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 381,
+      "column": 11,
+      "step": 704,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 382,
+      "column": 11,
+      "step": 709,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 383,
+      "column": 11,
+      "step": 482,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 384,
+      "column": 12,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 385,
+      "column": 12,
+      "step": 224,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 386,
+      "column": 12,
+      "step": 890,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 387,
+      "column": 12,
+      "step": 243,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 388,
+      "column": 12,
+      "step": 1791,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 389,
+      "column": 12,
+      "step": 489,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 390,
+      "column": 12,
+      "step": 1854,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 65.91223907470703,
+        "HR_SHANK": 13.558122634887695
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 65.91223907470703,
+        "HR_SHANK": 405.2965087890625
+      }
+    },
+    {
+      "env_id": 391,
+      "column": 12,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 392,
+      "column": 12,
+      "step": 789,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 393,
+      "column": 12,
+      "step": 627,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 394,
+      "column": 12,
+      "step": 457,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 395,
+      "column": 12,
+      "step": 941,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 396,
+      "column": 12,
+      "step": 1710,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 397,
+      "column": 12,
+      "step": 1513,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 398,
+      "column": 12,
+      "step": 1371,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 399,
+      "column": 12,
+      "step": 428,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 400,
+      "column": 12,
+      "step": 816,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 401,
+      "column": 12,
+      "step": 1231,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 402,
+      "column": 12,
+      "step": 1295,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 403,
+      "column": 12,
+      "step": 1254,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 404,
+      "column": 12,
+      "step": 247,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 23.35114860534668
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 640.3955078125
+      }
+    },
+    {
+      "env_id": 405,
+      "column": 12,
+      "step": 326,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 406,
+      "column": 12,
+      "step": 1481,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 407,
+      "column": 12,
+      "step": 312,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 408,
+      "column": 12,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 409,
+      "column": 12,
+      "step": 1231,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 410,
+      "column": 12,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 411,
+      "column": 12,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 412,
+      "column": 12,
+      "step": 1394,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 413,
+      "column": 12,
+      "step": 1173,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 414,
+      "column": 12,
+      "step": 1312,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 415,
+      "column": 12,
+      "step": 335,
+      "outcome": "timeout",
+      "terms": [
+        "source_curriculum_omni_truncation"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 416,
+      "column": 13,
+      "step": 407,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 417,
+      "column": 13,
+      "step": 344,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 418,
+      "column": 13,
+      "step": 376,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 419,
+      "column": 13,
+      "step": 411,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 420,
+      "column": 13,
+      "step": 573,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 421,
+      "column": 13,
+      "step": 578,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 422,
+      "column": 13,
+      "step": 563,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 423,
+      "column": 13,
+      "step": 462,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 424,
+      "column": 13,
+      "step": 553,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 425,
+      "column": 13,
+      "step": 412,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 426,
+      "column": 13,
+      "step": 606,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 427,
+      "column": 13,
+      "step": 342,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 428,
+      "column": 13,
+      "step": 353,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 429,
+      "column": 13,
+      "step": 508,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 430,
+      "column": 13,
+      "step": 368,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 431,
+      "column": 13,
+      "step": 500,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 432,
+      "column": 13,
+      "step": 362,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 433,
+      "column": 13,
+      "step": 510,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 434,
+      "column": 13,
+      "step": 350,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 435,
+      "column": 13,
+      "step": 498,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 436,
+      "column": 13,
+      "step": 452,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 437,
+      "column": 13,
+      "step": 420,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 438,
+      "column": 13,
+      "step": 608,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 439,
+      "column": 13,
+      "step": 552,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 440,
+      "column": 13,
+      "step": 590,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 441,
+      "column": 13,
+      "step": 567,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 442,
+      "column": 13,
+      "step": 542,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 443,
+      "column": 13,
+      "step": 459,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 444,
+      "column": 13,
+      "step": 385,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 445,
+      "column": 13,
+      "step": 450,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 446,
+      "column": 13,
+      "step": 377,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 447,
+      "column": 13,
+      "step": 365,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 448,
+      "column": 14,
+      "step": 366,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 449,
+      "column": 14,
+      "step": 437,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 450,
+      "column": 14,
+      "step": 389,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 451,
+      "column": 14,
+      "step": 587,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 452,
+      "column": 14,
+      "step": 406,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 453,
+      "column": 14,
+      "step": 610,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 454,
+      "column": 14,
+      "step": 419,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 455,
+      "column": 14,
+      "step": 428,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 456,
+      "column": 14,
+      "step": 412,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 457,
+      "column": 14,
+      "step": 442,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 458,
+      "column": 14,
+      "step": 544,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 459,
+      "column": 14,
+      "step": 559,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 460,
+      "column": 14,
+      "step": 555,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 461,
+      "column": 14,
+      "step": 432,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 462,
+      "column": 14,
+      "step": 337,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 463,
+      "column": 14,
+      "step": 452,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 464,
+      "column": 14,
+      "step": 458,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 465,
+      "column": 14,
+      "step": 487,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 466,
+      "column": 14,
+      "step": 380,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 467,
+      "column": 14,
+      "step": 535,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 468,
+      "column": 14,
+      "step": 386,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 469,
+      "column": 14,
+      "step": 460,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 470,
+      "column": 14,
+      "step": 601,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 471,
+      "column": 14,
+      "step": 593,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 472,
+      "column": 14,
+      "step": 464,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 473,
+      "column": 14,
+      "step": 518,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 474,
+      "column": 14,
+      "step": 539,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 475,
+      "column": 14,
+      "step": 448,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 476,
+      "column": 14,
+      "step": 478,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 477,
+      "column": 14,
+      "step": 437,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 478,
+      "column": 14,
+      "step": 549,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 479,
+      "column": 14,
+      "step": 377,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 480,
+      "column": 15,
+      "step": 629,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 481,
+      "column": 15,
+      "step": 415,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 482,
+      "column": 15,
+      "step": 727,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 483,
+      "column": 15,
+      "step": 796,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 484,
+      "column": 15,
+      "step": 141,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 485,
+      "column": 15,
+      "step": 591,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 486,
+      "column": 15,
+      "step": 584,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 487,
+      "column": 15,
+      "step": 539,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 488,
+      "column": 15,
+      "step": 527,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 489,
+      "column": 15,
+      "step": 485,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 490,
+      "column": 15,
+      "step": 468,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 491,
+      "column": 15,
+      "step": 649,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 492,
+      "column": 15,
+      "step": 753,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 493,
+      "column": 15,
+      "step": 484,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 494,
+      "column": 15,
+      "step": 546,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 495,
+      "column": 15,
+      "step": 678,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 496,
+      "column": 15,
+      "step": 728,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 497,
+      "column": 15,
+      "step": 731,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 498,
+      "column": 15,
+      "step": 130,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {
+        "FR_HIP": 247.81163024902344
+      },
+      "episode_peak_contacts": {
+        "FR_HIP": 300.8360290527344
+      }
+    },
+    {
+      "env_id": 499,
+      "column": 15,
+      "step": 811,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 500,
+      "column": 15,
+      "step": 465,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 501,
+      "column": 15,
+      "step": 591,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 502,
+      "column": 15,
+      "step": 438,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 503,
+      "column": 15,
+      "step": 613,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 504,
+      "column": 15,
+      "step": 879,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 505,
+      "column": 15,
+      "step": 651,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 506,
+      "column": 15,
+      "step": 689,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 507,
+      "column": 15,
+      "step": 720,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 508,
+      "column": 15,
+      "step": 574,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 509,
+      "column": 15,
+      "step": 790,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 510,
+      "column": 15,
+      "step": 624,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 511,
+      "column": 15,
+      "step": 867,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 512,
+      "column": 16,
+      "step": 792,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 513,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 514,
+      "column": 16,
+      "step": 978,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 515,
+      "column": 16,
+      "step": 1418,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact",
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {
+        "FL_SHANK": 48.075408935546875
+      },
+      "episode_peak_contacts": {
+        "FL_SHANK": 247.71913146972656
+      }
+    },
+    {
+      "env_id": 516,
+      "column": 16,
+      "step": 820,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 517,
+      "column": 16,
+      "step": 813,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 518,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 519,
+      "column": 16,
+      "step": 1433,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 520,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 521,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 522,
+      "column": 16,
+      "step": 654,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 523,
+      "column": 16,
+      "step": 763,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 524,
+      "column": 16,
+      "step": 809,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 525,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 526,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 527,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 528,
+      "column": 16,
+      "step": 842,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 529,
+      "column": 16,
+      "step": 971,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 530,
+      "column": 16,
+      "step": 1168,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 531,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 532,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 533,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 534,
+      "column": 16,
+      "step": 755,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 535,
+      "column": 16,
+      "step": 974,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 536,
+      "column": 16,
+      "step": 1083,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 537,
+      "column": 16,
+      "step": 1848,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 538,
+      "column": 16,
+      "step": 1075,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 539,
+      "column": 16,
+      "step": 751,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 540,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 541,
+      "column": 16,
+      "step": 1027,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 542,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 543,
+      "column": 16,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 544,
+      "column": 17,
+      "step": 286,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 545,
+      "column": 17,
+      "step": 270,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 546,
+      "column": 17,
+      "step": 370,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 547,
+      "column": 17,
+      "step": 417,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 548,
+      "column": 17,
+      "step": 378,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 549,
+      "column": 17,
+      "step": 262,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 550,
+      "column": 17,
+      "step": 271,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 551,
+      "column": 17,
+      "step": 301,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 552,
+      "column": 17,
+      "step": 399,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 553,
+      "column": 17,
+      "step": 310,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 554,
+      "column": 17,
+      "step": 359,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 555,
+      "column": 17,
+      "step": 417,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 556,
+      "column": 17,
+      "step": 362,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 557,
+      "column": 17,
+      "step": 316,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 558,
+      "column": 17,
+      "step": 276,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 559,
+      "column": 17,
+      "step": 319,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 560,
+      "column": 17,
+      "step": 296,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 561,
+      "column": 17,
+      "step": 376,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 562,
+      "column": 17,
+      "step": 326,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 563,
+      "column": 17,
+      "step": 340,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 564,
+      "column": 17,
+      "step": 351,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 565,
+      "column": 17,
+      "step": 271,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 566,
+      "column": 17,
+      "step": 274,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 567,
+      "column": 17,
+      "step": 467,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 568,
+      "column": 17,
+      "step": 293,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 569,
+      "column": 17,
+      "step": 387,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 570,
+      "column": 17,
+      "step": 288,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 571,
+      "column": 17,
+      "step": 297,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 572,
+      "column": 17,
+      "step": 292,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 573,
+      "column": 17,
+      "step": 330,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 574,
+      "column": 17,
+      "step": 340,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 575,
+      "column": 17,
+      "step": 294,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 576,
+      "column": 18,
+      "step": 836,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 577,
+      "column": 18,
+      "step": 700,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 30.846025466918945
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 219.17335510253906
+      }
+    },
+    {
+      "env_id": 578,
+      "column": 18,
+      "step": 574,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 143.47906494140625
+      }
+    },
+    {
+      "env_id": 579,
+      "column": 18,
+      "step": 548,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 580,
+      "column": 18,
+      "step": 447,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 581,
+      "column": 18,
+      "step": 648,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 172.30381774902344
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 472.4346618652344
+      }
+    },
+    {
+      "env_id": 582,
+      "column": 18,
+      "step": 893,
+      "outcome": "failure",
+      "terms": [
+        "source_curriculum_tile_bounds"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 168.437744140625
+      }
+    },
+    {
+      "env_id": 583,
+      "column": 18,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 584,
+      "column": 18,
+      "step": 451,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 585,
+      "column": 18,
+      "step": 561,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 52.8590087890625
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 281.51007080078125
+      }
+    },
+    {
+      "env_id": 586,
+      "column": 18,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 587,
+      "column": 18,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 588,
+      "column": 18,
+      "step": 1086,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 102.8277359008789
+      }
+    },
+    {
+      "env_id": 589,
+      "column": 18,
+      "step": 371,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 590,
+      "column": 18,
+      "step": 2000,
+      "outcome": "timeout",
+      "terms": [
+        "time_out"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 591,
+      "column": 18,
+      "step": 460,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 592,
+      "column": 18,
+      "step": 687,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 35.48920440673828
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 156.7230224609375
+      }
+    },
+    {
+      "env_id": 593,
+      "column": 18,
+      "step": 376,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 594,
+      "column": 18,
+      "step": 1711,
+      "outcome": "failure",
+      "terms": [
+        "source_curriculum_tile_bounds"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HR_SHANK": 104.1059341430664
+      }
+    },
+    {
+      "env_id": 595,
+      "column": 18,
+      "step": 464,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 596,
+      "column": 18,
+      "step": 539,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 67.98601531982422
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 209.38665771484375
+      }
+    },
+    {
+      "env_id": 597,
+      "column": 18,
+      "step": 557,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 598,
+      "column": 18,
+      "step": 1206,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 36.054443359375
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 330.5513000488281
+      }
+    },
+    {
+      "env_id": 599,
+      "column": 18,
+      "step": 666,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HR_SHANK": 53.582679748535156
+      },
+      "episode_peak_contacts": {
+        "HR_SHANK": 154.28334045410156
+      }
+    },
+    {
+      "env_id": 600,
+      "column": 18,
+      "step": 567,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 601,
+      "column": 18,
+      "step": 522,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 602,
+      "column": 18,
+      "step": 1846,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 21.849348068237305
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 305.9137268066406
+      }
+    },
+    {
+      "env_id": 603,
+      "column": 18,
+      "step": 1112,
+      "outcome": "failure",
+      "terms": [
+        "illegal_contact"
+      ],
+      "terminal_contacts": {
+        "HL_SHANK": 23.879749298095703
+      },
+      "episode_peak_contacts": {
+        "HL_SHANK": 200.4326629638672
+      }
+    },
+    {
+      "env_id": 604,
+      "column": 18,
+      "step": 605,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 605,
+      "column": 18,
+      "step": 408,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 606,
+      "column": 18,
+      "step": 452,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 607,
+      "column": 18,
+      "step": 616,
+      "outcome": "complete",
+      "terms": [
+        "source_curriculum_completion"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 608,
+      "column": 19,
+      "step": 577,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 609,
+      "column": 19,
+      "step": 367,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 610,
+      "column": 19,
+      "step": 396,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 611,
+      "column": 19,
+      "step": 486,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 612,
+      "column": 19,
+      "step": 414,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 613,
+      "column": 19,
+      "step": 450,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 614,
+      "column": 19,
+      "step": 555,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 615,
+      "column": 19,
+      "step": 344,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 616,
+      "column": 19,
+      "step": 388,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HL_SHANK": 182.22927856445312
+      }
+    },
+    {
+      "env_id": 617,
+      "column": 19,
+      "step": 374,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 618,
+      "column": 19,
+      "step": 331,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 619,
+      "column": 19,
+      "step": 478,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 620,
+      "column": 19,
+      "step": 485,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 621,
+      "column": 19,
+      "step": 530,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 622,
+      "column": 19,
+      "step": 466,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 623,
+      "column": 19,
+      "step": 531,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 624,
+      "column": 19,
+      "step": 463,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 625,
+      "column": 19,
+      "step": 390,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 626,
+      "column": 19,
+      "step": 399,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 627,
+      "column": 19,
+      "step": 335,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 628,
+      "column": 19,
+      "step": 383,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 629,
+      "column": 19,
+      "step": 425,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 630,
+      "column": 19,
+      "step": 470,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 631,
+      "column": 19,
+      "step": 404,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 632,
+      "column": 19,
+      "step": 363,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 633,
+      "column": 19,
+      "step": 354,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 634,
+      "column": 19,
+      "step": 477,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 635,
+      "column": 19,
+      "step": 458,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 636,
+      "column": 19,
+      "step": 354,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {
+        "HL_SHANK": 283.7061767578125
+      }
+    },
+    {
+      "env_id": 637,
+      "column": 19,
+      "step": 417,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 638,
+      "column": 19,
+      "step": 355,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    },
+    {
+      "env_id": 639,
+      "column": 19,
+      "step": 422,
+      "outcome": "failure",
+      "terms": [
+        "bad_orientation_2",
+        "source_curriculum_safety"
+      ],
+      "terminal_contacts": {},
+      "episode_peak_contacts": {}
+    }
+  ],
+  "contact_note": "sensor history at terminal step; multiple body contacts may overlap"
+}

@@ -1,0 +1,151 @@
+{
+  "paired_initial_states": true,
+  "rows": [
+    {
+      "start": "flat1998",
+      "seed": "baseline",
+      "updates": 0,
+      "upstairs": 0,
+      "downstairs": 7,
+      "rough_a": 27,
+      "rough_b": 28,
+      "rms_xy": 0.05669851781912998,
+      "rms_yaw": 0.07779961096267259,
+      "pure_turn_rms_yaw": 0.15545441154302764,
+      "falls": 91,
+      "ended": 3073,
+      "continue_training": true,
+      "stop_reasons": ""
+    },
+    {
+      "start": "terrain3497",
+      "seed": "baseline",
+      "updates": 0,
+      "upstairs": 23,
+      "downstairs": 1,
+      "rough_a": 32,
+      "rough_b": 32,
+      "rms_xy": 0.059836738559757324,
+      "rms_yaw": 0.07388872473116274,
+      "pure_turn_rms_yaw": 0.1254824879601861,
+      "falls": 69,
+      "ended": 3072,
+      "continue_training": true,
+      "stop_reasons": ""
+    },
+    {
+      "start": "flat1998",
+      "seed": 42,
+      "updates": 100,
+      "upstairs": 32,
+      "downstairs": 21,
+      "rough_a": 32,
+      "rough_b": 32,
+      "rms_xy": 0.06628605007030139,
+      "rms_yaw": 0.1380083556051711,
+      "pure_turn_rms_yaw": 0.35508989030740556,
+      "falls": 95,
+      "ended": 3076,
+      "continue_training": false,
+      "stop_reasons": "Q4/rms_xy_error: 0.06628605007030139 > 0.06236837; Q4/rms_yaw_error: 0.1380083556051711 > 0.08557957"
+    },
+    {
+      "start": "flat1998",
+      "seed": 43,
+      "updates": 100,
+      "upstairs": 30,
+      "downstairs": 16,
+      "rough_a": 32,
+      "rough_b": 32,
+      "rms_xy": 0.06936473893192692,
+      "rms_yaw": 0.13422585577608906,
+      "pure_turn_rms_yaw": 0.3254281960946547,
+      "falls": 193,
+      "ended": 3085,
+      "continue_training": false,
+      "stop_reasons": "Q4/rms_xy_error: 0.06936473893192692 > 0.06236837; Q4/rms_yaw_error: 0.13422585577608906 > 0.08557957; Q4/falls_per_episode: 0.06256077795786062 > 0.039613"
+    },
+    {
+      "start": "terrain3497",
+      "seed": 42,
+      "updates": 100,
+      "upstairs": 32,
+      "downstairs": 30,
+      "rough_a": 32,
+      "rough_b": 32,
+      "rms_xy": 0.06898522586283257,
+      "rms_yaw": 0.11400847588401856,
+      "pure_turn_rms_yaw": 0.27699313088392225,
+      "falls": 98,
+      "ended": 3072,
+      "continue_training": false,
+      "stop_reasons": "Q4/rms_xy_error: 0.06898522586283257 > 0.06236837; Q4/rms_yaw_error: 0.11400847588401856 > 0.08557957"
+    },
+    {
+      "start": "terrain3497",
+      "seed": 43,
+      "updates": 100,
+      "upstairs": 32,
+      "downstairs": 26,
+      "rough_a": 32,
+      "rough_b": 32,
+      "rms_xy": 0.06574318218670001,
+      "rms_yaw": 0.1009086757427201,
+      "pure_turn_rms_yaw": 0.22018993841551587,
+      "falls": 126,
+      "ended": 3072,
+      "continue_training": false,
+      "stop_reasons": "Q4/rms_xy_error: 0.06574318218670001 > 0.06236837; Q4/rms_yaw_error: 0.1009086757427201 > 0.08557957; Q4/falls_per_episode: 0.041015625 > 0.039613"
+    }
+  ],
+  "runs": [
+    {
+      "start": "flat1998",
+      "seed": 42,
+      "status": "stopped_by_development_rule",
+      "completed_updates": 100,
+      "training_transitions": 9830400
+    },
+    {
+      "start": "flat1998",
+      "seed": 43,
+      "status": "stopped_by_development_rule",
+      "completed_updates": 100,
+      "training_transitions": 9830400
+    },
+    {
+      "start": "terrain3497",
+      "seed": 42,
+      "status": "stopped_by_development_rule",
+      "completed_updates": 100,
+      "training_transitions": 9830400
+    },
+    {
+      "start": "terrain3497",
+      "seed": 43,
+      "status": "stopped_by_development_rule",
+      "completed_updates": 100,
+      "training_transitions": 9830400
+    }
+  ],
+  "total_updates": 400,
+  "total_training_transitions": 39321600,
+  "q4_limits": {
+    "rms_xy_error": 0.06236837,
+    "rms_yaw_error": 0.08557957,
+    "falls_per_episode": 0.039613
+  },
+  "cpu_tests": 176,
+  "validation": {
+    "120": {
+      "passed": 22,
+      "total": 22
+    },
+    "4096": {
+      "passed": 22,
+      "total": 22
+    }
+  },
+  "selected_theta1": null,
+  "final_qualification_performed": false
+}

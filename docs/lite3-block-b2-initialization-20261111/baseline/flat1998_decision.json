@@ -1,0 +1,81 @@
+{
+  "continue_training": true,
+  "reasons": [],
+  "baseline_stair_floors": {},
+  "q4_limits": {
+    "rms_xy_error": 0.06236837,
+    "rms_yaw_error": 0.08557957,
+    "falls_per_episode": 0.039613
+  },
+  "upstairs": {
+    "column": 4,
+    "name": "stairs_ascending",
+    "episodes": 32,
+    "complete": 0,
+    "failure": 16,
+    "timeout": 16
+  },
+  "downstairs": {
+    "column": 5,
+    "name": "stairs_descending",
+    "episodes": 32,
+    "complete": 7,
+    "failure": 25,
+    "timeout": 0
+  },
+  "rough": [
+    {
+      "column": 6,
+      "name": "reference_uniform_rough_a",
+      "episodes": 32,
+      "complete": 27,
+      "failure": 5,
+      "timeout": 0
+    },
+    {
+      "column": 15,
+      "name": "reference_uniform_rough_b",
+      "episodes": 32,
+      "complete": 28,
+      "failure": 4,
+      "timeout": 0
+    }
+  ],
+  "flat_metrics": {
+    "categories": {
+      "mixed": {
+        "rms_xy_error": 0.06622339369603387,
+        "rms_yaw_error": 0.07780409512873283,
+        "tracking_samples": 1389166
+      },
+      "only_ang": {
+        "rms_xy_error": 0.05600518425944186,
+        "rms_yaw_error": 0.15545441154302764,
+        "tracking_samples": 300189
+      },
+      "only_x": {
+        "rms_xy_error": 0.04786014918129028,
+        "rms_yaw_error": 0.046904840743036,
+        "tracking_samples": 615793
+      },
+      "only_y": {
+        "rms_xy_error": 0.056570147236370626,
+        "rms_yaw_error": 0.05090172329108819,
+        "tracking_samples": 305362
+      },
+      "standing": {
+        "rms_xy_error": 0.03112835131777955,
+        "rms_yaw_error": 0.04087457472654955,
+        "tracking_samples": 458417
+      }
+    },
+    "ended_episodes": 3073,
+    "excluded_reset_samples": 3073,
+    "fall_episodes": 91,
+    "falls_per_episode": 0.029612756264236904,
+    "rms_xy_error": 0.05669851781912998,
+    "rms_yaw_error": 0.07779961096267259,
+    "total_env_steps": 3072000,
+    "tracking_samples": 3068927
+  }
+}

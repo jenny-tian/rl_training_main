@@ -69,4 +69,4 @@ python scripts/tools/source_block_reference_rough_visualize.py --baseline --gpu 
 
 ## 下一阶段
 
-下一阶段方案见 [B2 更新提案](b2-proposal.md)。该提案使用本轮新粗糙地形，仍需用户批准；没有启动正式训练。
+本报告完成时，下一阶段仍是待批准的 [B2 更新提案](b2-proposal.md)。用户随后批准了两个起点的对照，第一段已完成，实际结果见 [B2 起点对照报告](../lite3-block-b2-initialization-20261111/README.md)；本文件上文保留 B1.1 当时的实施范围与证据。
