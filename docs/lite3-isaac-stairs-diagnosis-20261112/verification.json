@@ -1,0 +1,259 @@
+{
+  "status": "passed",
+  "formal_episodes": 480,
+  "unique_records": true,
+  "checkpoint_unchanged": true,
+  "checkpoint_sha256": "5cf4c1160b6f5b7b5102844526b26f3886c27562d98ea9558e3fa09da504f5a1",
+  "common_training_sources_unchanged": 20,
+  "common_source_files": [
+    "/home/tjx/rl_training/source/rl_training/rl_training/assets/__init__.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/assets/deeprobotics.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/agents/__init__.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/agents/rsl_rl_ppo_cfg.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/rough_env_cfg.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/__init__.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/curriculums.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/events.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/observations.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+    "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/velocity_env_cfg.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_lite3_loader.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/_mesh_chunking.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer_cfg.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_isaac.py",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py"
+  ],
+  "rollout_checks": [
+    {
+      "run": "nominal_v1",
+      "all_arrays_finite": true,
+      "first_episode_durations_valid": true,
+      "records": 240
+    },
+    {
+      "run": "training_randomized_v1",
+      "all_arrays_finite": true,
+      "first_episode_durations_valid": true,
+      "records": 240
+    }
+  ],
+  "videos": [
+    {
+      "name": "nominal_10cm_04",
+      "decode": "passed",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "width": 960,
+            "height": 540,
+            "r_frame_rate": "10/1",
+            "nb_frames": "201"
+          }
+        ],
+        "format": {
+          "duration": "20.100000"
+        }
+      },
+      "replay": {
+        "all_240_records_equal": true,
+        "initial_max_errors": {
+          "root": 0.0,
+          "joint_pos": 0.0,
+          "joint_vel": 0.0,
+          "observation": 0.0,
+          "origins": 0.0,
+          "materials": 0.0,
+          "phase_foot_reference": 0.0
+        },
+        "trace_max_errors": {
+          "active": 0.0,
+          "root": 0.0,
+          "quat": 0.0,
+          "velocity": 0.0,
+          "gravity": 0.0,
+          "feet": 0.0,
+          "forces": 0.0,
+          "action": 0.0,
+          "joint_pos": 0.0,
+          "joint_vel": 0.0,
+          "joint_target": 0.0,
+          "torque": 0.0,
+          "reward_rates": 0.0,
+          "command": 0.0,
+          "scan_mean": 0.0,
+          "terminated": 0.0,
+          "truncated": 0.0,
+          "term_flags": 0.0
+        }
+      }
+    },
+    {
+      "name": "training_randomized_10cm_04",
+      "decode": "passed",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "width": 960,
+            "height": 540,
+            "r_frame_rate": "10/1",
+            "nb_frames": "201"
+          }
+        ],
+        "format": {
+          "duration": "20.100000"
+        }
+      },
+      "replay": {
+        "all_240_records_equal": true,
+        "initial_max_errors": {
+          "root": 0.0,
+          "joint_pos": 0.0,
+          "joint_vel": 0.0,
+          "observation": 0.0,
+          "origins": 0.0,
+          "materials": 0.0,
+          "phase_foot_reference": 0.0
+        },
+        "trace_max_errors": {
+          "active": 0.0,
+          "root": 0.0,
+          "quat": 0.0,
+          "velocity": 0.0,
+          "gravity": 0.0,
+          "feet": 0.0,
+          "forces": 0.0,
+          "action": 0.0,
+          "joint_pos": 0.0,
+          "joint_vel": 0.0,
+          "joint_target": 0.0,
+          "torque": 0.0,
+          "reward_rates": 0.0,
+          "command": 0.0,
+          "scan_mean": 0.0,
+          "terminated": 0.0,
+          "truncated": 0.0,
+          "term_flags": 0.0
+        }
+      }
+    }
+  ],
+  "tests": {
+    "passed": 2,
+    "plugin_autoload_disabled": true
+  },
+  "source_files": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+      "sha256": "e8ef0902080f7c394ab3badd1e509065c39461f9855a73697cbf029cf97cdf54"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_analyze.py",
+      "sha256": "fcc351785bb986b182667c98b2d5dc7a91dccfda619265b33ff76033459cf99b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/source_curriculum/test_reference_isaac_stairs_analysis.py",
+      "sha256": "26c797784602673e0dfd7298fbb9a143073fb6fedaef4ce19543d1dabf4ff014"
+    }
+  ],
+  "trial_runs": [
+    {
+      "name": "pilot_v1",
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+          "--profile",
+          "nominal",
+          "--repeats",
+          "2",
+          "--steps",
+          "100",
+          "--output",
+          "logs/reference_six/isaac_stairs_diagnosis_20261112/pilot_v1",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 0,
+        "admission_free_mib": 17783,
+        "peak_total_gpu_used_mib": 6729,
+        "sampling_interval_seconds": 2,
+        "status": "failed",
+        "source_commit": "dee0b7cbbc00e69600a45d036ed8e2037445a343",
+        "source_status": "?? .superpowers/\n?? scripts/tools/reference_isaac_stairs_diagnose.py\n",
+        "pid": 773892,
+        "exit_code": 1,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 28.7509882831946
+      }
+    },
+    {
+      "name": "pilot_v2",
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+          "--profile",
+          "nominal",
+          "--repeats",
+          "2",
+          "--steps",
+          "100",
+          "--output",
+          "logs/reference_six/isaac_stairs_diagnosis_20261112/pilot_v2",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 0,
+        "admission_free_mib": 17783,
+        "peak_total_gpu_used_mib": 9067,
+        "sampling_interval_seconds": 2,
+        "status": "failed",
+        "source_commit": "dee0b7cbbc00e69600a45d036ed8e2037445a343",
+        "source_status": "?? .superpowers/\n?? scripts/tools/reference_isaac_stairs_diagnose.py\n",
+        "pid": 775551,
+        "exit_code": 1,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 20.548313201405108
+      }
+    },
+    {
+      "name": "pilot_v3",
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+          "--profile",
+          "nominal",
+          "--repeats",
+          "2",
+          "--steps",
+          "100",
+          "--output",
+          "logs/reference_six/isaac_stairs_diagnosis_20261112/pilot_v3",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 0,
+        "admission_free_mib": 17783,
+        "peak_total_gpu_used_mib": 9095,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "source_commit": "dee0b7cbbc00e69600a45d036ed8e2037445a343",
+        "source_status": "?? .superpowers/\n?? scripts/tools/reference_isaac_stairs_diagnose.py\n",
+        "pid": 776877,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 28.779851539991796
+      }
+    }
+  ]
+}
