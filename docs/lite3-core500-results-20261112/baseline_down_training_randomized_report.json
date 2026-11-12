@@ -1,0 +1,4292 @@
+{
+  "status": "passed",
+  "profile": "training_randomized",
+  "direction": "down",
+  "action_mode": "mean",
+  "episodes": 240,
+  "steps": 1000,
+  "step_dt": 0.02,
+  "probe": false,
+  "model": "update10000",
+  "actor_unchanged": true,
+  "checkpoint_sha256": "5cf4c1160b6f5b7b5102844526b26f3886c27562d98ea9558e3fa09da504f5a1",
+  "actor_hashes": {
+    "0.weight": "313cf4bc628a78184d50c2741a68629eabcd761876614d10a0318268e086a44e",
+    "0.bias": "4de614b996070e873818cea53b4830cd0a877680c1d25dc216cf4258e7eaf603",
+    "2.weight": "c81fbaa33c499dbed72dbaace196e75b47326a077f85747a6a969c88c5ee7ab5",
+    "2.bias": "88cc6df026d22b0765ca04bc7e4c39209cc1d5a240e50c09c60b1be2a32fa333",
+    "4.weight": "3f142b978ed59884bc9b7bfff96b2c7fdc3a99310d24b7fbf4b37fde8b7c67fe",
+    "4.bias": "fbe638d0e41bfe795530189e2bff8a17a3ede08f4a12451234056447540fbfe0",
+    "6.weight": "ea1508e1ac071ba58c7f31a09294db1088208cf653e5a3aa785e0f6d085fbfea",
+    "6.bias": "9fe09c4182d690914a3cd458ebc88ca838073ea18172621e739a6ba7c7941cfa"
+  },
+  "first_episodes_only": true,
+  "pre_reset_capture": true,
+  "groups": [
+    {
+      "height": 0.0,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 7,
+        "success": 10,
+        "timeout": 3
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.0,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 1,
+        "orientation_failure": 2,
+        "success": 17
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.0,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 2,
+        "success": 18
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.05,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 2,
+        "orientation_failure": 2,
+        "success": 13,
+        "timeout": 3
+      },
+      "first_riser": 13,
+      "best_risers": 7
+    },
+    {
+      "height": 0.05,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 2,
+        "orientation_failure": 4,
+        "success": 14
+      },
+      "first_riser": 15,
+      "best_risers": 7
+    },
+    {
+      "height": 0.05,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 2,
+        "orientation_failure": 3,
+        "success": 15
+      },
+      "first_riser": 16,
+      "best_risers": 7
+    },
+    {
+      "height": 0.1,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "orientation_failure": 8,
+        "stuck": 5,
+        "success": 2,
+        "timeout": 5
+      },
+      "first_riser": 2,
+      "best_risers": 7
+    },
+    {
+      "height": 0.1,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 1,
+        "orientation_failure": 13,
+        "stuck": 1,
+        "success": 5
+      },
+      "first_riser": 5,
+      "best_risers": 7
+    },
+    {
+      "height": 0.1,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "orientation_failure": 12,
+        "success": 8
+      },
+      "first_riser": 8,
+      "best_risers": 7
+    },
+    {
+      "height": 0.15,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "orientation_failure": 19,
+        "stuck": 1
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.15,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "orientation_failure": 20
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.15,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "orientation_failure": 20
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    }
+  ],
+  "records": [
+    {
+      "env_id": 0,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.84,
+      "final_root": [
+        3.3715336322784424,
+        -0.3885536193847656,
+        0.3213549852371216
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 1,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 15.44,
+      "final_root": [
+        2.614049196243286,
+        1.0029935836791992,
+        0.3191441297531128
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 2,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.9,
+      "final_root": [
+        3.3579788208007812,
+        0.8033876419067383,
+        0.3275444209575653
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 3,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 16.9,
+      "final_root": [
+        2.7766640186309814,
+        1.0004920959472656,
+        0.32601964473724365
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 4,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 14.04,
+      "final_root": [
+        3.366062641143799,
+        0.3517589569091797,
+        0.3309740424156189
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 5,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 20.0,
+      "final_root": [
+        2.9694955348968506,
+        1.0001745223999023,
+        0.3290470242500305
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 6,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 9.06,
+      "final_root": [
+        3.376986503601074,
+        1.0037660598754883,
+        0.3306877911090851
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 7,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 11.98,
+      "final_root": [
+        2.951911687850952,
+        1.001291275024414,
+        0.32808902859687805
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 8,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.12,
+      "final_root": [
+        3.3602278232574463,
+        0.23926639556884766,
+        0.3269824981689453
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 9,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 0,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        3.0658562183380127,
+        0.9633121490478516,
+        0.331320583820343
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 10,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 13.0,
+      "final_root": [
+        3.360186815261841,
+        0.1701831817626953,
+        0.32966241240501404
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 11,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 12.16,
+      "final_root": [
+        3.2500107288360596,
+        -1.0033235549926758,
+        0.32444652915000916
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 12,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 16.22,
+      "final_root": [
+        3.343109130859375,
+        0.2069683074951172,
+        0.32548788189888
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 13,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 15.28,
+      "final_root": [
+        3.352961778640747,
+        0.44417476654052734,
+        0.3321138620376587
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 14,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 14.74,
+      "final_root": [
+        2.8251113891601562,
+        1.003377914428711,
+        0.3209211826324463
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 15,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 0,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        3.265956163406372,
+        -0.7764177322387695,
+        0.33297550678253174
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 16,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 14.4,
+      "final_root": [
+        3.361614942550659,
+        -0.473846435546875,
+        0.33330395817756653
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 17,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 0,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.469069719314575,
+        0.3209247589111328,
+        0.33021748065948486
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 18,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 13.6,
+      "final_root": [
+        3.3735764026641846,
+        -0.15938663482666016,
+        0.33649590611457825
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 19,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 14.7,
+      "final_root": [
+        3.3583579063415527,
+        0.6532983779907227,
+        0.33165380358695984
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 20,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.3,
+      "final_root": [
+        3.4070427417755127,
+        -0.5385522842407227,
+        0.3259354531764984
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 21,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.4,
+      "final_root": [
+        3.4035956859588623,
+        -0.5425348281860352,
+        0.32849791646003723
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 22,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.06,
+      "final_root": [
+        3.413616895675659,
+        0.09487152099609375,
+        0.32503989338874817
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 23,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.32,
+      "final_root": [
+        3.3851559162139893,
+        -0.2436981201171875,
+        0.32774969935417175
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 24,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.06,
+      "final_root": [
+        3.354604959487915,
+        0.9792404174804688,
+        0.32571133971214294
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 25,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.32,
+      "final_root": [
+        3.4205005168914795,
+        -0.7382040023803711,
+        0.32640594244003296
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 26,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 0,
+      "outcome": "orientation_failure",
+      "duration_s": 0.24,
+      "final_root": [
+        -0.07902849465608597,
+        -0.09346294403076172,
+        0.3269822895526886
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 27,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 8.04,
+      "final_root": [
+        3.052950143814087,
+        1.004471778869629,
+        0.32567599415779114
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 28,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.66,
+      "final_root": [
+        3.3918840885162354,
+        -0.03944969177246094,
+        0.3229794204235077
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 29,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.32,
+      "final_root": [
+        3.3630690574645996,
+        0.08163166046142578,
+        0.3239615559577942
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 30,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 7.74,
+      "final_root": [
+        3.4189164638519287,
+        0.4849567413330078,
+        0.3266609311103821
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 31,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.42,
+      "final_root": [
+        3.390070915222168,
+        0.5542516708374023,
+        0.3214588165283203
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 32,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.34,
+      "final_root": [
+        3.3681392669677734,
+        -0.9239091873168945,
+        0.31946516036987305
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 33,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.78,
+      "final_root": [
+        3.397549867630005,
+        0.6101474761962891,
+        0.32821208238601685
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 34,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.92,
+      "final_root": [
+        3.3876967430114746,
+        0.6601171493530273,
+        0.32406115531921387
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 35,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 14.6,
+      "final_root": [
+        3.3669679164886475,
+        -0.8911190032958984,
+        0.3262101113796234
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 36,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 13.98,
+      "final_root": [
+        3.3587892055511475,
+        -0.47065162658691406,
+        0.32471930980682373
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 37,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.64,
+      "final_root": [
+        3.3845701217651367,
+        0.14055252075195312,
+        0.3235410749912262
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 38,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 0,
+      "outcome": "orientation_failure",
+      "duration_s": 0.26,
+      "final_root": [
+        0.08346698433160782,
+        0.11336231231689453,
+        0.30670303106307983
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 39,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.58,
+      "final_root": [
+        3.355813980102539,
+        0.8388967514038086,
+        0.33334091305732727
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 40,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 5.72,
+      "final_root": [
+        3.4761667251586914,
+        -0.20491695404052734,
+        0.3268662095069885
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 41,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.54,
+      "final_root": [
+        3.441229820251465,
+        -0.9222087860107422,
+        0.32937556505203247
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 42,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 4.8,
+      "final_root": [
+        1.9012757539749146,
+        -1.000208854675293,
+        0.33079612255096436
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 43,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.456292152404785,
+        0.1255207061767578,
+        0.3251861333847046
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 44,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.4,
+      "final_root": [
+        3.461125373840332,
+        -0.26322174072265625,
+        0.33131206035614014
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 45,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.98,
+      "final_root": [
+        3.4405109882354736,
+        -0.9762248992919922,
+        0.3244706392288208
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 46,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.38,
+      "final_root": [
+        3.448460102081299,
+        0.029872894287109375,
+        0.32137414813041687
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 47,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 5.88,
+      "final_root": [
+        3.473853588104248,
+        0.29352378845214844,
+        0.3254733681678772
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 48,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.74,
+      "final_root": [
+        3.4434738159179688,
+        0.790435791015625,
+        0.3345848321914673
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 49,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.42,
+      "final_root": [
+        3.458677291870117,
+        -0.299835205078125,
+        0.32708343863487244
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 50,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 5.94,
+      "final_root": [
+        3.471672296524048,
+        -0.05041694641113281,
+        0.3301904499530792
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 51,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.58,
+      "final_root": [
+        3.4555935859680176,
+        -0.5635290145874023,
+        0.3223484754562378
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 52,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 0,
+      "outcome": "lateral_exit",
+      "duration_s": 5.92,
+      "final_root": [
+        2.67679762840271,
+        1.0001497268676758,
+        0.3371870219707489
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 53,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 7.96,
+      "final_root": [
+        3.4210622310638428,
+        0.40985774993896484,
+        0.32501256465911865
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 54,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 5.78,
+      "final_root": [
+        3.478238821029663,
+        0.3777894973754883,
+        0.32710590958595276
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 55,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.58,
+      "final_root": [
+        3.448621988296509,
+        0.1690216064453125,
+        0.3234274983406067
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 56,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.64,
+      "final_root": [
+        3.4611713886260986,
+        -0.8906259536743164,
+        0.3213897943496704
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 57,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 5.94,
+      "final_root": [
+        3.474379062652588,
+        0.40538692474365234,
+        0.3310771882534027
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 58,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.76,
+      "final_root": [
+        3.4425880908966064,
+        0.7697792053222656,
+        0.32820725440979004
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 59,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.66,
+      "final_root": [
+        3.450681209564209,
+        -0.09180450439453125,
+        0.33145618438720703
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 60,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 14.8,
+      "final_root": [
+        3.3440475463867188,
+        -0.9211034774780273,
+        -0.02507460117340088
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 61,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 13.66,
+      "final_root": [
+        3.3727545738220215,
+        -0.28041553497314453,
+        -0.02240660786628723
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 62,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 16.54,
+      "final_root": [
+        3.351992130279541,
+        0.4209473133087158,
+        -0.023401498794555664
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 63,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.88,
+      "final_root": [
+        3.374284029006958,
+        -0.4421982765197754,
+        -0.019597381353378296
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 64,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 15.22,
+      "final_root": [
+        3.3463850021362305,
+        -0.18447542190551758,
+        -0.022677987813949585
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 65,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 1,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.7837138175964355,
+        0.1674497127532959,
+        0.05272704362869263
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 66,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 1,
+      "outcome": "lateral_exit",
+      "duration_s": 13.14,
+      "final_root": [
+        2.656303644180298,
+        1.0006887912750244,
+        0.076600581407547
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 67,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 1,
+      "outcome": "lateral_exit",
+      "duration_s": 14.56,
+      "final_root": [
+        2.539757251739502,
+        1.003737211227417,
+        0.07202112674713135
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 68,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 13.58,
+      "final_root": [
+        3.370314359664917,
+        0.07260727882385254,
+        -0.020562589168548584
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 69,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 15.26,
+      "final_root": [
+        3.3719265460968018,
+        -0.5479922294616699,
+        -0.02620050311088562
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 70,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 1,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.7357876300811768,
+        -0.9942536354064941,
+        0.05094769597053528
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 71,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.2,
+      "final_root": [
+        3.363436460494995,
+        -0.5201625823974609,
+        -0.027064770460128784
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 72,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.18,
+      "final_root": [
+        0.05721031874418259,
+        0.014169454574584961,
+        0.32716283202171326
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 73,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 13.06,
+      "final_root": [
+        3.3575589656829834,
+        0.35791802406311035,
+        -0.0251939594745636
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 74,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 15.8,
+      "final_root": [
+        3.3845319747924805,
+        0.0749504566192627,
+        -0.017107397317886353
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 75,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 15.8,
+      "final_root": [
+        3.3276469707489014,
+        -0.8276715278625488,
+        -0.02430710196495056
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 76,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 17.78,
+      "final_root": [
+        3.338589668273926,
+        0.1937699317932129,
+        -0.020432591438293457
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 77,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.26,
+      "final_root": [
+        0.06467264145612717,
+        -0.08886194229125977,
+        0.32206109166145325
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 78,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 1,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.5985159873962402,
+        0.2186264991760254,
+        0.07586991786956787
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 79,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 13.18,
+      "final_root": [
+        3.3703572750091553,
+        -0.6458597183227539,
+        -0.02727559208869934
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 80,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.2,
+      "final_root": [
+        0.06518867611885071,
+        -0.06599283218383789,
+        0.33261045813560486
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 81,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.86,
+      "final_root": [
+        3.393556833267212,
+        0.17847800254821777,
+        -0.02587851881980896
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 82,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.66,
+      "final_root": [
+        3.385568141937256,
+        -0.4068722724914551,
+        -0.028724610805511475
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 83,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 8.98,
+      "final_root": [
+        3.3882133960723877,
+        -0.338259220123291,
+        -0.02985706925392151
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 84,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.2,
+      "final_root": [
+        -0.03811897337436676,
+        -0.02395343780517578,
+        0.3248279392719269
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 85,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 10.42,
+      "final_root": [
+        3.3855578899383545,
+        0.4494626522064209,
+        -0.02476489543914795
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 86,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.28,
+      "final_root": [
+        3.3935914039611816,
+        0.48483729362487793,
+        -0.01807299256324768
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 87,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.18,
+      "final_root": [
+        0.0033095134422183037,
+        0.006182432174682617,
+        0.3129083812236786
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 88,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 1,
+      "outcome": "lateral_exit",
+      "duration_s": 10.9,
+      "final_root": [
+        3.348597764968872,
+        1.0013744831085205,
+        -0.02487197518348694
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 89,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.28,
+      "final_root": [
+        -0.019981201738119125,
+        -0.06437110900878906,
+        0.34791305661201477
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 90,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.04,
+      "final_root": [
+        3.3791491985321045,
+        -0.5148720741271973,
+        -0.030322372913360596
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 91,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.02,
+      "final_root": [
+        3.362147331237793,
+        -0.6827917098999023,
+        -0.021865397691726685
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 92,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 10.74,
+      "final_root": [
+        3.3955349922180176,
+        -0.7664899826049805,
+        -0.016781270503997803
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 93,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.84,
+      "final_root": [
+        3.389157295227051,
+        -0.1961965560913086,
+        -0.027382463216781616
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 94,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 8.18,
+      "final_root": [
+        3.404575824737549,
+        -0.2670459747314453,
+        -0.021325111389160156
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 95,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.82,
+      "final_root": [
+        3.3736376762390137,
+        0.2749350070953369,
+        -0.022349655628204346
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 96,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 10.38,
+      "final_root": [
+        3.33837890625,
+        0.5311882495880127,
+        -0.015148401260375977
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 97,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 1,
+      "outcome": "lateral_exit",
+      "duration_s": 15.16,
+      "final_root": [
+        3.245832681655884,
+        -1.0016288757324219,
+        -0.006102949380874634
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 98,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 8.72,
+      "final_root": [
+        3.382842540740967,
+        0.5933859348297119,
+        -0.020454704761505127
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 99,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 8.34,
+      "final_root": [
+        3.4144790172576904,
+        0.02438521385192871,
+        -0.028183579444885254
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 100,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 1,
+      "outcome": "lateral_exit",
+      "duration_s": 5.3,
+      "final_root": [
+        2.3842930793762207,
+        -1.0024495124816895,
+        0.09608253836631775
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 101,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 7.08,
+      "final_root": [
+        3.4257500171661377,
+        0.10173249244689941,
+        -0.026446640491485596
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 102,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.18,
+      "final_root": [
+        3.4623727798461914,
+        -0.23702001571655273,
+        -0.02657616138458252
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 103,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 7.98,
+      "final_root": [
+        3.3585338592529297,
+        0.9869813919067383,
+        -0.013150542974472046
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 104,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 1,
+      "outcome": "lateral_exit",
+      "duration_s": 7.8,
+      "final_root": [
+        3.3854429721832275,
+        -1.0009379386901855,
+        -0.02934536337852478
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 105,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.26,
+      "final_root": [
+        -0.008705494925379753,
+        0.0603032112121582,
+        0.33663955330848694
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 106,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.2,
+      "final_root": [
+        -0.02966677024960518,
+        -0.08035469055175781,
+        0.3219021260738373
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 107,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 1,
+      "outcome": "orientation_failure",
+      "duration_s": 0.18,
+      "final_root": [
+        0.032515689730644226,
+        0.03943467140197754,
+        0.35248425602912903
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 108,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.92,
+      "final_root": [
+        3.4313552379608154,
+        -0.5521965026855469,
+        -0.022671431303024292
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 109,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.5,
+      "final_root": [
+        3.442013740539551,
+        -0.1885523796081543,
+        -0.019180327653884888
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 110,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.64,
+      "final_root": [
+        3.438964605331421,
+        -0.08678579330444336,
+        -0.017848938703536987
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 111,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.4516663551330566,
+        -0.06797313690185547,
+        -0.02337813377380371
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 112,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.28,
+      "final_root": [
+        3.437274932861328,
+        0.7099604606628418,
+        -0.015541523694992065
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 113,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.18,
+      "final_root": [
+        3.462862491607666,
+        -0.35064029693603516,
+        -0.01639971137046814
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 114,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.92,
+      "final_root": [
+        3.4190735816955566,
+        -0.22790956497192383,
+        -0.023948252201080322
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 115,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.76,
+      "final_root": [
+        3.41707706451416,
+        -0.053180694580078125,
+        -0.0261991024017334
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 116,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.38,
+      "final_root": [
+        3.4295520782470703,
+        0.24000930786132812,
+        -0.025765985250473022
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 117,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.54,
+      "final_root": [
+        3.4320342540740967,
+        -0.357177734375,
+        -0.021452516317367554
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 118,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 7.02,
+      "final_root": [
+        3.4408717155456543,
+        0.08713793754577637,
+        -0.02072080969810486
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 119,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.9,
+      "final_root": [
+        3.422804355621338,
+        0.1446521282196045,
+        -0.031099826097488403
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 120,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 2,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        1.6883165836334229,
+        -0.12206530570983887,
+        0.13871097564697266
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 121,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.16,
+      "final_root": [
+        0.03177833557128906,
+        -0.07509613037109375,
+        0.3370766043663025
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 122,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 7.92,
+      "final_root": [
+        1.7461800575256348,
+        -0.11316752433776855,
+        0.15873616933822632
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 123,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 9.12,
+      "final_root": [
+        2.2920868396759033,
+        -0.23096132278442383,
+        -0.015324950218200684
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 124,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 11.78,
+      "final_root": [
+        1.851409912109375,
+        -0.3344099521636963,
+        0.07097786664962769
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 125,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 2,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.4830434322357178,
+        -0.037068843841552734,
+        -0.12687057256698608
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 126,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 14.92,
+      "final_root": [
+        2.3955423831939697,
+        0.1188974380493164,
+        -0.08538806438446045
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 127,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 8.5,
+      "final_root": [
+        1.9827054738998413,
+        -0.014913558959960938,
+        0.08157122135162354
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 128,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 2,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.0566020011901855,
+        -0.20340490341186523,
+        0.2970220446586609
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 129,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 2,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.265803098678589,
+        -0.52655029296875,
+        -0.06356167793273926
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 130,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 2,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        2.3027091026306152,
+        0.03476142883300781,
+        -0.06574195623397827
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 131,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 2,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.4060637950897217,
+        -0.16199493408203125,
+        0.2323053479194641
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 132,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 2,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.399036169052124,
+        -0.06729769706726074,
+        0.2396470308303833
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 133,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 4.02,
+      "final_root": [
+        1.4227875471115112,
+        -0.02852630615234375,
+        0.2823086977005005
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 134,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 18.78,
+      "final_root": [
+        3.3080458641052246,
+        0.028679847717285156,
+        -0.35847601294517517
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 135,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 15.26,
+      "final_root": [
+        3.000688314437866,
+        -0.01655292510986328,
+        -0.23664653301239014
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 136,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 2,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.712484121322632,
+        -0.21197175979614258,
+        -0.2183346152305603
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 137,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 2,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        1.7323862314224243,
+        -0.060727834701538086,
+        0.13685601949691772
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 138,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 16.92,
+      "final_root": [
+        3.3518543243408203,
+        -0.18978357315063477,
+        -0.3707033693790436
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 139,
+      "height": 0.1,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 2,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.7159812450408936,
+        -0.22389793395996094,
+        0.14213478565216064
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 140,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 12.52,
+      "final_root": [
+        3.3754324913024902,
+        -0.2270197868347168,
+        -0.37243884801864624
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 141,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 2,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        2.309105157852173,
+        0.03302145004272461,
+        -0.055824100971221924
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 142,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 5.96,
+      "final_root": [
+        2.07244873046875,
+        -0.05823540687561035,
+        0.01197594404220581
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 143,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.14,
+      "final_root": [
+        -0.009269528090953827,
+        -0.08865213394165039,
+        0.33571892976760864
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 144,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 7.02,
+      "final_root": [
+        2.2004966735839844,
+        -0.29979944229125977,
+        -0.008105099201202393
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 145,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 13.62,
+      "final_root": [
+        3.3530569076538086,
+        -0.364565372467041,
+        -0.3661332130432129
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 146,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 6.68,
+      "final_root": [
+        2.1700870990753174,
+        -0.17311668395996094,
+        -0.005743801593780518
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 147,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 8.36,
+      "final_root": [
+        2.9446280002593994,
+        -0.43869781494140625,
+        -0.21244201064109802
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 148,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 5.04,
+      "final_root": [
+        1.9451267719268799,
+        -0.2454221248626709,
+        0.11142945289611816
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 149,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 13.3,
+      "final_root": [
+        3.3607513904571533,
+        -0.9883041381835938,
+        -0.37528732419013977
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 150,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 8.38,
+      "final_root": [
+        2.504840612411499,
+        -0.32210421562194824,
+        -0.11589926481246948
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 151,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 7.74,
+      "final_root": [
+        2.708510637283325,
+        -0.008169412612915039,
+        -0.180769145488739
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 152,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.74,
+      "final_root": [
+        3.378347635269165,
+        -0.3809182643890381,
+        -0.37020352482795715
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 153,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.18,
+      "final_root": [
+        -0.002236255444586277,
+        -0.03149271011352539,
+        0.338009774684906
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 154,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 12.92,
+      "final_root": [
+        3.3769853115081787,
+        -0.6871757507324219,
+        -0.3775565028190613
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 155,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 2,
+      "outcome": "lateral_exit",
+      "duration_s": 13.12,
+      "final_root": [
+        3.1028685569763184,
+        -1.0024950504302979,
+        -0.3365017771720886
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 156,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 5.66,
+      "final_root": [
+        1.784037470817566,
+        -0.27637624740600586,
+        0.19228100776672363
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 157,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 6.34,
+      "final_root": [
+        2.508662700653076,
+        0.06246137619018555,
+        -0.13342642784118652
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 158,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 4.36,
+      "final_root": [
+        1.4681991338729858,
+        -0.07831096649169922,
+        0.28582996129989624
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 159,
+      "height": 0.1,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 3.78,
+      "final_root": [
+        1.5063544511795044,
+        0.055403709411621094,
+        0.2855689525604248
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 160,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.14,
+      "final_root": [
+        0.0682692602276802,
+        -0.045391082763671875,
+        0.32061415910720825
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 161,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 7.5,
+      "final_root": [
+        3.4118897914886475,
+        -0.25426578521728516,
+        -0.3802891671657562
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 162,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 7.0,
+      "final_root": [
+        3.6696665287017822,
+        -0.3915410041809082,
+        -0.3950231969356537
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 163,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.84,
+      "final_root": [
+        3.411371946334839,
+        -0.8566620349884033,
+        -0.377346932888031
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 164,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.44,
+      "final_root": [
+        3.4334299564361572,
+        0.26549243927001953,
+        -0.37553870677948
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 165,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 3.06,
+      "final_root": [
+        1.579172134399414,
+        -0.05739593505859375,
+        0.26718372106552124
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 166,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 7.24,
+      "final_root": [
+        3.3903746604919434,
+        -0.7008085250854492,
+        -0.37300702929496765
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 167,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 8.62,
+      "final_root": [
+        3.41021728515625,
+        -0.1886892318725586,
+        -0.371236652135849
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 168,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 7.92,
+      "final_root": [
+        3.4516711235046387,
+        -0.508948564529419,
+        -0.3527943193912506
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 169,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.22,
+      "final_root": [
+        -0.00894798431545496,
+        -0.042475223541259766,
+        0.3445863127708435
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 170,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.66,
+      "final_root": [
+        3.442004442214966,
+        -0.1623706817626953,
+        -0.3771694302558899
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 171,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 6.94,
+      "final_root": [
+        3.222607374191284,
+        -0.2912313938140869,
+        -0.3526115119457245
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 172,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.18,
+      "final_root": [
+        0.06636589765548706,
+        0.012032508850097656,
+        0.3287833333015442
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 173,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.14,
+      "final_root": [
+        -0.02546912245452404,
+        -0.0027179718017578125,
+        0.3407054543495178
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 174,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 0.26,
+      "final_root": [
+        0.006554140709340572,
+        -0.06960463523864746,
+        0.3167688250541687
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 175,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 3.22,
+      "final_root": [
+        1.7579386234283447,
+        0.19789981842041016,
+        0.1499609351158142
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 176,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 2.82,
+      "final_root": [
+        1.4243422746658325,
+        -0.050221920013427734,
+        0.2762489914894104
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 177,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 2,
+      "outcome": "orientation_failure",
+      "duration_s": 2.96,
+      "final_root": [
+        1.5031986236572266,
+        -0.1235044002532959,
+        0.2563357949256897
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 178,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 7.4,
+      "final_root": [
+        3.4081761837005615,
+        -0.17623591423034668,
+        -0.3799858093261719
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 179,
+      "height": 0.1,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.56,
+      "final_root": [
+        3.426609516143799,
+        -0.232025146484375,
+        -0.372030109167099
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 180,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.78,
+      "final_root": [
+        1.3960051536560059,
+        -0.14188003540039062,
+        0.2412714958190918
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 181,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 3,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.305126667022705,
+        -0.2622537612915039,
+        0.2318030595779419
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 182,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.76,
+      "final_root": [
+        1.4039348363876343,
+        -0.08672237396240234,
+        0.22804999351501465
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 183,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 6.04,
+      "final_root": [
+        1.4020638465881348,
+        -0.18427276611328125,
+        0.2224799394607544
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 184,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 6.26,
+      "final_root": [
+        1.4281803369522095,
+        -0.16225147247314453,
+        0.19257116317749023
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 185,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.36,
+      "final_root": [
+        1.4253193140029907,
+        0.13909530639648438,
+        0.21338069438934326
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 186,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 6.32,
+      "final_root": [
+        1.4697952270507812,
+        -0.11699581146240234,
+        0.16285264492034912
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 187,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.64,
+      "final_root": [
+        1.458353877067566,
+        -0.10810661315917969,
+        0.16257798671722412
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 188,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.38,
+      "final_root": [
+        1.411463975906372,
+        -0.10587692260742188,
+        0.22187769412994385
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 189,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 6.8,
+      "final_root": [
+        1.3869702816009521,
+        -0.03190040588378906,
+        0.2294628620147705
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 190,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.18,
+      "final_root": [
+        -0.012894326820969582,
+        0.07269668579101562,
+        0.3398698568344116
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 191,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.26,
+      "final_root": [
+        -0.02014666423201561,
+        -0.046295166015625,
+        0.3026599884033203
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 192,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.9,
+      "final_root": [
+        1.4042603969573975,
+        -0.041541099548339844,
+        0.2743457555770874
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 193,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.6,
+      "final_root": [
+        1.4133414030075073,
+        -0.09780216217041016,
+        0.21294009685516357
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 194,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 7.0,
+      "final_root": [
+        1.4427831172943115,
+        -0.2107706069946289,
+        0.1744476556777954
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 195,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.2,
+      "final_root": [
+        0.04832226783037186,
+        0.04724693298339844,
+        0.32701539993286133
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 196,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 6.5,
+      "final_root": [
+        1.5135083198547363,
+        -0.15783405303955078,
+        0.17281019687652588
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 197,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 8.14,
+      "final_root": [
+        1.4033170938491821,
+        -0.20096969604492188,
+        0.22220683097839355
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 198,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 7.28,
+      "final_root": [
+        1.351028323173523,
+        0.26305580139160156,
+        0.2155742645263672
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 199,
+      "height": 0.15,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.72,
+      "final_root": [
+        1.4199271202087402,
+        -0.03614997863769531,
+        0.22816145420074463
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 200,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.8,
+      "final_root": [
+        1.4044978618621826,
+        -0.09972000122070312,
+        0.23354613780975342
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 201,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.14,
+      "final_root": [
+        0.04486004635691643,
+        -0.05484485626220703,
+        0.3342773914337158
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 202,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.4,
+      "final_root": [
+        1.428792119026184,
+        -0.16034698486328125,
+        0.20482778549194336
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 203,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.9,
+      "final_root": [
+        1.4372138977050781,
+        -0.1689157485961914,
+        0.2018224000930786
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 204,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.12,
+      "final_root": [
+        -0.019099615514278412,
+        -0.020708084106445312,
+        0.3335134983062744
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 205,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.4,
+      "final_root": [
+        1.4037476778030396,
+        0.04676342010498047,
+        0.23281633853912354
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 206,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.7,
+      "final_root": [
+        1.4099483489990234,
+        -0.20110130310058594,
+        0.22369790077209473
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 207,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.3,
+      "final_root": [
+        1.6517918109893799,
+        -0.0022678375244140625,
+        0.14487648010253906
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 208,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.08,
+      "final_root": [
+        1.4056029319763184,
+        -0.13009166717529297,
+        0.21804606914520264
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 209,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.0,
+      "final_root": [
+        1.4407601356506348,
+        -0.06712627410888672,
+        0.20496320724487305
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 210,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.84,
+      "final_root": [
+        1.4222947359085083,
+        -0.03727531433105469,
+        0.21253585815429688
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 211,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.88,
+      "final_root": [
+        1.4536279439926147,
+        -0.24358177185058594,
+        0.21145033836364746
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 212,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 7.54,
+      "final_root": [
+        1.749363660812378,
+        -0.22583580017089844,
+        0.06670606136322021
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 213,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.38,
+      "final_root": [
+        1.4272617101669312,
+        -0.029196739196777344,
+        0.19066154956817627
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 214,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.58,
+      "final_root": [
+        1.393246054649353,
+        -0.1627035140991211,
+        0.23025095462799072
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 215,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.36,
+      "final_root": [
+        1.3801010847091675,
+        -0.21703338623046875,
+        0.239715576171875
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 216,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.22,
+      "final_root": [
+        -0.04688241332769394,
+        -0.014901161193847656,
+        0.3085516691207886
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 217,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.1,
+      "final_root": [
+        0.021942203864455223,
+        -0.08590030670166016,
+        0.33685386180877686
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 218,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.44,
+      "final_root": [
+        1.4274417161941528,
+        0.08644866943359375,
+        0.20774567127227783
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 219,
+      "height": 0.15,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.82,
+      "final_root": [
+        1.455892562866211,
+        -0.18961143493652344,
+        0.1619565486907959
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 220,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.88,
+      "final_root": [
+        1.4386391639709473,
+        -0.26548099517822266,
+        0.2162104845046997
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 221,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.18,
+      "final_root": [
+        1.5184682607650757,
+        -0.33077335357666016,
+        0.2203148603439331
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 222,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.36,
+      "final_root": [
+        1.768371343612671,
+        -0.3933286666870117,
+        0.1064765453338623
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 223,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.96,
+      "final_root": [
+        1.4365953207015991,
+        -0.28386592864990234,
+        0.20984899997711182
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 224,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.8,
+      "final_root": [
+        1.471256971359253,
+        -0.12585830688476562,
+        0.1834498643875122
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 225,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.66,
+      "final_root": [
+        1.4533038139343262,
+        0.11400032043457031,
+        0.1791701316833496
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 226,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.32,
+      "final_root": [
+        1.4506624937057495,
+        -0.19339656829833984,
+        0.21626543998718262
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 227,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.0,
+      "final_root": [
+        1.4992494583129883,
+        -0.043231964111328125,
+        0.20741426944732666
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 228,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.8,
+      "final_root": [
+        1.4230467081069946,
+        -0.11410903930664062,
+        0.21253347396850586
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 229,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.46,
+      "final_root": [
+        1.444559097290039,
+        -0.19051265716552734,
+        0.19820773601531982
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 230,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 4.3,
+      "final_root": [
+        2.0858664512634277,
+        -0.007966995239257812,
+        -0.18157392740249634
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 231,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.52,
+      "final_root": [
+        1.604469895362854,
+        -0.9208440780639648,
+        0.2021336555480957
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 232,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.3,
+      "final_root": [
+        0.08711178600788116,
+        0.032578468322753906,
+        0.3280843496322632
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 233,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 0.2,
+      "final_root": [
+        -0.014700294472277164,
+        -0.017976760864257812,
+        0.33750295639038086
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 234,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.08,
+      "final_root": [
+        1.4332529306411743,
+        -0.19822120666503906,
+        0.20510590076446533
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 235,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.92,
+      "final_root": [
+        1.4254323244094849,
+        -0.16538333892822266,
+        0.187264084815979
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 236,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.4,
+      "final_root": [
+        1.4495482444763184,
+        -0.3197021484375,
+        0.19791102409362793
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 237,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.24,
+      "final_root": [
+        1.456852912902832,
+        -0.11345481872558594,
+        0.20343434810638428
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 238,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 2.88,
+      "final_root": [
+        1.459533452987671,
+        0.2115488052368164,
+        0.18777763843536377
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 239,
+      "height": 0.15,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 3.12,
+      "final_root": [
+        1.4189600944519043,
+        0.012488365173339844,
+        0.20837533473968506
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    }
+  ],
+  "gait_level": 0.9761198315531384,
+  "reward_names": [
+    "lin_vel_z_l2",
+    "ang_vel_xy_l2",
+    "flat_orientation_l2",
+    "base_height_l2",
+    "joint_torques_l2",
+    "joint_acc_l2",
+    "joint_pos_limits",
+    "joint_power",
+    "hipx_joint_pos_penalty",
+    "knee_joint_pos_penalty",
+    "joint_mirror",
+    "action_rate_l2",
+    "undesired_contacts",
+    "contact_forces",
+    "foot_impact_velocity",
+    "track_lin_vel_xy_exp",
+    "track_ang_vel_z_exp",
+    "feet_air_time_lin_xy",
+    "feet_air_time_ang_z_lite3",
+    "feet_gait",
+    "phase_foot_trajectory_exp",
+    "feet_contact_without_cmd",
+    "feet_slide",
+    "stand_still"
+  ],
+  "termination_names": [
+    "time_out",
+    "terrain_out_of_bounds",
+    "bad_orientation_2"
+  ],
+  "video_env": null,
+  "video_frame_steps": [],
+  "limitations": [
+    "Native stairs are square rings; count/entry distance differ from the six-riser MuJoCo scene.",
+    "Fixed starts/commands/heights, no training. Nominal still retains native random actuator delays.",
+    "Reward traces describe this frozen policy, not causal effects of modifying rewards."
+  ]
+}

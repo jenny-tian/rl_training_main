@@ -1,0 +1,148 @@
+{
+  "status": "passed",
+  "variant": "core",
+  "non_reward_environment_exact": true,
+  "reference_config_unchanged": true,
+  "before_sha256": "a6dda304d399a820a626ddee4b2b315acf9cd3f0ae6e4b216372c4f54caf26dc",
+  "after_sha256": "1591575733ac2a39ef3c26b0175954e47c80e880464bc5135317166b21eb24f0",
+  "changes": {
+    "stand_still": {
+      "before": {
+        "func": "isaaclab_tasks.manager_based.locomotion.velocity.mdp.rewards:stand_still_joint_deviation_l1",
+        "params": {
+          "command_name": "base_velocity",
+          "asset_cfg": {
+            "name": "robot",
+            "joint_names": [
+              "FL_HipX_joint",
+              "FL_HipY_joint",
+              "FL_Knee_joint",
+              "FR_HipX_joint",
+              "FR_HipY_joint",
+              "FR_Knee_joint",
+              "HL_HipX_joint",
+              "HL_HipY_joint",
+              "HL_Knee_joint",
+              "HR_HipX_joint",
+              "HR_HipY_joint",
+              "HR_Knee_joint"
+            ],
+            "joint_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "body_names": null,
+            "body_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "object_collection_ids": "slice(None, None, None)",
+            "preserve_order": false
+          },
+          "command_threshold": 0.1
+        },
+        "weight": -0.5
+      },
+      "after": {
+        "func": "reference_reward_variants:stand_still_joint_deviation_se2",
+        "params": {
+          "command_name": "base_velocity",
+          "asset_cfg": {
+            "name": "robot",
+            "joint_names": [
+              "FL_HipX_joint",
+              "FL_HipY_joint",
+              "FL_Knee_joint",
+              "FR_HipX_joint",
+              "FR_HipY_joint",
+              "FR_Knee_joint",
+              "HL_HipX_joint",
+              "HL_HipY_joint",
+              "HL_Knee_joint",
+              "HR_HipX_joint",
+              "HR_HipY_joint",
+              "HR_Knee_joint"
+            ],
+            "joint_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "body_names": null,
+            "body_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "object_collection_ids": "slice(None, None, None)",
+            "preserve_order": false
+          },
+          "linear_threshold": 0.1,
+          "angular_threshold": 0.1
+        },
+        "weight": -0.5
+      }
+    },
+    "base_height_l2": {
+      "before": {
+        "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:base_height_l2",
+        "params": {
+          "asset_cfg": {
+            "name": "robot",
+            "joint_names": null,
+            "joint_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "body_names": [
+              "TORSO"
+            ],
+            "body_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "object_collection_ids": "slice(None, None, None)",
+            "preserve_order": false
+          },
+          "sensor_cfg": {
+            "name": "height_scanner_base",
+            "joint_names": null,
+            "joint_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "body_names": null,
+            "body_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "object_collection_ids": "slice(None, None, None)",
+            "preserve_order": false
+          },
+          "target_height": 0.55
+        },
+        "weight": -50.0
+      },
+      "after": {
+        "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:base_height_l2",
+        "params": {
+          "asset_cfg": {
+            "name": "robot",
+            "joint_names": null,
+            "joint_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "body_names": [
+              "TORSO"
+            ],
+            "body_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "object_collection_ids": "slice(None, None, None)",
+            "preserve_order": false
+          },
+          "sensor_cfg": {
+            "name": "height_scanner_base",
+            "joint_names": null,
+            "joint_ids": "slice(None, None, None)",
+            "fixed_tendon_names": null,
+            "fixed_tendon_ids": "slice(None, None, None)",
+            "body_names": null,
+            "body_ids": "slice(None, None, None)",
+            "object_collection_names": null,
+            "object_collection_ids": "slice(None, None, None)",
+            "preserve_order": false
+          },
+          "target_height": 0.32
+        },
+        "weight": -50.0
+      }
+    }
+  },
+  "source_sha256": "a8a24d719f7b82aebe2971276921e31352a5e3422e1e1eec38e9ba95ac101bf2"
+}

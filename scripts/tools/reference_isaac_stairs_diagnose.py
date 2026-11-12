@@ -377,8 +377,10 @@ def main():
                    gpu=args.gpu,output=args.output,timeout=2400)
     try:
         from isaaclab.app import AppLauncher
+        # Vulkan uses the physical GPU index; CUDA_VISIBLE_DEVICES remaps physics to cuda:0.
+        graphics_gpu = args.gpu if args.video_env is not None else 0
         app=AppLauncher(headless=True,enable_cameras=args.video_env is not None,device='cuda:0',
-            kit_args='--/renderer/multiGpu/enabled=False --/renderer/activeGpu=0').app
+            kit_args=f'--/renderer/multiGpu/enabled=False --/renderer/activeGpu={graphics_gpu}').app
         collect(args,app)
         # The existing supervised headless training worker uses the same bounded
         # exit, avoiding Isaac teardown hangs after all artifacts are flushed.

@@ -188,8 +188,10 @@ def main():
         return run([sys.executable,str(Path(__file__).resolve()),*sys.argv[1:],'--child'],gpu=args.gpu,output=args.output,timeout=2400)
     try:
         from isaaclab.app import AppLauncher
+        # Vulkan uses the physical GPU index; CUDA_VISIBLE_DEVICES remaps physics to cuda:0.
+        graphics_gpu = args.gpu if args.video_env is not None else 0
         app=AppLauncher(headless=True,enable_cameras=args.video_env is not None,device='cuda:0',
-            kit_args='--/renderer/multiGpu/enabled=False --/renderer/activeGpu=0').app
+            kit_args=f'--/renderer/multiGpu/enabled=False --/renderer/activeGpu={graphics_gpu}').app
         collect(args,app); sys.stdout.flush(); os._exit(0)
     except Exception:
         traceback.print_exc(); save(args.output/'error.json',dict(error=traceback.format_exc()))

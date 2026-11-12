@@ -77,7 +77,7 @@ def main():
     args=parser.parse_args();out=args.output;out.mkdir(parents=True,exist_ok=True)
     complete=read(OUTPUT/'complete.json');assert complete['status']=='passed'
     matrix=read(OUTPUT/'matrix.json')
-    turns=[];windows=[];paired=[];stairs=[];stair_groups=[];episodes=[];rewards=[];checks=[];raw=set()
+    turns=[];windows=[];paired=[];stairs=[];stair_groups=[];episodes=[];rewards=[];checks=[];raw=set();stall=[]
     for entry in matrix:
         old,new=Path(entry['baseline']),Path(entry['candidate'])
         assert same_initial(old,new)
@@ -93,6 +93,14 @@ def main():
             else:
                 _,_,data,ep,rw,_=analyze_stairs(run)
                 episodes.extend([dict(policy=kind,**r) for r in ep]);rewards.extend([dict(policy=kind,**r) for r in rw])
+                if entry['direction']=='up' and entry['profile']=='nominal':
+                    selected=[r for r in rw if r['height']==.1 and r['speed']==.4 and r['window']=='last5' and r['outcome']=='stuck']
+                    assert len(selected)==20
+                    stall.append(dict(policy=kind,episodes=20,height=.1,speed=.4,
+                        **{key:float(np.mean([r[key] for r in selected])) for key in
+                           ('mean_forward_velocity','mean_base_above_scan','mean_tilt_deg','reward_track_lin_vel_xy_exp',
+                            'reward_phase_foot_trajectory_exp','reward_feet_gait','total_rate')},
+                        reward_scoring='reference_frozen_common; not a replay of training rewards'))
                 stairs.extend(summarize_stairs(report,kind,entry['profile'],entry['direction']))
                 for g in report['groups']:
                     stair_groups.append(dict(policy=kind,profile=entry['profile'],direction=entry['direction'],
@@ -107,6 +115,7 @@ def main():
     write_csv(out/'turn_groups.csv',turns);write_csv(out/'turn_windows.csv',windows);write_csv(out/'turn_paired.csv',paired)
     write_csv(out/'stairs_heights.csv',stairs);write_csv(out/'stairs_groups.csv',stair_groups)
     write_csv(out/'stairs_episodes.csv',episodes);write_csv(out/'stairs_reward_windows.csv',rewards)
+    save(out/'stalled_last5.json',stall)
     for video,formal in [('video_turn','core10500_turn_nominal'),('video_stairs','core10500_up_nominal')]:
         compare_video(OUTPUT/video,OUTPUT/formal,out/'clips'/video)
         raw.update(p for p in (OUTPUT/video).iterdir() if p.is_file())
@@ -119,30 +128,34 @@ def main():
         shutil.copy2(TRAINING/name,out/f'training_{name}')
     raw.update(p for p in TRAINING.rglob('*') if p.is_file())
     raw.update(p for p in OUTPUT.iterdir() if p.is_file())
+    raw.update(p for run in OUTPUT.glob('*_failed_*') for p in run.rglob('*') if p.is_file())
     save(out/'raw_manifest.json',[dict(path=str(p),bytes=p.stat().st_size,sha256=sha(p)) for p in sorted(raw)])
     save(out/'summary.json',dict(status='passed',candidate_episodes=1600,baseline_episodes=1600,
+        status_scope='artifact validation, not policy acceptance',
         model_sha256=complete['candidate_sha256'],training_updates=500,matrix=matrix,
         turn_groups=turns,turn_paired=paired,stairs_heights=stairs,rollout_checks=checks,
         caveat='Single seed and 500-update screen. Reference reward scoring is shared in frozen evaluation; behavior metrics determine improvement.'))
-    plot(out,turns,stairs,training)
+    plot(out,turns,paired,stairs,training)
     print('Core500 analysis complete; paired protocols and both video replays verified.')
 
 
-def plot(out,turns,stairs,training):
+def plot(out,turns,paired,stairs,training):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     fig,axes=plt.subplots(2,2,figsize=(13,8))
     cases=('low_left','low_right','turn_left','turn_right','fast_left','fast_right')
     for row,profile in enumerate(('nominal','training_randomized')):
+        pairs=[next(r for r in paired if (r['profile'],r['case'],r['window'])==(profile,c,'steady')) for c in cases]
         for policy,label in [('baseline','final10000'),('candidate','core10500')]:
             g=[next(r for r in turns if (r['policy'],r['profile'],r['case'],r['window'])==(policy,profile,c,'steady')) for c in cases]
-            axes[row,0].plot(range(6),[r['yaw_mae'] for r in g],marker='o',label=label)
-            axes[row,1].plot(range(6),[r['failures_after_command'] for r in g],marker='o',label=label)
+            axes[row,0].plot(range(6),[r[f'{policy}_mae'] for r in pairs],marker='o',label=label)
+            axes[row,1].plot(range(6),[r['failures_before_command'] for r in g],marker='o',label=label)
         for col in range(2):
             axes[row,col].set_xticks(range(6),['L .2','R .2','L .5','R .5','L .8','R .8']);axes[row,col].set_title(profile);axes[row,col].grid(alpha=.2)
-        axes[row,0].set_ylabel('Yaw MAE, complete 4-8 s windows (rad/s)')
-        axes[row,1].set_ylabel('Orientation failures after 2 s / 20 starts');axes[row,1].set_ylim(-.5,20.5)
+        axes[row,0].set_xticklabels([f'{name}\nn={r["n"]}' for name,r in zip(['L .2','R .2','L .5','R .5','L .8','R .8'],pairs)])
+        axes[row,0].set_ylabel('Yaw MAE, paired complete 4-8 s windows (rad/s)')
+        axes[row,1].set_ylabel('Orientation failures before command / 20 starts');axes[row,1].set_ylim(-.5,20.5)
     axes[0,0].legend();fig.tight_layout();fig.savefig(out/'turn_comparison.png',dpi=150);fig.savefig(out/'turn_comparison.pdf');plt.close(fig)
     fig,axes=plt.subplots(2,2,figsize=(12,7))
     for row,profile in enumerate(('nominal','training_randomized')):
@@ -153,6 +166,15 @@ def plot(out,turns,stairs,training):
             axes[row,col].set_title(f'{profile} / {direction}');axes[row,col].set_xticks(range(3),['5 cm','10 cm','15 cm'])
             axes[row,col].set_ylim(0,60);axes[row,col].set_ylabel('First step cleared / 60 starts')
     axes[0,0].legend();fig.tight_layout();fig.savefig(out/'stairs_comparison.png',dpi=150);fig.savefig(out/'stairs_comparison.pdf');plt.close(fig)
+    fig,axes=plt.subplots(2,2,figsize=(12,7))
+    for row,profile in enumerate(('nominal','training_randomized')):
+        for col,direction in enumerate(('up','down')):
+            for policy,label,offset in [('baseline','final10000',-.18),('candidate','core10500',.18)]:
+                g=[next(r for r in stairs if (r['policy'],r['profile'],r['direction'],r['height'])==(policy,profile,direction,h)) for h in (.05,.1,.15)]
+                axes[row,col].bar(np.arange(3)+offset,[r['success'] for r in g],.36,label=label)
+            axes[row,col].set_title(f'{profile} / {direction}');axes[row,col].set_xticks(range(3),['5 cm','10 cm','15 cm'])
+            axes[row,col].set_ylim(0,60);axes[row,col].set_ylabel('Full course completed / 60 starts')
+    axes[0,0].legend();fig.tight_layout();fig.savefig(out/'stairs_completion.png',dpi=150);fig.savefig(out/'stairs_completion.pdf');plt.close(fig)
     fig,axes=plt.subplots(1,2,figsize=(11,4));u=training['updates']
     axes[0].plot([r['update'] for r in u],[r['mean_terrain_level'] for r in u]);axes[0].set_ylabel('Mean terrain level')
     axes[1].plot([r['update'] for r in u],[r['learning_rate'] for r in u]);axes[1].set_ylabel('Learning rate')
