@@ -1,0 +1,101 @@
+{
+  "status": "passed",
+  "onnx_actor_max_error": 1.71661376953125e-05,
+  "models": {
+    "reference": {
+      "path": "/home/tjx/Lite3_rl_deploy/policy/ppo/policy.onnx",
+      "sha256": "efa6581d314d8c0442881453d39fc082c09b28bbaa3029d328fcd61fa25b57c7"
+    },
+    "update8001": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/training/scratch_seed42_10000/training/model_8000.pt",
+      "sha256": "a8732c42e85631707e75ffdea1742ecb6589aa484c7651e6eb2743f84ebb96cb"
+    },
+    "update10000": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/training/scratch_seed42_10000/model_updates_10000.pt",
+      "sha256": "5cf4c1160b6f5b7b5102844526b26f3886c27562d98ea9558e3fa09da504f5a1"
+    }
+  },
+  "sources": {
+    "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/mjcf/Lite3.xml": "3632cb09785ca796d28b2568ef22d5c451c14c06eb539aeed28b229b80ba1006",
+    "/home/tjx/Lite3_rl_deploy/Lite3_description/lite3_mjcf/mjcf/stair.xml": "00410b0655b3e95c13bdeee6888c32d2d1a9bea4de5f587fc8170deb6e8398d6",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stairs_eval.py": "79be7aca55e4cbc94c96c0f177cf60a4d1caa75c48685951e13065caa43a79fe"
+  },
+  "versions": {
+    "mujoco": "3.3.2",
+    "torch": "2.7.0+cu128",
+    "onnxruntime": "1.27.0"
+  },
+  "stair_tops": [
+    0.1,
+    0.2,
+    0.3,
+    0.39999999999999997,
+    0.5,
+    0.6000000000000001
+  ],
+  "stair_fronts": [
+    1.1500000000000001,
+    1.4500000000000002,
+    1.7500000000000002,
+    2.0500000000000003,
+    2.35,
+    2.6499999999999995
+  ],
+  "profiles": {
+    "deployment": {
+      "period": 0.012,
+      "limits": [
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0,
+        30.0
+      ]
+    },
+    "training_nominal": {
+      "period": 0.02,
+      "limits": [
+        24.0,
+        24.0,
+        36.0,
+        24.0,
+        24.0,
+        36.0,
+        24.0,
+        24.0,
+        36.0,
+        24.0,
+        24.0,
+        36.0
+      ]
+    }
+  },
+  "observation_order": [
+    "angular_velocity*.25",
+    "projected_gravity",
+    "command",
+    "joint_position-default",
+    "joint_velocity*.05",
+    "previous_action"
+  ],
+  "policy_noise": false,
+  "observation_noise": false,
+  "random_physics": false,
+  "initial_jitter": {
+    "x_m": 0.05,
+    "y_m": 0.1,
+    "yaw_rad": 0.03
+  },
+  "limit_note": "Both profiles use MuJoCo deployment assets. training_nominal changes only period and torque limits, not solver, actuator delay, or randomization.",
+  "termination_note": "Reference gravity threshold, checked every 10 ms. Deployment roll 30/pitch 45 degree threshold is recorded separately, not used to stop.",
+  "success_note": "All four feet beyond final riser, body beyond margin, base height 0.18-0.55 m sustained 0.25 s; at completion >=2 feet in contact and no torso contact. Normal swing does not reset geometric dwell.",
+  "max_episode_s": 25.0,
+  "optimization": false
+}
