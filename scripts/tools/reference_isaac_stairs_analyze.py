@@ -50,7 +50,7 @@ def analyze(directory):
         final_mask=valid&(times>=row['duration_s']-5.)
         last_progress=float(root[final_mask,0][-1]-root[final_mask,0][0]) if final_mask.any() else None
         forward=float(data['velocity'][valid,i,0].mean()) if valid.any() else None
-        episodes.append(dict(profile=report['profile'],**row,
+        episodes.append(dict(profile=report['profile'],direction=report.get('direction','up'),**row,
             mean_forward_velocity=forward,last5_progress_m=last_progress,
             first_face_seconds=float(at_first.sum()*report['step_dt']),
             front_feet_z_p95_at_first=float(np.percentile(feet[at_first,:2,2],95)) if at_first.any() else None,
@@ -60,7 +60,7 @@ def analyze(directory):
         for name, mask in (('after_ramp',valid),('approach',approach),('first_face',at_first),('last5',final_mask)):
             if not mask.any(): continue
             values=rates[mask].mean(0)
-            windows.append(dict(profile=report['profile'],env_id=i,height=row['height'],speed=row['speed'],
+            windows.append(dict(profile=report['profile'],direction=report.get('direction','up'),env_id=i,height=row['height'],speed=row['speed'],
                 repeat=row['repeat'],outcome=row['outcome'],window=name,samples=int(mask.sum()),
                 mean_forward_velocity=float(data['velocity'][mask,i,0].mean()),
                 mean_base_above_scan=float((root[mask,2]-data['scan_mean'][mask,i]).mean()),
@@ -86,7 +86,7 @@ def main():
         report,config,data,episodes,windows,files=analyze(directory)
         prefix=directory.name
         all_episodes.extend(episodes); all_windows.extend(windows); manifest.extend(files)
-        groups.extend([dict(run=prefix,profile=report['profile'],**g) for g in report['groups']])
+        groups.extend([dict(run=prefix,profile=report['profile'],direction=report.get('direction','up'),**g) for g in report['groups']])
         for name in ('report.json','config.json','geometry.json','execution.json'):
             shutil.copy2(directory/name,args.output/f'{prefix}_{name}')
         # Four fixed-start examples, all at 0.4 m/s and repeat 0.
@@ -105,7 +105,8 @@ def main():
             upper=max(h+.04,float(data['feet'][valid,i,:2,2].max())*1.15)
             for top in geom['tops']:
                 if top<upper: axes[1,col].axhline(top,color='gray',alpha=.3)
-            axes[1,col].set_ylim(0,upper)
+            lower=min([0.]+geom['tops'])-.03 if report.get('direction','up')=='down' else 0.
+            axes[1,col].set_ylim(lower,upper)
             axes[1,col].set_ylabel('Front foot centre height (m)')
             for key in ('track_lin_vel_xy_exp','base_height_l2','flat_orientation_l2','phase_foot_trajectory_exp'):
                 j=report['reward_names'].index(key)
@@ -113,7 +114,7 @@ def main():
             axes[2,col].set_xlabel('Time (s)'); axes[2,col].set_ylabel('Weighted reward rate')
         axes[1,0].legend(fontsize=8)
         axes[2,0].legend(fontsize=6)
-        fig.suptitle(f"Isaac Lab / {report['profile']} / final10000 / fixed 0.4 m/s, start 0")
+        fig.suptitle(f"Isaac Lab / {report['profile']} / {report.get('direction','up')} / final10000 / fixed 0.4 m/s, start 0")
         fig.tight_layout(); fig.savefig(args.output/f'{prefix}_trajectories.png',dpi=140)
         fig.savefig(args.output/f'{prefix}_trajectories.pdf'); plt.close(fig)
     write_csv(args.output/'episodes.csv',all_episodes)

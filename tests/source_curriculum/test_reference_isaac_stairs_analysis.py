@@ -8,6 +8,7 @@ import pytest
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'scripts/tools'))
 from reference_isaac_stairs_analyze import analyze
+from reference_isaac_stairs_diagnose import step_cleared
 
 
 def make_run(path, active):
@@ -42,3 +43,20 @@ def test_analysis_rejects_noncontiguous_first_episode_mask(tmp_path):
     make_run(tmp_path,[True,False,True,False])
     with pytest.raises(AssertionError):
         analyze(tmp_path)
+
+
+def test_descent_needs_all_feet_clear_and_supported_lower_tread():
+    feet=np.array([[1.5,0.,-.078]]*4); root=np.array([1.7,0.,.22])
+    assert step_cleared('down',feet,root,1.2,-.1,0.,2,False)
+    assert not step_cleared('down',feet,root,1.2,-.1,0.,0,False)
+    assert not step_cleared('down',feet,root,1.2,-.1,0.,2,True)
+    airborne=feet.copy(); airborne[:,2]=.2
+    assert not step_cleared('down',airborne,root,1.2,-.1,0.,2,False)
+    rear_behind=feet.copy(); rear_behind[3,0]=1.1
+    assert not step_cleared('down',rear_behind,root,1.2,-.1,0.,2,False)
+
+
+def test_upward_clearance_retains_previous_geometry_rule():
+    feet=np.array([[1.5,0.,.122]]*4);root=np.array([1.7,0.,.42])
+    assert step_cleared('up',feet,root,1.2,.1,0.,0,False)
+    assert not step_cleared('up',feet,root,1.2,.1,45.,2,False)

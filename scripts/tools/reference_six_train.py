@@ -1,4 +1,8 @@
-"""Reference Lite3 with six terrain families, always initialized from scratch.
+"""Reference Lite3 with six terrain families and explicitly bounded updates.
+
+Reward overrides are opt-in with --reward-variant and audited separately.
+Default initialization is from scratch. --resume-final loads the pinned final
+checkpoint for reward experiments; reference rewards cannot be continued.
 
 smoke: 120 environments / 100 steps, no optimization.
 validate: 4096 environments / 3 PPO updates, then stop.
@@ -171,10 +175,16 @@ def worker(args):
     from isaaclab.utils.io import dump_yaml
     from isaaclab_rl.rsl_rl import RslRlVecEnvWrapper, handle_deprecated_rsl_rl_cfg
     from rsl_rl.runners import OnPolicyRunner
+    from reference_reward_resume import FINAL_CHECKPOINT, restore_final, equal_state
     reference, agent = load_reference()
     from reference_six_terrain_cfg import replace_terrain
     cfg = replace_terrain(reference)
     save(args.output / "configuration_audit.json", configuration_audit(reference, cfg, agent))
+    from reference_reward_variants import apply_reward_variant
+    cfg, reward_audit = apply_reward_variant(cfg, args.reward_variant)
+    reward_audit['source_sha256'] = hashlib.sha256(
+        Path(__file__).with_name('reference_reward_variants.py').read_bytes()).hexdigest()
+    save(args.output / "reward_override_audit.json", reward_audit)
     asset_resolution = resolve_lite3_asset(cfg)
     save(args.output / "asset_resolution.json", asset_resolution)
     cfg.seed = agent.seed = args.seed
@@ -187,7 +197,9 @@ def worker(args):
     torch.backends.cudnn.deterministic = torch.backends.cudnn.benchmark = False
     save(args.output / "runtime_overrides.json", dict(seed=args.seed, num_envs=cfg.scene.num_envs,
          device=agent.device, max_iterations=args.updates, mode=args.mode,
-         checkpoint=None, resume=False, reference_budget=10000, automatic_extension=False))
+         checkpoint=str(FINAL_CHECKPOINT) if args.resume_final else None,
+         resume=args.resume_final, reference_budget=10000, automatic_extension=False,
+         reward_variant=args.reward_variant))
     dump_yaml(str(args.output / "params/env.yaml"), cfg)
     dump_yaml(str(args.output / "params/agent.yaml"), agent)
     base = ManagerBasedRLEnv(cfg=cfg)
@@ -203,8 +215,17 @@ def worker(args):
         raise ValueError("actor structure differs from reference")
     if initial["critic_state_dict"]["mlp.0.weight"].shape != (512, 393):
         raise ValueError("critic structure differs from reference")
-    report = dict(status="running", mode=args.mode, seed=args.seed, from_scratch=True, checkpoint_loaded=None,
-                  initial_optimizer_state_entries=0, initial_iteration=0, initial_learning_rate=runner.alg.learning_rate,
+    restore = restore_final(runner) if args.resume_final else None
+    if restore:
+        save(args.output / "checkpoint_restore_audit.json", restore)
+        initial = copy.deepcopy(runner.alg.save())
+    initial_update_count = 10000 if restore else 0
+    initial_optimizer_steps = 200000 if restore else 0
+    report = dict(status="running", mode=args.mode, seed=args.seed, from_scratch=not args.resume_final,
+                  checkpoint_loaded=str(FINAL_CHECKPOINT) if restore else None,
+                  reward_variant=args.reward_variant,
+                  initial_optimizer_state_entries=len(initial["optimizer_state_dict"]["state"]),
+                  initial_iteration=runner.current_learning_iteration, initial_learning_rate=runner.alg.learning_rate,
                   initial_model_hashes={k: hashlib.sha256(b"".join(v.detach().cpu().numpy().tobytes() for v in initial[k].values())).hexdigest()
                                        for k in ("actor_state_dict", "critic_state_dict")},
                   completed_updates=0, environment_steps=0, resets=0, terminated=0, truncated=0,
@@ -248,6 +269,8 @@ def worker(args):
         with torch.inference_mode():
             for _ in range(step_budget):
                 env.step(torch.zeros(base.num_envs, 12, device=base.device))
+        if not equal_state(initial,runner.alg.save()):
+            raise ValueError("smoke changed model or optimizer state")
     else:
         runner.learn(num_learning_iterations=args.updates, init_at_random_ep_len=True)
         current = runner.alg.save()
@@ -256,18 +279,21 @@ def worker(args):
                 raise FloatingPointError("model parameters are not finite")
             if not any(not torch.equal(initial[key][k], v) for k, v in current[key].items()):
                 raise ValueError(f"model did not update: {key}")
-        if {int(v["step"]) for v in current["optimizer_state_dict"]["state"].values()} != {args.updates * 20}:
+        if {int(v["step"]) for v in current["optimizer_state_dict"]["state"].values()} != {initial_optimizer_steps + args.updates * 20}:
             raise ValueError("unexpected Adam step count")
         if report["completed_updates"] != args.updates:
             raise ValueError("incomplete PPO budget")
-        checkpoint = args.output / f"model_updates_{args.updates:05d}.pt"
-        runner.save(str(checkpoint), infos=dict(from_scratch=True, completed_updates=args.updates,
+        total_updates = initial_update_count + args.updates
+        checkpoint = args.output / f"model_updates_{total_updates:05d}.pt"
+        runner.save(str(checkpoint), infos=dict(from_scratch=not args.resume_final, completed_updates=total_updates,
+                                              phase_updates=args.updates, reward_variant=args.reward_variant,
                                               validation_only=args.mode != "train"))
         report["output_checkpoint"] = str(checkpoint)
         report["output_sha256"] = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
     if report["environment_steps"] != step_budget:
         raise ValueError("incomplete environment step budget")
     report.update(status="passed", interactions=step_budget * base.num_envs,
+                  cumulative_updates=initial_update_count + report['completed_updates'],
                   final_learning_rate=runner.alg.learning_rate, sources=source_manifest(),
                   final_terrain_level_histogram=torch.bincount(base.scene.terrain.terrain_levels, minlength=10).cpu().tolist())
     save(args.output / "report.json", report)
@@ -278,14 +304,22 @@ def worker(args):
 
 
 def main():
+    from reference_reward_variants import VARIANTS
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=("smoke", "validate", "train"), required=True)
     parser.add_argument("--updates", type=int)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--reward-variant", choices=tuple(VARIANTS), default="reference")
+    parser.add_argument("--resume-final", action="store_true",
+                        help="Restore reviewed final10000, including optimizer; at most 500 additional updates")
     parser.add_argument("--gpu", type=int, choices=(0, 1), default=0)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--child", action="store_true")
     args = parser.parse_args()
+    if args.resume_final and (args.reward_variant == 'reference' or args.mode == 'validate'):
+        parser.error("final checkpoint continuation requires modified rewards and smoke/train mode")
+    if args.resume_final and args.mode == 'train' and (args.updates is None or not 1 <= args.updates <= 500):
+        parser.error("final checkpoint continuation requires an explicit budget of 1..500 updates")
     if args.updates is None:
         args.updates = {"smoke": 0, "validate": 3, "train": 10000}[args.mode]
     if ((args.mode == "smoke" and args.updates != 0) or (args.mode == "validate" and args.updates != 3)

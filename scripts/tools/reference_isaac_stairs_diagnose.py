@@ -1,6 +1,6 @@
 """Frozen final-policy diagnosis in its original Isaac Lab environment.
 
-Native square stairs, fixed heights/commands/starts. No optimizer or reward edits.
+Native square up/down stairs, fixed heights/commands/starts. No optimizer or reward edits.
 Nominal and training-randomized physics are reported separately.
 """
 from __future__ import annotations
@@ -37,6 +37,18 @@ def reward_tradeoff(command=.4, pitch_deg=15.):
                 matched_velocity_rate=4., orientation_rate=-20*math.sin(math.radians(pitch_deg))**2)
 
 
+def step_cleared(direction, feet, root, front, top, tilt, support, torso_contact):
+    """Preserve the upward criterion; require a supported descent for down."""
+    clear = (feet[:,0].min()>front+.022 and feet[:,2].min()>top-.01
+             and root[2]>top+.18 and tilt<44.)
+    if direction=='down':
+        clear = (clear and root[2]<top+.55 and feet[:,2].max()<top+.12
+                 and support>=2 and not torso_contact)
+    elif direction!='up':
+        raise ValueError(direction)
+    return bool(clear)
+
+
 def collect(args, app):
     import numpy as np
     import torch
@@ -69,7 +81,7 @@ def collect(args, app):
     generator.use_cache = False
     subs = {'flat': copy.deepcopy(source['flat'])}
     for h in HEIGHTS[1:]:
-        sub = copy.deepcopy(source['stairs_up'])
+        sub = copy.deepcopy(source[f'stairs_{args.direction}'])
         sub.step_height_range = (h, h)
         subs[f'stairs_{round(h*100):02d}cm'] = sub
     for sub in subs.values():
@@ -137,13 +149,14 @@ def collect(args, app):
     geometry = []
     for col,h in enumerate(HEIGHTS):
         z = heights[col].cpu().numpy()
-        edges = np.flatnonzero(np.diff(z) > .5*max(h,.01))+1
+        sign = 1 if args.direction=='up' else -1
+        edges = np.flatnonzero(sign*np.diff(z) > .5*max(h,.01))+1
         fronts = xs[edges].cpu().numpy().tolist()
         # Sampling at 2 mm resolution brackets each riser; use midpoint.
         fronts = [round(v-.001,4) for v in fronts]
         tops = z[edges].tolist()
         if h:
-            assert len(fronts) >= 5 and np.allclose(np.diff([0.]+tops),h,atol=.002)
+            assert len(fronts) >= 5 and np.allclose(np.diff([0.]+tops),sign*h,atol=.002)
         else:
             assert np.max(np.abs(z)) < 1e-4
         geometry.append(dict(column=col,height=h,fronts=fronts,tops=tops,
@@ -199,7 +212,7 @@ def collect(args, app):
     np.savez_compressed(args.output/'initial.npz',**initial)
     reward_names = list(base.reward_manager.active_terms)
     termination_names = list(base.termination_manager.active_terms)
-    save(args.output/'config.json',dict(profile=args.profile,configuration=config,geometry=geometry,
+    save(args.output/'config.json',dict(profile=args.profile,direction=args.direction,configuration=config,geometry=geometry,
          checkpoint=str(MODELS['update10000']),checkpoint_sha256=EXPECTED_SHA,specs=specs,
          action_mode=args.action_mode,action_std=action_std.cpu().tolist(),
          reward_names=reward_names,termination_names=termination_names,foot_names=['FL_FOOT','FR_FOOT','HL_FOOT','HR_FOOT'],
@@ -256,16 +269,17 @@ def collect(args, app):
             spec, geom = specs[i], geometry[specs[i]['column']]
             root,feet = arrays['root'][i],arrays['feet'][i]
             tilt = math.degrees(math.acos(np.clip(-arrays['gravity'][i,2],-1.,1.)))
+            support=np.count_nonzero(arrays['forces'][i,:,2]>1.)
             for j,(front,top) in enumerate(zip(geom['fronts'],geom['tops'])):
-                clear = (feet[:,0].min()>front+.022 and feet[:,2].min()>top-.01
-                         and root[2]>top+.18 and tilt<44.)
+                clear = step_cleared(args.direction,feet,root,front,top,tilt,support,torso_contact[i])
                 riser_dwell[i,j] = riser_dwell[i,j]+dt if clear else 0.
                 if riser_dwell[i,j]>=.1-1e-8: best_risers[i]=max(best_risers[i],j+1)
             top=geom['tops'][-1] if geom['tops'] else 0.
             crossed=(root[0]>geom['root_success_x'] and .18<root[2]-top<.55)
             if geom['fronts']: crossed &= feet[:,0].min()>geom['fronts'][-1]+.05
+            if args.direction=='down' and geom['fronts']:
+                crossed &= step_cleared('down',feet,root,geom['fronts'][-1],top,tilt,support,torso_contact[i])
             full_dwell[i]=full_dwell[i]+dt if crossed else 0.
-            support=np.count_nonzero(arrays['forces'][i,:,2]>1.)
             outcome=None
             if arrays['terminated'][i]: outcome='orientation_failure'
             elif abs(root[1])>1.0: outcome='lateral_exit'
@@ -287,7 +301,7 @@ def collect(args, app):
             frame=Image.fromarray(frame); draw=ImageDraw.Draw(frame)
             spec=specs[args.video_env]
             draw.rectangle((0,0,960,50),fill=(20,25,32))
-            draw.text((10,6),f"Final10000 | Isaac Lab | {args.profile} | {spec['height']*100:.0f} cm | {spec['speed']:.2f} m/s",fill='white')
+            draw.text((10,6),f"Final10000 | Isaac Lab | {args.profile} | {args.direction} {spec['height']*100:.0f} cm | {spec['speed']:.2f} m/s",fill='white')
             outcome=records[args.video_env]['outcome'] if records[args.video_env] else 'running'
             draw.text((10,28),f't={(index+1)*dt:.2f}s | {outcome} | frozen policy',fill='white')
             frames.append(np.asarray(frame)); frame_steps.append(index+1)
@@ -323,7 +337,7 @@ def collect(args, app):
             groups.append(dict(height=h,speed=speed,episodes=len(rows),
                 outcomes={outcome:sum(r['outcome']==outcome for r in rows) for outcome in sorted({r['outcome'] for r in rows})},
                 first_riser=sum(r['best_risers']>=1 for r in rows),best_risers=max(r['best_risers'] for r in rows)))
-    report=dict(status='passed',profile=args.profile,action_mode=args.action_mode,episodes=n,steps=index+1,step_dt=dt,probe=args.steps is not None,
+    report=dict(status='passed',profile=args.profile,direction=args.direction,action_mode=args.action_mode,episodes=n,steps=index+1,step_dt=dt,probe=args.steps is not None,
                 actor_unchanged=True,checkpoint_sha256=EXPECTED_SHA,actor_hashes=after,
                 first_episodes_only=True,pre_reset_capture=True,groups=groups,records=records,
                 gait_level=gait,reward_names=reward_names,termination_names=termination_names,
@@ -343,6 +357,7 @@ def collect(args, app):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--profile',choices=('nominal','training_randomized'),required=True)
+    parser.add_argument('--direction',choices=('up','down'),default='up')
     parser.add_argument('--action-mode',choices=('mean','sampled'),default='mean')
     parser.add_argument('--repeats',type=int,default=20)
     parser.add_argument('--steps',type=int)
