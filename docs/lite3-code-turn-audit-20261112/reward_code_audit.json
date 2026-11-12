@@ -1,0 +1,203 @@
+{
+  "status": "passed",
+  "sources": {
+    "update_gait_level_from_terrain_mean": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 28,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "get_gait_level_tensor": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 58,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "track_lin_vel_xy_exp": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 63,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "track_ang_vel_z_exp": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 136,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "GaitReward": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 313,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "_bernstein_torch": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 809,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "_bezier_curve_torch": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 815,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "_bezier_curve_derivative_torch": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 832,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "phase_foot_trajectory_exp": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 842,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "feet_air_time_lin_xy_cmd": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 1119,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "feet_air_time_ang_z_cmd_lite3": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 1160,
+      "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+    },
+    "stand_still_joint_deviation_l1": {
+      "path": "/home/tjx/IsaacLab/source/isaaclab_tasks/isaaclab_tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+      "line": 113,
+      "sha256": "7904feeb2a0fc6b412ba6aa1f062a1428883535958f57fcff8dec0348e0cef56"
+    },
+    "UniformVelocityCommand": {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/mdp/commands/velocity_command.py",
+      "line": 30,
+      "sha256": "0ff254a375c9ea8d408824c24145e7ac7906cc7b513c52c4dd4ca0834c1ce241"
+    },
+    "UniformThresholdVelocityCommand": {
+      "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+      "line": 21,
+      "sha256": "31877425d07293cfdefd29858e105885a0edf8f7d75dc72d2200c29706017641"
+    }
+  },
+  "command_sampling": {
+    "samples": 100000,
+    "pure_yaw": 8443,
+    "pure_yaw_heading_controlled": 8443,
+    "constant_yaw_nonheading": 0,
+    "low_nonzero_xy_after_special_overrides": 2652,
+    "standing": 28341
+  },
+  "standstill": {
+    "commands": [
+      [
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.5
+      ],
+      [
+        0.0,
+        0.0,
+        -0.5
+      ],
+      [
+        0.4000000059604645,
+        0.0,
+        0.0
+      ]
+    ],
+    "weighted_penalties": [
+      -0.6000000834465027,
+      -0.6000000834465027,
+      -0.6000000834465027,
+      -0.0
+    ],
+    "finding": "Yaw commands are ignored by the active standing penalty gate."
+  },
+  "stationary_tracking": {
+    "linear_rates": [
+      4.0,
+      4.0,
+      4.0,
+      2.9045960903167725
+    ],
+    "yaw_rates": [
+      1.5,
+      0.9097959995269775,
+      0.9097959995269775,
+      1.5
+    ]
+  },
+  "static_gait": {
+    "weighted_rate": 0.31800270080566406,
+    "full_weight": 0.5,
+    "ratio": 0.6360054016113281,
+    "finding": "Error clipping leaves a positive reward for long static contact."
+  },
+  "air_time": {
+    "short_swing_s": 0.2,
+    "threshold_s": 0.5,
+    "landing_rates": [
+      -0.0,
+      -0.0,
+      -0.0,
+      -1.5
+    ],
+    "yaw_landing_rates": [
+      -0.0,
+      -1.5,
+      -1.5,
+      -0.0
+    ],
+    "no_liftoff_rates": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "static_phase": {
+    "mean_weighted_rate": 0.9560303688049316,
+    "minimum": 0.8901336789131165,
+    "maximum": 1.0758795738220215,
+    "full_weight": 2.0,
+    "forward_turn_exactly_equal": true,
+    "reference_unchanged_after_pose_change": true,
+    "params": {
+      "command_name": "base_velocity",
+      "std": 0.12,
+      "command_threshold": 0.1,
+      "cycle_time": 0.425,
+      "phase_offsets": [
+        0.0,
+        1.0,
+        1.0,
+        0.0
+      ],
+      "gait_span": -0.0,
+      "gait_psi": 0.05,
+      "gait_delta": 0.02,
+      "x_offset": 0.0,
+      "stance_span": 0.0,
+      "stand_ref_z_offset": -0.0,
+      "velocity_weight": 0.0
+    }
+  },
+  "global_curriculum_scales": {
+    "0.0": 0.0,
+    "0.01": 0.05028743671235176,
+    "1.0": 0.1353352832366127,
+    "2.0": 0.36787944117144233,
+    "2.97583": 0.9761198315531384,
+    "3.0": 1.0
+  },
+  "level_standing_height": {
+    "source": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/deep_robotics_model/Lite3/Lite3_urdf/urdf/Lite3.urdf",
+    "source_sha256": "cb0889cfb37ed3a9b74a3534a172fb150e96a5a5619ff94dfabd1a88da7e6b7b",
+    "hip_lateral_offset": 0.09735,
+    "upper_leg": 0.2,
+    "lower_leg": 0.21012,
+    "foot_radius": 0.022,
+    "loose_upper_bound_m": 0.44351564253299075,
+    "target_height_m": 0.55,
+    "assumptions": "Level torso, level ground, at least one supporting foot; ignore joint limits. Not a bound on airborne or pitched states."
+  },
+  "caveat": "These reproduce local function behavior. They do not prove a unique cause of trained behavior or predict outcomes after reward changes."
+}

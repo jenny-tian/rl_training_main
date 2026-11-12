@@ -112,6 +112,9 @@ def collect(args, app):
     assert torch.equal(terrain.terrain_types, expected_columns)
     assert sha(MODELS['update10000']) == EXPECTED_SHA
     actor = load_actor('update10000').to(device)
+    action_generator = torch.Generator(device=device).manual_seed(SEED+100)
+    state = torch.load(MODELS['update10000'],map_location=device,weights_only=True)['actor_state_dict']
+    action_std = state['distribution.log_std_param'].exp()
     actor_hashes = {k:hashlib.sha256(v.cpu().numpy().tobytes()).hexdigest() for k,v in actor.state_dict().items()}
     foot_ids = [robot.body_names.index(f'{leg}_FOOT') for leg in ('FL','FR','HL','HR')]
     contact_ids = [sensor.body_names.index(f'{leg}_FOOT') for leg in ('FL','FR','HL','HR')]
@@ -198,6 +201,7 @@ def collect(args, app):
     termination_names = list(base.termination_manager.active_terms)
     save(args.output/'config.json',dict(profile=args.profile,configuration=config,geometry=geometry,
          checkpoint=str(MODELS['update10000']),checkpoint_sha256=EXPECTED_SHA,specs=specs,
+         action_mode=args.action_mode,action_std=action_std.cpu().tolist(),
          reward_names=reward_names,termination_names=termination_names,foot_names=['FL_FOOT','FR_FOOT','HL_FOOT','HR_FOOT'],
          joint_names=list(robot.joint_names),action_joint_names=action_joint_names,gait_level=gait,
          source_final_mean_terrain_level=final_mean,
@@ -297,7 +301,10 @@ def collect(args, app):
             # after the next tick's command is installed by compute_command.
             if not torch.allclose(obs['policy'][:,6:9],command.command):
                 raise ValueError('actor input command differs from reward command')
-            action=actor(obs['policy']).clamp(-100,100)
+            action=actor(obs['policy'])
+            if args.action_mode=='sampled':
+                action=action+torch.randn(action.shape,device=device,generator=action_generator)*action_std
+            action=action.clamp(-100,100)
             if not torch.isfinite(action).all(): raise FloatingPointError('nonfinite action')
             obs,_,terminated,truncated,_=base.step(action)
             if not np.array_equal((terminated|truncated).cpu().numpy(),buffers['terminated'][-1]|buffers['truncated'][-1]):
@@ -316,7 +323,7 @@ def collect(args, app):
             groups.append(dict(height=h,speed=speed,episodes=len(rows),
                 outcomes={outcome:sum(r['outcome']==outcome for r in rows) for outcome in sorted({r['outcome'] for r in rows})},
                 first_riser=sum(r['best_risers']>=1 for r in rows),best_risers=max(r['best_risers'] for r in rows)))
-    report=dict(status='passed',profile=args.profile,episodes=n,steps=index+1,step_dt=dt,probe=args.steps is not None,
+    report=dict(status='passed',profile=args.profile,action_mode=args.action_mode,episodes=n,steps=index+1,step_dt=dt,probe=args.steps is not None,
                 actor_unchanged=True,checkpoint_sha256=EXPECTED_SHA,actor_hashes=after,
                 first_episodes_only=True,pre_reset_capture=True,groups=groups,records=records,
                 gait_level=gait,reward_names=reward_names,termination_names=termination_names,
@@ -336,6 +343,7 @@ def collect(args, app):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--profile',choices=('nominal','training_randomized'),required=True)
+    parser.add_argument('--action-mode',choices=('mean','sampled'),default='mean')
     parser.add_argument('--repeats',type=int,default=20)
     parser.add_argument('--steps',type=int)
     parser.add_argument('--output',type=Path,required=True)

@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "episodes": 480,
+  "checks": [
+    {
+      "profile": "nominal",
+      "initial_equals_mean_run": {
+        "root": true,
+        "joint_pos": true,
+        "joint_vel": true,
+        "observation": true,
+        "origins": true,
+        "materials": true,
+        "phase_foot_reference": true
+      },
+      "all_arrays_finite": true,
+      "first_episode_durations_valid": true,
+      "records": 240
+    },
+    {
+      "profile": "training_randomized",
+      "initial_equals_mean_run": {
+        "root": true,
+        "joint_pos": true,
+        "joint_vel": true,
+        "observation": true,
+        "origins": true,
+        "materials": true,
+        "phase_foot_reference": true
+      },
+      "all_arrays_finite": true,
+      "first_episode_durations_valid": true,
+      "records": 240
+    }
+  ],
+  "mean_baseline_runs": [
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/isaac_stairs_diagnosis_20261112/nominal_v1",
+    "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/isaac_stairs_diagnosis_20261112/training_randomized_v1"
+  ],
+  "note": "Same fixed initial states; frozen weights; saved Gaussian action standard deviations; independent action RNG. Not a replay of the full training distribution."
+}
