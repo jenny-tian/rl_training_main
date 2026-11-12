@@ -169,7 +169,10 @@ def audit_simulation(base, cfg, output, make_plot):
 
 def worker(args):
     from isaaclab.app import AppLauncher
-    app = AppLauncher(headless=True, device="cuda:0").app
+    launcher = dict(headless=True, device="cuda:0")
+    if args.terrain_profile == 'low_stairs':
+        launcher['kit_args'] = f'--/renderer/multiGpu/enabled=False --/renderer/activeGpu={args.gpu}'
+    app = AppLauncher(**launcher).app
     import torch
     from isaaclab.envs import ManagerBasedRLEnv
     from isaaclab.utils.io import dump_yaml
@@ -181,7 +184,15 @@ def worker(args):
     cfg = replace_terrain(reference)
     save(args.output / "configuration_audit.json", configuration_audit(reference, cfg, agent))
     from reference_reward_variants import apply_reward_variant
-    cfg, reward_audit = apply_reward_variant(cfg, args.reward_variant)
+    if args.terrain_profile == 'low_stairs':
+        from reference_low_stairs_cfg import apply_terrain, apply_rewards
+        cfg, terrain_audit = apply_terrain(cfg)
+        save(args.output / 'low_stairs_terrain_audit.json', terrain_audit)
+        cfg, reward_audit = apply_rewards(cfg)
+        reward_audit['low_stairs_sources'] = {name:hashlib.sha256(Path(__file__).with_name(name).read_bytes()).hexdigest()
+            for name in ('reference_low_stairs_cfg.py','reference_low_stairs_rewards.py')}
+    else:
+        cfg, reward_audit = apply_reward_variant(cfg, args.reward_variant)
     reward_audit['source_sha256'] = hashlib.sha256(
         Path(__file__).with_name('reference_reward_variants.py').read_bytes()).hexdigest()
     save(args.output / "reward_override_audit.json", reward_audit)
@@ -199,7 +210,7 @@ def worker(args):
          device=agent.device, max_iterations=args.updates, mode=args.mode,
          checkpoint=str(FINAL_CHECKPOINT) if args.resume_final else None,
          resume=args.resume_final, reference_budget=10000, automatic_extension=False,
-         reward_variant=args.reward_variant))
+         reward_variant=args.reward_variant, terrain_profile=args.terrain_profile))
     dump_yaml(str(args.output / "params/env.yaml"), cfg)
     dump_yaml(str(args.output / "params/agent.yaml"), agent)
     base = ManagerBasedRLEnv(cfg=cfg)
@@ -224,6 +235,7 @@ def worker(args):
     report = dict(status="running", mode=args.mode, seed=args.seed, from_scratch=not args.resume_final,
                   checkpoint_loaded=str(FINAL_CHECKPOINT) if restore else None,
                   reward_variant=args.reward_variant,
+                  terrain_profile=args.terrain_profile,
                   initial_optimizer_state_entries=len(initial["optimizer_state_dict"]["state"]),
                   initial_iteration=runner.current_learning_iteration, initial_learning_rate=runner.alg.learning_rate,
                   initial_model_hashes={k: hashlib.sha256(b"".join(v.detach().cpu().numpy().tobytes() for v in initial[k].values())).hexdigest()
@@ -287,6 +299,7 @@ def worker(args):
         checkpoint = args.output / f"model_updates_{total_updates:05d}.pt"
         runner.save(str(checkpoint), infos=dict(from_scratch=not args.resume_final, completed_updates=total_updates,
                                               phase_updates=args.updates, reward_variant=args.reward_variant,
+                                              terrain_profile=args.terrain_profile,
                                               validation_only=args.mode != "train"))
         report["output_checkpoint"] = str(checkpoint)
         report["output_sha256"] = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
@@ -309,13 +322,20 @@ def main():
     parser.add_argument("--mode", choices=("smoke", "validate", "train"), required=True)
     parser.add_argument("--updates", type=int)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--reward-variant", choices=tuple(VARIANTS), default="reference")
+    parser.add_argument("--reward-variant", choices=(*VARIANTS, 'low_stairs'), default="reference")
+    parser.add_argument("--terrain-profile", choices=('reference','low_stairs'), default='reference')
     parser.add_argument("--resume-final", action="store_true",
                         help="Restore reviewed final10000, including optimizer; at most 500 additional updates")
     parser.add_argument("--gpu", type=int, choices=(0, 1), default=0)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--child", action="store_true")
     args = parser.parse_args()
+    if (args.terrain_profile == 'low_stairs') != (args.reward_variant == 'low_stairs'):
+        parser.error('low_stairs requires matching terrain and reward profiles')
+    if args.terrain_profile == 'low_stairs' and args.resume_final:
+        parser.error('low_stairs must start from scratch; old checkpoints saw 5-23 cm stairs')
+    if args.terrain_profile == 'low_stairs' and args.mode == 'train' and args.updates is None:
+        parser.error('low_stairs training requires an explicit update budget')
     if args.resume_final and (args.reward_variant == 'reference' or args.mode == 'validate'):
         parser.error("final checkpoint continuation requires modified rewards and smoke/train mode")
     if args.resume_final and args.mode == 'train' and (args.updates is None or not 1 <= args.updates <= 500):
@@ -328,8 +348,9 @@ def main():
     args.output = args.output.resolve()
     if not args.child:
         from source_block_runtime import run
+        timeout = 3600 if args.mode != 'train' else (172800 if args.terrain_profile == 'low_stairs' else 86400)
         return run([sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], "--child"], gpu=args.gpu,
-                   output=args.output, timeout=3600 if args.mode != "train" else 86400)
+                   output=args.output, timeout=timeout)
     try:
         worker(args)
     except Exception:

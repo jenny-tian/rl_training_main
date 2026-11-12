@@ -20,15 +20,16 @@ from reference_stairs_eval import MODELS, load_actor, save, sha
 from reference_eval_checkpoint import register_checkpoint
 
 HEIGHTS = (0., .05, .10, .15)
+HEIGHT_SETS = {'reference': HEIGHTS, 'low_stairs': (0., .02, .03, .05)}
 SPEEDS = (.32, .4, .6)
 SEED = 20261112
 EXPECTED_SHA = '5cf4c1160b6f5b7b5102844526b26f3886c27562d98ea9558e3fa09da504f5a1'
 
 
-def protocol(repeats):
+def protocol(repeats, heights=HEIGHTS):
     return [dict(env_id=len(SPEEDS)*repeats*h + repeats*s + r,
                  height=height, speed=speed, repeat=r, column=h)
-            for h, height in enumerate(HEIGHTS) for s, speed in enumerate(SPEEDS)
+            for h, height in enumerate(heights) for s, speed in enumerate(SPEEDS)
             for r in range(repeats)]
 
 
@@ -70,7 +71,8 @@ def collect(args, app):
         if current != saved['candidate_environment'][key]:
             raise ValueError(f'training configuration changed: {key}')
     cfg.seed = SEED
-    specs = protocol(args.repeats)
+    heights_to_test = HEIGHT_SETS[args.height_set]
+    specs = protocol(args.repeats, heights_to_test)
     cfg.scene.num_envs = len(specs)
     cfg.sim.device = 'cuda:0'
     resolve_lite3_asset(cfg)
@@ -81,7 +83,7 @@ def collect(args, app):
     generator.seed = SEED
     generator.use_cache = False
     subs = {'flat': copy.deepcopy(source['flat'])}
-    for h in HEIGHTS[1:]:
+    for h in heights_to_test[1:]:
         sub = copy.deepcopy(source[f'stairs_{args.direction}'])
         sub.step_height_range = (h, h)
         subs[f'stairs_{round(h*100):02d}cm'] = sub
@@ -148,7 +150,7 @@ def collect(args, app):
     heights = hits[:,:,2]-tile_origins[:,None,2]
     assert torch.isfinite(hits).all()
     geometry = []
-    for col,h in enumerate(HEIGHTS):
+    for col,h in enumerate(heights_to_test):
         z = heights[col].cpu().numpy()
         sign = 1 if args.direction=='up' else -1
         edges = np.flatnonzero(sign*np.diff(z) > .5*max(h,.01))+1
@@ -333,13 +335,14 @@ def collect(args, app):
     after={k:hashlib.sha256(v.cpu().numpy().tobytes()).hexdigest() for k,v in actor.state_dict().items()}
     assert actor_hashes==after and sha(MODELS[args.model])==model_hash
     groups=[]
-    for h in HEIGHTS:
+    for h in heights_to_test:
         for speed in SPEEDS:
             rows=[r for r in records if r['height']==h and r['speed']==speed]
             groups.append(dict(height=h,speed=speed,episodes=len(rows),
                 outcomes={outcome:sum(r['outcome']==outcome for r in rows) for outcome in sorted({r['outcome'] for r in rows})},
                 first_riser=sum(r['best_risers']>=1 for r in rows),best_risers=max(r['best_risers'] for r in rows)))
     report=dict(status='passed',profile=args.profile,direction=args.direction,action_mode=args.action_mode,episodes=n,steps=index+1,step_dt=dt,probe=args.steps is not None,
+                height_set=args.height_set,
                 model=args.model,actor_unchanged=True,checkpoint_sha256=model_hash,actor_hashes=after,
                 first_episodes_only=True,pre_reset_capture=True,groups=groups,records=records,
                 gait_level=gait,reward_names=reward_names,termination_names=termination_names,
@@ -362,6 +365,7 @@ def main():
     parser.add_argument('--checkpoint',type=Path); parser.add_argument('--checkpoint-sha256')
     parser.add_argument('--profile',choices=('nominal','training_randomized'),required=True)
     parser.add_argument('--direction',choices=('up','down'),default='up')
+    parser.add_argument('--height-set',choices=tuple(HEIGHT_SETS),default='reference')
     parser.add_argument('--action-mode',choices=('mean','sampled'),default='mean')
     parser.add_argument('--repeats',type=int,default=20)
     parser.add_argument('--steps',type=int)
@@ -378,7 +382,7 @@ def main():
     try:
         from isaaclab.app import AppLauncher
         # Vulkan uses the physical GPU index; CUDA_VISIBLE_DEVICES remaps physics to cuda:0.
-        graphics_gpu = args.gpu if args.video_env is not None else 0
+        graphics_gpu = args.gpu if args.video_env is not None or args.height_set == 'low_stairs' else 0
         app=AppLauncher(headless=True,enable_cameras=args.video_env is not None,device='cuda:0',
             kit_args=f'--/renderer/multiGpu/enabled=False --/renderer/activeGpu={graphics_gpu}').app
         collect(args,app)
