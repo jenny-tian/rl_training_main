@@ -17,6 +17,7 @@ import traceback
 
 from reference_lite3_loader import ROOT, load_reference, resolve_lite3_asset, source_manifest
 from reference_stairs_eval import MODELS, load_actor, save, sha
+from reference_eval_checkpoint import register_checkpoint
 
 HEIGHTS = (0., .05, .10, .15)
 SPEEDS = (.32, .4, .6)
@@ -122,10 +123,10 @@ def collect(args, app):
     assert dt == .02 and cfg.sim.dt == .005
     expected_columns = torch.tensor([s['column'] for s in specs],device=device)
     assert torch.equal(terrain.terrain_types, expected_columns)
-    assert sha(MODELS['update10000']) == EXPECTED_SHA
-    actor = load_actor('update10000').to(device)
+    model_hash = sha(MODELS[args.model])
+    actor = load_actor(args.model).to(device)
     action_generator = torch.Generator(device=device).manual_seed(SEED+100)
-    state = torch.load(MODELS['update10000'],map_location=device,weights_only=True)['actor_state_dict']
+    state = torch.load(MODELS[args.model],map_location=device,weights_only=True)['actor_state_dict']
     action_std = state['distribution.log_std_param'].exp()
     actor_hashes = {k:hashlib.sha256(v.cpu().numpy().tobytes()).hexdigest() for k,v in actor.state_dict().items()}
     foot_ids = [robot.body_names.index(f'{leg}_FOOT') for leg in ('FL','FR','HL','HR')]
@@ -213,7 +214,8 @@ def collect(args, app):
     reward_names = list(base.reward_manager.active_terms)
     termination_names = list(base.termination_manager.active_terms)
     save(args.output/'config.json',dict(profile=args.profile,direction=args.direction,configuration=config,geometry=geometry,
-         checkpoint=str(MODELS['update10000']),checkpoint_sha256=EXPECTED_SHA,specs=specs,
+         model=args.model,checkpoint=str(MODELS[args.model]),checkpoint_sha256=model_hash,specs=specs,
+         reward_scoring='reference_frozen_common',
          action_mode=args.action_mode,action_std=action_std.cpu().tolist(),
          reward_names=reward_names,termination_names=termination_names,foot_names=['FL_FOOT','FR_FOOT','HL_FOOT','HR_FOOT'],
          joint_names=list(robot.joint_names),action_joint_names=action_joint_names,gait_level=gait,
@@ -301,7 +303,7 @@ def collect(args, app):
             frame=Image.fromarray(frame); draw=ImageDraw.Draw(frame)
             spec=specs[args.video_env]
             draw.rectangle((0,0,960,50),fill=(20,25,32))
-            draw.text((10,6),f"Final10000 | Isaac Lab | {args.profile} | {args.direction} {spec['height']*100:.0f} cm | {spec['speed']:.2f} m/s",fill='white')
+            draw.text((10,6),f"{args.model} | Isaac Lab | {args.profile} | {args.direction} {spec['height']*100:.0f} cm | {spec['speed']:.2f} m/s",fill='white')
             outcome=records[args.video_env]['outcome'] if records[args.video_env] else 'running'
             draw.text((10,28),f't={(index+1)*dt:.2f}s | {outcome} | frozen policy',fill='white')
             frames.append(np.asarray(frame)); frame_steps.append(index+1)
@@ -329,7 +331,7 @@ def collect(args, app):
     np.savez_compressed(args.output/'trace.npz',**arrays)
     assert all(r is not None for r in records)
     after={k:hashlib.sha256(v.cpu().numpy().tobytes()).hexdigest() for k,v in actor.state_dict().items()}
-    assert actor_hashes==after and sha(MODELS['update10000'])==EXPECTED_SHA
+    assert actor_hashes==after and sha(MODELS[args.model])==model_hash
     groups=[]
     for h in HEIGHTS:
         for speed in SPEEDS:
@@ -338,7 +340,7 @@ def collect(args, app):
                 outcomes={outcome:sum(r['outcome']==outcome for r in rows) for outcome in sorted({r['outcome'] for r in rows})},
                 first_riser=sum(r['best_risers']>=1 for r in rows),best_risers=max(r['best_risers'] for r in rows)))
     report=dict(status='passed',profile=args.profile,direction=args.direction,action_mode=args.action_mode,episodes=n,steps=index+1,step_dt=dt,probe=args.steps is not None,
-                actor_unchanged=True,checkpoint_sha256=EXPECTED_SHA,actor_hashes=after,
+                model=args.model,actor_unchanged=True,checkpoint_sha256=model_hash,actor_hashes=after,
                 first_episodes_only=True,pre_reset_capture=True,groups=groups,records=records,
                 gait_level=gait,reward_names=reward_names,termination_names=termination_names,
                 video_env=args.video_env,video_frame_steps=frame_steps,
@@ -356,6 +358,8 @@ def collect(args, app):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--model',default='update10000')
+    parser.add_argument('--checkpoint',type=Path); parser.add_argument('--checkpoint-sha256')
     parser.add_argument('--profile',choices=('nominal','training_randomized'),required=True)
     parser.add_argument('--direction',choices=('up','down'),default='up')
     parser.add_argument('--action-mode',choices=('mean','sampled'),default='mean')
@@ -366,6 +370,7 @@ def main():
     parser.add_argument('--video-env',type=int)
     parser.add_argument('--child',action='store_true')
     args=parser.parse_args(); args.output=args.output.resolve()
+    register_checkpoint(args.model,args.checkpoint,args.checkpoint_sha256)
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable,str(Path(__file__).resolve()),*sys.argv[1:],'--child'],

@@ -13,6 +13,7 @@ import numpy as np
 
 from reference_lite3_loader import ROOT, load_reference, resolve_lite3_asset, source_manifest
 from reference_stairs_eval import MODELS, TRAIN, load_actor, sha, save
+from reference_eval_checkpoint import register_checkpoint
 
 CASES = ('standing','forward','low_left','low_right','turn_left','turn_right','fast_left','fast_right',
          'stop_left','stop_right','reverse_left','reverse_right','heading_left','heading_right','arc_left','arc_right')
@@ -66,7 +67,6 @@ def collect(args, app):
     obs,_=base.reset()
     robot=base.scene['robot']; command=base.command_manager.get_term('base_velocity'); dt=base.step_dt
     torch.backends.cuda.matmul.allow_tf32=False; torch.backends.cudnn.allow_tf32=False
-    if args.model not in MODELS: MODELS[args.model]=TRAIN/'training'/f'model_{int(args.model[6:])-1}.pt'
     model_hash=sha(MODELS[args.model]); actor=load_actor(args.model).to(base.device)
     actor_hash=lambda:{k:hashlib.sha256(v.cpu().numpy().tobytes()).hexdigest() for k,v in actor.state_dict().items()}
     before=actor_hash()
@@ -106,6 +106,7 @@ def collect(args, app):
     np.savez_compressed(args.output/'initial.npz',**initial)
     reward_names=list(base.reward_manager.active_terms); term_names=list(base.termination_manager.active_terms)
     save(args.output/'config.json',dict(model=args.model,profile=args.profile,model_sha256=model_hash,
+         checkpoint=str(MODELS[args.model]),reward_scoring='reference_frozen_common',
          cfg=cfg_dict,specs=specs,step_dt=dt,reward_names=reward_names,termination_names=term_names,
          protocol_source_sha256=sha(__file__),sources=source_manifest(),
          overrides='flat 40 m tile; fixed paired starts and commands; final gait multiplier; original nominal or randomized physics; deterministic policy'))
@@ -174,12 +175,14 @@ def collect(args, app):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--model',choices=('update4001','update6001','update8001','update10000'),required=True)
+    p.add_argument('--model',required=True)
+    p.add_argument('--checkpoint',type=Path); p.add_argument('--checkpoint-sha256')
     p.add_argument('--profile',choices=('nominal','training_randomized'),required=True)
     p.add_argument('--repeats',type=int,default=20); p.add_argument('--steps',type=int)
     p.add_argument('--video-env',type=int); p.add_argument('--output',type=Path,required=True)
     p.add_argument('--gpu',type=int,choices=(0,1),default=0); p.add_argument('--child',action='store_true')
     args=p.parse_args(); args.output=args.output.resolve()
+    register_checkpoint(args.model,args.checkpoint,args.checkpoint_sha256)
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable,str(Path(__file__).resolve()),*sys.argv[1:],'--child'],gpu=args.gpu,output=args.output,timeout=2400)
