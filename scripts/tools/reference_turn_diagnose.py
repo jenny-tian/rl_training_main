@@ -181,11 +181,13 @@ def main():
     p.add_argument('--repeats',type=int,default=20); p.add_argument('--steps',type=int)
     p.add_argument('--video-env',type=int); p.add_argument('--output',type=Path,required=True)
     p.add_argument('--gpu',type=int,choices=(0,1),default=0); p.add_argument('--child',action='store_true')
+    p.add_argument('--minimum-free-mib',type=int,choices=(10240,12288),default=12288)
     args=p.parse_args(); args.output=args.output.resolve()
     register_checkpoint(args.model,args.checkpoint,args.checkpoint_sha256)
     if not args.child:
         from source_block_runtime import run
-        return run([sys.executable,str(Path(__file__).resolve()),*sys.argv[1:],'--child'],gpu=args.gpu,output=args.output,timeout=2400)
+        return run([sys.executable,str(Path(__file__).resolve()),*sys.argv[1:],'--child'],gpu=args.gpu,output=args.output,
+                   timeout=2400,minimum_free_mib=args.minimum_free_mib)
     try:
         from isaaclab.app import AppLauncher
         # Vulkan uses the physical GPU index; CUDA_VISIBLE_DEVICES remaps physics to cuda:0.

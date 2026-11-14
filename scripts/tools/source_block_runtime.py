@@ -20,7 +20,7 @@ def fatal_line(line):
             or re.search(r"(?:loss|reward|observation)[^\n]*\b(?:nan|inf)\b", line, re.IGNORECASE) is not None)
 
 
-def run(command, *, gpu, output, timeout=1800):
+def run(command, *, gpu, output, timeout=1800, minimum_free_mib=12288):
     if gpu not in (0, 1):
         raise ValueError("B1 uses only GPU0/1")
     output = Path(output)
@@ -29,10 +29,13 @@ def run(command, *, gpu, output, timeout=1800):
         return [int(x.strip()) for x in subprocess.check_output(
             ["nvidia-smi", f"--id={gpu}", "--query-gpu=memory.used,memory.free", "--format=csv,noheader,nounits"], text=True).strip().split(",")]
     used, free = memory()
-    if free < 12288:
-        raise RuntimeError(f"GPU{gpu}: {free} MiB free, require >=12288")
+    if minimum_free_mib <= 0:
+        raise ValueError("minimum_free_mib must be positive")
+    if free < minimum_free_mib:
+        raise RuntimeError(f"GPU{gpu}: {free} MiB free, require >={minimum_free_mib}")
     state = dict(command=command, cwd=str(ROOT), physical_gpu=gpu, admission_free_mib=free,
                  peak_total_gpu_used_mib=used, sampling_interval_seconds=2, status="running",
+                 minimum_free_mib=minimum_free_mib,
                  source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                  source_status=subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True))
     environment = dict(os.environ, PYTHONPATH=str(ROOT / "source/rl_training"), CUDA_VISIBLE_DEVICES=str(gpu), PYTHONUNBUFFERED="1")

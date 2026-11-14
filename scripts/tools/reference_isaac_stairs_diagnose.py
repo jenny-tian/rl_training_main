@@ -371,6 +371,7 @@ def main():
     parser.add_argument('--steps',type=int)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--gpu',type=int,choices=(0,1),default=0)
+    parser.add_argument('--minimum-free-mib',type=int,choices=(10240,12288),default=12288)
     parser.add_argument('--video-env',type=int)
     parser.add_argument('--child',action='store_true')
     args=parser.parse_args(); args.output=args.output.resolve()
@@ -378,7 +379,7 @@ def main():
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable,str(Path(__file__).resolve()),*sys.argv[1:],'--child'],
-                   gpu=args.gpu,output=args.output,timeout=2400)
+                   gpu=args.gpu,output=args.output,timeout=2400,minimum_free_mib=args.minimum_free_mib)
     try:
         from isaaclab.app import AppLauncher
         # Vulkan uses the physical GPU index; CUDA_VISIBLE_DEVICES remaps physics to cuda:0.

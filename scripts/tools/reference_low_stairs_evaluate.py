@@ -69,6 +69,8 @@ def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     save(OUTPUT / 'plan.json', dict(model=MODEL, checkpoint=str(checkpoint), sha256=EXPECTED_SHA,
         candidate_episodes=1600, physical_gpu=1, repeats_per_case=20,
+        minimum_free_mib=10240,
+        memory_admission_basis='Historical 240/320-env runs used about 2.8 GiB extra; camera replays about 5.5 GiB. This run requires 10 GiB free; training defaults remain 12 GiB.',
         heights_m=[0., .02, .03, .05], speeds_m_s=[.32, .4, .6],
         profiles=['nominal', 'training_randomized'], training=False,
         video_selection='fixed repeat 0, 0.4 m/s; up 3/5 cm, down 5 cm, right-to-left turn',
@@ -86,7 +88,7 @@ def main():
         if video_env is not None:
             flags += ['--video-env', str(video_env)]
         command = [sys.executable, str(ROOT / 'scripts/tools' / script), *flags,
-                   '--gpu', str(args.gpu), '--output', str(directory)]
+                   '--gpu', str(args.gpu), '--minimum-free-mib', '10240', '--output', str(directory)]
         if not directory.exists():
             print('EVALUATE', name, flush=True)
             subprocess.run(command, cwd=ROOT, check=True)
