@@ -1,0 +1,173 @@
+{
+  "status": "passed",
+  "variant": "candidate",
+  "environments": 4096,
+  "steps": 360,
+  "optimizer_updates": 0,
+  "actor_critic_optimizer_unchanged": true,
+  "observations": [
+    45,
+    393
+  ],
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+  "checkpoint_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+  "resume_audit": {
+    "actor_exact": true,
+    "critic_exact": true,
+    "optimizer_exact": true,
+    "learning_rate": 0.0005766503906250003,
+    "next_iteration": 10000,
+    "curriculum_mode": "legacy_global_histogram",
+    "initial_gait_level": 1.0,
+    "initial_mean_terrain_level": 5.763916015625,
+    "first_reset_preserved_levels": true,
+    "physics_and_rng_restored": false
+  },
+  "configuration_audit": {
+    "status": "passed",
+    "changed_terms": [
+      "stair_clearance"
+    ],
+    "weight": -1.0,
+    "non_reward_environment_exact": true,
+    "turning_rewards_unchanged": true,
+    "checkpoint_initialization": "reviewed parent; no A500 continuation",
+    "before": {
+      "func": "reference_low_stairs_rewards:stair_clearance",
+      "params": {},
+      "weight": -1.0
+    },
+    "after": {
+      "func": "reference_low_stairs_clearance_cfg:StairClearanceReward",
+      "params": {},
+      "weight": -1.0
+    }
+  },
+  "source_check": {
+    "status": "passed",
+    "common_training_sources": 20,
+    "reward_sources_unchanged": true
+  },
+  "initial_histogram": [
+    113,
+    163,
+    250,
+    310,
+    386,
+    452,
+    570,
+    605,
+    666,
+    581
+  ],
+  "gait_range": [
+    1.0,
+    1.0
+  ],
+  "exact_reward_max_error": 5.960464477539063e-08,
+  "counts_first_episode_per_foot": {
+    "scored": [
+      15481,
+      15773,
+      12374,
+      12475
+    ],
+    "wall_scored": [
+      1968,
+      2140,
+      2037,
+      2432
+    ],
+    "wall_old_zero_new_positive": [
+      1968,
+      2140,
+      2037,
+      2432
+    ],
+    "slow_or_backward_scored": [
+      2945,
+      3018,
+      2598,
+      2656
+    ],
+    "grounded_exempt": [
+      15728,
+      17055,
+      20171,
+      21150
+    ],
+    "remembered_target": [
+      1759,
+      2007,
+      1816,
+      1681
+    ],
+    "edge_wall_scored": [
+      611,
+      825,
+      682,
+      752
+    ]
+  },
+  "scope_counts": {
+    "non_stair": 1178863,
+    "pure_yaw": 111659,
+    "standing": 450163,
+    "native_resets": 6
+  },
+  "mean_cost_old_new": [
+    0.0032362407399179776,
+    0.0032037654064576296
+  ],
+  "hashes": {
+    "trajectory": "db8bfe218c1d348a192d2957c804855e9fdad66c119ba8663bfdf9d064a6d2e8",
+    "other_rewards": "17fcbd738b5ce2d779ed54985c3a6cb43e31a163174f25f36310f30077396616",
+    "candidate_cost": "782b53bde226d9787b93aae451d8c6bb2cbe6c3960596813c142efc4c4d4e1f6",
+    "old_cost": "86e15ac61fa0971b63893808f6a8043ba0aa57326befd504c082f8a409a857f5"
+  },
+  "terrain_columns": [
+    "flat",
+    "flat",
+    "flat",
+    "flat",
+    "rough",
+    "rough",
+    "rough",
+    "rough",
+    "slope_up",
+    "slope_up",
+    "slope_down",
+    "slope_down",
+    "stairs_up",
+    "stairs_up",
+    "stairs_down",
+    "stairs_down",
+    "friction_lateral",
+    "friction_longitudinal",
+    "slope_rough_up",
+    "slope_rough_down"
+  ],
+  "selective_reset_verified": true,
+  "same_step_cache_verified": true,
+  "trace_environments": 234,
+  "first_episode_survivors": 4090,
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance.py",
+      "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_cfg.py",
+      "sha256": "871eb849cf356525e384b9e21f5eebbe0666113ded6424acde5cf5569da4247c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_validate.py",
+      "sha256": "7f65914d015a147af081ec73d3f708779efade3af2a83aaafc44b214d17bb958"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume.py",
+      "sha256": "23fa9a2bb6246b838cdf5dcf2057e17a7a09b9c1fcd521bd468d48b0b1b82cca"
+    }
+  ],
+  "note": "只验证计分与集成。原生随机化、命令和课程保持；旧课程按已记录总数迁移。接触由实际射线和合力联合判定，仍是代理。零 PPO 更新，不能据此宣称上阶或转向能力改善。"
+}

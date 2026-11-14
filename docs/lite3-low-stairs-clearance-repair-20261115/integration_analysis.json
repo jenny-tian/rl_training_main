@@ -1,0 +1,115 @@
+{
+  "status": "passed",
+  "foot_order": [
+    "FL",
+    "FR",
+    "HL",
+    "HR"
+  ],
+  "height_examples": [
+    {
+      "foot_bottom_cm": 0.0,
+      "old_cost": 1.0,
+      "new_active_swing_cost": 0.6923077702522278
+    },
+    {
+      "foot_bottom_cm": 1.0,
+      "old_cost": 1.0,
+      "new_active_swing_cost": 0.6282528638839722
+    },
+    {
+      "foot_bottom_cm": 2.0,
+      "old_cost": 1.0,
+      "new_active_swing_cost": 0.5475113391876221
+    },
+    {
+      "foot_bottom_cm": 2.5,
+      "old_cost": 1.0,
+      "new_active_swing_cost": 0.5000000596046448
+    },
+    {
+      "foot_bottom_cm": 3.0,
+      "old_cost": 0.8100000619888306,
+      "new_active_swing_cost": 0.44751378893852234
+    },
+    {
+      "foot_bottom_cm": 5.0,
+      "old_cost": 0.2500000596046448,
+      "new_active_swing_cost": 0.20000003278255463
+    },
+    {
+      "foot_bottom_cm": 7.5,
+      "old_cost": 0.0,
+      "new_active_swing_cost": 0.0
+    },
+    {
+      "foot_bottom_cm": 10.0,
+      "old_cost": 0.0,
+      "new_active_swing_cost": 0.0
+    }
+  ],
+  "exact_paired_hashes": {
+    "trajectory": "db8bfe218c1d348a192d2957c804855e9fdad66c119ba8663bfdf9d064a6d2e8",
+    "other_rewards": "17fcbd738b5ce2d779ed54985c3a6cb43e31a163174f25f36310f30077396616",
+    "candidate_cost": "782b53bde226d9787b93aae451d8c6bb2cbe6c3960596813c142efc4c4d4e1f6",
+    "old_cost": "86e15ac61fa0971b63893808f6a8043ba0aa57326befd504c082f8a409a857f5"
+  },
+  "all_selected_trace_arrays_exact": true,
+  "same_terrain_commands_physics_ppo": true,
+  "only_clearance_changed": true,
+  "counts_first_episode_per_foot": {
+    "scored": [
+      15481,
+      15773,
+      12374,
+      12475
+    ],
+    "wall_scored": [
+      1968,
+      2140,
+      2037,
+      2432
+    ],
+    "wall_old_zero_new_positive": [
+      1968,
+      2140,
+      2037,
+      2432
+    ],
+    "slow_or_backward_scored": [
+      2945,
+      3018,
+      2598,
+      2656
+    ],
+    "grounded_exempt": [
+      15728,
+      17055,
+      20171,
+      21150
+    ],
+    "remembered_target": [
+      1759,
+      2007,
+      1816,
+      1681
+    ],
+    "edge_wall_scored": [
+      611,
+      825,
+      682,
+      752
+    ]
+  },
+  "scope_counts": {
+    "non_stair": 1178863,
+    "pure_yaw": 111659,
+    "standing": 450163,
+    "native_resets": 6
+  },
+  "mean_cost_old_new": [
+    0.0032362407399179776,
+    0.0032037654064576296
+  ],
+  "note": "样本数量是逐足控制帧，不能当成独立回合或成功次数。新的高度曲线和触发时长均已改变，不声称惩罚总量保持。"
+}
