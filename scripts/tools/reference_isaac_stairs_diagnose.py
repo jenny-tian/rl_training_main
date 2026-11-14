@@ -222,7 +222,7 @@ def collect(args, app):
          reward_names=reward_names,termination_names=termination_names,foot_names=['FL_FOOT','FR_FOOT','HL_FOOT','HR_FOOT'],
          joint_names=list(robot.joint_names),action_joint_names=action_joint_names,gait_level=gait,
          source_final_mean_terrain_level=final_mean,
-         overrides=['240 environments by default; fixed native stairs 5/10/15 cm plus flat; one row/four columns',
+         overrides=[f'{n} environments; fixed native stairs {[round(h*100) for h in heights_to_test[1:]]} cm plus flat; one row/four columns',
                     'paired upright starts, stationary 1 s PD preparation, 0.5 s pause + 0.5 s command ramp',
                     'curriculum progression disabled; reward gait multiplier fixed to final training mean',
                     'nominal: fixed friction .9/restitution 0, no mass/inertia/COM/gain/observation randomization; actuator delay remains native',
