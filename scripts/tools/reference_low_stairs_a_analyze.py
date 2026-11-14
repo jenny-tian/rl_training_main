@@ -66,18 +66,32 @@ def training_summary():
     contact = np.array(report['collision_frames_by_column_level'])
     assert coverage.shape == moving.shape == contact.shape == (20,10)
     assert coverage.sum() == report['interactions'] and np.all(contact <= moving) and np.all(moving <= coverage)
+    geometry = read(TRAINING/'geometry.json')['tiles']
     rows = []
     for family in dict.fromkeys(report['terrain_column_names']):
         columns = [i for i,name in enumerate(report['terrain_column_names']) if name == family]
         for level in range(10):
             total, translated, collisions = (int(a[columns,level].sum()) for a in (coverage,moving,contact))
+            tiles = [t for t in geometry if t['direction']==family and t['row']==level]
             rows.append(dict(family=family,level=level,environment_frames=total,translation_frames=translated,
-                riser_penalty_frames=collisions,penalty_fraction_of_translation=collisions/translated if translated else None))
+                riser_penalty_frames=collisions,penalty_fraction_of_translation=collisions/translated if translated else None,
+                min_stair_height_m=min(t['min_height_m'] for t in tiles) if tiles else None,
+                max_stair_height_m=max(t['max_height_m'] for t in tiles) if tiles else None))
+    upper_stairs = []
+    for family in ('stairs_up','stairs_down'):
+        columns = [i for i,name in enumerate(report['terrain_column_names']) if name==family]
+        total = int(coverage[columns].sum())
+        upper = [t for t in geometry if t['direction']==family and t['min_height_m']>=.04]
+        frames,translated,collisions = (int(sum(a[t['column'],t['row']] for t in upper)) for a in (coverage,moving,contact))
+        upper_stairs.append(dict(family=family,threshold_min_step_height_m=.04,
+            environment_frames=frames,translation_frames=translated,riser_penalty_frames=collisions,
+            fraction_of_family_exposure=frames/total if total else None))
     return dict(status='passed',updates=500,interactions=report['interactions'],metrics=metrics,
                 initial_level_histogram=report['initial_level_histogram'],
                 final_level_histogram=report['final_terrain_level_histogram'],
                 initial_learning_rate=report['initial_learning_rate'],final_learning_rate=report['final_learning_rate'],
-                coverage=rows,execution=read(TRAINING/'execution.json'),first20=read(TRAINING/'first20_check.json'))
+                coverage=rows,upper_stairs=upper_stairs,
+                execution=read(TRAINING/'execution.json'),first20=read(TRAINING/'first20_check.json'))
 
 
 def contact_diagnostics(report,cfg,data):
