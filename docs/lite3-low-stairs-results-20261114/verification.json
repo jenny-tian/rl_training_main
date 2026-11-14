@@ -1,0 +1,289 @@
+{
+  "status": "passed",
+  "checkpoint": {
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+    "sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+    "updates": 10000,
+    "adam_steps": 200000,
+    "actor_adapter_samples": 2368,
+    "actor_adapter_max_difference": 0.0,
+    "training_sources_unchanged": 20,
+    "reward_sources_unchanged": true,
+    "baseline_checkpoints_unchanged": [
+      {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/training/scratch_seed42_10000/model_updates_10000.pt",
+        "sha256": "5cf4c1160b6f5b7b5102844526b26f3886c27562d98ea9558e3fa09da504f5a1"
+      },
+      {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/reward_experiments/core_seed42_500/model_updates_10500.pt",
+        "sha256": "1072099b493049cfbe461bae681a117cf7951b8eaf72f4f921dc392150a26879"
+      }
+    ],
+    "parameters_finite": true
+  },
+  "formal_episodes": 1600,
+  "tests_passed": 32,
+  "video_replays_excluded_from_formal_count": true,
+  "video_checks": {
+    "video_up_3cm": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "origins": true,
+          "materials": true,
+          "phase_foot_reference": true
+        },
+        "trace": {
+          "active": true,
+          "root": true,
+          "quat": true,
+          "velocity": true,
+          "gravity": true,
+          "feet": true,
+          "forces": true,
+          "action": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "joint_target": true,
+          "torque": true,
+          "reward_rates": true,
+          "command": true,
+          "scan_mean": true,
+          "terminated": true,
+          "truncated": true,
+          "term_flags": true
+        }
+      }
+    },
+    "video_up_5cm": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "origins": true,
+          "materials": true,
+          "phase_foot_reference": true
+        },
+        "trace": {
+          "active": true,
+          "root": true,
+          "quat": true,
+          "velocity": true,
+          "gravity": true,
+          "feet": true,
+          "forces": true,
+          "action": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "joint_target": true,
+          "torque": true,
+          "reward_rates": true,
+          "command": true,
+          "scan_mean": true,
+          "terminated": true,
+          "truncated": true,
+          "term_flags": true
+        }
+      }
+    },
+    "video_down_5cm": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "origins": true,
+          "materials": true,
+          "phase_foot_reference": true
+        },
+        "trace": {
+          "active": true,
+          "root": true,
+          "quat": true,
+          "velocity": true,
+          "gravity": true,
+          "feet": true,
+          "forces": true,
+          "action": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "joint_target": true,
+          "torque": true,
+          "reward_rates": true,
+          "command": true,
+          "scan_mean": true,
+          "terminated": true,
+          "truncated": true,
+          "term_flags": true
+        }
+      }
+    },
+    "video_turn": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "materials": true,
+          "phase_reference": true
+        },
+        "trace": {
+          "active": true,
+          "command": true,
+          "velocity": true,
+          "root": true,
+          "heading": true,
+          "heading_error": true,
+          "gravity": true,
+          "action": true,
+          "reward_rates": true,
+          "terminated": true,
+          "truncated": true
+        }
+      }
+    },
+    "video_up_5cm_slow": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "origins": true,
+          "materials": true,
+          "phase_foot_reference": true
+        },
+        "trace": {
+          "active": true,
+          "root": true,
+          "quat": true,
+          "velocity": true,
+          "gravity": true,
+          "feet": true,
+          "forces": true,
+          "action": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "joint_target": true,
+          "torque": true,
+          "reward_rates": true,
+          "command": true,
+          "scan_mean": true,
+          "terminated": true,
+          "truncated": true,
+          "term_flags": true
+        }
+      }
+    }
+  },
+  "runtime_logs": [
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/up_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/down_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/up_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/down_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/video_up_3cm",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/video_up_5cm",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/video_down_5cm",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/video_turn",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/video_up_5cm_slow",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    }
+  ],
+  "turn_pairing": [
+    {
+      "baseline": "original10000",
+      "profile": "nominal",
+      "initial_equal": true,
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+      "source": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/code_turn_audit_20261112/update10000_nominal"
+    },
+    {
+      "baseline": "core10500",
+      "profile": "nominal",
+      "initial_equal": true,
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+      "source": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/core500_evaluation_20261112/core10500_turn_nominal"
+    },
+    {
+      "baseline": "original10000",
+      "profile": "training_randomized",
+      "initial_equal": true,
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "source": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/code_turn_audit_20261112/update10000_training_randomized"
+    },
+    {
+      "baseline": "core10500",
+      "profile": "training_randomized",
+      "initial_equal": true,
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "source": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/core500_evaluation_20261112/core10500_turn_training_randomized"
+    }
+  ],
+  "no_training_performed": true
+}

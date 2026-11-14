@@ -40,9 +40,20 @@ def adapter_check(checkpoint):
     assert difference == 0.
     sources = read(TRAINING / 'report.json')['sources']
     assert all(sha(row['path']) == row['sha256'] for row in sources)
+    reward_audit = read(TRAINING / 'reward_override_audit.json')
+    assert sha(ROOT / 'scripts/tools/reference_reward_variants.py') == reward_audit['source_sha256']
+    assert all(sha(ROOT / 'scripts/tools' / name) == digest
+               for name, digest in reward_audit['low_stairs_sources'].items())
+    baseline_checkpoints = []
+    for training in (ROOT / 'logs/reference_six/training/scratch_seed42_10000',
+                     ROOT / 'logs/reference_six/reward_experiments/core_seed42_500'):
+        old = read(training / 'report.json')
+        assert sha(old['output_checkpoint']) == old['output_sha256']
+        baseline_checkpoints.append(dict(path=old['output_checkpoint'], sha256=old['output_sha256']))
     return dict(checkpoint=str(checkpoint), sha256=sha(checkpoint), updates=10000, adam_steps=200000,
                 actor_adapter_samples=len(inputs), actor_adapter_max_difference=difference,
-                training_sources_unchanged=len(sources), parameters_finite=True)
+                training_sources_unchanged=len(sources), reward_sources_unchanged=True,
+                baseline_checkpoints_unchanged=baseline_checkpoints, parameters_finite=True)
 
 
 def read_agent():
@@ -115,6 +126,29 @@ def failure_diagnostics(report, data):
     return rows
 
 
+def flat_heading_diagnostics(report, data):
+    episodes = []
+    for episode in report['records']:
+        if episode['height'] != 0.:
+            continue
+        i = episode['env_id']
+        valid = data['active'][:, i]
+        q = data['quat'][valid, i]
+        yaw = np.unwrap(np.arctan2(2*(q[:, 0]*q[:, 3] + q[:, 1]*q[:, 2]),
+                                  1 - 2*(q[:, 2]**2 + q[:, 3]**2)))
+        velocity = data['velocity'][valid, i]
+        episodes.append(dict(outcome=episode['outcome'], yaw_change_deg=float(np.degrees(yaw[-1]-yaw[0])),
+                             mean_body_vy=float(velocity[:, 1].mean()), mean_yaw_speed=float(velocity[:, 5].mean())))
+    rows = []
+    for outcome in sorted({r['outcome'] for r in episodes}):
+        selected = [r for r in episodes if r['outcome'] == outcome]
+        rows.append(dict(profile=report['profile'], direction=report['direction'], outcome=outcome, starts=len(selected),
+            mean_abs_yaw_change_deg=float(np.mean([abs(r['yaw_change_deg']) for r in selected])),
+            mean_abs_episode_body_vy=float(np.mean([abs(r['mean_body_vy']) for r in selected])),
+            mean_abs_episode_yaw_speed=float(np.mean([abs(r['mean_yaw_speed']) for r in selected]))))
+    return rows
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=OUT)
@@ -127,6 +161,7 @@ def main():
     turns, windows, pairs, pairing, heights, groups, episodes, rewards, checks, logs = [], [], [], [], [], [], [], [], [], []
     raw = set()
     failures = []
+    flat_heading = []
     for entry in complete['matrix']:
         directory = Path(entry['candidate'])
         report = verify_run(directory, entry['kind'], entry['profile'], entry['direction'])
@@ -154,6 +189,7 @@ def main():
             rewards.extend(rw)
             heights.extend(stairs_heights(report))
             failures.extend(failure_diagnostics(report, data))
+            flat_heading.extend(flat_heading_diagnostics(report, data))
             groups.extend(dict(profile=entry['profile'], direction=entry['direction'],
                                **{k: v for k, v in g.items() if k != 'outcomes'},
                                **{name: g['outcomes'].get(name, 0) for name in
@@ -172,6 +208,7 @@ def main():
     if pairs:
         write_csv(out / 'turn_paired.csv', pairs)
     write_csv(out / 'failure_diagnostics.csv', failures)
+    write_csv(out / 'flat_heading_diagnostics.csv', flat_heading)
     video_checks = {}
     for video in complete['videos']:
         directory = Path(video['candidate'])
@@ -187,6 +224,7 @@ def main():
     save(out / 'summary.json', dict(status='passed', status_scope='artifact validation, not policy acceptance',
         candidate_episodes=1600, candidate_sha256=EXPECTED_SHA, stairs_heights=heights, stairs_groups=groups,
         turn_groups=turns, turn_paired=pairs, turn_initial_pairing=pairing,
+        flat_heading_diagnostics=flat_heading,
         rollout_checks=checks, matrix=complete['matrix'], videos=complete['videos'],
         caveats=['Single training seed; fixed test starts; Isaac Lab only, not deployment qualification.',
                  'Common reference rewards are diagnostic scores and do not participate in action selection.',
