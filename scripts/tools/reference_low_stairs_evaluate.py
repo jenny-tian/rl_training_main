@@ -73,7 +73,7 @@ def main():
         memory_admission_basis='Historical 240/320-env runs used about 2.8 GiB extra; camera replays about 5.5 GiB. This run requires 10 GiB free; training defaults remain 12 GiB.',
         heights_m=[0., .02, .03, .05], speeds_m_s=[.32, .4, .6],
         profiles=['nominal', 'training_randomized'], training=False,
-        video_selection='fixed repeat 0, 0.4 m/s; up 3/5 cm, down 5 cm, right-to-left turn',
+        video_selection='fixed repeat 0: up 3/5 cm and down 5 cm at 0.4 m/s; additional up 5 cm at 0.32 m/s; right-to-left turn',
         video_replays_excluded_from_formal_count=True,
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()))
     matrix, videos = [], []
@@ -114,6 +114,7 @@ def main():
         ('video_up_5cm', 'stairs', 'up', 200, 'up_nominal'),
         ('video_down_5cm', 'stairs', 'down', 200, 'down_nominal'),
         ('video_turn', 'turn', None, 220, 'turn_nominal'),
+        ('video_up_5cm_slow', 'stairs', 'up', 180, 'up_nominal'),
     ):
         entry = run(name, kind, 'nominal', direction, env_id)
         entry['formal'] = str(OUTPUT / formal)
@@ -123,7 +124,7 @@ def main():
         status_scope='execution complete; behavior acceptance requires analysis',
         candidate_sha256=EXPECTED_SHA, matrix=matrix, videos=videos,
         automatic_training_extension=False))
-    print('LOW STAIRS MATRIX COMPLETE: 1600 formal episodes, four separate video replays', flush=True)
+    print(f'LOW STAIRS MATRIX COMPLETE: 1600 formal episodes, {len(videos)} separate video replays', flush=True)
 
 
 if __name__ == '__main__':

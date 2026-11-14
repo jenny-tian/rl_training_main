@@ -5,6 +5,7 @@ import argparse
 from pathlib import Path
 import re
 import shutil
+import xml.etree.ElementTree as ET
 
 import numpy as np
 
@@ -92,6 +93,28 @@ def check_log(directory):
     return dict(run=str(directory), runtime_errors=0, physics_fallback_messages=0)
 
 
+def failure_diagnostics(report, data):
+    rows = []
+    for height in (.02, .03, .05):
+        for speed in (.32, .4, .6):
+            episodes = [r for r in report['records'] if (r['height'], r['speed']) == (height, speed)]
+            failures = [r for r in episodes if r['outcome'] == 'orientation_failure']
+            roll, pitch = 0, 0
+            for episode in failures:
+                i = episode['env_id']
+                last = np.flatnonzero(data['active'][:, i])[-1]
+                gravity = data['gravity'][last, i]
+                if abs(gravity[1]) > abs(gravity[0]):
+                    roll += 1
+                else:
+                    pitch += 1
+            rows.append(dict(profile=report['profile'], direction=report['direction'], height=height,
+                speed=speed, starts=len(episodes), orientation_failures=len(failures),
+                roll_dominant_at_termination=roll, pitch_dominant_at_termination=pitch,
+                interpretation='Dominant projected-gravity component at termination; descriptive, not a causal diagnosis.'))
+    return rows
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=OUT)
@@ -103,6 +126,7 @@ def main():
     checkpoint = verify_training()
     turns, windows, pairs, pairing, heights, groups, episodes, rewards, checks, logs = [], [], [], [], [], [], [], [], [], []
     raw = set()
+    failures = []
     for entry in complete['matrix']:
         directory = Path(entry['candidate'])
         report = verify_run(directory, entry['kind'], entry['profile'], entry['direction'])
@@ -129,6 +153,7 @@ def main():
             episodes.extend(ep)
             rewards.extend(rw)
             heights.extend(stairs_heights(report))
+            failures.extend(failure_diagnostics(report, data))
             groups.extend(dict(profile=entry['profile'], direction=entry['direction'],
                                **{k: v for k, v in g.items() if k != 'outcomes'},
                                **{name: g['outcomes'].get(name, 0) for name in
@@ -146,6 +171,7 @@ def main():
         write_csv(out / f'{name}.csv', rows)
     if pairs:
         write_csv(out / 'turn_paired.csv', pairs)
+    write_csv(out / 'failure_diagnostics.csv', failures)
     video_checks = {}
     for video in complete['videos']:
         directory = Path(video['candidate'])
@@ -166,16 +192,22 @@ def main():
                  'Common reference rewards are diagnostic scores and do not participate in action selection.',
                  'Turn comparisons include only paired complete windows; failure counts retain every start.',
                  'No paired older-policy low-stair evaluation; historical stair results are context only.']))
+    test_file = OUTPUT / 'tests.xml'
+    suite = ET.parse(test_file).getroot().find('testsuite')
+    assert int(suite.get('tests')) == 32 and all(int(suite.get(k)) == 0 for k in ('errors', 'failures', 'skipped'))
+    shutil.copy2(test_file, out / 'tests.xml')
     save(out / 'verification.json', dict(status='passed', checkpoint=adapter, formal_episodes=1600,
+        tests_passed=32,
         video_replays_excluded_from_formal_count=True, video_checks=video_checks, runtime_logs=logs,
         turn_pairing=pairing, no_training_performed=True))
     for name in ('execution.json', 'reward_override_audit.json', 'low_stairs_terrain_audit.json'):
         shutil.copy2(TRAINING / name, out / f'training_{name}')
     raw.update(p for p in OUTPUT.iterdir() if p.is_file())
+    raw.update(p for directory in OUTPUT.glob('*_failed_*') for p in directory.rglob('*') if p.is_file())
     raw.update([TRAINING / 'report.json', TRAINING / 'execution.json', checkpoint])
     save(out / 'raw_manifest.json', [dict(path=str(p), bytes=p.stat().st_size, sha256=sha(p)) for p in sorted(raw)])
     plot(out, heights, turns, pairs)
-    print('LOW STAIRS ANALYSIS COMPLETE: 1600 formal episodes, four verified video replays', flush=True)
+    print(f'LOW STAIRS ANALYSIS COMPLETE: 1600 formal episodes, {len(video_checks)} verified video replays', flush=True)
 
 
 def plot(out, heights, turns, pairs):
