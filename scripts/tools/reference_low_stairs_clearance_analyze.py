@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import shutil
+import xml.etree.ElementTree as ET
 
 import numpy as np
 
@@ -206,6 +207,11 @@ def main():
         compare_video(directory, Path(entry['formal']), dest); video_checks[entry['name']] = read(dest / 'replay_validation.json')
         raw.update(p for p in directory.iterdir() if p.is_file())
     training = training_summary(); adapter = adapter_check(checkpoint)
+    test_file = TRAINING.parent / 'tests.xml'
+    suites = ET.parse(test_file).getroot().findall('testsuite')
+    assert suites and all(int(s.get(k)) == 0 for s in suites for k in ('errors', 'failures', 'skipped'))
+    test_count = sum(int(s.get('tests')) for s in suites); assert test_count == 139
+    shutil.copy2(test_file, OUT / 'tests.xml'); raw.add(test_file)
     screening = screen(tables['stairs_heights'], tables['stairs_groups'], tables['turn_paired'], tables['turn_failures'])
     save(OUT / 'screening.json', screening); save(OUT / 'training_summary.json', training)
     write_csv(OUT / 'training_terrain_coverage.csv', training['coverage'])
@@ -218,7 +224,7 @@ def main():
                  '旧课程按已记录总数重建，无法分别归因课程恢复和净空修改。']))
     save(OUT / 'verification.json', dict(status='passed', formal_candidate_episodes=1600, adapter=adapter,
         rollout_checks=checks, runtime_logs=logs, video_checks=video_checks, video_replays_excluded=True,
-        additional_training_performed_by_analyzer=False,
+        additional_training_performed_by_analyzer=False, tests_passed=test_count,
         sources=[dict(path=str(Path(__file__).with_name(name)), sha256=sha(Path(__file__).with_name(name))) for name in
                  ('reference_low_stairs_clearance_train.py', 'reference_low_stairs_clearance_evaluate.py',
                   'reference_low_stairs_clearance_analyze.py')]))
