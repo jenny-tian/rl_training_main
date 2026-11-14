@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "status_scope": "diagnosis and frozen integration, not policy qualification",
+  "optimizer_updates": 0,
+  "formal_training_started": false,
+  "online_learning_started": false,
+  "tests_passed": 49,
+  "checkpoint": {
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+    "sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+    "updates": 10000,
+    "adam_steps": 200000,
+    "actor_adapter_samples": 2368,
+    "actor_adapter_max_difference": 0.0,
+    "training_sources_unchanged": 20,
+    "reward_sources_unchanged": true,
+    "baseline_checkpoints_unchanged": [
+      {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/training/scratch_seed42_10000/model_updates_10000.pt",
+        "sha256": "5cf4c1160b6f5b7b5102844526b26f3886c27562d98ea9558e3fa09da504f5a1"
+      },
+      {
+        "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/reward_experiments/core_seed42_500/model_updates_10500.pt",
+        "sha256": "1072099b493049cfbe461bae681a117cf7951b8eaf72f4f921dc392150a26879"
+      }
+    ],
+    "parameters_finite": true
+  },
+  "runtime_checks": [
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_repair_preparation_20261114/riser_contact_v1",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_repair_preparation_20261114/yaw_airtime_v1",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    }
+  ],
+  "frozen_control_steps": 144000,
+  "all_initial_and_trace_arrays_exact": true,
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair.py",
+      "sha256": "6a2c1cc3f8ae335b510abbbb8e36a61679a4a88d54d5f1292b70625ae0cc8747"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair_validate.py",
+      "sha256": "1a64a6df660a23ed8f56dc3ed77e2dd3f2116ec82c27d148acb9fdffc6a6ea04"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_failure_audit.py",
+      "sha256": "79e216e08e27a2eaf4745607e160b1b4c921a9cafe31821b4a5d2c6b69cd1e9f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair_verify.py",
+      "sha256": "4f7b1ddd9cab5e02d83c7e21de808b58ceb55c2b4231491cfe29711551e3a44c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/source_curriculum/test_reference_low_stairs_repair.py",
+      "sha256": "9d79164f5a1470c9af7d34e5b076ca7724819800ee3f18874e97a51a437d6a0a"
+    }
+  ]
+}

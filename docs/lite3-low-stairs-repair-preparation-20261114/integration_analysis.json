@@ -1,0 +1,152 @@
+{
+  "status": "passed",
+  "initial_arrays_exact": true,
+  "all_trace_arrays_exact": true,
+  "initial_fields": [
+    "root",
+    "joint_pos",
+    "observation",
+    "origins",
+    "materials"
+  ],
+  "trace_fields": [
+    "active",
+    "command",
+    "root",
+    "gravity",
+    "feet",
+    "force",
+    "wall_distance",
+    "wall_normal",
+    "wall_hit",
+    "old_clearance",
+    "riser_cost",
+    "yaw_original",
+    "yaw_candidate",
+    "first_contact",
+    "last_air_time",
+    "joint_pos",
+    "joint_torque",
+    "joint_velocity",
+    "action",
+    "support",
+    "terminated",
+    "truncated"
+  ],
+  "scoring_scope": [
+    {
+      "terrain": "flat",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "friction_lateral",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "friction_longitudinal",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "rough",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "slope_down",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "slope_rough_down",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "slope_rough_up",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "slope_up",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "stairs_down",
+      "scored_frames": 0,
+      "max_cost": 0.0
+    },
+    {
+      "terrain": "stairs_up",
+      "scored_frames": 1278,
+      "max_cost": 0.5755982995033264
+    }
+  ],
+  "turn": [
+    {
+      "case": "arc_left",
+      "old_mean_rate": -0.3167732059955597,
+      "candidate_mean_rate": -0.3167732059955597,
+      "changed_frames": 0
+    },
+    {
+      "case": "arc_right",
+      "old_mean_rate": -0.3421483039855957,
+      "candidate_mean_rate": -0.3421483039855957,
+      "changed_frames": 0
+    },
+    {
+      "case": "fast_left",
+      "old_mean_rate": -0.24669884145259857,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 119
+    },
+    {
+      "case": "fast_right",
+      "old_mean_rate": -0.24494896829128265,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 92
+    },
+    {
+      "case": "forward",
+      "old_mean_rate": 0.0,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 0
+    },
+    {
+      "case": "low_left",
+      "old_mean_rate": 0.0,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 0
+    },
+    {
+      "case": "low_right",
+      "old_mean_rate": 0.0,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 0
+    },
+    {
+      "case": "standing",
+      "old_mean_rate": 0.0,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 0
+    },
+    {
+      "case": "turn_left",
+      "old_mean_rate": -0.11527477204799652,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 50
+    },
+    {
+      "case": "turn_right",
+      "old_mean_rate": -0.15424957871437073,
+      "candidate_mean_rate": 0.0,
+      "changed_frames": 67
+    }
+  ],
+  "first_episode_failures": 2,
+  "note": "Both variants ran identical frozen physical trajectories. Their reward arithmetic differs as intended. Failures remain; this is not a trained-policy comparison."
+}
