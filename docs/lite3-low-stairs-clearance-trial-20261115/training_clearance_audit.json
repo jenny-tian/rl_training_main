@@ -1,0 +1,20 @@
+{
+  "status": "passed",
+  "changed_terms": [
+    "stair_clearance"
+  ],
+  "weight": -1.0,
+  "non_reward_environment_exact": true,
+  "turning_rewards_unchanged": true,
+  "checkpoint_initialization": "reviewed parent; no A500 continuation",
+  "before": {
+    "func": "reference_low_stairs_rewards:stair_clearance",
+    "params": {},
+    "weight": -1.0
+  },
+  "after": {
+    "func": "reference_low_stairs_clearance_cfg:StairClearanceReward",
+    "params": {},
+    "weight": -1.0
+  }
+}

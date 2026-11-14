@@ -186,6 +186,10 @@ def main():
                 tables['turn_failures'].append(dict(profile=entry['profile'], case=case, starts=len(ids),
                     baseline_failures=sum(a[i]['outcome'] == 'orientation_failure' for i in ids),
                     candidate_failures=sum(b[i]['outcome'] == 'orientation_failure' for i in ids),
+                    baseline_failures_before_command=sum(a[i]['outcome'] == 'orientation_failure' and a[i]['duration_s'] <= 2. for i in ids),
+                    candidate_failures_before_command=sum(b[i]['outcome'] == 'orientation_failure' and b[i]['duration_s'] <= 2. for i in ids),
+                    baseline_failures_after_command=sum(a[i]['outcome'] == 'orientation_failure' and a[i]['duration_s'] > 2. for i in ids),
+                    candidate_failures_after_command=sum(b[i]['outcome'] == 'orientation_failure' and b[i]['duration_s'] > 2. for i in ids),
                     new_failures=sum(a[i]['outcome'] != 'orientation_failure' and b[i]['outcome'] == 'orientation_failure' for i in ids),
                     recovered=sum(a[i]['outcome'] == 'orientation_failure' and b[i]['outcome'] != 'orientation_failure' for i in ids)))
         else:

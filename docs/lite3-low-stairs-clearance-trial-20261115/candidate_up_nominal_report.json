@@ -1,0 +1,4050 @@
+{
+  "status": "passed",
+  "profile": "nominal",
+  "direction": "up",
+  "action_mode": "mean",
+  "episodes": 240,
+  "steps": 1000,
+  "step_dt": 0.02,
+  "probe": false,
+  "height_set": "low_stairs",
+  "model": "lowstairs_clearance10500",
+  "actor_unchanged": true,
+  "checkpoint_sha256": "6f5be217cd012d678e0528bc7b9c8d528001083f5ae48697585bf7e1944fea8e",
+  "actor_hashes": {
+    "0.weight": "5754789bd0af12e6eec563b3571ee0c1d0dc6c758173de7b974b7921928a0a0f",
+    "0.bias": "71853a3e0033c3c7238a321e5f2f13edb4b6b0d921c594740cd9d26294b3d1b0",
+    "2.weight": "5470383aac16f04fadbdd57c25e71da39e7938dd4e9886482d7c3107674a47ff",
+    "2.bias": "9e923472faeaace13eb4e511fdd0244755b227b1dd2c11d58255e8efaa543787",
+    "4.weight": "b16613678781be48bc92c1c59bfa121e062416a861573c5fba4c070e67ced84e",
+    "4.bias": "9cea1c1dd4d1188ce18198be72e0f22041e4e4c4d9c66866b648b331dbece240",
+    "6.weight": "273ff17e3a71597fe433d52385fd545dd6f1616a4112831a4d3601f863cb2d1a",
+    "6.bias": "c93050bbc2c653ce74b2d552d7d28b21ac27095717c7b1ed0b5551ee64666042"
+  },
+  "first_episodes_only": true,
+  "pre_reset_capture": true,
+  "groups": [
+    {
+      "height": 0.0,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.0,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.0,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 0,
+      "best_risers": 0
+    },
+    {
+      "height": 0.02,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    },
+    {
+      "height": 0.02,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    },
+    {
+      "height": 0.02,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    },
+    {
+      "height": 0.03,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    },
+    {
+      "height": 0.03,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    },
+    {
+      "height": 0.03,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "success": 20
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    },
+    {
+      "height": 0.05,
+      "speed": 0.32,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 14,
+        "orientation_failure": 1,
+        "stuck": 3,
+        "success": 1,
+        "timeout": 1
+      },
+      "first_riser": 18,
+      "best_risers": 7
+    },
+    {
+      "height": 0.05,
+      "speed": 0.4,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 7,
+        "success": 13
+      },
+      "first_riser": 19,
+      "best_risers": 7
+    },
+    {
+      "height": 0.05,
+      "speed": 0.6,
+      "episodes": 20,
+      "outcomes": {
+        "lateral_exit": 8,
+        "orientation_failure": 2,
+        "success": 10
+      },
+      "first_riser": 20,
+      "best_risers": 7
+    }
+  ],
+  "records": [
+    {
+      "env_id": 0,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.48,
+      "final_root": [
+        3.37331223487854,
+        -0.04052543640136719,
+        0.2970564365386963
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 1,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.56,
+      "final_root": [
+        3.374307870864868,
+        -0.09323406219482422,
+        0.2979333996772766
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 2,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.76,
+      "final_root": [
+        3.372281312942505,
+        0.5193042755126953,
+        0.30027103424072266
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 3,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.14,
+      "final_root": [
+        3.3802614212036133,
+        -0.08637142181396484,
+        0.3004401624202728
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 4,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.26,
+      "final_root": [
+        3.382938861846924,
+        -0.058960914611816406,
+        0.30168265104293823
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 5,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.42,
+      "final_root": [
+        3.380256414413452,
+        -0.15796470642089844,
+        0.3002479076385498
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 6,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.94,
+      "final_root": [
+        3.385698080062866,
+        0.19248008728027344,
+        0.3008027970790863
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 7,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.5,
+      "final_root": [
+        3.371347665786743,
+        0.5249195098876953,
+        0.29828158020973206
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 8,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.18,
+      "final_root": [
+        3.382201910018921,
+        -0.033959388732910156,
+        0.2978192865848541
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 9,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.92,
+      "final_root": [
+        3.371962547302246,
+        0.25127315521240234,
+        0.2956886291503906
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 10,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.14,
+      "final_root": [
+        3.379875898361206,
+        -0.041594505310058594,
+        0.2980124056339264
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 11,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.84,
+      "final_root": [
+        3.3669002056121826,
+        0.10132026672363281,
+        0.3006513714790344
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 12,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.52,
+      "final_root": [
+        3.373340606689453,
+        0.10947608947753906,
+        0.2958003878593445
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 13,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 12.02,
+      "final_root": [
+        3.347841739654541,
+        0.31886863708496094,
+        0.29775986075401306
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 14,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.02,
+      "final_root": [
+        3.378319263458252,
+        -0.06554794311523438,
+        0.2985208332538605
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 15,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.68,
+      "final_root": [
+        3.384939432144165,
+        0.13679218292236328,
+        0.302298903465271
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 16,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.64,
+      "final_root": [
+        3.3802549839019775,
+        0.3375701904296875,
+        0.30063581466674805
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 17,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.98,
+      "final_root": [
+        3.3777518272399902,
+        -0.17900371551513672,
+        0.3000715672969818
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 18,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 10.96,
+      "final_root": [
+        3.381054162979126,
+        0.5609960556030273,
+        0.3023225665092468
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 19,
+      "height": 0.0,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 11.14,
+      "final_root": [
+        3.38460636138916,
+        0.038367271423339844,
+        0.30029112100601196
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 20,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.6,
+      "final_root": [
+        3.407425880432129,
+        -0.011590957641601562,
+        0.2996535301208496
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 21,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.82,
+      "final_root": [
+        3.4026739597320557,
+        -0.17147445678710938,
+        0.29859375953674316
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 22,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.02,
+      "final_root": [
+        3.406951904296875,
+        -0.08165454864501953,
+        0.30221670866012573
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 23,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.5,
+      "final_root": [
+        3.4097139835357666,
+        0.008249282836914062,
+        0.3007431626319885
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 24,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.06,
+      "final_root": [
+        3.4050354957580566,
+        0.0017261505126953125,
+        0.3005553185939789
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 25,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.48,
+      "final_root": [
+        3.405470848083496,
+        0.14076519012451172,
+        0.3016129434108734
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 26,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.0,
+      "final_root": [
+        3.402454137802124,
+        -0.05217456817626953,
+        0.30187973380088806
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 27,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.48,
+      "final_root": [
+        3.410358428955078,
+        0.23452377319335938,
+        0.30122244358062744
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 28,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.98,
+      "final_root": [
+        3.403965711593628,
+        -0.09200191497802734,
+        0.3013811707496643
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 29,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.98,
+      "final_root": [
+        3.4029290676116943,
+        -0.0013093948364257812,
+        0.30128753185272217
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 30,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.58,
+      "final_root": [
+        3.407447338104248,
+        0.09439849853515625,
+        0.30089014768600464
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 31,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.86,
+      "final_root": [
+        3.4055545330047607,
+        0.1305398941040039,
+        0.3027566373348236
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 32,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.86,
+      "final_root": [
+        3.404966115951538,
+        -0.06117057800292969,
+        0.2995530962944031
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 33,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.74,
+      "final_root": [
+        3.4098219871520996,
+        0.16538143157958984,
+        0.3019987940788269
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 34,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.5,
+      "final_root": [
+        3.4113597869873047,
+        0.12457752227783203,
+        0.29907339811325073
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 35,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.68,
+      "final_root": [
+        3.409229278564453,
+        -0.21500396728515625,
+        0.29763519763946533
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 36,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 9.04,
+      "final_root": [
+        3.4056663513183594,
+        -0.07610321044921875,
+        0.30088040232658386
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 37,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.88,
+      "final_root": [
+        3.4023475646972656,
+        -0.21474266052246094,
+        0.2997148334980011
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 38,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.86,
+      "final_root": [
+        3.3977229595184326,
+        0.14050960540771484,
+        0.3001815974712372
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 39,
+      "height": 0.0,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 8.6,
+      "final_root": [
+        3.4112517833709717,
+        0.1921091079711914,
+        0.30333900451660156
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 40,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.28,
+      "final_root": [
+        3.452141046524048,
+        -0.1607799530029297,
+        0.2999245226383209
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 41,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.22,
+      "final_root": [
+        3.4612624645233154,
+        -0.1910104751586914,
+        0.29948776960372925
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 42,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.08,
+      "final_root": [
+        3.4580326080322266,
+        0.060568809509277344,
+        0.3027662932872772
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 43,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.1,
+      "final_root": [
+        3.4681150913238525,
+        0.005429267883300781,
+        0.3032507002353668
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 44,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.14,
+      "final_root": [
+        3.4656784534454346,
+        0.15421772003173828,
+        0.3030484616756439
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 45,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.457986354827881,
+        -0.185333251953125,
+        0.29573994874954224
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 46,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.4551851749420166,
+        -0.19119644165039062,
+        0.297198086977005
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 47,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.32,
+      "final_root": [
+        3.4526941776275635,
+        -0.1137533187866211,
+        0.30131250619888306
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 48,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.4633967876434326,
+        -0.15437698364257812,
+        0.3007151186466217
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 49,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.4553918838500977,
+        -0.07072162628173828,
+        0.3012296259403229
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 50,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.455716371536255,
+        -0.17602252960205078,
+        0.298168808221817
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 51,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.34,
+      "final_root": [
+        3.459455966949463,
+        -0.12018299102783203,
+        0.30140677094459534
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 52,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.02,
+      "final_root": [
+        3.461538314819336,
+        0.07290077209472656,
+        0.30018243193626404
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 53,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.18,
+      "final_root": [
+        3.462700605392456,
+        -0.015671730041503906,
+        0.3004154860973358
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 54,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.04,
+      "final_root": [
+        3.4689862728118896,
+        0.08780956268310547,
+        0.30109652876853943
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 55,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.12,
+      "final_root": [
+        3.459233045578003,
+        -0.1492290496826172,
+        0.29725828766822815
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 56,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.24,
+      "final_root": [
+        3.462448835372925,
+        -0.14865684509277344,
+        0.30281174182891846
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 57,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.04,
+      "final_root": [
+        3.462066650390625,
+        -0.0747365951538086,
+        0.30109986662864685
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 58,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.16,
+      "final_root": [
+        3.4632983207702637,
+        0.044157981872558594,
+        0.29853570461273193
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 59,
+      "height": 0.0,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 0,
+      "outcome": "success",
+      "duration_s": 6.28,
+      "final_root": [
+        3.462799310684204,
+        -0.03756999969482422,
+        0.3009023368358612
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 60,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.7,
+      "final_root": [
+        3.3683969974517822,
+        -0.04088783264160156,
+        0.4361526370048523
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 61,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.36,
+      "final_root": [
+        3.3686771392822266,
+        0.044744014739990234,
+        0.43970733880996704
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 62,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.86,
+      "final_root": [
+        3.3709797859191895,
+        -0.056519508361816406,
+        0.43957340717315674
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 63,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.96,
+      "final_root": [
+        3.3782334327697754,
+        0.16996312141418457,
+        0.4412626028060913
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 64,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.62,
+      "final_root": [
+        3.3644750118255615,
+        -0.05819082260131836,
+        0.4364716410636902
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 65,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 13.06,
+      "final_root": [
+        3.365401029586792,
+        0.06287431716918945,
+        0.4391089081764221
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 66,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.5,
+      "final_root": [
+        3.3771119117736816,
+        -0.08554363250732422,
+        0.4402564764022827
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 67,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.82,
+      "final_root": [
+        3.370673418045044,
+        0.045694828033447266,
+        0.43992769718170166
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 68,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.08,
+      "final_root": [
+        3.382904052734375,
+        -0.07662487030029297,
+        0.4403630495071411
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 69,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.96,
+      "final_root": [
+        3.3739511966705322,
+        -0.0420680046081543,
+        0.44000905752182007
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 70,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.42,
+      "final_root": [
+        3.379631996154785,
+        -0.03958845138549805,
+        0.4397696852684021
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 71,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.5,
+      "final_root": [
+        3.3595759868621826,
+        0.2799849510192871,
+        0.4383596181869507
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 72,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 13.06,
+      "final_root": [
+        3.3745405673980713,
+        -0.06836938858032227,
+        0.43671244382858276
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 73,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.66,
+      "final_root": [
+        3.3618931770324707,
+        0.23094797134399414,
+        0.4381403923034668
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 74,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.36,
+      "final_root": [
+        3.3730926513671875,
+        -0.1530313491821289,
+        0.4393600821495056
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 75,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.02,
+      "final_root": [
+        3.3725426197052,
+        -0.051233768463134766,
+        0.4356624484062195
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 76,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.88,
+      "final_root": [
+        3.3696017265319824,
+        -0.06618022918701172,
+        0.4413551092147827
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 77,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.68,
+      "final_root": [
+        3.3725008964538574,
+        0.061986684799194336,
+        0.44048750400543213
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 78,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 12.46,
+      "final_root": [
+        3.3728408813476562,
+        0.00623011589050293,
+        0.43713629245758057
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 79,
+      "height": 0.02,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 11.28,
+      "final_root": [
+        3.357510805130005,
+        0.10805034637451172,
+        0.43963009119033813
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 80,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.42,
+      "final_root": [
+        3.3975696563720703,
+        0.1388554573059082,
+        0.4400211572647095
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 81,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.4,
+      "final_root": [
+        3.397796154022217,
+        -0.6421689987182617,
+        0.44214487075805664
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 82,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.3,
+      "final_root": [
+        3.40325665473938,
+        0.20715618133544922,
+        0.4404643774032593
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 83,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.4,
+      "final_root": [
+        3.410830497741699,
+        0.13247299194335938,
+        0.4394650459289551
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 84,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.66,
+      "final_root": [
+        3.3937485218048096,
+        0.10930109024047852,
+        0.4373217821121216
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 85,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.46,
+      "final_root": [
+        3.3939547538757324,
+        -0.07194900512695312,
+        0.4378659129142761
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 86,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.34,
+      "final_root": [
+        3.4019272327423096,
+        0.11073613166809082,
+        0.44054722785949707
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 87,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.68,
+      "final_root": [
+        3.385044813156128,
+        0.10948300361633301,
+        0.43521058559417725
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 88,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.5,
+      "final_root": [
+        3.3977108001708984,
+        -0.1549973487854004,
+        0.4368143677711487
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 89,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.6,
+      "final_root": [
+        3.3856544494628906,
+        0.04064035415649414,
+        0.4364636540412903
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 90,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.44,
+      "final_root": [
+        3.403883457183838,
+        0.0022034645080566406,
+        0.43675339221954346
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 91,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.3,
+      "final_root": [
+        3.4029154777526855,
+        -0.06284952163696289,
+        0.4379656910896301
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 92,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.22,
+      "final_root": [
+        3.3832802772521973,
+        0.0023648738861083984,
+        0.43917137384414673
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 93,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.62,
+      "final_root": [
+        3.3908796310424805,
+        0.11433601379394531,
+        0.4363212585449219
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 94,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.04,
+      "final_root": [
+        3.4085631370544434,
+        0.1226661205291748,
+        0.4406126141548157
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 95,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.72,
+      "final_root": [
+        3.393247127532959,
+        0.06628894805908203,
+        0.4357753396034241
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 96,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.32,
+      "final_root": [
+        3.402933120727539,
+        0.14731907844543457,
+        0.4403116703033447
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 97,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.62,
+      "final_root": [
+        3.3879334926605225,
+        -0.08912181854248047,
+        0.4362289309501648
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 98,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.14,
+      "final_root": [
+        3.4027113914489746,
+        0.26982569694519043,
+        0.4416583776473999
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 99,
+      "height": 0.02,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 9.34,
+      "final_root": [
+        3.398622751235962,
+        0.006757020950317383,
+        0.438262403011322
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 100,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.42,
+      "final_root": [
+        3.4611549377441406,
+        -0.15103912353515625,
+        0.4374615550041199
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 101,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.6,
+      "final_root": [
+        3.4424540996551514,
+        -0.17784690856933594,
+        0.4425015449523926
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 102,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.72,
+      "final_root": [
+        3.455686092376709,
+        -0.20221757888793945,
+        0.4368414878845215
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 103,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.32,
+      "final_root": [
+        3.450927257537842,
+        0.14461088180541992,
+        0.44333982467651367
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 104,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.5,
+      "final_root": [
+        3.448855400085449,
+        -0.13707208633422852,
+        0.4415901303291321
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 105,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.4591481685638428,
+        0.13976693153381348,
+        0.44341373443603516
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 106,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.38,
+      "final_root": [
+        3.46545672416687,
+        -0.08429241180419922,
+        0.439999520778656
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 107,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.6,
+      "final_root": [
+        3.461146593093872,
+        -0.03483390808105469,
+        0.4431038498878479
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 108,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.72,
+      "final_root": [
+        3.4639031887054443,
+        -0.17250299453735352,
+        0.4366975426673889
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 109,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.52,
+      "final_root": [
+        3.471712350845337,
+        0.08827924728393555,
+        0.4402683973312378
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 110,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.28,
+      "final_root": [
+        3.4605329036712646,
+        0.09395503997802734,
+        0.44155555963516235
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 111,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.62,
+      "final_root": [
+        3.4582643508911133,
+        0.012609720230102539,
+        0.44094377756118774
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 112,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.32,
+      "final_root": [
+        3.450089931488037,
+        0.05876517295837402,
+        0.4430820345878601
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 113,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.26,
+      "final_root": [
+        3.459881067276001,
+        0.25271010398864746,
+        0.44041746854782104
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 114,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.56,
+      "final_root": [
+        3.4464402198791504,
+        -0.0603938102722168,
+        0.44322872161865234
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 115,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.54,
+      "final_root": [
+        3.459655284881592,
+        -0.07592153549194336,
+        0.4420813322067261
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 116,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.64,
+      "final_root": [
+        3.4554290771484375,
+        -0.16656827926635742,
+        0.4426538348197937
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 117,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.38,
+      "final_root": [
+        3.466200113296509,
+        -0.07940959930419922,
+        0.4413527846336365
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 118,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.464961290359497,
+        0.05660414695739746,
+        0.43703025579452515
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 119,
+      "height": 0.02,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 1,
+      "outcome": "success",
+      "duration_s": 6.56,
+      "final_root": [
+        3.448122501373291,
+        -0.08464384078979492,
+        0.4422925114631653
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 120,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.12,
+      "final_root": [
+        3.3666672706604004,
+        -0.038170814514160156,
+        0.5118514895439148
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 121,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 10.7,
+      "final_root": [
+        3.3796331882476807,
+        -0.07961606979370117,
+        0.5103881359100342
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 122,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 10.8,
+      "final_root": [
+        3.374734401702881,
+        0.11249923706054688,
+        0.5095228552818298
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 123,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.52,
+      "final_root": [
+        3.367788076400757,
+        -0.14798569679260254,
+        0.5106431841850281
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 124,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.38,
+      "final_root": [
+        3.3756332397460938,
+        0.10228776931762695,
+        0.5102006793022156
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 125,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.24,
+      "final_root": [
+        3.3669626712799072,
+        0.22190523147583008,
+        0.5100775957107544
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 126,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 12.22,
+      "final_root": [
+        3.35396146774292,
+        -0.2498457431793213,
+        0.5072600841522217
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 127,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.06,
+      "final_root": [
+        3.353916645050049,
+        0.408968448638916,
+        0.506075918674469
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 128,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.22,
+      "final_root": [
+        3.378552198410034,
+        0.06062030792236328,
+        0.5106365084648132
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 129,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 10.64,
+      "final_root": [
+        3.3765013217926025,
+        -0.13672208786010742,
+        0.5101200342178345
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 130,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.1,
+      "final_root": [
+        3.3806827068328857,
+        0.0958404541015625,
+        0.5106778740882874
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 131,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.2,
+      "final_root": [
+        3.373194456100464,
+        0.30563974380493164,
+        0.5108805894851685
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 132,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 10.54,
+      "final_root": [
+        3.378829002380371,
+        -0.06948518753051758,
+        0.510169506072998
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 133,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.2,
+      "final_root": [
+        3.351862907409668,
+        -0.009961128234863281,
+        0.5114815831184387
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 134,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.68,
+      "final_root": [
+        3.3791563510894775,
+        0.3116283416748047,
+        0.507695734500885
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 135,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.18,
+      "final_root": [
+        3.3716442584991455,
+        0.006039619445800781,
+        0.510217010974884
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 136,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.64,
+      "final_root": [
+        3.383403778076172,
+        0.26595115661621094,
+        0.5068898797035217
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 137,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 10.94,
+      "final_root": [
+        3.3784830570220947,
+        0.17358732223510742,
+        0.5109248161315918
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 138,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.56,
+      "final_root": [
+        3.3753626346588135,
+        0.5128350257873535,
+        0.5106476545333862
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 139,
+      "height": 0.03,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 11.12,
+      "final_root": [
+        3.362847328186035,
+        -0.012125492095947266,
+        0.5098936557769775
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 140,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 8.86,
+      "final_root": [
+        3.4002504348754883,
+        0.1772756576538086,
+        0.5132124423980713
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 141,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.36,
+      "final_root": [
+        3.398387908935547,
+        0.15224599838256836,
+        0.5088529586791992
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 142,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.68,
+      "final_root": [
+        3.3833813667297363,
+        0.21808195114135742,
+        0.5120893120765686
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 143,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.46,
+      "final_root": [
+        3.3891379833221436,
+        0.05882692337036133,
+        0.5077999234199524
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 144,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.72,
+      "final_root": [
+        3.3866822719573975,
+        0.22895145416259766,
+        0.509361982345581
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 145,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.44,
+      "final_root": [
+        3.38657546043396,
+        0.38840436935424805,
+        0.5084279775619507
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 146,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.12,
+      "final_root": [
+        3.3837263584136963,
+        0.16662311553955078,
+        0.50905841588974
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 147,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 8.8,
+      "final_root": [
+        3.398940086364746,
+        0.28755855560302734,
+        0.5100550055503845
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 148,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.26,
+      "final_root": [
+        3.4015157222747803,
+        0.1814136505126953,
+        0.5106050968170166
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 149,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.34,
+      "final_root": [
+        3.4084675312042236,
+        0.24866247177124023,
+        0.5088649392127991
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 150,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.58,
+      "final_root": [
+        3.395609140396118,
+        0.18393468856811523,
+        0.5079603791236877
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 151,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.64,
+      "final_root": [
+        3.3928894996643066,
+        0.19107866287231445,
+        0.5066163539886475
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 152,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.36,
+      "final_root": [
+        3.3887248039245605,
+        0.2433180809020996,
+        0.5077909827232361
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 153,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.52,
+      "final_root": [
+        3.4005157947540283,
+        0.20314645767211914,
+        0.508496880531311
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 154,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.08,
+      "final_root": [
+        3.395869016647339,
+        0.26743268966674805,
+        0.5102391242980957
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 155,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.46,
+      "final_root": [
+        3.402160882949829,
+        0.07562494277954102,
+        0.5069671869277954
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 156,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.62,
+      "final_root": [
+        3.3869783878326416,
+        0.17088651657104492,
+        0.5061151385307312
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 157,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.7,
+      "final_root": [
+        3.3850338459014893,
+        0.07796382904052734,
+        0.509295642375946
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 158,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.54,
+      "final_root": [
+        3.4058191776275635,
+        0.25034236907958984,
+        0.5072723627090454
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 159,
+      "height": 0.03,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 9.14,
+      "final_root": [
+        3.4002699851989746,
+        0.3503389358520508,
+        0.5117756128311157
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 160,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.4716954231262207,
+        0.0023059844970703125,
+        0.5089969038963318
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 161,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.24,
+      "final_root": [
+        3.4665281772613525,
+        0.27822351455688477,
+        0.506810188293457
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 162,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.44,
+      "final_root": [
+        3.455524206161499,
+        0.3391451835632324,
+        0.5109881162643433
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 163,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.4,
+      "final_root": [
+        3.4591336250305176,
+        0.2630791664123535,
+        0.5112560391426086
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 164,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.4,
+      "final_root": [
+        3.447279453277588,
+        0.4336581230163574,
+        0.5111497044563293
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 165,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.52,
+      "final_root": [
+        3.4488086700439453,
+        -0.09460783004760742,
+        0.5103215575218201
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 166,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.2,
+      "final_root": [
+        3.440783739089966,
+        0.44269847869873047,
+        0.5130362510681152
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 167,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.12,
+      "final_root": [
+        3.4469149112701416,
+        -0.1908571720123291,
+        0.5099552273750305
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 168,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.7,
+      "final_root": [
+        3.4721548557281494,
+        -0.25939083099365234,
+        0.5137824416160583
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 169,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.24,
+      "final_root": [
+        3.4478952884674072,
+        0.3594670295715332,
+        0.514175534248352
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 170,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.36,
+      "final_root": [
+        3.4634041786193848,
+        -0.24142813682556152,
+        0.5113840103149414
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 171,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.72,
+      "final_root": [
+        3.443758726119995,
+        -0.14768052101135254,
+        0.5097146034240723
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 172,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.7,
+      "final_root": [
+        3.447577714920044,
+        0.13432073593139648,
+        0.5101471543312073
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 173,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.7,
+      "final_root": [
+        3.437591314315796,
+        -0.06868314743041992,
+        0.5089771151542664
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 174,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.4433627128601074,
+        0.32560300827026367,
+        0.5158094763755798
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 175,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 5.84,
+      "final_root": [
+        3.464442491531372,
+        -0.10077953338623047,
+        0.5087632536888123
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 176,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.4653303623199463,
+        0.32657861709594727,
+        0.5143235325813293
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 177,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.4,
+      "final_root": [
+        3.4431984424591064,
+        -0.28967881202697754,
+        0.5143983960151672
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 178,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.44,
+      "final_root": [
+        3.4497134685516357,
+        0.020763397216796875,
+        0.5117992162704468
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 179,
+      "height": 0.03,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 2,
+      "outcome": "success",
+      "duration_s": 6.3,
+      "final_root": [
+        3.475159168243408,
+        0.37598752975463867,
+        0.5116787552833557
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 180,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 0,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 14.66,
+      "final_root": [
+        3.1623032093048096,
+        1.0050420761108398,
+        0.6383916139602661
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 181,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 1,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 14.78,
+      "final_root": [
+        1.9889227151870728,
+        1.0030689239501953,
+        0.4719565212726593
+      ],
+      "best_risers": 3,
+      "termination_terms": []
+    },
+    {
+      "env_id": 182,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 2,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 13.16,
+      "final_root": [
+        2.4260261058807373,
+        1.004136085510254,
+        0.5228976011276245
+      ],
+      "best_risers": 4,
+      "termination_terms": []
+    },
+    {
+      "env_id": 183,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 3,
+      "column": 3,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.437096357345581,
+        0.15201854705810547,
+        0.3560575544834137
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 184,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 4,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 12.44,
+      "final_root": [
+        1.4598026275634766,
+        1.0068778991699219,
+        0.37145382165908813
+      ],
+      "best_risers": 1,
+      "termination_terms": []
+    },
+    {
+      "env_id": 185,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 5,
+      "column": 3,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        2.6263160705566406,
+        0.8260726928710938,
+        0.5237617492675781
+      ],
+      "best_risers": 4,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 186,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 6,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 12.54,
+      "final_root": [
+        2.1347384452819824,
+        1.0002765655517578,
+        0.4463121294975281
+      ],
+      "best_risers": 3,
+      "termination_terms": []
+    },
+    {
+      "env_id": 187,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 7,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 11.52,
+      "final_root": [
+        2.503432035446167,
+        1.0009870529174805,
+        0.5223432183265686
+      ],
+      "best_risers": 4,
+      "termination_terms": []
+    },
+    {
+      "env_id": 188,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 8,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 14.58,
+      "final_root": [
+        3.3338005542755127,
+        0.8495445251464844,
+        0.6478927135467529
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 189,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 9,
+      "column": 3,
+      "outcome": "stuck",
+      "duration_s": 20.0,
+      "final_root": [
+        1.4441370964050293,
+        0.056372642517089844,
+        0.35032331943511963
+      ],
+      "best_risers": 0,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 190,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 10,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 11.32,
+      "final_root": [
+        2.419105291366577,
+        1.0074176788330078,
+        0.5126267671585083
+      ],
+      "best_risers": 4,
+      "termination_terms": []
+    },
+    {
+      "env_id": 191,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 11,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 16.38,
+      "final_root": [
+        3.092236042022705,
+        1.001694679260254,
+        0.6338016986846924
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 192,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 12,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 14.6,
+      "final_root": [
+        2.7879762649536133,
+        1.0017147064208984,
+        0.5777487754821777
+      ],
+      "best_risers": 5,
+      "termination_terms": []
+    },
+    {
+      "env_id": 193,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 13,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 16.08,
+      "final_root": [
+        2.368912696838379,
+        1.0020694732666016,
+        0.5258494019508362
+      ],
+      "best_risers": 4,
+      "termination_terms": []
+    },
+    {
+      "env_id": 194,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 14,
+      "column": 3,
+      "outcome": "timeout",
+      "duration_s": 20.0,
+      "final_root": [
+        2.6819677352905273,
+        0.916447639465332,
+        0.5688842535018921
+      ],
+      "best_risers": 5,
+      "termination_terms": [
+        "time_out"
+      ]
+    },
+    {
+      "env_id": 195,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 15,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 11.58,
+      "final_root": [
+        3.240070343017578,
+        1.0001726150512695,
+        0.6367324590682983
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 196,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 16,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 9.8,
+      "final_root": [
+        0.9373252391815186,
+        0.25103092193603516,
+        0.34451448917388916
+      ],
+      "best_risers": 1,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 197,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 17,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 14.44,
+      "final_root": [
+        3.0077426433563232,
+        1.001821517944336,
+        0.6350064277648926
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 198,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 18,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 12.94,
+      "final_root": [
+        3.025712728500366,
+        1.001504898071289,
+        0.6242791414260864
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 199,
+      "height": 0.05,
+      "speed": 0.32,
+      "repeat": 19,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 14.2,
+      "final_root": [
+        2.917095899581909,
+        1.0010194778442383,
+        0.6069008111953735
+      ],
+      "best_risers": 5,
+      "termination_terms": []
+    },
+    {
+      "env_id": 200,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 0,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 10.76,
+      "final_root": [
+        3.403852701187134,
+        0.20981502532958984,
+        0.649229109287262
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 201,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 1,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 15.06,
+      "final_root": [
+        3.3998265266418457,
+        0.3345451354980469,
+        0.6467858552932739
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 202,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 2,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 9.42,
+      "final_root": [
+        3.406761884689331,
+        0.9287204742431641,
+        0.6496707201004028
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 203,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 3,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 8.68,
+      "final_root": [
+        3.399672269821167,
+        0.3582124710083008,
+        0.6509031057357788
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 204,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 4,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 12.38,
+      "final_root": [
+        3.279475688934326,
+        1.002908706665039,
+        0.6342966556549072
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 205,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 5,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 11.56,
+      "final_root": [
+        3.337873935699463,
+        0.9283676147460938,
+        0.649045467376709
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 206,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 6,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 14.3,
+      "final_root": [
+        3.349708080291748,
+        0.05716896057128906,
+        0.6487462520599365
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 207,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 7,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 10.52,
+      "final_root": [
+        3.1412148475646973,
+        1.0025577545166016,
+        0.6443061828613281
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 208,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 8,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 14.12,
+      "final_root": [
+        3.0011062622070312,
+        1.001779556274414,
+        0.6144933700561523
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 209,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 9,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 9.84,
+      "final_root": [
+        3.1991536617279053,
+        1.0011835098266602,
+        0.6398782730102539
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 210,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 10,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 9.76,
+      "final_root": [
+        3.4028735160827637,
+        0.5460920333862305,
+        0.6490234732627869
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 211,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 11,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 11.98,
+      "final_root": [
+        3.000997543334961,
+        1.0036230087280273,
+        0.5820208787918091
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 212,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 12,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 8.26,
+      "final_root": [
+        1.2048701047897339,
+        -1.000040054321289,
+        0.33359870314598083
+      ],
+      "best_risers": 0,
+      "termination_terms": []
+    },
+    {
+      "env_id": 213,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 13,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 10.88,
+      "final_root": [
+        3.3972008228302,
+        0.9810810089111328,
+        0.649938702583313
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 214,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 14,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 10.22,
+      "final_root": [
+        3.3700690269470215,
+        0.05733966827392578,
+        0.6485271453857422
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 215,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 15,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 9.22,
+      "final_root": [
+        3.3909502029418945,
+        0.12905216217041016,
+        0.6486948728561401
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 216,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 16,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 9.9,
+      "final_root": [
+        3.4031336307525635,
+        0.44257259368896484,
+        0.6485530138015747
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 217,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 17,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 10.38,
+      "final_root": [
+        3.39174747467041,
+        0.30953502655029297,
+        0.6501511335372925
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 218,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 18,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 12.02,
+      "final_root": [
+        3.399629592895508,
+        0.4933595657348633,
+        0.6483649015426636
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 219,
+      "height": 0.05,
+      "speed": 0.4,
+      "repeat": 19,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 11.16,
+      "final_root": [
+        3.357283115386963,
+        1.0021638870239258,
+        0.6495556235313416
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 220,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 0,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.06,
+      "final_root": [
+        2.946208953857422,
+        1.0085258483886719,
+        0.6200377941131592
+      ],
+      "best_risers": 5,
+      "termination_terms": []
+    },
+    {
+      "env_id": 221,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 1,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.0,
+      "final_root": [
+        3.10937762260437,
+        1.0072441101074219,
+        0.6148955821990967
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 222,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 2,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 6.46,
+      "final_root": [
+        3.4864697456359863,
+        0.5424823760986328,
+        0.6497350931167603
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 223,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 3,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 6.64,
+      "final_root": [
+        3.4207634925842285,
+        -0.10369873046875,
+        0.6506770849227905
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 224,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 4,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 6.44,
+      "final_root": [
+        3.463726043701172,
+        0.6003379821777344,
+        0.6475557684898376
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 225,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 5,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.72,
+      "final_root": [
+        3.211981773376465,
+        1.0084009170532227,
+        0.6382533311843872
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 226,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 6,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 7.5,
+      "final_root": [
+        3.44983172416687,
+        0.9376230239868164,
+        0.6551661491394043
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 227,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 7,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 8.0,
+      "final_root": [
+        3.438905715942383,
+        0.1877145767211914,
+        0.6537797451019287
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 228,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 8,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 6.48,
+      "final_root": [
+        3.4577035903930664,
+        -0.17149925231933594,
+        0.6491565704345703
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 229,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 9,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.34,
+      "final_root": [
+        1.3862431049346924,
+        -0.16402626037597656,
+        0.41731780767440796
+      ],
+      "best_risers": 1,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 230,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 10,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 7.36,
+      "final_root": [
+        3.432924509048462,
+        0.9168987274169922,
+        0.6507159471511841
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 231,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 11,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.9,
+      "final_root": [
+        2.39778208732605,
+        1.0001020431518555,
+        0.5311003923416138
+      ],
+      "best_risers": 4,
+      "termination_terms": []
+    },
+    {
+      "env_id": 232,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 12,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 6.58,
+      "final_root": [
+        3.4621903896331787,
+        0.6011943817138672,
+        0.6487319469451904
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 233,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 13,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.64,
+      "final_root": [
+        1.9826570749282837,
+        1.0054283142089844,
+        0.4429449141025543
+      ],
+      "best_risers": 2,
+      "termination_terms": []
+    },
+    {
+      "env_id": 234,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 14,
+      "column": 3,
+      "outcome": "orientation_failure",
+      "duration_s": 5.7,
+      "final_root": [
+        1.6449466943740845,
+        -0.06055641174316406,
+        0.5180193185806274
+      ],
+      "best_risers": 2,
+      "termination_terms": [
+        "bad_orientation_2"
+      ]
+    },
+    {
+      "env_id": 235,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 15,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 8.12,
+      "final_root": [
+        2.114307165145874,
+        1.0045747756958008,
+        0.4704212546348572
+      ],
+      "best_risers": 3,
+      "termination_terms": []
+    },
+    {
+      "env_id": 236,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 16,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 10.74,
+      "final_root": [
+        3.3422234058380127,
+        0.6122722625732422,
+        0.6494845151901245
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 237,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 17,
+      "column": 3,
+      "outcome": "success",
+      "duration_s": 6.52,
+      "final_root": [
+        3.494286298751831,
+        0.659271240234375,
+        0.6507147550582886
+      ],
+      "best_risers": 7,
+      "termination_terms": []
+    },
+    {
+      "env_id": 238,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 18,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.26,
+      "final_root": [
+        3.0976433753967285,
+        1.0009326934814453,
+        0.6284366846084595
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    },
+    {
+      "env_id": 239,
+      "height": 0.05,
+      "speed": 0.6,
+      "repeat": 19,
+      "column": 3,
+      "outcome": "lateral_exit",
+      "duration_s": 7.84,
+      "final_root": [
+        3.0707051753997803,
+        1.0081863403320312,
+        0.6298702955245972
+      ],
+      "best_risers": 6,
+      "termination_terms": []
+    }
+  ],
+  "gait_level": 0.9761198315531384,
+  "reward_names": [
+    "lin_vel_z_l2",
+    "ang_vel_xy_l2",
+    "flat_orientation_l2",
+    "base_height_l2",
+    "joint_torques_l2",
+    "joint_acc_l2",
+    "joint_pos_limits",
+    "joint_power",
+    "hipx_joint_pos_penalty",
+    "knee_joint_pos_penalty",
+    "joint_mirror",
+    "action_rate_l2",
+    "undesired_contacts",
+    "contact_forces",
+    "foot_impact_velocity",
+    "track_lin_vel_xy_exp",
+    "track_ang_vel_z_exp",
+    "feet_air_time_lin_xy",
+    "feet_air_time_ang_z_lite3",
+    "feet_gait",
+    "phase_foot_trajectory_exp",
+    "feet_contact_without_cmd",
+    "feet_slide",
+    "stand_still"
+  ],
+  "termination_names": [
+    "time_out",
+    "terrain_out_of_bounds",
+    "bad_orientation_2"
+  ],
+  "video_env": null,
+  "video_frame_steps": [],
+  "limitations": [
+    "Native stairs are square rings; count/entry distance differ from the six-riser MuJoCo scene.",
+    "Fixed starts/commands/heights, no training. Nominal still retains native random actuator delays.",
+    "Reward traces describe this frozen policy, not causal effects of modifying rewards."
+  ]
+}
