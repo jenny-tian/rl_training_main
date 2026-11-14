@@ -1,0 +1,262 @@
+{
+  "status": "passed",
+  "formal_candidate_episodes": 1600,
+  "adapter": {
+    "status": "passed",
+    "samples": 2368,
+    "max_output_difference": 0.0,
+    "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_trial_20261114/riser_contact_seed42_500/model_updates_10500.pt",
+    "sha256": "f9a4b960eb0a096c787b5d26f96d0a9796f53e14759e547ddac19e65566e41ff",
+    "adam_steps": 210000
+  },
+  "rollout_checks": [
+    {
+      "policy": "baseline",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/up_nominal",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "candidate",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/up_nominal",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "baseline",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/down_nominal",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "candidate",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/down_nominal",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "baseline",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+      "episodes": 320,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "candidate",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/turn_nominal",
+      "episodes": 320,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "baseline",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/up_training_randomized",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "candidate",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/up_training_randomized",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "baseline",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/down_training_randomized",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "candidate",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/down_training_randomized",
+      "episodes": 240,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "baseline",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "episodes": 320,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    },
+    {
+      "policy": "candidate",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/turn_training_randomized",
+      "episodes": 320,
+      "arrays_finite": true,
+      "actor_unchanged": true,
+      "initial_equal": true,
+      "common_config_equal": true
+    }
+  ],
+  "runtime_logs": [
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/up_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/up_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/down_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/down_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/turn_nominal",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/up_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/up_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/down_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/down_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/turn_training_randomized",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/video_up_5cm_slow",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    },
+    {
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_a_evaluation_20261114/video_turn",
+      "runtime_errors": 0,
+      "physics_fallback_messages": 0
+    }
+  ],
+  "video_checks": {
+    "video_up_5cm_slow": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "origins": true,
+          "materials": true,
+          "phase_foot_reference": true
+        },
+        "trace": {
+          "active": true,
+          "root": true,
+          "quat": true,
+          "velocity": true,
+          "gravity": true,
+          "feet": true,
+          "forces": true,
+          "action": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "joint_target": true,
+          "torque": true,
+          "reward_rates": true,
+          "command": true,
+          "scan_mean": true,
+          "terminated": true,
+          "truncated": true,
+          "term_flags": true
+        }
+      }
+    },
+    "video_turn": {
+      "status": "passed",
+      "all_records_equal": true,
+      "decode": "passed",
+      "arrays": {
+        "initial": {
+          "root": true,
+          "joint_pos": true,
+          "joint_vel": true,
+          "observation": true,
+          "materials": true,
+          "phase_reference": true
+        },
+        "trace": {
+          "active": true,
+          "command": true,
+          "velocity": true,
+          "root": true,
+          "heading": true,
+          "heading_error": true,
+          "gravity": true,
+          "action": true,
+          "reward_rates": true,
+          "terminated": true,
+          "truncated": true
+        }
+      }
+    }
+  },
+  "video_replays_excluded": true,
+  "additional_training_performed_by_analyzer": false
+}
