@@ -1,0 +1,161 @@
+{
+  "status": "passed",
+  "mode": "reload",
+  "actor_exact": true,
+  "critic_exact": true,
+  "optimizer_exact": true,
+  "learning_rate": 0.0005766503906250003,
+  "next_iteration": 10000,
+  "curriculum_mode": "exact_curriculum",
+  "initial_gait_level": 1,
+  "initial_mean_terrain_level": 5.763671875,
+  "first_reset_preserved_levels": true,
+  "physics_and_rng_restored": false,
+  "environments": 4096,
+  "steps": 64,
+  "optimizer_updates": 0,
+  "native_episode_resets": 0,
+  "initial_level_histogram": [
+    113,
+    163,
+    250,
+    310,
+    386,
+    452,
+    570,
+    606,
+    665,
+    581
+  ],
+  "native_promotion_demotion_verified": true,
+  "gait_min": 1,
+  "gait_max": 1,
+  "reward_coefficients": [
+    {
+      "term": "base_height_l2",
+      "configured_weight": -50,
+      "restored_effective_weight": -50,
+      "old_initial_effective_weight": -6.705272,
+      "nonzero_unit_samples": 4096,
+      "proportional_error": 1.862645149230957e-9
+    },
+    {
+      "term": "joint_torques_l2",
+      "configured_weight": -0.00025,
+      "restored_effective_weight": -0.00025,
+      "old_initial_effective_weight": -0.00003352636,
+      "nonzero_unit_samples": 4096,
+      "proportional_error": 3.725290298461914e-9
+    },
+    {
+      "term": "joint_power",
+      "configured_weight": -0.0008,
+      "restored_effective_weight": -0.0008,
+      "old_initial_effective_weight": -0.000107284352,
+      "nonzero_unit_samples": 4096,
+      "proportional_error": 7.450580596923828e-9
+    },
+    {
+      "term": "joint_mirror",
+      "configured_weight": -0.05,
+      "restored_effective_weight": -0.05,
+      "old_initial_effective_weight": -0.006705272,
+      "nonzero_unit_samples": 4096,
+      "proportional_error": 4.656612873077393e-10
+    },
+    {
+      "term": "action_rate_l2",
+      "configured_weight": -0.1,
+      "restored_effective_weight": -0.1,
+      "old_initial_effective_weight": -0.013410544,
+      "nonzero_unit_samples": 4096,
+      "proportional_error": 2.9802322387695312e-8
+    },
+    {
+      "term": "contact_forces",
+      "configured_weight": -0.1,
+      "restored_effective_weight": -0.1,
+      "old_initial_effective_weight": -0.013410544,
+      "nonzero_unit_samples": 93,
+      "proportional_error": 5.960464477539063e-8
+    },
+    {
+      "term": "foot_impact_velocity",
+      "configured_weight": -2,
+      "restored_effective_weight": -2,
+      "old_initial_effective_weight": -0.26821088,
+      "nonzero_unit_samples": 43,
+      "proportional_error": 0
+    },
+    {
+      "term": "feet_air_time_lin_xy",
+      "configured_weight": 5,
+      "restored_effective_weight": 5,
+      "old_initial_effective_weight": 0.6705272,
+      "nonzero_unit_samples": 484,
+      "proportional_error": 5.960464477539063e-8
+    },
+    {
+      "term": "feet_air_time_ang_z_lite3",
+      "configured_weight": 5,
+      "restored_effective_weight": 5,
+      "old_initial_effective_weight": 0.6705272,
+      "nonzero_unit_samples": 417,
+      "proportional_error": 5.960464477539063e-8
+    },
+    {
+      "term": "phase_foot_trajectory_exp",
+      "configured_weight": 2,
+      "restored_effective_weight": 2,
+      "old_initial_effective_weight": 0.26821088,
+      "nonzero_unit_samples": 2345,
+      "proportional_error": 0
+    }
+  ],
+  "actor_critic_optimizer_unchanged": true,
+  "phase_reference_restored": true,
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_resume_validation_20261115/final_reload/validation_checkpoint.pt",
+  "checkpoint_sha256": "0451d504b81c1bbdf9c6f87ba2aee8aa35108e1d94be9349f95857677c6b8c70",
+  "input_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_resume_validation_20261115/final_capture/validation_checkpoint.pt",
+  "input_checkpoint_sha256": "07f23875f1f4a115c33827ceaf96cb167c247ad7170baeaf1df3c7fc8e5528e7",
+  "parent_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+  "terrain_columns": [
+    "flat",
+    "flat",
+    "flat",
+    "flat",
+    "rough",
+    "rough",
+    "rough",
+    "rough",
+    "slope_up",
+    "slope_up",
+    "slope_down",
+    "slope_down",
+    "stairs_up",
+    "stairs_up",
+    "stairs_down",
+    "stairs_down",
+    "friction_lateral",
+    "friction_longitudinal",
+    "slope_rough_up",
+    "slope_rough_down"
+  ],
+  "legacy_provenance": null,
+  "source_check": {
+    "status": "passed",
+    "common_training_sources": 20,
+    "reward_sources_unchanged": true
+  },
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume.py",
+      "sha256": "23fa9a2bb6246b838cdf5dcf2057e17a7a09b9c1fcd521bd468d48b0b1b82cca"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume_validate.py",
+      "sha256": "b0f2eb35181b1517397eb15fcebf7b0ceef93592b0902eea670c837e53519c34"
+    }
+  ],
+  "note": "Fresh episodes; exact new curriculum state, but no restoration of physics/RNG or historical legacy per-env levels. No behavioral improvement claim."
+}
