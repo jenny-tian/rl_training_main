@@ -1,0 +1,368 @@
+{
+  "status": "diagnosed",
+  "replay_checks": [
+    {
+      "status": "passed",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_native_8s",
+      "original": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "steps": 400,
+      "initial_exact": true,
+      "trace_exact": true
+    },
+    {
+      "status": "passed",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_candidate_native_v2",
+      "original": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_clearance_evaluation_20261115/turn_training_randomized",
+      "steps": 100,
+      "initial_exact": true,
+      "trace_exact": true
+    }
+  ],
+  "paired_windows": [
+    {
+      "speed": 0.32,
+      "seconds": 2,
+      "paired_count": 20,
+      "parent_yaw_abs": 0.9531753860414028,
+      "parent_drift_abs": 0.018452978134155272,
+      "candidate_yaw_abs": 4.356506815552711,
+      "candidate_drift_abs": 0.011807870864868165
+    },
+    {
+      "speed": 0.32,
+      "seconds": 4,
+      "paired_count": 20,
+      "parent_yaw_abs": 3.486394765228033,
+      "parent_drift_abs": 0.04823017120361328,
+      "candidate_yaw_abs": 8.233795332908631,
+      "candidate_drift_abs": 0.03209929466247559
+    },
+    {
+      "speed": 0.32,
+      "seconds": 6,
+      "paired_count": 18,
+      "parent_yaw_abs": 11.44000079565578,
+      "parent_drift_abs": 0.23281304041544595,
+      "candidate_yaw_abs": 18.740751690334744,
+      "candidate_drift_abs": 0.05401171578301324
+    },
+    {
+      "speed": 0.32,
+      "seconds": 8,
+      "paired_count": 15,
+      "parent_yaw_abs": 23.378570640087126,
+      "parent_drift_abs": 0.24544989267985026,
+      "candidate_yaw_abs": 28.806481393178306,
+      "candidate_drift_abs": 0.11112499237060547
+    },
+    {
+      "speed": 0.4,
+      "seconds": 2,
+      "paired_count": 20,
+      "parent_yaw_abs": 1.1906562669202685,
+      "parent_drift_abs": 0.012736225128173828,
+      "candidate_yaw_abs": 4.480495256185532,
+      "candidate_drift_abs": 0.012844276428222657
+    },
+    {
+      "speed": 0.4,
+      "seconds": 4,
+      "paired_count": 20,
+      "parent_yaw_abs": 5.720306365191936,
+      "parent_drift_abs": 0.09125266075134278,
+      "candidate_yaw_abs": 12.411062169075013,
+      "candidate_drift_abs": 0.046166610717773435
+    },
+    {
+      "speed": 0.4,
+      "seconds": 6,
+      "paired_count": 20,
+      "parent_yaw_abs": 11.264802986383438,
+      "parent_drift_abs": 0.12198338508605958,
+      "candidate_yaw_abs": 19.484314918518066,
+      "candidate_drift_abs": 0.12540178298950194
+    },
+    {
+      "speed": 0.4,
+      "seconds": 8,
+      "paired_count": 19,
+      "parent_yaw_abs": 21.1395162783171,
+      "parent_drift_abs": 0.20206968407881887,
+      "candidate_yaw_abs": 24.893121468393428,
+      "candidate_drift_abs": 0.28084775021201686
+    },
+    {
+      "speed": 0.6,
+      "seconds": 2,
+      "paired_count": 20,
+      "parent_yaw_abs": 0.9254714610055089,
+      "parent_drift_abs": 0.025293540954589844,
+      "candidate_yaw_abs": 3.400027668476105,
+      "candidate_drift_abs": 0.017168188095092775
+    },
+    {
+      "speed": 0.6,
+      "seconds": 4,
+      "paired_count": 20,
+      "parent_yaw_abs": 2.148314343392849,
+      "parent_drift_abs": 0.0701507568359375,
+      "candidate_yaw_abs": 16.153393185138704,
+      "candidate_drift_abs": 0.06504273414611816
+    },
+    {
+      "speed": 0.6,
+      "seconds": 6,
+      "paired_count": 18,
+      "parent_yaw_abs": 6.391667955451542,
+      "parent_drift_abs": 0.15323819054497612,
+      "candidate_yaw_abs": 29.823747038841248,
+      "candidate_drift_abs": 0.3520796563890245
+    },
+    {
+      "speed": 0.6,
+      "seconds": 8,
+      "paired_count": 3,
+      "parent_yaw_abs": 2.103338360786438,
+      "parent_drift_abs": 0.22980721791585287,
+      "candidate_yaw_abs": 36.325676600138344,
+      "candidate_drift_abs": 0.4428628285725911
+    }
+  ],
+  "controls": [
+    {
+      "run": "stairs_candidate_heading",
+      "status": "passed",
+      "training": false,
+      "optimizer_updates": 0,
+      "kind": "stairs",
+      "policy": "candidate",
+      "intervention": "heading",
+      "profile": "nominal",
+      "steps": 1000,
+      "episodes": 240,
+      "initial_preparation_steps": 50,
+      "model_hashes": {
+        "parent": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "candidate": "6f5be217cd012d678e0528bc7b9c8d528001083f5ae48697585bf7e1944fea8e"
+      },
+      "diagnostic_only": true,
+      "intervention_scope": "运动后加入训练增益 0.5、限幅 0.8 的世界 +x 航向反馈",
+      "source_sha256": "b95eb76fcae969aabd99272908e343abe9b907a59a7f77efb89450afadeea501",
+      "original_protocol_sha256": "c155ab8d2050e53eaabda24cb00bee91092a97b8b60a4303638c1a363157bab9",
+      "paired_initial_exact": true,
+      "physical_intervention_scope_passed": true,
+      "orientation_failures": 0,
+      "five_cm": [
+        {
+          "speed": 0.32,
+          "success": 16,
+          "lateral_exit": 0,
+          "orientation_failure": 0,
+          "stuck": 0,
+          "timeout": 4
+        },
+        {
+          "speed": 0.4,
+          "success": 20,
+          "lateral_exit": 0,
+          "orientation_failure": 0,
+          "stuck": 0,
+          "timeout": 0
+        },
+        {
+          "speed": 0.6,
+          "success": 20,
+          "lateral_exit": 0,
+          "orientation_failure": 0,
+          "stuck": 0,
+          "timeout": 0
+        }
+      ]
+    },
+    {
+      "run": "stairs_parent_heading",
+      "status": "passed",
+      "training": false,
+      "optimizer_updates": 0,
+      "kind": "stairs",
+      "policy": "parent",
+      "intervention": "heading",
+      "profile": "nominal",
+      "steps": 1000,
+      "episodes": 240,
+      "initial_preparation_steps": 50,
+      "model_hashes": {
+        "parent": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "candidate": "6f5be217cd012d678e0528bc7b9c8d528001083f5ae48697585bf7e1944fea8e"
+      },
+      "diagnostic_only": true,
+      "intervention_scope": "运动后加入训练增益 0.5、限幅 0.8 的世界 +x 航向反馈",
+      "source_sha256": "b95eb76fcae969aabd99272908e343abe9b907a59a7f77efb89450afadeea501",
+      "original_protocol_sha256": "c155ab8d2050e53eaabda24cb00bee91092a97b8b60a4303638c1a363157bab9",
+      "paired_initial_exact": true,
+      "physical_intervention_scope_passed": true,
+      "orientation_failures": 25,
+      "five_cm": [
+        {
+          "speed": 0.32,
+          "success": 0,
+          "lateral_exit": 2,
+          "orientation_failure": 13,
+          "stuck": 3,
+          "timeout": 2
+        },
+        {
+          "speed": 0.4,
+          "success": 8,
+          "lateral_exit": 0,
+          "orientation_failure": 8,
+          "stuck": 0,
+          "timeout": 4
+        },
+        {
+          "speed": 0.6,
+          "success": 16,
+          "lateral_exit": 0,
+          "orientation_failure": 4,
+          "stuck": 0,
+          "timeout": 0
+        }
+      ]
+    },
+    {
+      "run": "turn_candidate_no_delay",
+      "status": "passed",
+      "training": false,
+      "optimizer_updates": 0,
+      "kind": "turn",
+      "policy": "candidate",
+      "intervention": "no_delay",
+      "profile": "training_randomized",
+      "steps": 100,
+      "episodes": 320,
+      "initial_preparation_steps": 50,
+      "model_hashes": {
+        "parent": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "candidate": "6f5be217cd012d678e0528bc7b9c8d528001083f5ae48697585bf7e1944fea8e"
+      },
+      "diagnostic_only": true,
+      "intervention_scope": "准备后仅将执行器延迟设为零，保留历史缓冲",
+      "source_sha256": "b95eb76fcae969aabd99272908e343abe9b907a59a7f77efb89450afadeea501",
+      "original_protocol_sha256": "e53803a8f3f4716e7752cb1b0c1afb79938a072d60c92ff021907f3f9c780337",
+      "paired_initial_exact": true,
+      "physical_intervention_scope_passed": true,
+      "orientation_failures": 23
+    },
+    {
+      "run": "turn_candidate_ramp",
+      "status": "passed",
+      "training": false,
+      "optimizer_updates": 0,
+      "kind": "turn",
+      "policy": "candidate",
+      "intervention": "ramp",
+      "profile": "training_randomized",
+      "steps": 100,
+      "episodes": 320,
+      "initial_preparation_steps": 50,
+      "model_hashes": {
+        "parent": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "candidate": "6f5be217cd012d678e0528bc7b9c8d528001083f5ae48697585bf7e1944fea8e"
+      },
+      "diagnostic_only": true,
+      "intervention_scope": "前 0.5 秒动作由默认 PD 线性过渡到策略动作",
+      "source_sha256": "b95eb76fcae969aabd99272908e343abe9b907a59a7f77efb89450afadeea501",
+      "original_protocol_sha256": "e53803a8f3f4716e7752cb1b0c1afb79938a072d60c92ff021907f3f9c780337",
+      "paired_initial_exact": true,
+      "physical_intervention_scope_passed": true,
+      "orientation_failures": 39
+    }
+  ],
+  "standing": {
+    "paired_initial_physics_exact": true,
+    "first_observation_exact": true,
+    "counterfactual_actions_exact": true,
+    "failures": 23,
+    "initial_tilt_failed_min_median_max_deg": [
+      14.918147087097168,
+      19.40630340576172,
+      24.75914192199707
+    ],
+    "initial_tilt_other_min_median_max_deg": [
+      0.02797645330429077,
+      4.340726375579834,
+      25.162385940551758
+    ],
+    "max_initial_joint_target_difference_failed_min_median_max_rad": [
+      0.2896963357925415,
+      0.45475274324417114,
+      0.5698152780532837
+    ],
+    "hr_hipy_largest_difference_failed_count": 20,
+    "hr_hipy_target_difference_failed_min_median_max_rad": [
+      -0.5698152780532837,
+      -0.45431268215179443,
+      -0.288562536239624
+    ],
+    "parent_survived_first2_of_candidate_failed": 20,
+    "parent_survived_first8_of_candidate_failed": 19,
+    "parent": {
+      "mean_tilt_at_024s_deg": 16.593856811523438,
+      "foot_support_fraction_at_024s": [
+        0.08695652173913043,
+        0.17391304347826086,
+        0.4782608695652174,
+        0.5217391304347826
+      ],
+      "first_024s_stand_rate": -1.5934312343597412,
+      "first_024s_height_rate": -0.11250679939985275
+    },
+    "candidate": {
+      "mean_tilt_at_024s_deg": 32.99513626098633,
+      "foot_support_fraction_at_024s": [
+        0.0,
+        0.0,
+        0.0,
+        0.8695652173913043
+      ],
+      "first_024s_stand_rate": -1.7331889867782593,
+      "first_024s_height_rate": -0.0826045498251915
+    },
+    "pd_start_tilt_failed_min_median_max_deg": [
+      0.0,
+      0.2398483157157898,
+      0.8735730051994324
+    ],
+    "actual_pd_parameter_ranges": {
+      "pd_stiffness_Hip": [
+        25.51587677001953,
+        34.499427795410156
+      ],
+      "pd_damping_Hip": [
+        0.8500519394874573,
+        1.1496975421905518
+      ],
+      "pd_stiffness_Knee": [
+        25.51261329650879,
+        34.49845886230469
+      ],
+      "pd_damping_Knee": [
+        0.8500993847846985,
+        1.149874210357666
+      ]
+    }
+  },
+  "initial_failures": {
+    "parent": 3,
+    "candidate": 23
+  },
+  "training": false,
+  "optimizer_updates": 0,
+  "formal_acceptance_unchanged": true,
+  "source_sha256": "9ae55a7975e0ac66abb08c1e005da86f97f7b26ceb9ae64e5a5e522fa6185872",
+  "caveats": [
+    "20 ms 采样不能排除物理子步尖峰",
+    "接触是几何和净力代理；时序关联不能单独证明因果",
+    "单因素对照是诊断，不能替代正式原协议验收"
+  ]
+}

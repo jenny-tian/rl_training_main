@@ -1,0 +1,202 @@
+{
+  "status": "passed",
+  "samples": 8399,
+  "group_metrics": [
+    {
+      "group": "standing",
+      "samples": 2048,
+      "target_rmse_rad": 0.0282566137611866,
+      "target_absolute_p95_rad": 0.04908885806798935,
+      "mean_target_delta_rad": [
+        -0.014521025121212006,
+        -0.02513308823108673,
+        -0.005864246748387814,
+        0.0017246821662411094,
+        0.011271601542830467,
+        -0.0006773819914087653,
+        0.015915928408503532,
+        0.03152047470211983,
+        0.013945691287517548,
+        0.002856215927749872,
+        -0.019411418586969376,
+        0.000478613656014204
+      ]
+    },
+    {
+      "group": "standing_recovery",
+      "samples": 207,
+      "target_rmse_rad": 0.3039144277572632,
+      "target_absolute_p95_rad": 0.5959146618843079,
+      "mean_target_delta_rad": [
+        -0.011409363709390163,
+        0.10165882855653763,
+        -0.034763041883707047,
+        -0.0038431400898844004,
+        -0.25944241881370544,
+        -0.053799256682395935,
+        0.016558561474084854,
+        -0.07975617796182632,
+        0.12899455428123474,
+        0.07695933431386948,
+        -0.23795779049396515,
+        -0.20847642421722412
+      ]
+    },
+    {
+      "group": "forward",
+      "samples": 2048,
+      "target_rmse_rad": 0.0431780107319355,
+      "target_absolute_p95_rad": 0.09372915327548981,
+      "mean_target_delta_rad": [
+        0.041892267763614655,
+        -0.09205223619937897,
+        -0.02576466090977192,
+        -0.017038557678461075,
+        -0.00012666391558013856,
+        0.0012890022480860353,
+        0.001939103938639164,
+        -0.026547128334641457,
+        -0.015185479074716568,
+        -0.01675720512866974,
+        -0.0110690388828516,
+        -0.003338720416650176
+      ]
+    },
+    {
+      "group": "left",
+      "samples": 2048,
+      "target_rmse_rad": 0.045743804425001144,
+      "target_absolute_p95_rad": 0.09670887142419815,
+      "mean_target_delta_rad": [
+        0.03224635496735573,
+        -0.0879736840724945,
+        -0.003185268957167864,
+        -0.017729923129081726,
+        -0.021495135501027107,
+        0.010174399241805077,
+        0.00969904288649559,
+        -0.04857523739337921,
+        0.004577239975333214,
+        0.005678205750882626,
+        -0.05701059103012085,
+        -0.0024558077566325665
+      ]
+    },
+    {
+      "group": "right",
+      "samples": 2048,
+      "target_rmse_rad": 0.04758971557021141,
+      "target_absolute_p95_rad": 0.0983680710196495,
+      "mean_target_delta_rad": [
+        0.03925444185733795,
+        -0.11137466877698898,
+        -0.002589697716757655,
+        -0.02558179572224617,
+        0.01700642891228199,
+        -0.000724181008990854,
+        -0.0028499867767095566,
+        -0.018444426357746124,
+        -0.004078268073499203,
+        0.02327829785645008,
+        -0.032339416444301605,
+        0.016209473833441734
+      ]
+    }
+  ],
+  "candidate_loss": 1.987680435180664,
+  "parent_loss": 0.0,
+  "finite_gradient": true,
+  "parameters_updated": false,
+  "optimizer_updates": 0,
+  "integrated_into_ppo": false,
+  "sampler": {
+    "status": "passed",
+    "samples": 100000,
+    "changed": 4224,
+    "before": {
+      "standing": 28341,
+      "heading_turns": 8443,
+      "constant_left": 0,
+      "constant_right": 0
+    },
+    "after": {
+      "standing": 28341,
+      "heading_turns": 4219,
+      "constant_left": 2092,
+      "constant_right": 2132
+    },
+    "untouched_samples_exact": true,
+    "standing_flags_exact": true,
+    "constant_rate_survives_heading_change": true,
+    "rate_range_rad_s": [
+      0.2,
+      0.8
+    ],
+    "sources": {
+      "UniformVelocityCommand": {
+        "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/mdp/commands/velocity_command.py",
+        "line": 30,
+        "sha256": "0ff254a375c9ea8d408824c24145e7ac7906cc7b513c52c4dd4ca0834c1ce241"
+      },
+      "UniformThresholdVelocityCommand": {
+        "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+        "line": 21,
+        "sha256": "31877425d07293cfdefd29858e105885a0edf8f7d75dc72d2200c29706017641"
+      }
+    }
+  },
+  "frozen_replay": [
+    {
+      "status": "passed",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_nominal_8s",
+      "original": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+      "steps": 400,
+      "initial_exact": true,
+      "trace_exact": true
+    },
+    {
+      "status": "passed",
+      "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_native_8s",
+      "original": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_training_randomized",
+      "steps": 400,
+      "initial_exact": true,
+      "trace_exact": true
+    }
+  ],
+  "source_files": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_nominal_8s/diagnostic.npz",
+      "sha256": "f91e3e808e987c8280e51edabc5b08872e1ba756ddb1b9f2cbf7914996d6ae70"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_nominal_8s/report.json",
+      "sha256": "8be3d59590084174d5c509b5412799607a0502787a2de8407905ac5b498335fa"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_nominal_8s/initial.npz",
+      "sha256": "e3f978a11c2b825aa2c5e9e8368468fdf52ae18440b772db302f5fcf9c99e89f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_nominal_8s/trace.npz",
+      "sha256": "c7eaabacca4f772ac6be80ba96409a32ab0e2b2e247ff483b370b688830b0a52"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_native_8s/diagnostic.npz",
+      "sha256": "462f1c75952314e68af9dbbd0c35a10411d78ba5bc3328687235bdb305423a73"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_native_8s/report.json",
+      "sha256": "6883a5f71547aeea8acf25e9bf0b3804b749b02778f77ad138a13f438271d28d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_native_8s/initial.npz",
+      "sha256": "e9b9d4138aeb5c15a660e77b412cc7e9822c494a0598126cae41821842dc33dc"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_regression_preparation_20261115/turn_parent_native_8s/trace.npz",
+      "sha256": "c65c29f5b46484f392e951bb546b366474d01a87eada2ed83e73d66bc04b0ecb"
+    }
+  ],
+  "anchor_sha256": "76029fe734066f65b0103d415bfcdb33b3ab9a1a5d07e3078fa4ae8a7fa16402",
+  "caveat": "只验证候选组件；此库来自诊断协议，若用于未来训练，必须另用独立种子作最终留出验收。"
+}
