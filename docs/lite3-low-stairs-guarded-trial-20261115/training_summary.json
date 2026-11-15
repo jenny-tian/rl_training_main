@@ -1,0 +1,2186 @@
+{
+  "updates": 100,
+  "interactions": 9830400,
+  "adam_steps": 202000,
+  "metrics": {
+    "Train/mean_reward": {
+      "first20": 12.75872905664146,
+      "last20": 61.64649276733398,
+      "last": 61.16154479980469
+    },
+    "Train/mean_episode_length": {
+      "first20": 239.37899990081786,
+      "last20": 995.8559997558593,
+      "last": 993.97998046875
+    },
+    "Episode_Termination/bad_orientation_2": {
+      "first20": 0.0016754150585256867,
+      "last20": 0.008576965611428022,
+      "last": 0.009195963852107525
+    },
+    "Episode_Termination/time_out": {
+      "first20": 0.23716278555803,
+      "last20": 0.9910639613866806,
+      "last": 0.9905599355697632
+    },
+    "Metrics/base_velocity/error_vel_xy": {
+      "first20": 0.088875039992854,
+      "last20": 0.32214306145906446,
+      "last": 0.34145867824554443
+    },
+    "Metrics/base_velocity/error_vel_yaw": {
+      "first20": 0.09969403815921396,
+      "last20": 0.39420537650585175,
+      "last": 0.39648911356925964
+    },
+    "Episode_Reward/stair_clearance": {
+      "first20": -0.000859171878437337,
+      "last20": -0.0027151769201736895,
+      "last": -0.005096530541777611
+    },
+    "Episode_Reward/stair_progress": {
+      "first20": 0.021936303589609452,
+      "last20": 0.0915038239210844,
+      "last": 0.10210049152374268
+    },
+    "Episode_Reward/stair_landing": {
+      "first20": 0.009634213914978318,
+      "last20": 0.02368911448866129,
+      "last": 0.045607637614011765
+    },
+    "Loss/capability_preservation": {
+      "first20": 0.0020527285436401145,
+      "last20": 0.003248064173385501,
+      "last": 0.002861740067601204
+    }
+  },
+  "segments": [
+    {
+      "report": {
+        "status": "passed",
+        "phase": 1,
+        "phase_updates": 100,
+        "max_updates": 200,
+        "original_parent_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "parent_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+        "parent_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "variant": "persistent_clearance_yaw_coverage_preservation",
+        "seed": 42,
+        "physical_gpu": 1,
+        "num_envs": 4096,
+        "optimizer_updates": 100,
+        "environment_steps": 2400,
+        "updates": [
+          {
+            "update": 1,
+            "losses": {
+              "value": 0.22753757238388062,
+              "surrogate": -0.00726491044042632,
+              "entropy": 3.7752596497535706,
+              "capability_preservation": 0.0004962049309220617
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 11.874671936035156,
+            "learn_s": 0.9169855117797852,
+            "mean_terrain_level": 5.750244140625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 2,
+            "losses": {
+              "value": 0.08318927809596062,
+              "surrogate": -0.008667656581383198,
+              "entropy": 3.759802496433258,
+              "capability_preservation": 0.0009274073410779238
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.31181001663208,
+            "learn_s": 0.7528207302093506,
+            "mean_terrain_level": 5.736572265625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 3,
+            "losses": {
+              "value": 0.07182883098721504,
+              "surrogate": -0.007889272837201134,
+              "entropy": 3.7265408396720887,
+              "capability_preservation": 0.0013865243992768228
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.76621961593628,
+            "learn_s": 0.6219832897186279,
+            "mean_terrain_level": 5.7236328125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 4,
+            "losses": {
+              "value": 0.05718425028026104,
+              "surrogate": -0.0077059758710674945,
+              "entropy": 3.7034948587417604,
+              "capability_preservation": 0.0018742032756563277
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.348152160644531,
+            "learn_s": 0.6677346229553223,
+            "mean_terrain_level": 5.70947265625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 5,
+            "losses": {
+              "value": 0.05537786353379488,
+              "surrogate": -0.00823683591443114,
+              "entropy": 3.6641678333282472,
+              "capability_preservation": 0.001724294718587771
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.314542531967163,
+            "learn_s": 0.6543505191802979,
+            "mean_terrain_level": 5.696044921875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 6,
+            "losses": {
+              "value": 0.046902301535010335,
+              "surrogate": -0.009551922444370576,
+              "entropy": 3.613217329978943,
+              "capability_preservation": 0.0017363498220220209
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.718093156814575,
+            "learn_s": 0.5406208038330078,
+            "mean_terrain_level": 5.683837890625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 7,
+            "losses": {
+              "value": 0.05061799865216017,
+              "surrogate": -0.007749086743569933,
+              "entropy": 3.5750019192695617,
+              "capability_preservation": 0.0018382168607786297
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.839264869689941,
+            "learn_s": 0.5715343952178955,
+            "mean_terrain_level": 5.66650390625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 8,
+            "losses": {
+              "value": 0.04305109400302172,
+              "surrogate": -0.009460703510558232,
+              "entropy": 3.524953770637512,
+              "capability_preservation": 0.0019320322666317225
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.944632768630981,
+            "learn_s": 0.5400159358978271,
+            "mean_terrain_level": 5.64990234375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 9,
+            "losses": {
+              "value": 0.036691723950207235,
+              "surrogate": -0.01139563184697181,
+              "entropy": 3.465971291065216,
+              "capability_preservation": 0.001807775057386607
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.337470054626465,
+            "learn_s": 0.5673515796661377,
+            "mean_terrain_level": 5.63818359375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 10,
+            "losses": {
+              "value": 0.035674829967319965,
+              "surrogate": -0.009556790126953273,
+              "entropy": 3.4010894656181336,
+              "capability_preservation": 0.0020851154637057333
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.630133152008057,
+            "learn_s": 0.636122465133667,
+            "mean_terrain_level": 5.632568359375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 11,
+            "losses": {
+              "value": 0.035281766578555106,
+              "surrogate": -0.011063777990057134,
+              "entropy": 3.328857052326202,
+              "capability_preservation": 0.002230626146774739
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.959209442138672,
+            "learn_s": 0.6422240734100342,
+            "mean_terrain_level": 5.62841796875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 12,
+            "losses": {
+              "value": 0.03749687112867832,
+              "surrogate": -0.008938225300516934,
+              "entropy": 3.273746967315674,
+              "capability_preservation": 0.0021255821688100696
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.449549674987793,
+            "learn_s": 0.6201727390289307,
+            "mean_terrain_level": 5.623779296875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 13,
+            "losses": {
+              "value": 0.033161381538957355,
+              "surrogate": -0.011064818749582627,
+              "entropy": 3.203342115879059,
+              "capability_preservation": 0.0025404383544810117
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.016323804855347,
+            "learn_s": 0.610410213470459,
+            "mean_terrain_level": 5.6201171875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 14,
+            "losses": {
+              "value": 0.03776824716478586,
+              "surrogate": -0.008823945237963926,
+              "entropy": 3.1435348629951476,
+              "capability_preservation": 0.0023736621835269032
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.691490173339844,
+            "learn_s": 0.6286647319793701,
+            "mean_terrain_level": 5.61962890625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 15,
+            "losses": {
+              "value": 0.039335467480123044,
+              "surrogate": -0.009112743529840373,
+              "entropy": 3.092572510242462,
+              "capability_preservation": 0.002612769103143364
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.230643033981323,
+            "learn_s": 0.5952703952789307,
+            "mean_terrain_level": 5.611083984375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 16,
+            "losses": {
+              "value": 0.040874750912189485,
+              "surrogate": -0.009331140227732248,
+              "entropy": 3.035655510425568,
+              "capability_preservation": 0.002966530912090093
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.4492666721344,
+            "learn_s": 0.5666484832763672,
+            "mean_terrain_level": 5.6142578125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 17,
+            "losses": {
+              "value": 0.036375966295599936,
+              "surrogate": -0.010223931184737012,
+              "entropy": 2.987910199165344,
+              "capability_preservation": 0.0024549323541577907
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 7.485698223114014,
+            "learn_s": 0.5543034076690674,
+            "mean_terrain_level": 5.61181640625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 18,
+            "losses": {
+              "value": 0.04061374440789223,
+              "surrogate": -0.00905296199489385,
+              "entropy": 2.9385720610618593,
+              "capability_preservation": 0.0025360957719385625
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.542407035827637,
+            "learn_s": 0.5052032470703125,
+            "mean_terrain_level": 5.6064453125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 19,
+            "losses": {
+              "value": 0.03469543717801571,
+              "surrogate": -0.009525991696864366,
+              "entropy": 2.880752778053284,
+              "capability_preservation": 0.002929355320520699
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.660410404205322,
+            "learn_s": 0.530381441116333,
+            "mean_terrain_level": 5.60205078125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 20,
+            "losses": {
+              "value": 0.03156110132113099,
+              "surrogate": -0.011141623506046017,
+              "entropy": 2.8354616165161133,
+              "capability_preservation": 0.002476454386487603
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.572908401489258,
+            "learn_s": 0.5208332538604736,
+            "mean_terrain_level": 5.603759765625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 21,
+            "losses": {
+              "value": 1.3621318697929383,
+              "surrogate": -0.00721374899148941,
+              "entropy": 2.825523543357849,
+              "capability_preservation": 0.002990557358134538
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 7.79548716545105,
+            "learn_s": 0.48459553718566895,
+            "mean_terrain_level": 5.60107421875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 22,
+            "losses": {
+              "value": 0.09120401069521904,
+              "surrogate": -0.010072514123748988,
+              "entropy": 2.8614298462867738,
+              "capability_preservation": 0.002773546916432679
+            },
+            "learning_rate": 0.00011390625000000006,
+            "collect_s": 8.33428692817688,
+            "learn_s": 0.5126659870147705,
+            "mean_terrain_level": 5.59521484375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 23,
+            "losses": {
+              "value": 0.08231203034520149,
+              "surrogate": -0.009137813362758606,
+              "entropy": 2.854612112045288,
+              "capability_preservation": 0.002560358389746398
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.393456935882568,
+            "learn_s": 0.5337250232696533,
+            "mean_terrain_level": 5.587646484375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 24,
+            "losses": {
+              "value": 0.0885127317160368,
+              "surrogate": -0.009424254289478995,
+              "entropy": 2.8441348671913147,
+              "capability_preservation": 0.0028391779051162302
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.382295370101929,
+            "learn_s": 0.49984288215637207,
+            "mean_terrain_level": 5.58447265625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 25,
+            "losses": {
+              "value": 0.0703177446499467,
+              "surrogate": -0.009102923746104353,
+              "entropy": 2.8394864201545715,
+              "capability_preservation": 0.002563994436059147
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.483640193939209,
+            "learn_s": 0.5473227500915527,
+            "mean_terrain_level": 5.586669921875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 26,
+            "losses": {
+              "value": 0.0851197250187397,
+              "surrogate": -0.00921692190458998,
+              "entropy": 2.839108908176422,
+              "capability_preservation": 0.002671111677773297
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.285109281539917,
+            "learn_s": 0.5366353988647461,
+            "mean_terrain_level": 5.583984375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 27,
+            "losses": {
+              "value": 0.08794095516204833,
+              "surrogate": -0.0073465769208269196,
+              "entropy": 2.8484716773033143,
+              "capability_preservation": 0.0034122247714549305
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.140008687973022,
+            "learn_s": 0.5524477958679199,
+            "mean_terrain_level": 5.58349609375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 28,
+            "losses": {
+              "value": 0.08031398318707943,
+              "surrogate": -0.0074998443247750405,
+              "entropy": 2.85300475358963,
+              "capability_preservation": 0.0027801124029792844
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.695908308029175,
+            "learn_s": 0.43339967727661133,
+            "mean_terrain_level": 5.578857421875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 29,
+            "losses": {
+              "value": 0.09931756071746349,
+              "surrogate": -0.008478447620291263,
+              "entropy": 2.8591190218925475,
+              "capability_preservation": 0.002949294843710959
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.318987131118774,
+            "learn_s": 0.612786054611206,
+            "mean_terrain_level": 5.57275390625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 30,
+            "losses": {
+              "value": 0.10727704390883445,
+              "surrogate": -0.00534240589113324,
+              "entropy": 2.8635557770729063,
+              "capability_preservation": 0.0028053183923475444
+            },
+            "learning_rate": 0.00017085937500000009,
+            "collect_s": 9.186343669891357,
+            "learn_s": 0.6532101631164551,
+            "mean_terrain_level": 5.56787109375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 31,
+            "losses": {
+              "value": 0.07843500711023807,
+              "surrogate": -0.00818779888213612,
+              "entropy": 2.8659720420837402,
+              "capability_preservation": 0.0025368068600073457
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.90288496017456,
+            "learn_s": 0.6916759014129639,
+            "mean_terrain_level": 5.5703125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 32,
+            "losses": {
+              "value": 0.07860617749392987,
+              "surrogate": -0.0071745218485375515,
+              "entropy": 2.865901863574982,
+              "capability_preservation": 0.0029482275829650463
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.80508041381836,
+            "learn_s": 0.710261344909668,
+            "mean_terrain_level": 5.569580078125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 33,
+            "losses": {
+              "value": 0.08666419722139836,
+              "surrogate": -0.00760336693492718,
+              "entropy": 2.870033931732178,
+              "capability_preservation": 0.0026203054818324744
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.045779943466187,
+            "learn_s": 0.598982572555542,
+            "mean_terrain_level": 5.56494140625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 34,
+            "losses": {
+              "value": 0.07580734081566334,
+              "surrogate": -0.009031012529158033,
+              "entropy": 2.8681434750556947,
+              "capability_preservation": 0.002783881628420204
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.132810831069946,
+            "learn_s": 0.6612560749053955,
+            "mean_terrain_level": 5.56396484375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 35,
+            "losses": {
+              "value": 0.07791731096804141,
+              "surrogate": -0.008861686421732884,
+              "entropy": 2.8635154604911803,
+              "capability_preservation": 0.0028597229276783763
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.969305753707886,
+            "learn_s": 0.6828968524932861,
+            "mean_terrain_level": 5.565673828125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 36,
+            "losses": {
+              "value": 0.08184990361332893,
+              "surrogate": -0.008154306566575542,
+              "entropy": 2.8711883664131164,
+              "capability_preservation": 0.0025597889441996815
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.849766969680786,
+            "learn_s": 0.643251895904541,
+            "mean_terrain_level": 5.569091796875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 37,
+            "losses": {
+              "value": 0.08297477178275585,
+              "surrogate": -0.007848151872167364,
+              "entropy": 2.8891555428504945,
+              "capability_preservation": 0.003282944788224995
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.046883821487427,
+            "learn_s": 0.6733958721160889,
+            "mean_terrain_level": 5.572509765625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 38,
+            "losses": {
+              "value": 0.07046059556305409,
+              "surrogate": -0.0066529095289297405,
+              "entropy": 2.8981411457061768,
+              "capability_preservation": 0.0037884806864894927
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.68143343925476,
+            "learn_s": 0.6265509128570557,
+            "mean_terrain_level": 5.5634765625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 39,
+            "losses": {
+              "value": 0.06398664712905884,
+              "surrogate": -0.006815033208113164,
+              "entropy": 2.8894354939460754,
+              "capability_preservation": 0.003217111970297992
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.097015380859375,
+            "learn_s": 0.616910457611084,
+            "mean_terrain_level": 5.566162109375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 40,
+            "losses": {
+              "value": 0.07862294651567936,
+              "surrogate": -0.008586239430587738,
+              "entropy": 2.8696353673934936,
+              "capability_preservation": 0.003272788692265749
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.116041660308838,
+            "learn_s": 0.5903599262237549,
+            "mean_terrain_level": 5.571533203125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 41,
+            "losses": {
+              "value": 0.08459313027560711,
+              "surrogate": -0.009158015192952007,
+              "entropy": 2.8614956974983214,
+              "capability_preservation": 0.0028739282046444715
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.285676717758179,
+            "learn_s": 0.5580902099609375,
+            "mean_terrain_level": 5.575439453125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 42,
+            "losses": {
+              "value": 0.10075994469225406,
+              "surrogate": -0.009118744207080453,
+              "entropy": 2.851585590839386,
+              "capability_preservation": 0.0030347018502652643
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.13280439376831,
+            "learn_s": 0.631371021270752,
+            "mean_terrain_level": 5.578857421875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 43,
+            "losses": {
+              "value": 0.13173424936830996,
+              "surrogate": -0.008315554645378143,
+              "entropy": 2.8495545268058775,
+              "capability_preservation": 0.0029763819882646205
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 7.99495530128479,
+            "learn_s": 0.5379483699798584,
+            "mean_terrain_level": 5.587646484375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 44,
+            "losses": {
+              "value": 0.11988655366003513,
+              "surrogate": -0.009228691287955827,
+              "entropy": 2.856131064891815,
+              "capability_preservation": 0.0027689530863426624
+            },
+            "learning_rate": 0.00017085937500000009,
+            "collect_s": 9.371713399887085,
+            "learn_s": 0.6036181449890137,
+            "mean_terrain_level": 5.593994140625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 45,
+            "losses": {
+              "value": 0.09865940809249878,
+              "surrogate": -0.008999845711514354,
+              "entropy": 2.8724220871925352,
+              "capability_preservation": 0.0031160115264356135
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.830016374588013,
+            "learn_s": 0.6261403560638428,
+            "mean_terrain_level": 5.599853515625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 46,
+            "losses": {
+              "value": 0.12391390949487686,
+              "surrogate": -0.007727173672901699,
+              "entropy": 2.8822505712509154,
+              "capability_preservation": 0.0029315690393559636
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.725952386856079,
+            "learn_s": 0.5945155620574951,
+            "mean_terrain_level": 5.604736328125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 47,
+            "losses": {
+              "value": 0.12953287363052368,
+              "surrogate": -0.008776988097815774,
+              "entropy": 2.8927865028381348,
+              "capability_preservation": 0.0028528219903819264
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.402278900146484,
+            "learn_s": 0.6776134967803955,
+            "mean_terrain_level": 5.6142578125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 48,
+            "losses": {
+              "value": 0.1311144068837166,
+              "surrogate": -0.008188802254153416,
+              "entropy": 2.915438449382782,
+              "capability_preservation": 0.003243756736628711
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.883785724639893,
+            "learn_s": 0.7339968681335449,
+            "mean_terrain_level": 5.6279296875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 49,
+            "losses": {
+              "value": 0.14707204103469848,
+              "surrogate": -0.008168649123399518,
+              "entropy": 2.942562997341156,
+              "capability_preservation": 0.0027835908927954733
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.168349742889404,
+            "learn_s": 0.6280577182769775,
+            "mean_terrain_level": 5.6396484375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 50,
+            "losses": {
+              "value": 0.12099407315254211,
+              "surrogate": -0.007566737878369168,
+              "entropy": 2.9509991884231566,
+              "capability_preservation": 0.0029155156458728015
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.295379877090454,
+            "learn_s": 0.7062528133392334,
+            "mean_terrain_level": 5.647216796875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 51,
+            "losses": {
+              "value": 0.13016742058098316,
+              "surrogate": -0.008704261606180808,
+              "entropy": 2.957448971271515,
+              "capability_preservation": 0.003149813017807901
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.908510446548462,
+            "learn_s": 0.6345758438110352,
+            "mean_terrain_level": 5.6572265625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 52,
+            "losses": {
+              "value": 0.13804937303066253,
+              "surrogate": -0.007347073830896988,
+              "entropy": 2.972655403614044,
+              "capability_preservation": 0.0031077973311766983
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.708870887756348,
+            "learn_s": 0.6707401275634766,
+            "mean_terrain_level": 5.65478515625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 53,
+            "losses": {
+              "value": 0.12046983577311039,
+              "surrogate": -0.007692268426762894,
+              "entropy": 2.991903877258301,
+              "capability_preservation": 0.003353827667888254
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.680688858032227,
+            "learn_s": 0.621577262878418,
+            "mean_terrain_level": 5.657470703125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 54,
+            "losses": {
+              "value": 0.14582779705524446,
+              "surrogate": -0.008157386298989877,
+              "entropy": 3.0184324264526365,
+              "capability_preservation": 0.0029705594410188497
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.657920837402344,
+            "learn_s": 0.6552064418792725,
+            "mean_terrain_level": 5.67138671875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 55,
+            "losses": {
+              "value": 0.11900199316442013,
+              "surrogate": -0.008908307730598608,
+              "entropy": 3.040520131587982,
+              "capability_preservation": 0.0028488539392128587
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.324485540390015,
+            "learn_s": 0.6290936470031738,
+            "mean_terrain_level": 5.6767578125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 56,
+            "losses": {
+              "value": 0.17569070756435395,
+              "surrogate": -0.007309232698753476,
+              "entropy": 3.0371739149093626,
+              "capability_preservation": 0.00325125390663743
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.536967515945435,
+            "learn_s": 0.5632140636444092,
+            "mean_terrain_level": 5.673095703125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 57,
+            "losses": {
+              "value": 0.12080885097384453,
+              "surrogate": -0.007708150887629018,
+              "entropy": 3.0411584258079527,
+              "capability_preservation": 0.002869993995409459
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.337021827697754,
+            "learn_s": 0.5168828964233398,
+            "mean_terrain_level": 5.6748046875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 58,
+            "losses": {
+              "value": 0.13279918469488622,
+              "surrogate": -0.008280182775342837,
+              "entropy": 3.0532081365585326,
+              "capability_preservation": 0.003146378172095865
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.690250396728516,
+            "learn_s": 0.5828309059143066,
+            "mean_terrain_level": 5.67822265625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 59,
+            "losses": {
+              "value": 0.14216791838407516,
+              "surrogate": -0.0059491219581104815,
+              "entropy": 3.066740369796753,
+              "capability_preservation": 0.0029985645902343093
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.302326679229736,
+            "learn_s": 0.6378567218780518,
+            "mean_terrain_level": 5.683349609375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 60,
+            "losses": {
+              "value": 0.1296846941113472,
+              "surrogate": -0.008811097056604923,
+              "entropy": 3.0794211268424987,
+              "capability_preservation": 0.002717817097436637
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 10.247403383255005,
+            "learn_s": 0.6031017303466797,
+            "mean_terrain_level": 5.685546875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 61,
+            "losses": {
+              "value": 0.1349713049829006,
+              "surrogate": -0.009533634500257904,
+              "entropy": 3.0934422850608825,
+              "capability_preservation": 0.0031175948795862498
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.831003189086914,
+            "learn_s": 0.676546573638916,
+            "mean_terrain_level": 5.688232421875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 62,
+            "losses": {
+              "value": 0.10509012192487717,
+              "surrogate": -0.00756922230211785,
+              "entropy": 3.101212203502655,
+              "capability_preservation": 0.0029607605189085006
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.217062711715698,
+            "learn_s": 0.6775038242340088,
+            "mean_terrain_level": 5.691162109375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 63,
+            "losses": {
+              "value": 0.14319591522216796,
+              "surrogate": -0.008153512055287138,
+              "entropy": 3.1137521266937256,
+              "capability_preservation": 0.002982352511025965
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.977316856384277,
+            "learn_s": 0.7483172416687012,
+            "mean_terrain_level": 5.69970703125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 64,
+            "losses": {
+              "value": 0.12104318402707577,
+              "surrogate": 0.009337802456866485,
+              "entropy": 3.139256143569946,
+              "capability_preservation": 0.0037020893185399474
+            },
+            "learning_rate": 0.00017085937500000009,
+            "collect_s": 9.786329507827759,
+            "learn_s": 0.723637580871582,
+            "mean_terrain_level": 5.697998046875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 65,
+            "losses": {
+              "value": 0.11180157065391541,
+              "surrogate": -0.009342037339229137,
+              "entropy": 3.1450884103775025,
+              "capability_preservation": 0.0027125267079100013
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.843396663665771,
+            "learn_s": 0.6371872425079346,
+            "mean_terrain_level": 5.7041015625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 66,
+            "losses": {
+              "value": 0.15030089169740676,
+              "surrogate": -0.008796031639212743,
+              "entropy": 3.1649210453033447,
+              "capability_preservation": 0.0032488862751051785
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.777554273605347,
+            "learn_s": 0.632673978805542,
+            "mean_terrain_level": 5.70361328125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 67,
+            "losses": {
+              "value": 0.1220590729266405,
+              "surrogate": -0.008522088633617387,
+              "entropy": 3.1917150735855104,
+              "capability_preservation": 0.0031434446573257446
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.35152292251587,
+            "learn_s": 0.6576130390167236,
+            "mean_terrain_level": 5.702880859375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 68,
+            "losses": {
+              "value": 0.12099094204604625,
+              "surrogate": -0.008143794717034325,
+              "entropy": 3.2019950985908507,
+              "capability_preservation": 0.0028372043161652982
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.26897406578064,
+            "learn_s": 0.6810636520385742,
+            "mean_terrain_level": 5.700927734375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 69,
+            "losses": {
+              "value": 0.13980372175574302,
+              "surrogate": -0.008582743513397873,
+              "entropy": 3.2045284032821657,
+              "capability_preservation": 0.003372003324329853
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.878451824188232,
+            "learn_s": 0.6653740406036377,
+            "mean_terrain_level": 5.705810546875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 70,
+            "losses": {
+              "value": 0.1437203325331211,
+              "surrogate": -0.009293701499700546,
+              "entropy": 3.218721163272858,
+              "capability_preservation": 0.0030053762020543218
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.748750448226929,
+            "learn_s": 0.6045088768005371,
+            "mean_terrain_level": 5.706298828125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 71,
+            "losses": {
+              "value": 0.14403400272130967,
+              "surrogate": -0.0077585696591995655,
+              "entropy": 3.2360578775405884,
+              "capability_preservation": 0.0030675817048177122
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.940406560897827,
+            "learn_s": 0.5872271060943604,
+            "mean_terrain_level": 5.70947265625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 72,
+            "losses": {
+              "value": 0.11445678770542145,
+              "surrogate": -0.007715207722503692,
+              "entropy": 3.2488211750984193,
+              "capability_preservation": 0.003514705377165228
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.58191990852356,
+            "learn_s": 0.5780448913574219,
+            "mean_terrain_level": 5.71044921875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 73,
+            "losses": {
+              "value": 0.13561538606882095,
+              "surrogate": -0.009170010598609224,
+              "entropy": 3.258526051044464,
+              "capability_preservation": 0.002757206012029201
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.653029203414917,
+            "learn_s": 0.5740714073181152,
+            "mean_terrain_level": 5.71044921875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 74,
+            "losses": {
+              "value": 0.13791139870882035,
+              "surrogate": -0.001837547475588508,
+              "entropy": 3.27252916097641,
+              "capability_preservation": 0.003348212060518563
+            },
+            "learning_rate": 7.593750000000004e-05,
+            "collect_s": 8.736734867095947,
+            "learn_s": 0.5850124359130859,
+            "mean_terrain_level": 5.7099609375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 75,
+            "losses": {
+              "value": 0.13182024136185647,
+              "surrogate": -0.007894457501970464,
+              "entropy": 3.273265373706818,
+              "capability_preservation": 0.003043273650109768
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 9.101207494735718,
+            "learn_s": 0.6066136360168457,
+            "mean_terrain_level": 5.698486328125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 76,
+            "losses": {
+              "value": 0.10973363891243934,
+              "surrogate": -0.009003848329302854,
+              "entropy": 3.277060401439667,
+              "capability_preservation": 0.00262055053608492
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.257368326187134,
+            "learn_s": 0.5769014358520508,
+            "mean_terrain_level": 5.701416015625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 77,
+            "losses": {
+              "value": 0.14798994585871697,
+              "surrogate": -0.008380660333205014,
+              "entropy": 3.2934895515441895,
+              "capability_preservation": 0.0034898365964181723
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.74948763847351,
+            "learn_s": 0.5003151893615723,
+            "mean_terrain_level": 5.705078125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 78,
+            "losses": {
+              "value": 0.13110771849751474,
+              "surrogate": -0.008748527898569591,
+              "entropy": 3.317571687698364,
+              "capability_preservation": 0.003280497167725116
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.937113761901855,
+            "learn_s": 0.6005949974060059,
+            "mean_terrain_level": 5.691650390625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 79,
+            "losses": {
+              "value": 0.1488550990819931,
+              "surrogate": -0.008905603317543864,
+              "entropy": 3.3453092694282534,
+              "capability_preservation": 0.003095718810800463
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.36472201347351,
+            "learn_s": 0.6410384178161621,
+            "mean_terrain_level": 5.693359375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 80,
+            "losses": {
+              "value": 0.11488757021725178,
+              "surrogate": -0.00925813095527701,
+              "entropy": 3.366329216957092,
+              "capability_preservation": 0.0036269639269448815
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.039388418197632,
+            "learn_s": 0.61716628074646,
+            "mean_terrain_level": 5.6962890625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 81,
+            "losses": {
+              "value": 0.12672212533652782,
+              "surrogate": -0.008421012581675314,
+              "entropy": 3.363495886325836,
+              "capability_preservation": 0.002957847679499537
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.289255619049072,
+            "learn_s": 0.6263291835784912,
+            "mean_terrain_level": 5.694580078125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 82,
+            "losses": {
+              "value": 0.1386467345058918,
+              "surrogate": -0.00868639851505577,
+              "entropy": 3.3795368671417236,
+              "capability_preservation": 0.003461421374231577
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.091689825057983,
+            "learn_s": 0.5659127235412598,
+            "mean_terrain_level": 5.687744140625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 83,
+            "losses": {
+              "value": 0.14378734230995177,
+              "surrogate": -0.008952477367165557,
+              "entropy": 3.4123008131980894,
+              "capability_preservation": 0.0034555498510599135
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 8.615385293960571,
+            "learn_s": 0.6192433834075928,
+            "mean_terrain_level": 5.679443359375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 84,
+            "losses": {
+              "value": 0.09828993976116181,
+              "surrogate": -0.008478805358754471,
+              "entropy": 3.4178513288497925,
+              "capability_preservation": 0.0032843063469044863
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.675662279129028,
+            "learn_s": 0.5186376571655273,
+            "mean_terrain_level": 5.688232421875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 85,
+            "losses": {
+              "value": 0.11816780678927899,
+              "surrogate": -0.009298403985849291,
+              "entropy": 3.404398536682129,
+              "capability_preservation": 0.003654784185346216
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.728498935699463,
+            "learn_s": 0.5703980922698975,
+            "mean_terrain_level": 5.682373046875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 86,
+            "losses": {
+              "value": 0.12103434577584267,
+              "surrogate": -0.009849276603199541,
+              "entropy": 3.4061907649040224,
+              "capability_preservation": 0.003011793585028499
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.580314636230469,
+            "learn_s": 0.6019256114959717,
+            "mean_terrain_level": 5.682373046875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 87,
+            "losses": {
+              "value": 0.1258581042289734,
+              "surrogate": -0.008684125362196937,
+              "entropy": 3.411765718460083,
+              "capability_preservation": 0.003269304009154439
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.900088548660278,
+            "learn_s": 0.6058216094970703,
+            "mean_terrain_level": 5.678955078125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 88,
+            "losses": {
+              "value": 0.11903605014085769,
+              "surrogate": -0.006848703406285494,
+              "entropy": 3.4211240887641905,
+              "capability_preservation": 0.003628824127372354
+            },
+            "learning_rate": 1e-05,
+            "collect_s": 10.013015270233154,
+            "learn_s": 0.5784158706665039,
+            "mean_terrain_level": 5.665283203125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 89,
+            "losses": {
+              "value": 0.10302464812994003,
+              "surrogate": -0.0058086053788429124,
+              "entropy": 3.420386266708374,
+              "capability_preservation": 0.0027078857878223062
+            },
+            "learning_rate": 0.00011390625000000003,
+            "collect_s": 8.770700693130493,
+            "learn_s": 0.5360240936279297,
+            "mean_terrain_level": 5.669189453125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 90,
+            "losses": {
+              "value": 0.14921304807066918,
+              "surrogate": -0.009000915226351935,
+              "entropy": 3.4187007665634157,
+              "capability_preservation": 0.0031311903847381474
+            },
+            "learning_rate": 0.0002562890625000001,
+            "collect_s": 8.941224098205566,
+            "learn_s": 0.5583302974700928,
+            "mean_terrain_level": 5.671875,
+            "gait_level": 1.0
+          },
+          {
+            "update": 91,
+            "losses": {
+              "value": 0.1081221666187048,
+              "surrogate": -0.009874787606531755,
+              "entropy": 3.4240869879722595,
+              "capability_preservation": 0.003225627006031573
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.649265050888062,
+            "learn_s": 0.47498202323913574,
+            "mean_terrain_level": 5.68017578125,
+            "gait_level": 1.0
+          },
+          {
+            "update": 92,
+            "losses": {
+              "value": 0.1222274862229824,
+              "surrogate": -0.008789993556274567,
+              "entropy": 3.420939767360687,
+              "capability_preservation": 0.002839592064265162
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.90851902961731,
+            "learn_s": 0.5485677719116211,
+            "mean_terrain_level": 5.677490234375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 93,
+            "losses": {
+              "value": 0.12181105986237525,
+              "surrogate": -0.008451930204546442,
+              "entropy": 3.425126075744629,
+              "capability_preservation": 0.0036158486851491033
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.038191795349121,
+            "learn_s": 0.56307053565979,
+            "mean_terrain_level": 5.683837890625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 94,
+            "losses": {
+              "value": 0.12324260920286179,
+              "surrogate": -0.008936295707826503,
+              "entropy": 3.4342602014541628,
+              "capability_preservation": 0.0031978007522411645
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.36838436126709,
+            "learn_s": 0.5993192195892334,
+            "mean_terrain_level": 5.6806640625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 95,
+            "losses": {
+              "value": 0.13468816168606282,
+              "surrogate": -0.008305406622821466,
+              "entropy": 3.463439440727234,
+              "capability_preservation": 0.0030793990474194287
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.35601544380188,
+            "learn_s": 0.6352717876434326,
+            "mean_terrain_level": 5.677734375,
+            "gait_level": 1.0
+          },
+          {
+            "update": 96,
+            "losses": {
+              "value": 0.13969470262527467,
+              "surrogate": -0.007807446899823845,
+              "entropy": 3.499908208847046,
+              "capability_preservation": 0.0037574941758066415
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 8.692497968673706,
+            "learn_s": 0.6062002182006836,
+            "mean_terrain_level": 5.676025390625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 97,
+            "losses": {
+              "value": 0.12238057777285576,
+              "surrogate": -0.009085502044763416,
+              "entropy": 3.5078244686126707,
+              "capability_preservation": 0.002895781630650163
+            },
+            "learning_rate": 0.0005766503906250003,
+            "collect_s": 9.772212743759155,
+            "learn_s": 0.5997970104217529,
+            "mean_terrain_level": 5.66650390625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 98,
+            "losses": {
+              "value": 0.1345730669796467,
+              "surrogate": -0.008024128778924933,
+              "entropy": 3.5166422605514525,
+              "capability_preservation": 0.003416981897316873
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.192309379577637,
+            "learn_s": 0.5605502128601074,
+            "mean_terrain_level": 5.668212890625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 99,
+            "losses": {
+              "value": 0.13126453198492527,
+              "surrogate": -0.008456620640936307,
+              "entropy": 3.532521677017212,
+              "capability_preservation": 0.0035081105306744576
+            },
+            "learning_rate": 0.00017085937500000009,
+            "collect_s": 9.184351682662964,
+            "learn_s": 0.5393996238708496,
+            "mean_terrain_level": 5.672119140625,
+            "gait_level": 1.0
+          },
+          {
+            "update": 100,
+            "losses": {
+              "value": 0.12272751405835151,
+              "surrogate": -0.008691973934037377,
+              "entropy": 3.536948251724243,
+              "capability_preservation": 0.002861740149091929
+            },
+            "learning_rate": 0.00038443359375000017,
+            "collect_s": 9.462013483047485,
+            "learn_s": 0.5749015808105469,
+            "mean_terrain_level": 5.673095703125,
+            "gait_level": 1.0
+          }
+        ],
+        "checkpoints": [
+          {
+            "phase_updates": 0,
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_guarded_trial_20261115/train_001_100/model_updates_10000.pt",
+            "sha256": "2ea185e270dfe97c32df4d1ebf5994f81e39a507673f27e3cb8be5400570a0bb"
+          },
+          {
+            "phase_updates": 100,
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_guarded_trial_20261115/train_001_100/model_updates_10100.pt",
+            "sha256": "603a3ea4f8937cdd312fa74267f6e0e30a70fb1913aaf8da9733bf4ec0afd859"
+          }
+        ],
+        "automatic_extension": false,
+        "initial_level_histogram": [
+          113,
+          163,
+          250,
+          310,
+          386,
+          452,
+          570,
+          605,
+          666,
+          581
+        ],
+        "terrain_column_names": [
+          "flat",
+          "flat",
+          "flat",
+          "flat",
+          "rough",
+          "rough",
+          "rough",
+          "rough",
+          "slope_up",
+          "slope_up",
+          "slope_down",
+          "slope_down",
+          "stairs_up",
+          "stairs_up",
+          "stairs_down",
+          "stairs_down",
+          "friction_lateral",
+          "friction_longitudinal",
+          "slope_rough_up",
+          "slope_rough_down"
+        ],
+        "curriculum_contract": "939df7b1a03353ebfefa19155aada2b81191fcc9df2bc3657dd72765ff3ae1d6",
+        "implementation_sources": [
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_train.py",
+            "sha256": "52489dd85570e07a5586015029a370882924582dacc04d027d609cb446e6be1c"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_ppo.py",
+            "sha256": "20f9084c4229861694a4c923d47b6c3e857ebbff01f7ac44c134225e3b9c337b"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_cfg.py",
+            "sha256": "812a0f0fb4a693b85eb8adcd4001ecca70c85f8c0a75972fa5b455e78bb75bb1"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_bank.py",
+            "sha256": "307c1c27c061907fbb9ab9f0dd1ca894f51fb99fe6a77c298c140e4860f17356"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_preservation.py",
+            "sha256": "908d925fa40521c3d9aec85c0eaa498ef917c10a557ba91e1d13e5a78fd4e08a"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume.py",
+            "sha256": "23fa9a2bb6246b838cdf5dcf2057e17a7a09b9c1fcd521bd468d48b0b1b82cca"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair.py",
+            "sha256": "6a2c1cc3f8ae335b510abbbb8e36a61679a4a88d54d5f1292b70625ae0cc8747"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance.py",
+            "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_cfg.py",
+            "sha256": "871eb849cf356525e384b9e21f5eebbe0666113ded6424acde5cf5569da4247c"
+          }
+        ],
+        "ppo_update_sha256": "507b4a88853dc6eda17c7c2e79bd081430c97ec8ca2e2efc24572729c94907b0",
+        "bank_sha256": "77c955a6aba6cae8b5802027674169cfb0ea19d4334352b2af83caf6a28ea95e",
+        "initial_learning_rate": 0.0005766503906250003,
+        "terminated": 81,
+        "truncated": 9787,
+        "interactions": 9830400,
+        "cumulative_updates": 10100,
+        "output_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_guarded_trial_20261115/train_001_100/model_updates_10100.pt",
+        "output_sha256": "603a3ea4f8937cdd312fa74267f6e0e30a70fb1913aaf8da9733bf4ec0afd859",
+        "final_learning_rate": 0.00038443359375000017,
+        "final_level_histogram": [
+          110,
+          186,
+          259,
+          304,
+          426,
+          463,
+          552,
+          623,
+          628,
+          545
+        ],
+        "coverage_by_column_level": [
+          [
+            12352,
+            27152,
+            34161,
+            38878,
+            39673,
+            53954,
+            69725,
+            74891,
+            85480,
+            55734
+          ],
+          [
+            11794,
+            23686,
+            31394,
+            39882,
+            63014,
+            53964,
+            59348,
+            64476,
+            72990,
+            71452
+          ],
+          [
+            11612,
+            18165,
+            29502,
+            35517,
+            35917,
+            55351,
+            78772,
+            80595,
+            76915,
+            69654
+          ],
+          [
+            15952,
+            17308,
+            29730,
+            44097,
+            64856,
+            72336,
+            60245,
+            61710,
+            61055,
+            64711
+          ],
+          [
+            23637,
+            22158,
+            33400,
+            48488,
+            50482,
+            55630,
+            66510,
+            69187,
+            64247,
+            58261
+          ],
+          [
+            22686,
+            21241,
+            32132,
+            40454,
+            51991,
+            69199,
+            54071,
+            61720,
+            65523,
+            70583
+          ],
+          [
+            16774,
+            12778,
+            20374,
+            38752,
+            57453,
+            54725,
+            65852,
+            80982,
+            80860,
+            63450
+          ],
+          [
+            13869,
+            22853,
+            29821,
+            36842,
+            45551,
+            41151,
+            52914,
+            86949,
+            96688,
+            65362
+          ],
+          [
+            13967,
+            23130,
+            31742,
+            43101,
+            46777,
+            42930,
+            62722,
+            86041,
+            83874,
+            57716
+          ],
+          [
+            13647,
+            16312,
+            28918,
+            48578,
+            51199,
+            53608,
+            53544,
+            73012,
+            94727,
+            58455
+          ],
+          [
+            14129,
+            20573,
+            26279,
+            40702,
+            51954,
+            58636,
+            61604,
+            64688,
+            82025,
+            69010
+          ],
+          [
+            16165,
+            19194,
+            27346,
+            33860,
+            43004,
+            61379,
+            74607,
+            76111,
+            77441,
+            62893
+          ],
+          [
+            16947,
+            24875,
+            32300,
+            37161,
+            39246,
+            57118,
+            72338,
+            79558,
+            79151,
+            53306
+          ],
+          [
+            10564,
+            17099,
+            26865,
+            41803,
+            54417,
+            64228,
+            81319,
+            71423,
+            71597,
+            52685
+          ],
+          [
+            11639,
+            28415,
+            34041,
+            35952,
+            42275,
+            57927,
+            76754,
+            76992,
+            70709,
+            57296
+          ],
+          [
+            11134,
+            27086,
+            25455,
+            30633,
+            37384,
+            54933,
+            61149,
+            76573,
+            90268,
+            74985
+          ],
+          [
+            12307,
+            14066,
+            30018,
+            38639,
+            55601,
+            64870,
+            73084,
+            73963,
+            76778,
+            52674
+          ],
+          [
+            8690,
+            22546,
+            34903,
+            41129,
+            44064,
+            46157,
+            66380,
+            75933,
+            81393,
+            70805
+          ],
+          [
+            14203,
+            30276,
+            35613,
+            46265,
+            46817,
+            61569,
+            63851,
+            79953,
+            74781,
+            38672
+          ],
+          [
+            11846,
+            23950,
+            29470,
+            32467,
+            37999,
+            55257,
+            85519,
+            96056,
+            68059,
+            48977
+          ]
+        ],
+        "clearance_by_column_level": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2642,
+            4977,
+            5768,
+            7679,
+            8970,
+            12373,
+            16084,
+            18074,
+            18531,
+            11461
+          ],
+          [
+            2268,
+            2602,
+            6555,
+            8170,
+            11382,
+            13771,
+            17445,
+            14269,
+            14382,
+            12016
+          ],
+          [
+            358,
+            855,
+            2027,
+            1435,
+            3351,
+            3816,
+            5231,
+            4213,
+            4613,
+            2466
+          ],
+          [
+            278,
+            536,
+            1385,
+            1270,
+            2177,
+            2912,
+            2930,
+            3569,
+            4221,
+            3204
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "standing_fixed_left_fixed_right_frames": [
+          2953423,
+          206510,
+          198717
+        ],
+        "converted_left": 634,
+        "converted_right": 624,
+        "reference_sources": [
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/assets/__init__.py",
+            "sha256": "dcd38846762691f96c28c52ecb63913edc370c3d1f33eac79d4e875cb4499fbd"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/assets/deeprobotics.py",
+            "sha256": "7d8c779c9177b639ffb6478e729d08d7d2b097ef2fe4b7df9c096b354947dd98"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/agents/__init__.py",
+            "sha256": "ea09b3ee4eb3a88a8fd3f7e68c8bfd333e76e1886a2c11fe9d8c9194019b0015"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/agents/rsl_rl_ppo_cfg.py",
+            "sha256": "996c11d58ac117926cd6faf5f8a56230bf7ffcd28c2debdac126f6ef3e3ffe8c"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/config/quadruped/deeprobotics_lite3/rough_env_cfg.py",
+            "sha256": "6cc5b22dfdb350c644702e770cd4520782febb60eac0788fef9a50581a6c278c"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/__init__.py",
+            "sha256": "3980de02cb00a0fa20762e39063c4da31925407a94c389a01d005a93fa7ec2ed"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+            "sha256": "31877425d07293cfdefd29858e105885a0edf8f7d75dc72d2200c29706017641"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/curriculums.py",
+            "sha256": "c65a2a197c431a40b6772ffcd34c7ff203a47a5437033fbf46316897a324711d"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/events.py",
+            "sha256": "fc43f91c9dc9ccd21c5e27fe7bf911ee6d20950c60d2e183589391a30d8ec15d"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/observations.py",
+            "sha256": "21f05323699f4699350a13f8c15702faf1a248fb625aa7521317f5a56f1625b4"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/rewards.py",
+            "sha256": "959d9a55751e57530a840e74f294f9fdf3582755bf51f42d10a3e97740f3d7b2"
+          },
+          {
+            "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/velocity_env_cfg.py",
+            "sha256": "295cb84a57bf9289c51a1ff2e9cf71fa41bf026a99f94422605ec0ae998e7bda"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_lite3_loader.py",
+            "sha256": "b3ed55d4f1f002d248f89500fb2a0100d265dd46bab97a5fa53a1ea2ef995a8e"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py",
+            "sha256": "e25faf87435287d18587810e8835f949aa7b2962df1375e7a4ebaa158ee8b602"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_watch.py",
+            "sha256": "21060b75a6b34cb49c29cb868b5fb18cede274c4481e3e13616e72b6ddb049ad"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/source_scan/parallel_terrain_allocation.py",
+            "sha256": "9ba08cca7eac25a9a171cd53741e4579bf3f488d151e1c23eaefed15d07899bb"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/_mesh_chunking.py",
+            "sha256": "ea1fbff3610c0a4a5a9dd0a64d6ca0627e49dcaf44480f0ded3e3be592ff0104"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer.py",
+            "sha256": "c570e9b3950861ff70b3a377760eb6661e59515eeaa77160dd5b941864e9e3df"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_importer_cfg.py",
+            "sha256": "dd4c7739f96361a251568a040ab56647981f0d9e798d8fd575c0c76a7677685c"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_isaac.py",
+            "sha256": "31df2b2c226e80735c83f0cd78235f709101646437ac6e64358b0b43321b4c9d"
+          },
+          {
+            "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/source_terrain_tracks.py",
+            "sha256": "2f8c02c6b59db18ebaff8fc429803e58b8c11b81cd40902377da0f3106309a1c"
+          }
+        ]
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_train.py",
+          "--phase",
+          "1",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 20877,
+        "peak_total_gpu_used_mib": 10951,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 12288,
+        "source_commit": "175027e7803c03237c78f127010d181956fa0f95",
+        "source_status": "?? .superpowers/\n",
+        "pid": 1306922,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 1029.1127129700035
+      }
+    }
+  ]
+}
