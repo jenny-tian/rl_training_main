@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "report_exact": true,
+  "effective_config_exact": true,
+  "initial_exact": true,
+  "extra_readonly_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_watch.py",
+      "sha256": "21060b75a6b34cb49c29cb868b5fb18cede274c4481e3e13616e72b6ddb049ad"
+    }
+  ],
+  "trace_exact": {
+    "active": true,
+    "command": true,
+    "velocity": true,
+    "root": true,
+    "heading": true,
+    "heading_error": true,
+    "gravity": true,
+    "action": true,
+    "reward_rates": true,
+    "terminated": true,
+    "truncated": true
+  },
+  "baseline": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_evaluation_20261114/turn_nominal",
+  "optimizer_updates": 0,
+  "steps": 1000,
+  "episodes": 320,
+  "preparation_steps": 50,
+  "diagnostic_only": true,
+  "training": false,
+  "policy": "parent",
+  "profile": "nominal",
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+  "checkpoint_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+  "source_sha256": "45753c0a158d4ab300cb4936d34537ff3b28c88be985b04a6d016daad313cc2a",
+  "verification_source_sha256": "d727920af0d47739f19e68d0bab97debfd7e04073c71c349b73dc116084192df",
+  "protocol_sha256": "e53803a8f3f4716e7752cb1b0c1afb79938a072d60c92ff021907f3f9c780337",
+  "completion_type": "capture_completed_verifier_corrected",
+  "note": "仿真已完整完成；原退出由额外只读来源条目引起，保留原失败文件，未重跑。"
+}

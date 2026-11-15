@@ -62,3 +62,13 @@ def test_failed_window_and_missing_repeat_are_not_included_in_paired_means():
     rows=[r for r in rows if not (r['policy']=='zero' and r['repeat']==2)]
     row,=paired_groups(rows)
     assert row['n']==2 and row['parent_value']==row['zero_value']==.5
+
+
+def test_common_down_window_excludes_terminal_frame_and_earlier_failures():
+    from reference_low_stairs_motion_detail import common_window
+    data=[dict(active=np.ones((300,3),bool),terminated=np.zeros((300,3),bool)) for _ in range(3)]
+    data[0]['terminated'][199,0]=True
+    data[0]['active'][200:,0]=False
+    data[1]['active'][100:,1]=False
+    assert common_window(data,2,4).tolist()==[False,False,True]
+    assert common_window(data,0,2).tolist()==[True,True,True]
