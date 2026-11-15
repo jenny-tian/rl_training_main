@@ -21,6 +21,7 @@ from reference_isaac_stairs_analyze import analyze as analyze_stairs
 from reference_low_stairs_analyze import stairs_heights, check_log, read_agent
 from reference_low_stairs_clearance_analyze import screen
 from reference_low_stairs_regression_probe import OUTPUT as DIAGNOSIS, PARENT, HASHES
+from reference_low_stairs_regression_analyze import yaw
 
 OUT = ROOT / 'docs/lite3-low-stairs-guarded-trial-20261115'
 OUTCOMES = ('success','stuck','orientation_failure','lateral_exit','timeout')
@@ -157,10 +158,17 @@ def main(updates):
     heading_path=Path(complete['heading_diagnostic'])
     heading_report,_,heading_data,_,_,_=analyze_stairs(heading_path)
     assert all(np.isfinite(v).all() for v in heading_data.values())
+    with np.load(heading_path/'initial.npz') as initial:
+        pre_heading=np.concatenate((yaw(initial['root'][:,3:7])[None],yaw(heading_data['quat'][:-1])))
+    expected_yaw=np.where(heading_data['command'][...,0]>0,
+        np.clip(.5*((-pre_heading+np.pi)%(2*np.pi)-np.pi),-.8,.8),0.)
+    feedback_error=float(np.abs(expected_yaw-heading_data['command'][...,2])[heading_data['active']].max())
+    assert feedback_error<1e-5
     logs.append(check_log(heading_path))
     heading=dict(heights=stairs_heights(heading_report),groups=heading_report['groups'],
                  intervention=read(heading_path/'heading_intervention.json'),episodes=240,
-                 initial_equal=same_initial(heading_path,evaluation/'up_nominal'),included_in_formal_acceptance=False)
+                 initial_equal=same_initial(heading_path,evaluation/'up_nominal'),included_in_formal_acceptance=False,
+                 max_heading_feedback_command_error=feedback_error)
     assert heading['initial_equal']
     old_heading=DIAGNOSIS/'stairs_parent_heading'
     assert read(old_heading/'execution.json')['status']=='completed'
