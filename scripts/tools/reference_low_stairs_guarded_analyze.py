@@ -20,9 +20,51 @@ from reference_turn_diagnose import CASES
 from reference_isaac_stairs_analyze import analyze as analyze_stairs
 from reference_low_stairs_analyze import stairs_heights, check_log, read_agent
 from reference_low_stairs_clearance_analyze import screen
+from reference_low_stairs_regression_probe import OUTPUT as DIAGNOSIS, PARENT, HASHES
 
 OUT = ROOT / 'docs/lite3-low-stairs-guarded-trial-20261115'
 OUTCOMES = ('success','stuck','orientation_failure','lateral_exit','timeout')
+
+
+def heldout_actions(checkpoint, evaluation):
+    import torch
+    from reference_low_stairs_preservation import GROUPS, ACTION_SCALES
+    MODELS['guarded_action_check']=checkpoint
+    MODELS['guarded_parent_check']=PARENT
+    candidate,parent=load_actor('guarded_action_check'),load_actor('guarded_parent_check')
+    scales=torch.tensor(ACTION_SCALES)
+    diagnostic=ROOT/'docs/lite3-low-stairs-regression-preparation-20261115/diagnostic_anchor_bank.npz'
+    validation=read(diagnostic.with_name('preservation_validation.json'))
+    assert sha(diagnostic)==validation['anchor_sha256']
+    with np.load(diagnostic) as data, torch.no_grad():
+        observation=torch.tensor(data['observation'])
+        expected=torch.tensor(data['parent_action'])
+        parent_error=float((parent(observation)-expected).abs().max())
+        assert parent_error<1e-4
+        delta=(candidate(observation)-expected)*scales
+        groups=data['group']
+        rows=[dict(group=name,samples=int((groups==g).sum()),
+            target_rmse_rad=float(delta[groups==g].square().mean().sqrt()),
+            target_absolute_p95_rad=float(delta[groups==g].abs().flatten().quantile(.95)))
+              for g,name in enumerate(GROUPS)]
+    starts=[]
+    for profile in ('nominal','training_randomized'):
+        path=evaluation/f'turn_{profile}'
+        with np.load(path/'initial.npz') as data,torch.no_grad():
+            obs=torch.tensor(data['observation'])
+            delta=((candidate(obs)-parent(obs))*scales).numpy()
+            q=data['root'][:,3:7]
+            tilt=np.rad2deg(np.arccos(np.clip(1-2*(q[:,1]**2+q[:,2]**2),-1,1)))
+        records=read(path/'report.json')['records']
+        for r in records:
+            i=r['env_id']
+            starts.append(dict(profile=profile,env_id=i,case=r['case'],repeat=r['repeat'],
+                initial_tilt_deg=float(tilt[i]),max_initial_target_difference_rad=float(np.abs(delta[i]).max()),
+                hr_hipy_target_difference_rad=float(delta[i,10]),
+                failed_before_command=r['outcome']=='orientation_failure' and r['duration_s']<=2.))
+    write_csv(OUT/'initial_action_differences.csv',starts)
+    return dict(groups=rows,diagnostic_bank_sha256=sha(diagnostic),
+        used_for_training=False,parent_adapter_error=parent_error,optimizer_updates=0)
 
 
 def adapter_check(checkpoint, evaluation):
@@ -120,14 +162,22 @@ def main(updates):
                  intervention=read(heading_path/'heading_intervention.json'),episodes=240,
                  initial_equal=same_initial(heading_path,evaluation/'up_nominal'),included_in_formal_acceptance=False)
     assert heading['initial_equal']
+    old_heading=DIAGNOSIS/'stairs_parent_heading'
+    assert read(old_heading/'execution.json')['status']=='completed'
+    parent_heading=read(old_heading/'report.json')
+    assert parent_heading['checkpoint_sha256']==HASHES['parent']
+    assert same_initial(old_heading,heading_path)
+    heading.update(parent_heights=stairs_heights(parent_heading),parent_groups=parent_heading['groups'],
+        reused_parent_report=str(old_heading/'report.json'),parent_report_sha256=sha(old_heading/'report.json'))
     screening=screen(tables['stairs_heights'],tables['stairs_groups'],tables['turn_paired'],tables['turn_failures'])
     train=training_summary(updates)
     adapter=adapter_check(checkpoint,evaluation)
+    heldout=heldout_actions(checkpoint,evaluation)
     suites=ET.parse(OUT/'tests.xml').getroot().findall('testsuite')
     assert all(int(s.get(k))==0 for s in suites for k in ('errors','failures','skipped'))
     save(OUT/'summary.json',dict(status='passed',scope='证据核验通过，能力验收见 screening',updates=updates,
         checkpoint=str(checkpoint),checkpoint_sha256=digest,formal_episodes=1600,heading_episodes=240,
-        screening=screening,heading=heading,gate100=read(OUTPUT/'gate100.json'),**tables))
+        screening=screening,heading=heading,heldout_action_changes=heldout,gate100=read(OUTPUT/'gate100.json'),**tables))
     save(OUT/'training_summary.json',train)
     save(OUT/'verification.json',dict(status='passed',adapter=adapter,logs=logs,
         tests_passed=sum(int(s.get('tests')) for s in suites),parameters_updated_by_analysis=False,
