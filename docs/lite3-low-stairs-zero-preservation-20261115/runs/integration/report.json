@@ -1,0 +1,162 @@
+{
+  "status": "passed",
+  "phase": 0,
+  "phase_updates": 0,
+  "max_updates": 100,
+  "auxiliary_coefficient": 0.0,
+  "original_parent_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+  "parent_checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+  "parent_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+  "variant": "persistent_clearance_yaw_coverage_zero_preservation",
+  "seed": 42,
+  "physical_gpu": 1,
+  "num_envs": 4096,
+  "optimizer_updates": 0,
+  "environment_steps": 64,
+  "updates": [],
+  "checkpoints": [
+    {
+      "phase_updates": 0,
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/integration/model_updates_10000.pt",
+      "sha256": "aaf69f7b1f9a539fc34997d46c67fc1d78d6b71e5eaee4914becad161ecf966f"
+    }
+  ],
+  "automatic_extension": false,
+  "initial_level_histogram": [
+    113,
+    163,
+    250,
+    310,
+    386,
+    452,
+    570,
+    605,
+    666,
+    581
+  ],
+  "terrain_column_names": [
+    "flat",
+    "flat",
+    "flat",
+    "flat",
+    "rough",
+    "rough",
+    "rough",
+    "rough",
+    "slope_up",
+    "slope_up",
+    "slope_down",
+    "slope_down",
+    "stairs_up",
+    "stairs_up",
+    "stairs_down",
+    "stairs_down",
+    "friction_lateral",
+    "friction_longitudinal",
+    "slope_rough_up",
+    "slope_rough_down"
+  ],
+  "curriculum_contract": "939df7b1a03353ebfefa19155aada2b81191fcc9df2bc3657dd72765ff3ae1d6",
+  "implementation_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_zero_preservation_train.py",
+      "sha256": "80c13c103b2f717e31a535d341b01c4d05e37778b4bc1dafef3cb30600ac431a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_train.py",
+      "sha256": "52489dd85570e07a5586015029a370882924582dacc04d027d609cb446e6be1c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_ppo.py",
+      "sha256": "20f9084c4229861694a4c923d47b6c3e857ebbff01f7ac44c134225e3b9c337b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_cfg.py",
+      "sha256": "812a0f0fb4a693b85eb8adcd4001ecca70c85f8c0a75972fa5b455e78bb75bb1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_bank.py",
+      "sha256": "307c1c27c061907fbb9ab9f0dd1ca894f51fb99fe6a77c298c140e4860f17356"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_preservation.py",
+      "sha256": "908d925fa40521c3d9aec85c0eaa498ef917c10a557ba91e1d13e5a78fd4e08a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume.py",
+      "sha256": "23fa9a2bb6246b838cdf5dcf2057e17a7a09b9c1fcd521bd468d48b0b1b82cca"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair.py",
+      "sha256": "6a2c1cc3f8ae335b510abbbb8e36a61679a4a88d54d5f1292b70625ae0cc8747"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance.py",
+      "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_cfg.py",
+      "sha256": "871eb849cf356525e384b9e21f5eebbe0666113ded6424acde5cf5569da4247c"
+    }
+  ],
+  "ppo_update_sha256": "507b4a88853dc6eda17c7c2e79bd081430c97ec8ca2e2efc24572729c94907b0",
+  "bank_sha256": "77c955a6aba6cae8b5802027674169cfb0ea19d4334352b2af83caf6a28ea95e",
+  "initial_learning_rate": 0.0005766503906250003,
+  "terminated": 0,
+  "truncated": 0,
+  "initial_algorithm_and_curriculum_match_guarded": true,
+  "interactions": 262144,
+  "parent_action_max_error": 2.86102294921875e-06,
+  "perturbed_loss": 0.0,
+  "finite_gradient": true,
+  "zero_auxiliary_gradient": true,
+  "positive_unweighted_loss": 0.00032128344173543155,
+  "actor_and_critic_parameters_unchanged": true,
+  "distribution_cache_unchanged": true,
+  "restored_again": {
+    "actor_exact": true,
+    "critic_exact": true,
+    "optimizer_exact": true,
+    "learning_rate": 0.0005766503906250003,
+    "next_iteration": 10000
+  },
+  "sampler": {
+    "status": "passed",
+    "samples": 100000,
+    "changed": 4224,
+    "before": {
+      "standing": 28341,
+      "heading_turns": 8443,
+      "constant_left": 0,
+      "constant_right": 0
+    },
+    "after": {
+      "standing": 28341,
+      "heading_turns": 4219,
+      "constant_left": 2092,
+      "constant_right": 2132
+    },
+    "untouched_samples_exact": true,
+    "standing_flags_exact": true,
+    "constant_rate_survives_heading_change": true,
+    "rate_range_rad_s": [
+      0.2,
+      0.8
+    ],
+    "sources": {
+      "UniformVelocityCommand": {
+        "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/mdp/commands/velocity_command.py",
+        "line": 30,
+        "sha256": "0ff254a375c9ea8d408824c24145e7ac7906cc7b513c52c4dd4ca0834c1ce241"
+      },
+      "UniformThresholdVelocityCommand": {
+        "path": "/home/tjx/rl_training/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/mdp/commands.py",
+        "line": 21,
+        "sha256": "31877425d07293cfdefd29858e105885a0edf8f7d75dc72d2200c29706017641"
+      }
+    }
+  },
+  "initial_gait_level": 1.0,
+  "converted_left": 79,
+  "converted_right": 94
+}
