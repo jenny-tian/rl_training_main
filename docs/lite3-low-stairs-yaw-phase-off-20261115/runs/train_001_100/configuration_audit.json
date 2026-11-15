@@ -1,0 +1,564 @@
+{
+  "terrain": {
+    "status": "passed",
+    "profile": "low_stairs",
+    "step_height_range_m": [
+      0.02,
+      0.05
+    ],
+    "tread_depth_m": 0.3,
+    "max_init_terrain_level": 0,
+    "native_layout_and_progression_preserved": true,
+    "observation_and_ppo_unchanged": true,
+    "initial_level_change_applies_to_all_six_families": true,
+    "online_candidate_heights_m": [
+      0.06,
+      0.07,
+      0.08
+    ],
+    "later_validation_height_m": 0.1,
+    "checkpoint_initialization": "scratch_only",
+    "reference_unchanged": true
+  },
+  "rewards": {
+    "status": "passed",
+    "variant": "low_stairs",
+    "core_audit": {
+      "status": "passed",
+      "variant": "core",
+      "non_reward_environment_exact": true,
+      "reference_config_unchanged": true,
+      "before_sha256": "bd8ee5c34d8f59617b8d5caa1a57b588243a0abcb4d33ef9c70803f5bb5f44a8",
+      "after_sha256": "a00a31a57da50fc0f9a775a49ce5de383b566e1395e664895659458975864192",
+      "changes": {
+        "stand_still": {
+          "before": {
+            "func": "isaaclab_tasks.manager_based.locomotion.velocity.mdp.rewards:stand_still_joint_deviation_l1",
+            "params": {
+              "command_name": "base_velocity",
+              "asset_cfg": {
+                "name": "robot",
+                "joint_names": [
+                  "FL_HipX_joint",
+                  "FL_HipY_joint",
+                  "FL_Knee_joint",
+                  "FR_HipX_joint",
+                  "FR_HipY_joint",
+                  "FR_Knee_joint",
+                  "HL_HipX_joint",
+                  "HL_HipY_joint",
+                  "HL_Knee_joint",
+                  "HR_HipX_joint",
+                  "HR_HipY_joint",
+                  "HR_Knee_joint"
+                ],
+                "joint_ids": "slice(None, None, None)",
+                "fixed_tendon_names": null,
+                "fixed_tendon_ids": "slice(None, None, None)",
+                "body_names": null,
+                "body_ids": "slice(None, None, None)",
+                "object_collection_names": null,
+                "object_collection_ids": "slice(None, None, None)",
+                "preserve_order": false
+              },
+              "command_threshold": 0.1
+            },
+            "weight": -0.5
+          },
+          "after": {
+            "func": "reference_reward_variants:stand_still_joint_deviation_se2",
+            "params": {
+              "command_name": "base_velocity",
+              "asset_cfg": {
+                "name": "robot",
+                "joint_names": [
+                  "FL_HipX_joint",
+                  "FL_HipY_joint",
+                  "FL_Knee_joint",
+                  "FR_HipX_joint",
+                  "FR_HipY_joint",
+                  "FR_Knee_joint",
+                  "HL_HipX_joint",
+                  "HL_HipY_joint",
+                  "HL_Knee_joint",
+                  "HR_HipX_joint",
+                  "HR_HipY_joint",
+                  "HR_Knee_joint"
+                ],
+                "joint_ids": "slice(None, None, None)",
+                "fixed_tendon_names": null,
+                "fixed_tendon_ids": "slice(None, None, None)",
+                "body_names": null,
+                "body_ids": "slice(None, None, None)",
+                "object_collection_names": null,
+                "object_collection_ids": "slice(None, None, None)",
+                "preserve_order": false
+              },
+              "linear_threshold": 0.1,
+              "angular_threshold": 0.1
+            },
+            "weight": -0.5
+          }
+        },
+        "base_height_l2": {
+          "before": {
+            "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:base_height_l2",
+            "params": {
+              "asset_cfg": {
+                "name": "robot",
+                "joint_names": null,
+                "joint_ids": "slice(None, None, None)",
+                "fixed_tendon_names": null,
+                "fixed_tendon_ids": "slice(None, None, None)",
+                "body_names": [
+                  "TORSO"
+                ],
+                "body_ids": "slice(None, None, None)",
+                "object_collection_names": null,
+                "object_collection_ids": "slice(None, None, None)",
+                "preserve_order": false
+              },
+              "sensor_cfg": {
+                "name": "height_scanner_base",
+                "joint_names": null,
+                "joint_ids": "slice(None, None, None)",
+                "fixed_tendon_names": null,
+                "fixed_tendon_ids": "slice(None, None, None)",
+                "body_names": null,
+                "body_ids": "slice(None, None, None)",
+                "object_collection_names": null,
+                "object_collection_ids": "slice(None, None, None)",
+                "preserve_order": false
+              },
+              "target_height": 0.55
+            },
+            "weight": -50.0
+          },
+          "after": {
+            "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:base_height_l2",
+            "params": {
+              "asset_cfg": {
+                "name": "robot",
+                "joint_names": null,
+                "joint_ids": "slice(None, None, None)",
+                "fixed_tendon_names": null,
+                "fixed_tendon_ids": "slice(None, None, None)",
+                "body_names": [
+                  "TORSO"
+                ],
+                "body_ids": "slice(None, None, None)",
+                "object_collection_names": null,
+                "object_collection_ids": "slice(None, None, None)",
+                "preserve_order": false
+              },
+              "sensor_cfg": {
+                "name": "height_scanner_base",
+                "joint_names": null,
+                "joint_ids": "slice(None, None, None)",
+                "fixed_tendon_names": null,
+                "fixed_tendon_ids": "slice(None, None, None)",
+                "body_names": null,
+                "body_ids": "slice(None, None, None)",
+                "object_collection_names": null,
+                "object_collection_ids": "slice(None, None, None)",
+                "preserve_order": false
+              },
+              "target_height": 0.32
+            },
+            "weight": -50.0
+          }
+        }
+      }
+    },
+    "non_reward_environment_exact": true,
+    "reference_config_unchanged": true,
+    "changes": {
+      "base_height_l2": {
+        "before": {
+          "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:base_height_l2",
+          "params": {
+            "asset_cfg": {
+              "name": "robot",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                "TORSO"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "sensor_cfg": {
+              "name": "height_scanner_base",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": null,
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "target_height": 0.55
+          },
+          "weight": -50.0
+        },
+        "after": {
+          "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:base_height_l2",
+          "params": {
+            "asset_cfg": {
+              "name": "robot",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                "TORSO"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "sensor_cfg": {
+              "name": "height_scanner_base",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": null,
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "target_height": 0.32
+          },
+          "weight": -50.0
+        }
+      },
+      "feet_air_time_lin_xy": {
+        "before": {
+          "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:feet_air_time_lin_xy_cmd",
+          "params": {
+            "command_name": "base_velocity",
+            "threshold": 0.5,
+            "cmd_threshold": 0.1,
+            "sensor_cfg": {
+              "name": "contact_forces",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                ".*_FOOT"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            }
+          },
+          "weight": 5.0
+        },
+        "after": {
+          "func": "reference_low_stairs_rewards:airtime_without_stair_short_step_penalty",
+          "params": {
+            "command_name": "base_velocity",
+            "threshold": 0.5,
+            "cmd_threshold": 0.1,
+            "sensor_cfg": {
+              "name": "contact_forces",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                ".*_FOOT"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            }
+          },
+          "weight": 5.0
+        }
+      },
+      "phase_foot_trajectory_exp": {
+        "before": {
+          "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:phase_foot_trajectory_exp",
+          "params": {
+            "command_name": "base_velocity",
+            "asset_cfg": {
+              "name": "robot",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                ".*_FOOT"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "std": 0.12,
+            "command_threshold": 0.1,
+            "cycle_time": 0.425,
+            "phase_offsets": [
+              0.0,
+              1.0,
+              1.0,
+              0.0
+            ],
+            "gait_span": -0.0,
+            "gait_psi": 0.05,
+            "gait_delta": 0.02,
+            "x_offset": 0.0,
+            "stance_span": 0.0,
+            "stand_ref_z_offset": -0.0,
+            "velocity_weight": 0.0
+          },
+          "weight": 2.0
+        },
+        "after": {
+          "func": "reference_low_stairs_rewards:phase_outside_stair_translation",
+          "params": {
+            "command_name": "base_velocity",
+            "asset_cfg": {
+              "name": "robot",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                ".*_FOOT"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "std": 0.12,
+            "command_threshold": 0.1,
+            "cycle_time": 0.425,
+            "phase_offsets": [
+              0.0,
+              1.0,
+              1.0,
+              0.0
+            ],
+            "gait_span": -0.0,
+            "gait_psi": 0.05,
+            "gait_delta": 0.02,
+            "x_offset": 0.0,
+            "stance_span": 0.0,
+            "stand_ref_z_offset": -0.0,
+            "velocity_weight": 0.0
+          },
+          "weight": 2.0
+        }
+      },
+      "stair_clearance": {
+        "before": null,
+        "after": {
+          "func": "reference_low_stairs_rewards:stair_clearance",
+          "params": {},
+          "weight": -1.0
+        }
+      },
+      "stair_landing": {
+        "before": null,
+        "after": {
+          "func": "reference_low_stairs_cfg:StairLandingReward",
+          "params": {},
+          "weight": 1.0
+        }
+      },
+      "stair_progress": {
+        "before": null,
+        "after": {
+          "func": "reference_low_stairs_rewards:stair_progress",
+          "params": {},
+          "weight": 1.0
+        }
+      },
+      "stand_still": {
+        "before": {
+          "func": "isaaclab_tasks.manager_based.locomotion.velocity.mdp.rewards:stand_still_joint_deviation_l1",
+          "params": {
+            "command_name": "base_velocity",
+            "asset_cfg": {
+              "name": "robot",
+              "joint_names": [
+                "FL_HipX_joint",
+                "FL_HipY_joint",
+                "FL_Knee_joint",
+                "FR_HipX_joint",
+                "FR_HipY_joint",
+                "FR_Knee_joint",
+                "HL_HipX_joint",
+                "HL_HipY_joint",
+                "HL_Knee_joint",
+                "HR_HipX_joint",
+                "HR_HipY_joint",
+                "HR_Knee_joint"
+              ],
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": null,
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "command_threshold": 0.1
+          },
+          "weight": -0.5
+        },
+        "after": {
+          "func": "reference_reward_variants:stand_still_joint_deviation_se2",
+          "params": {
+            "command_name": "base_velocity",
+            "asset_cfg": {
+              "name": "robot",
+              "joint_names": [
+                "FL_HipX_joint",
+                "FL_HipY_joint",
+                "FL_Knee_joint",
+                "FR_HipX_joint",
+                "FR_HipY_joint",
+                "FR_Knee_joint",
+                "HL_HipX_joint",
+                "HL_HipY_joint",
+                "HL_Knee_joint",
+                "HR_HipX_joint",
+                "HR_HipY_joint",
+                "HR_Knee_joint"
+              ],
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": null,
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            },
+            "linear_threshold": 0.1,
+            "angular_threshold": 0.1
+          },
+          "weight": -0.5
+        }
+      }
+    },
+    "stair_scope": "stairs columns with planar command speed > 0.1 m/s; pure yaw and other terrain families keep their gait terms",
+    "foot_radius_m": 0.022,
+    "clearance_margin_m": 0.025,
+    "reward_information": "privileged simulator terrain for offline base training only; actor remains proprioceptive"
+  },
+  "clearance": {
+    "status": "passed",
+    "changed_terms": [
+      "stair_clearance"
+    ],
+    "weight": -1.0,
+    "non_reward_environment_exact": true,
+    "turning_rewards_unchanged": true,
+    "checkpoint_initialization": "reviewed parent; no A500 continuation",
+    "before": {
+      "func": "reference_low_stairs_rewards:stair_clearance",
+      "params": {},
+      "weight": -1.0
+    },
+    "after": {
+      "func": "reference_low_stairs_clearance_cfg:StairClearanceReward",
+      "params": {},
+      "weight": -1.0
+    }
+  },
+  "yaw": {
+    "status": "passed",
+    "variant": "yaw_airtime",
+    "non_reward_environment_exact": true,
+    "input_config_unchanged": true,
+    "changes": {
+      "feet_air_time_ang_z_lite3": {
+        "before": {
+          "func": "rl_training.tasks.manager_based.locomotion.velocity.mdp.rewards:feet_air_time_ang_z_cmd_lite3",
+          "params": {
+            "command_name": "base_velocity",
+            "threshold": 0.5,
+            "cmd_threshold": 0.1,
+            "sensor_cfg": {
+              "name": "contact_forces",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                ".*_FOOT"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            }
+          },
+          "weight": 5.0
+        },
+        "after": {
+          "func": "reference_low_stairs_repair:yaw_airtime_without_short_step_penalty",
+          "params": {
+            "command_name": "base_velocity",
+            "threshold": 0.5,
+            "cmd_threshold": 0.1,
+            "sensor_cfg": {
+              "name": "contact_forces",
+              "joint_names": null,
+              "joint_ids": "slice(None, None, None)",
+              "fixed_tendon_names": null,
+              "fixed_tendon_ids": "slice(None, None, None)",
+              "body_names": [
+                ".*_FOOT"
+              ],
+              "body_ids": "slice(None, None, None)",
+              "object_collection_names": null,
+              "object_collection_ids": "slice(None, None, None)",
+              "preserve_order": false
+            }
+          },
+          "weight": 5.0
+        }
+      }
+    }
+  },
+  "commands": {
+    "original_pure_heading_retained": 0.5,
+    "fixed_left": 0.25,
+    "fixed_right": 0.25,
+    "magnitude_rad_s": [
+      0.2,
+      0.8
+    ],
+    "standing_unchanged": true
+  },
+  "pure_yaw_phase_off": {
+    "status": "passed",
+    "only_changed_reward": "phase_foot_trajectory_exp",
+    "only_changed_field": "func",
+    "original_called_once": true,
+    "pure_yaw_xy_below": 0.1,
+    "pure_yaw_abs_wz_above": 0.1,
+    "old_function": "reference_low_stairs_rewards:phase_outside_stair_translation",
+    "new_function": "reference_low_stairs_yaw_phase_off_cfg:phase_outside_stair_translation_and_pure_yaw",
+    "weight_unchanged": 2.0
+  }
+}
