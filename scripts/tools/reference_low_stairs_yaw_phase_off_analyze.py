@@ -16,7 +16,7 @@ from reference_turn_analyze import analyze as analyze_turn,WINDOWS
 from reference_turn_diagnose import CASES
 from reference_isaac_stairs_analyze import analyze as analyze_stairs
 from reference_low_stairs_analyze import stairs_heights,check_log
-from reference_low_stairs_equal100_analyze import validate_trace
+from reference_low_stairs_equal100_analyze import validate_trace,stair_diagnostics,group_diagnostics
 from reference_low_stairs_zero_preservation_analyze import paired_records,heldout_changes
 from reference_low_stairs_clearance_analyze import screen
 from reference_low_stairs_guarded_analyze import adapter_check
@@ -176,7 +176,8 @@ def main():
     assert complete['status']=='passed' and complete['formal_episodes']==1600 and complete['heading_episodes']==0
     assert complete['checkpoint_sha256']==digest
     tables={k:[] for k in ('turn_groups','turn_windows','turn_pairs','turn_failures','turn_records',
-                           'stairs_heights','stairs_groups','stairs_pairs','stairs_records','down_episodes')}
+                           'stairs_heights','stairs_groups','stairs_pairs','stairs_records','down_episodes',
+                           'up_diagnostics','up_matched_contacts')}
     checks=[];runs=[]
     for profile in ('nominal','training_randomized'):
         reports={};windows={}
@@ -205,7 +206,7 @@ def main():
                     row[f'recovered_vs_{old}']=sum(r['outcome']!='orientation_failure' and a[r['env_id']]['outcome']=='orientation_failure' for r in records)
                 tables['turn_failures'].append(row)
         for direction in ('up','down'):
-            reports={}
+            reports={};series={}
             for policy in POLICIES:
                 path=ROOTS[policy]/f'{direction}_{profile}'
                 if policy=='phaseoff':verify_run(path,'stairs',profile,digest,MODEL,direction)
@@ -216,8 +217,20 @@ def main():
                 tables['stairs_records']+=[dict(policy=policy,profile=profile,direction=direction,**r) for r in report['records']]
                 tables['stairs_groups']+=[dict(policy=policy,profile=profile,direction=direction,height=g['height'],speed=g['speed'],
                     starts=g['episodes'],**{k:g['outcomes'].get(k,0) for k in OUTCOMES}) for g in report['groups']]
+                if direction=='up':
+                    rows,series[policy]=stair_diagnostics(report,cfg,data,policy,False)
+                    tables['up_diagnostics']+=rows
                 reports[policy]=report;checks.append(check_log(path));runs.append((policy,path));del data
                 if direction=='down':tables['down_episodes']+=down_rows(policy,ROOTS[policy],profile)[0]
+            if direction=='up':
+                for i in sorted(set(series['zero'])&set(series['phaseoff'])):
+                    a,b=series['zero'][i],series['phaseoff'][i];end=min(a['cutoff'],b['cutoff'])
+                    mask=(a['root'][:end,0]>.85)&(b['root'][:end,0]>.85)
+                    row=dict(profile=profile,env_id=i,speed=a['speed'],exposure_s=float(mask.sum()*DT))
+                    for policy,values in (('zero',a),('phaseoff',b)):
+                        for feature in ('collision','wall'):
+                            row[f'{policy}_{feature}_foot_seconds']=float(values[feature][:end][mask].sum()*DT)
+                    tables['up_matched_contacts'].append(row)
             for old in POLICIES[:-1]:
                 a,b=paired_records(reports[old],reports['phaseoff'],'stairs')
                 for height in (0.,.02,.03,.05):
@@ -228,6 +241,7 @@ def main():
                             gained_success=sum(a[i]['outcome']!='success' and b[i]['outcome']=='success' for i in ids),
                             lost_success=sum(a[i]['outcome']=='success' and b[i]['outcome']!='success' for i in ids),
                             new_orientation_failure=sum(a[i]['outcome']!='orientation_failure' and b[i]['outcome']=='orientation_failure' for i in ids)))
+    tables['up_diagnostic_groups']=group_diagnostics(tables['up_diagnostics'])
     screening=approved_screen(tables);motion(tables,checks);plots(tables)
     for name,rows in tables.items():write_csv(DOCS/f'{name}.csv',rows)
     training=training_metrics();save(DOCS/'training_summary.json',training)
