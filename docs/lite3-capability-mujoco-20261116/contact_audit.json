@@ -1,0 +1,1418 @@
+{
+  "status": "completed",
+  "physics_steps": 0,
+  "policy_steps": 0,
+  "optimizer_updates": 0,
+  "method": "mj_forward on saved qpos/qvel/last applied torque, warmstart reset; contact force estimates, not time integration",
+  "interpretation": "Shank contacts refer to the deployment MJCF collision mesh, not proof of physical robot shank scraping.",
+  "correction": "Use body_weldid to include fixed stair bodies as terrain; initial worldbody-only audit preserved separately.",
+  "sensitivity": "FOOT contact or SHANK contact within 2.5/3/4 cm of corresponding foot center; summed normal load per leg >=1N. All radii reported, not selected by outcome. Original formal results and videos remain unmodified.",
+  "formal_outcomes_unchanged": true,
+  "source_sha256": "8d5a2fc8c6d52e1918dda4c2852afd712846a03ab89315f94f678e819873beac",
+  "records": [
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 0,
+      "sampled_states": 433,
+      "states_after_2s": 333,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 1.0,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 9.634113799182776,
+      "mean_shank_force_sum": 111.7691924102977,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022652936549905293,
+        0.024488662244192938,
+        0.024652462078490058,
+        0.02521592687832808
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.4419939784421677
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.4419939784421677
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.4419939784421677
+        }
+      },
+      "post_3m_samples": 13,
+      "post_3m_max_foot_supports": 4,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 0,
+      "sampled_states": 427,
+      "states_after_2s": 327,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.7706422018348624,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.864295771269008,
+      "mean_shank_force_sum": 114.58097971011405,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02239579515136318,
+        0.024479027274860024,
+        0.02466108104305342,
+        0.02523514896398411
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.540000000000001,
+          "lateral_m": -0.5375654703437178
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.540000000000001,
+          "lateral_m": -0.5375654703437178
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.540000000000001,
+          "lateral_m": -0.5375654703437178
+        }
+      },
+      "post_3m_samples": 13,
+      "post_3m_max_foot_supports": 3,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 1,
+      "sampled_states": 433,
+      "states_after_2s": 333,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 1.0,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 9.638839190879166,
+      "mean_shank_force_sum": 111.76023435864361,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022655218567340044,
+        0.024488580986326166,
+        0.024649346732188424,
+        0.02505607736070283
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.46700687993533524
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.46700687993533524
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.46700687993533524
+        }
+      },
+      "post_3m_samples": 13,
+      "post_3m_max_foot_supports": 4,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 1,
+      "sampled_states": 428,
+      "states_after_2s": 328,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.7469512195121951,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.807845621515714,
+      "mean_shank_force_sum": 114.54383450920308,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02222743693216982,
+        0.02447968887053461,
+        0.02466170032719916,
+        0.025237967212087004
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.56,
+          "lateral_m": -0.5576481352202226
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.56,
+          "lateral_m": -0.5576481352202226
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.56,
+          "lateral_m": -0.5576481352202226
+        }
+      },
+      "post_3m_samples": 13,
+      "post_3m_max_foot_supports": 3,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 2,
+      "sampled_states": 433,
+      "states_after_2s": 333,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 1.0,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 9.631523543079265,
+      "mean_shank_force_sum": 111.77175833036375,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022654750574590668,
+        0.024488706257031232,
+        0.024647577485353157,
+        0.025234023496604883
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.4648358971975889
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.4648358971975889
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": -0.4648358971975889
+        }
+      },
+      "post_3m_samples": 13,
+      "post_3m_max_foot_supports": 4,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 2,
+      "sampled_states": 428,
+      "states_after_2s": 328,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.7469512195121951,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.775242114140372,
+      "mean_shank_force_sum": 114.63222496257455,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022989229464040098,
+        0.024477982972371533,
+        0.024653074125455213,
+        0.025225670328700694
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.56,
+          "lateral_m": -0.5493239001130639
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.56,
+          "lateral_m": -0.5493239001130639
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.56,
+          "lateral_m": -0.5493239001130639
+        }
+      },
+      "post_3m_samples": 13,
+      "post_3m_max_foot_supports": 3,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 0,
+      "sampled_states": 481,
+      "states_after_2s": 381,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6640419947506562,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 8.246080253658885,
+      "mean_shank_force_sum": 119.19237536585062,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.020591132600391658,
+        0.024468371836314298,
+        0.02480911466790189,
+        0.02521592687832808
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.620000000000001,
+          "lateral_m": 0.11378389006860916
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.620000000000001,
+          "lateral_m": 0.11378389006860916
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.620000000000001,
+          "lateral_m": 0.11378389006860916
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 0,
+      "sampled_states": 461,
+      "states_after_2s": 361,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6620498614958449,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 9.336734872139946,
+      "mean_shank_force_sum": 120.18367872987969,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.018772738920819706,
+        0.024461640748672353,
+        0.02481176521928079,
+        0.02523514896398411
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": -0.11916948339494444
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": -0.11916948339494444
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": -0.11916948339494444
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 1,
+      "sampled_states": 460,
+      "states_after_2s": 360,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6944444444444444,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 8.523800929275446,
+      "mean_shank_force_sum": 119.03703775139566,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.017778082816967,
+        0.024468648068873868,
+        0.024824832727241692,
+        0.025214126064976597
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": 0.17013447950128338
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": 0.17013447950128338
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": 0.17013447950128338
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 1,
+      "sampled_states": 431,
+      "states_after_2s": 331,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6525679758308157,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 8.808438356475373,
+      "mean_shank_force_sum": 120.0134272234115,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.020051316654301092,
+        0.024454235126351663,
+        0.024793906431340683,
+        0.025237967212087004
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.620000000000001,
+          "lateral_m": -0.018782173915824856
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.620000000000001,
+          "lateral_m": -0.018782173915824856
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.620000000000001,
+          "lateral_m": -0.018782173915824856
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 2,
+      "sampled_states": 478,
+      "states_after_2s": 378,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6666666666666666,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 9.259386519449798,
+      "mean_shank_force_sum": 119.30175829718488,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.019326483383936197,
+        0.024479391028124135,
+        0.02485552756475363,
+        0.025234023496604883
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.56,
+          "lateral_m": 0.05163567015689619
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.56,
+          "lateral_m": 0.05163567015689619
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.56,
+          "lateral_m": 0.05163567015689619
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 2,
+      "sampled_states": 451,
+      "states_after_2s": 351,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6153846153846154,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 8.56402189792901,
+      "mean_shank_force_sum": 122.54729415633483,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.020288754349348483,
+        0.024467271641012686,
+        0.024870654049578424,
+        0.02535178348240937
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.02,
+          "lateral_m": -0.14029607762986798
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.02,
+          "lateral_m": -0.14029607762986798
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.02,
+          "lateral_m": -0.14029607762986798
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 0,
+      "sampled_states": 459,
+      "states_after_2s": 359,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.4568245125348189,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.117663464164772,
+      "mean_shank_force_sum": 113.68375300503197,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.020549388512872125,
+        0.024502577911909518,
+        0.02613228223553838,
+        0.06719686818812884
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.18,
+          "lateral_m": -0.05955651769427804
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.18,
+          "lateral_m": -0.05955651769427804
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.18,
+          "lateral_m": -0.05955651769427804
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 0,
+      "sampled_states": 433,
+      "states_after_2s": 333,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.5345345345345346,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.2550000241864465,
+      "mean_shank_force_sum": 115.33595899980206,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02006022796090593,
+        0.02449875628904916,
+        0.02678585885454916,
+        0.06372349702715717
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": 0.08269866775708759
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": 0.08269866775708759
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.66,
+          "lateral_m": 0.08269866775708759
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 1,
+      "sampled_states": 460,
+      "states_after_2s": 360,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.45555555555555555,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.326810334355188,
+      "mean_shank_force_sum": 112.92487225748961,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.021737650599862907,
+        0.024503078088664258,
+        0.02878027338724467,
+        0.057659631888655215
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": -0.07838977082198262
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": -0.07838977082198262
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.200000000000001,
+          "lateral_m": -0.07838977082198262
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 1,
+      "sampled_states": 448,
+      "states_after_2s": 348,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.5862068965517241,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.9777680818515675,
+      "mean_shank_force_sum": 112.57518213903145,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.021117335278933023,
+        0.02449945116495799,
+        0.027558741247948444,
+        0.06961948469597481
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.96,
+          "lateral_m": 0.06649197265408932
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.96,
+          "lateral_m": 0.06649197265408932
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.96,
+          "lateral_m": 0.06649197265408932
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 2,
+      "sampled_states": 465,
+      "states_after_2s": 365,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.4438356164383562,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 5.913527959928615,
+      "mean_shank_force_sum": 113.93633064838775,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.021644370513476518,
+        0.024502338925466324,
+        0.02829795059460421,
+        0.06901581095059159
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.3,
+          "lateral_m": -0.09584344599718705
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.3,
+          "lateral_m": -0.09584344599718705
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.3,
+          "lateral_m": -0.09584344599718705
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 2,
+      "sampled_states": 435,
+      "states_after_2s": 335,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.5761194029850746,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 6.987187835805135,
+      "mean_shank_force_sum": 113.89074108956608,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02095807930054748,
+        0.02449793267620206,
+        0.027598318500444863,
+        0.06559166510911543
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 8.700000000000001,
+          "lateral_m": 0.009794060436070104
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 8.700000000000001,
+          "lateral_m": 0.009794060436070104
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 8.700000000000001,
+          "lateral_m": 0.009794060436070104
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 0,
+      "sampled_states": 582,
+      "states_after_2s": 482,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.14937759336099585,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 3,
+      "mean_foot_force_sum": 4.105400721534216,
+      "mean_shank_force_sum": 114.760946634633,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.020242124152271487,
+        0.024515512274637156,
+        0.02512882821269876,
+        0.03077718541988188
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 11.0,
+          "lateral_m": -0.8871888522108944
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 11.0,
+          "lateral_m": -0.8871888522108944
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 11.0,
+          "lateral_m": -0.8871888522108944
+        }
+      },
+      "post_3m_samples": 45,
+      "post_3m_max_foot_supports": 1,
+      "original_outcome": "lateral_exit"
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 0,
+      "sampled_states": 528,
+      "states_after_2s": 428,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.24532710280373832,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 9,
+      "mean_foot_force_sum": 6.739790584682781,
+      "mean_shank_force_sum": 112.18800164865328,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.019426244281194282,
+        0.024312327722791516,
+        0.02511382080340517,
+        0.025537372886722188
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.84,
+          "lateral_m": -0.41311020608438764
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.84,
+          "lateral_m": -0.41311020608438764
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.84,
+          "lateral_m": -0.41311020608438764
+        }
+      },
+      "post_3m_samples": 49,
+      "post_3m_max_foot_supports": 4,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 1,
+      "sampled_states": 530,
+      "states_after_2s": 430,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.1511627906976744,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 8,
+      "mean_foot_force_sum": 5.167529775176984,
+      "mean_shank_force_sum": 114.04808667447216,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02001751311878461,
+        0.02442641335271544,
+        0.025157476136088135,
+        0.029174215611946348
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.68,
+          "lateral_m": -0.29685761688327644
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.68,
+          "lateral_m": -0.29685761688327644
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.68,
+          "lateral_m": -0.29685761688327644
+        }
+      },
+      "post_3m_samples": 59,
+      "post_3m_max_foot_supports": 2,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 1,
+      "sampled_states": 501,
+      "states_after_2s": 401,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.18453865336658354,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 9,
+      "mean_foot_force_sum": 5.906074032696893,
+      "mean_shank_force_sum": 113.10863491921873,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.020452619453188516,
+        0.024381780224887333,
+        0.025134950354648706,
+        0.0255401009929118
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.9,
+          "lateral_m": -0.6676634655129021
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.9,
+          "lateral_m": -0.6676634655129021
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.9,
+          "lateral_m": -0.6676634655129021
+        }
+      },
+      "post_3m_samples": 19,
+      "post_3m_max_foot_supports": 2,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 2,
+      "sampled_states": 526,
+      "states_after_2s": 426,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.19248826291079812,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 3,
+      "mean_foot_force_sum": 7.0942202964058545,
+      "mean_shank_force_sum": 111.64964350847359,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02003652363347772,
+        0.024484760197680533,
+        0.025094339369418094,
+        0.02546670467256342
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 9.98,
+          "lateral_m": -0.39259711927137414
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 9.98,
+          "lateral_m": -0.39259711927137414
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 9.98,
+          "lateral_m": -0.39259711927137414
+        }
+      },
+      "post_3m_samples": 40,
+      "post_3m_max_foot_supports": 2,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 2,
+      "sampled_states": 546,
+      "states_after_2s": 446,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.15695067264573992,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 6,
+      "mean_foot_force_sum": 5.887196110611931,
+      "mean_shank_force_sum": 113.52933672403131,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.019680788575070805,
+        0.024404758348836854,
+        0.02517444288502381,
+        0.025523861767645747
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "success",
+          "duration_s": 10.08,
+          "lateral_m": -0.6400446188772946
+        },
+        "0.03": {
+          "outcome": "success",
+          "duration_s": 10.08,
+          "lateral_m": -0.6400446188772946
+        },
+        "0.04": {
+          "outcome": "success",
+          "duration_s": 10.08,
+          "lateral_m": -0.6400446188772946
+        }
+      },
+      "post_3m_samples": 55,
+      "post_3m_max_foot_supports": 2,
+      "original_outcome": "success"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 0,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.19111111111111112,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 1.9664137256524954,
+      "mean_shank_force_sum": 116.04015651143182,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022114420973568923,
+        0.024609071931087387,
+        0.02496172366521979,
+        0.02523983078987873
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.006375321751879074
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.006375321751879074
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.006375321751879074
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 0,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.16777777777777778,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 2.6494961602541864,
+      "mean_shank_force_sum": 114.93276839041314,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02213827890818826,
+        0.02457853258481051,
+        0.024977161292194332,
+        0.02524045715372416
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.02841562743641912
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.02841562743641912
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.02841562743641912
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 1,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.19,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 1.9539727119240633,
+      "mean_shank_force_sum": 116.08104990060228,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022351245273083395,
+        0.02460225350727083,
+        0.02495848338662965,
+        0.025242260220254206
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.0004054157651352461
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.0004054157651352461
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.0004054157651352461
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 1,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.15333333333333332,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 2.6340811434053397,
+      "mean_shank_force_sum": 115.07274529952623,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022121051217749512,
+        0.024578424455944582,
+        0.02496604519671078,
+        0.025241842914478587
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.013598405073733864
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.013598405073733864
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.013598405073733864
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 2,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.1811111111111111,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 1.9361803061914826,
+      "mean_shank_force_sum": 115.71995626741811,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022230309417066326,
+        0.024600755805486926,
+        0.024965580585263315,
+        0.0252370776503547
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.003133304071264262
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.003133304071264262
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.003133304071264262
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 2,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.16555555555555557,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 2.6066538571225157,
+      "mean_shank_force_sum": 114.95201923661739,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022116986178792798,
+        0.02457706659589108,
+        0.024976827452817756,
+        0.025233968222254807
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.09078497223245821
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.09078497223245821
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": -0.09078497223245821
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 0,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6866666666666666,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 7.1921232966523805,
+      "mean_shank_force_sum": 113.19787495355911,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02267761627521351,
+        0.024498216293163025,
+        0.024678974880522092,
+        0.025216370899243692
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 1.047162486086259
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 1.047162486086259
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 1.047162486086259
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 0,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.3977777777777778,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 5.003125471940069,
+      "mean_shank_force_sum": 115.33155101893547,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.021974877153877352,
+        0.0245071107700417,
+        0.024829839331049795,
+        0.02523514896398411
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7868776455640144
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7868776455640144
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7868776455640144
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 1,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6666666666666666,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 7.062212982487826,
+      "mean_shank_force_sum": 113.29654799603304,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.022024707549296037,
+        0.024499941152020567,
+        0.024687130553091678,
+        0.025232994093409393
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.9619895184024208
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.9619895184024208
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.9619895184024208
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 1,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.39222222222222225,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 4.989221448560042,
+      "mean_shank_force_sum": 115.09976395565967,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.021976922378810316,
+        0.02450691953035738,
+        0.024824874074133092,
+        0.025237967212087004
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7836753107560969
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7836753107560969
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7836753107560969
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 2,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.6911111111111111,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 7.194285722578758,
+      "mean_shank_force_sum": 113.21796869285488,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.02234226825880569,
+        0.02449847695954773,
+        0.02467931849541983,
+        0.025234023496604883
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 1.0377514029167672
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 1.0377514029167672
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 1.0377514029167672
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 2,
+      "sampled_states": 1000,
+      "states_after_2s": 900,
+      "shank_contact_fraction_after_2s": 1.0,
+      "two_foot_support_fraction_after_2s": 0.3933333333333333,
+      "reconstructed_original_support_mismatches": 0,
+      "aggregation_changes_foot_count": 0,
+      "mean_foot_force_sum": 4.982895283491432,
+      "mean_shank_force_sum": 115.15290386239539,
+      "loaded_shank_contact_distance_quantiles_m": [
+        0.021975564779712475,
+        0.024506636834423428,
+        0.02481477336993449,
+        0.025225670328700694
+      ],
+      "distal_contact_sensitivity": {
+        "0.025": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7819973109579058
+        },
+        "0.03": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7819973109579058
+        },
+        "0.04": {
+          "outcome": "survived",
+          "duration_s": 20.0,
+          "lateral_m": 0.7819973109579058
+        }
+      },
+      "post_3m_samples": 0,
+      "post_3m_max_foot_supports": null,
+      "original_outcome": "survived"
+    }
+  ]
+}

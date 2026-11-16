@@ -1,0 +1,636 @@
+{
+  "status": "prepared",
+  "formal_episode_limit": 36,
+  "smoke_episode_limit": 4,
+  "optimizer_updates": 0,
+  "policy_period_s": 0.02,
+  "physics_step_s": 0.001,
+  "nominal_pd": [
+    30.0,
+    1.0
+  ],
+  "torque_limits": [
+    24.0,
+    24.0,
+    36.0,
+    24.0,
+    24.0,
+    36.0,
+    24.0,
+    24.0,
+    36.0,
+    24.0,
+    24.0,
+    36.0
+  ],
+  "profile": "training_period_and_limits_on_deployment_assets",
+  "command_inputs": "physical units",
+  "deployment_original": {
+    "period_s": 0.012,
+    "torque_limits": [
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0,
+      30.0
+    ],
+    "posture_deg": [
+      30,
+      45
+    ]
+  },
+  "training_differences": [
+    "MuJoCo physics 1ms instead of Isaac 5ms",
+    "no randomized actuator delay",
+    "no observation noise or physical parameter randomization",
+    "different collision/solver implementation"
+  ],
+  "startup": "1s policy-independent PD settle, then zero commands and protocol ramp; not C++ standup state machine",
+  "fixed_jitter": [
+    [
+      -0.03044415858313291,
+      -0.016343237181135326,
+      -0.015550149556031118
+    ],
+    [
+      -0.010656276238131826,
+      -0.022137253233197485,
+      -0.022177467451747743
+    ],
+    [
+      0.03475819335895729,
+      -0.05009410510311721,
+      -0.020769975209283743
+    ]
+  ],
+  "geometry": {
+    "flat": {
+      "xml_sha256": "b5d0e3629eee96a062b953f3209b9d92233eb3cdf829d30f90c90ff9891ea29e",
+      "joints": [
+        "FL_HipX_joint",
+        "FL_HipY_joint",
+        "FL_Knee_joint",
+        "FR_HipX_joint",
+        "FR_HipY_joint",
+        "FR_Knee_joint",
+        "HL_HipX_joint",
+        "HL_HipY_joint",
+        "HL_Knee_joint",
+        "HR_HipX_joint",
+        "HR_HipY_joint",
+        "HR_Knee_joint"
+      ],
+      "timestep": 0.001,
+      "actuator_limits": [
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ]
+      ],
+      "body_mass_total": 11.9376
+    },
+    "stairs": {
+      "xml_sha256": "050ecb1ea184fd4dba5d9d7266304f494a4456a80b008f6233686482454f0ac4",
+      "joints": [
+        "FL_HipX_joint",
+        "FL_HipY_joint",
+        "FL_Knee_joint",
+        "FR_HipX_joint",
+        "FR_HipY_joint",
+        "FR_Knee_joint",
+        "HL_HipX_joint",
+        "HL_HipY_joint",
+        "HL_Knee_joint",
+        "HR_HipX_joint",
+        "HR_HipY_joint",
+        "HR_Knee_joint"
+      ],
+      "timestep": 0.001,
+      "actuator_limits": [
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ]
+      ],
+      "body_mass_total": 10361.937600000001,
+      "top_heights": [
+        0.05,
+        0.1,
+        0.15000000000000002,
+        0.2,
+        0.25,
+        0.30000000000000004
+      ],
+      "x_edges": [
+        1.1500000000000001,
+        1.4500000000000002,
+        1.7500000000000002,
+        2.0500000000000003,
+        2.35,
+        2.6499999999999995
+      ],
+      "widths": [
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        0.3,
+        5.0
+      ]
+    },
+    "rough": {
+      "xml_sha256": "c495ec8de6ec39aadff7c471894b5f87fcf7cb54d69314169cded0a098047ae8",
+      "joints": [
+        "FL_HipX_joint",
+        "FL_HipY_joint",
+        "FL_Knee_joint",
+        "FR_HipX_joint",
+        "FR_HipY_joint",
+        "FR_Knee_joint",
+        "HL_HipX_joint",
+        "HL_HipY_joint",
+        "HL_Knee_joint",
+        "HR_HipX_joint",
+        "HR_HipY_joint",
+        "HR_Knee_joint"
+      ],
+      "timestep": 0.001,
+      "actuator_limits": [
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -24.0,
+          24.0
+        ],
+        [
+          -36.0,
+          36.0
+        ]
+      ],
+      "body_mass_total": 11.9376,
+      "heights_sha256": "5e02e12c8d165d3acfd6c88cc2aef5777519a4e1ebdc6c6f00f335724d4aa780",
+      "heights_m": [
+        0.0,
+        0.01,
+        0.02,
+        0.03,
+        0.04,
+        0.05,
+        0.06
+      ],
+      "spacing_m": 0.1,
+      "flat_approach_ends_x": 0.8,
+      "world_bounds": [
+        -2.0,
+        7.9,
+        -4.95,
+        4.95
+      ]
+    }
+  },
+  "actor_parity": {
+    "zero10100": {
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "samples": 256,
+      "maximum_action_difference": 0.0
+    },
+    "B": {
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "samples": 256,
+      "maximum_action_difference": 0.0
+    }
+  },
+  "episodes": [
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 2
+    }
+  ],
+  "render_policy_rollouts": 0,
+  "sources": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/height_field/hf_terrains.py",
+      "sha256": "830971981a5920d3feed55512d6f2bd820396a16af3476a593d26b97daaaeed1",
+      "bytes": 18808
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/Lite3_description/lite3_mjcf/mjcf/Lite3_stair.xml",
+      "sha256": "93b213e276b2d2e55b2e4bc3a7151cefbd6bfaac4d99f6dad075143ab9a40dac",
+      "bytes": 201
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/Lite3_description/lite3_mjcf/mjcf/stair.xml",
+      "sha256": "00410b0655b3e95c13bdeee6888c32d2d1a9bea4de5f587fc8170deb6e8398d6",
+      "bytes": 962
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/interface/robot/simulation/mujoco_simulation.py",
+      "sha256": "5eb861df10f468fe0f81258d415d7da214c2467245fd2136ee9274210a7c10ac",
+      "bytes": 9582
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/lite3_test_policy_runner_onnx.cpp",
+      "sha256": "4819969fefcfb87df298f6c69a53373ca4de0906b6d902a67161c52395239040",
+      "bytes": 8050
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/lite3_test_policy_runner_onnx.h",
+      "sha256": "cad6db9cf182a24b86c1d444beb303a5d822db4da6f391b8e76cf3a58915d6d7",
+      "bytes": 1768
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/parameters/lite3_control_parameters.cpp",
+      "sha256": "337945de8a7d8f58a7a0037f93ba87521696f51407a9f1e2c857d556789e8cab",
+      "bytes": 575
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/rl_control_state_onnx.hpp",
+      "sha256": "25491327049efda12775cdf6f1c421363ae145ffeb9a9b168d8ef375f6f9ce88",
+      "bytes": 4872
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/standup_state.hpp",
+      "sha256": "bfb56e4a0a42f62114acc2f9d2185eb8c764c1daff23cf33eb4f2f0463b6d53e",
+      "bytes": 6147
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/hip.STL",
+      "sha256": "3386fa94992dbfc4d3e06c6d9fb110e2c4abd87f94c3ac766fdcce85c43341f3",
+      "bytes": 326084
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/shank.STL",
+      "sha256": "5410bae3b9b1e9fbc30343041450a80fc609806c2a83418bd2288b0720aec098",
+      "bytes": 1352184
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/thigh.STL",
+      "sha256": "f29ea97407a9a30cb4549206d080848350d8b455bf4b9a63441241cdacab1719",
+      "bytes": 499284
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/torso.STL",
+      "sha256": "6f3f5fc4b9985db56d741ac1b6b93e11d9fb283eb128f8800ad9603772bbcda2",
+      "bytes": 1318334
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/mjcf/Lite3.xml",
+      "sha256": "3632cb09785ca796d28b2568ef22d5c451c14c06eb539aeed28b229b80ba1006",
+      "bytes": 14458
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-capability-mujoco-20261116/PLAN.md",
+      "sha256": "80a6661157be4efd5496b1830f320c72216c976a28367b33ad8e914a24545f11",
+      "bytes": 3851
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/configuration.json",
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5",
+      "bytes": 71035
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "bytes": 6805756
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/configuration.json",
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5",
+      "bytes": 71035
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "bytes": 6822076
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_capability_mujoco.py",
+      "sha256": "0101bd11348aef731b5e91be0f172aa81ee29e72c895568282e93d2ae0aa5c69",
+      "bytes": 20963
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_eval_checkpoint.py",
+      "sha256": "0a279007b54dc5cde575995007082c626b19a5156c9a0361a2aa33e44ad62bdc",
+      "bytes": 1531
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stairs_eval.py",
+      "sha256": "ce61ccab401677011a75f1980e85a3dbcfa72500655f005d8c141cc6e7ad58df",
+      "bytes": 22821
+    }
+  ],
+  "versions": {
+    "mujoco": "3.3.2",
+    "torch": "2.7.0+cu128"
+  },
+  "source_commit": "11cf4afdf1a2994a9cdb536c887def4bb0029056"
+}
