@@ -1,0 +1,68 @@
+{
+  "status": "awaiting_approved_restart_after_startup_fix",
+  "parent_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+  "parent_unchanged": true,
+  "formal_environment_steps": 0,
+  "optimizer_updates": 0,
+  "frozen_evaluation_episodes": 0,
+  "failed_startup": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/A/integration",
+    "execution": {
+      "command": [
+        "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+        "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_train.py",
+        "--variant",
+        "A",
+        "--phase",
+        "0",
+        "--child"
+      ],
+      "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+      "physical_gpu": 1,
+      "admission_free_mib": 23123,
+      "peak_total_gpu_used_mib": 7926,
+      "sampling_interval_seconds": 2,
+      "status": "failed",
+      "minimum_free_mib": 12288,
+      "source_commit": "1b44e099ee57e5c33c13124e0e6335dbab039353",
+      "source_status": "?? .superpowers/\n",
+      "pid": 2983087,
+      "exit_code": 1,
+      "failure": null,
+      "fatal_messages": [],
+      "elapsed_s": 44.19285552576184
+    },
+    "error": {
+      "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_train.py\", line 245, in main\n    worker(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_train.py\", line 100, in worker\n    audit_simulation(base, cfg, args.output, make_plot=False)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_train.py\", line 130, in audit_simulation\n    raise ValueError(f\"nonfinite initial rays: {key}\")\nValueError: nonfinite initial rays: height_scanner\n"
+    }
+  },
+  "fix": "move sensor/collider audit after make_resumed_runner performs the single restored initial reset",
+  "simulator_restarted": false,
+  "simulation_fix_verified": false,
+  "files": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation.py",
+      "sha256": "fca10d94601770f1f08f138096aa9d535764a83c211910f8c9639cd4e8d7f096"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_evaluate.py",
+      "sha256": "cd9216b7271850978bceb79912c1d787e8d8e163e886eecdd4c74490857b6c00"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_heading.py",
+      "sha256": "9aca1a7f0318c4dd36921764f08f19808879e5bf21aa8ad6d007b7beb45abb63"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_prepare.py",
+      "sha256": "b422df6c15a624f2c873bf5dd2028b393a13373106c3db23312d03cffcd961f9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_retention.py",
+      "sha256": "35a9efbf441307537c5cb819b579e90621df067efad736c1853f901044c87e40"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_train.py",
+      "sha256": "0618c14c99d39fd0d677f7dfbb147759519d347f464617732804e0e84bc62055"
+    }
+  ]
+}

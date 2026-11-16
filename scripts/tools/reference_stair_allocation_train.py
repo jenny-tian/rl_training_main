@@ -23,7 +23,61 @@ from reference_reward_resume import equal_state
 
 
 def directory(variant, phase):
-    return OUTPUT / variant / ('integration' if phase == 0 else 'train_001_100')
+    # The first A startup stopped before reset/rollout. Preserve it as evidence.
+    return OUTPUT / variant / ('integration_v2' if phase == 0 else 'train_001_100')
+
+
+def simulation_audit(base, cfg, expected_types):
+    """Read sensors only after the single restored initial reset has completed."""
+    if not getattr(base, '_resume_initial_reset_done', False):
+        raise ValueError('sensor audit requires the completed restored initial reset')
+    import numpy as np
+    import torch
+    import trimesh
+    from isaaclab.sensors import RayCaster
+    from isaaclab.utils.warp import convert_to_warp_mesh, raycast_mesh
+    from pxr import UsdGeom, UsdPhysics, UsdShade
+    terrain = base.scene.terrain
+    assert equal_state(terrain.terrain_types, expected_types)
+    assert terrain._curriculum_allocation is None and not terrain._parallel_reset_sampler_enabled
+    dims = {k: list(v) for k, v in base.observation_manager.group_obs_dim.items()}
+    assert dims == dict(policy=[45], critic=[393])
+    meshes, materials = [], []
+    for path in terrain.terrain_prim_paths:
+        prim = base.scene.stage.GetPrimAtPath(path + '/mesh')
+        assert prim.HasAPI(UsdPhysics.CollisionAPI)
+        mesh = UsdGeom.Mesh(prim)
+        vertices = np.asarray(mesh.GetPointsAttr().Get(), dtype=np.float32)
+        faces = np.asarray(mesh.GetFaceVertexIndicesAttr().Get(), dtype=np.int64).reshape(-1, 3)
+        meshes.append(trimesh.Trimesh(vertices=vertices, faces=faces, process=False))
+        material, _ = UsdShade.MaterialBindingAPI(prim).ComputeBoundMaterial(materialPurpose='physics')
+        physics = UsdPhysics.MaterialAPI(material.GetPrim())
+        materials.append(dict(path=path, material=str(material.GetPath()),
+            static_friction=float(physics.GetStaticFrictionAttr().Get()),
+            dynamic_friction=float(physics.GetDynamicFrictionAttr().Get()), faces=len(faces)))
+    friction = sorted({round(v['static_friction'], 6) for v in materials if '/friction_' in v['path']})
+    assert friction == [.5, .666667, .833333, 1.]
+    collider = trimesh.util.concatenate(meshes)
+    assert len(collider.faces) == terrain.reference_ray_mesh_triangles
+    collision_warp = convert_to_warp_mesh(collider.vertices, collider.faces, device=base.device)
+    offsets = torch.tensor([[x,y,20.] for x in (-3.17,-1.13,.03,1.19,3.11)
+                            for y in (-3.17,-1.13,.03,1.19,3.11)], device=base.device)
+    starts = (terrain.terrain_origins.reshape(-1,3)[:,None] + offsets).reshape(-1,3)
+    directions = torch.zeros_like(starts); directions[:,2] = -1
+    scan_hits = raycast_mesh(starts, directions, RayCaster.meshes[cfg.scene.terrain.prim_path])[0]
+    collision_hits = raycast_mesh(starts, directions, collision_warp)[0]
+    assert torch.isfinite(scan_hits).all() and torch.isfinite(collision_hits).all()
+    error = float((scan_hits-collision_hits).abs().max())
+    assert error <= 1e-4
+    scanners = {}
+    for name in ('height_scanner', 'height_scanner_base'):
+        data = base.scene[name].data.ray_hits_w
+        assert torch.isfinite(data).all(), name
+        scanners[name] = list(data.shape)
+    return dict(status='passed', observation_dimensions=dims, family_counts=counts(expected_types.cpu()),
+        ray_probes=len(starts), scanner_collider_max_error_m=error, scanners=scanners,
+        materials=materials, restored_initial_reset_done=True,
+        collider_sha256=hashlib.sha256(collider.vertices.tobytes()+collider.faces.tobytes()).hexdigest())
 
 
 def sources():
@@ -47,6 +101,9 @@ def preflight(variant, phase):
             assert report['sources'] == sources()
         a, b = (json.loads((directory(v, 0) / 'report.json').read_text()) for v in ('A', 'B'))
         assert a['mesh_sha256'] == b['mesh_sha256'] and a['initial_level_histogram'] == b['initial_level_histogram']
+        audits = [json.loads((directory(v, 0) / 'simulation_audit.json').read_text()) for v in ('A', 'B')]
+        assert audits[0]['collider_sha256'] == audits[1]['collider_sha256']
+        assert audits[0]['materials'] == audits[1]['materials']
 
 
 def worker(args):
@@ -66,7 +123,6 @@ def worker(args):
     reference, agent = load_reference()
     from reference_low_stairs_guarded_cfg import configure
     from reference_low_stairs_validate import geometry_audit
-    from reference_six_train import audit_simulation
     from reference_low_stairs_rewards import sample
     cfg, audit = configure(reference)
     cfg.seed = agent.seed = 42
@@ -97,7 +153,6 @@ def worker(args):
     assert any(r == dict(enable_env_ids=True, count=4096) for r in replication), replication
     terrain = base.scene.terrain
     assert type(terrain).update_env_origins is TerrainImporter.update_env_origins
-    audit_simulation(base, cfg, args.output, make_plot=False)
     mesh = UsdGeom.Mesh(base.scene.stage.GetPrimAtPath(terrain.reference_scan_path))
     mesh_digest = hashlib.sha256(np.asarray(mesh.GetPointsAttr().Get()).tobytes()
         + np.asarray(mesh.GetFaceVertexIndicesAttr().Get()).tobytes()).hexdigest()
@@ -111,6 +166,7 @@ def worker(args):
     attach(runner.alg, preserver); attach_saving(runner, preserver)
     assert preserver.calls == 2000 and runner.current_learning_iteration == 10100
     assert equal_state(capture_curriculum(base, contract), curriculum)
+    save(args.output / 'simulation_audit.json', simulation_audit(base, cfg, curriculum['terrain_types']))
     save(args.output / 'restore.json', dict(status='passed', **restored, parent=str(PARENT), parent_sha256=DIGEST))
     save(args.output / 'geometry.json', geometry_audit(base, cfg))
     report = dict(status='running', variant=args.variant, phase=args.phase, parent_sha256=DIGEST,
