@@ -29,6 +29,24 @@ def load(path):
     return data
 
 
+def training_scalars(path):
+    from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+    events = EventAccumulator(str(path/'training'),size_guidance={'scalars':0})
+    events.Reload()
+    tags = ('Train/mean_reward','Train/mean_episode_length','Episode_Termination/bad_orientation_2',
+            'Episode_Termination/time_out','Episode_Termination/terrain_out_of_bounds',
+            'Metrics/base_velocity/error_vel_xy','Metrics/base_velocity/error_vel_yaw',
+            'Episode_Reward/stair_progress','Episode_Reward/stair_landing','Episode_Reward/stair_clearance')
+    result = {}
+    for tag in tags:
+        values = events.Scalars(tag)
+        assert len(values)==100 and [v.step for v in values]==list(range(10100,10200))
+        array = np.asarray([v.value for v in values]); assert np.isfinite(array).all()
+        result[tag] = dict(first20_mean=float(array[:20].mean()),last20_mean=float(array[-20:].mean()),
+            overall_mean=float(array.mean()),last=float(array[-1]))
+    return result
+
+
 def crossing_events(record, data, cfg):
     """First central +x crossing per foot/edge; 20 ms linear interpolation only."""
     i = record['env_id']; n = int(data['active'][:,i].sum())
@@ -180,7 +198,7 @@ def main():
             terminated=r['terminated'], truncated=r['truncated'],
             termination_fraction=r['terminated']/max(1,r['terminated']+r['truncated']),
             initial_level_histogram=r['initial_level_histogram'],final_level_histogram=r['final_level_histogram'],
-            checkpoint=r['output_checkpoint'],sha256=r['output_sha256'])
+            checkpoint=r['output_checkpoint'],sha256=r['output_sha256'],logged_scalars=training_scalars(path))
         for filename in ('report.json','execution.json','restore.json','configuration.json','allocation_migration.json','geometry.json','simulation_audit.json'):
             shutil.copy2(path/filename,out/f'{variant}_{filename}')
     episodes, crossings, transitions, summaries, turns, turn_windows, turn_pairs = [], [], [], [], [], [], []
@@ -264,7 +282,8 @@ def main():
             'Collision and support metrics are geometry/force proxies, not contact manifold measurements.',
             'Crossing clearance is interpolated from 20 ms frames, not a continuous minimum.',
             'Images reconstruct recorded foot/root paths; they are not simulator screenshots.']))
-    raw.update(p for v in ('A','B') for p in directory(v,1).iterdir() if p.is_file())
+    raw.update(p for v in ('A','B') for p in directory(v,1).rglob('*') if p.is_file())
+    raw.update(p for v in ('A','B') for p in directory(v,0).rglob('*') if p.is_file())
     raw.update(p for p in EVALUATION.iterdir() if p.is_file())
     save(out/'raw_manifest.json',[dict(path=str(p),bytes=p.stat().st_size,sha256=sha(p)) for p in sorted(raw)])
     fig,axes=plt.subplots(1,2,figsize=(11,4),layout='constrained')

@@ -1,0 +1,209 @@
+{
+  "status": "passed",
+  "branches": {
+    "A": {
+      "status": "passed",
+      "steps": 64,
+      "updates": 0,
+      "interactions": 262144,
+      "counts": {
+        "flat": 820,
+        "rough": 819,
+        "slope": 819,
+        "stairs_up": 410,
+        "stairs_down": 409,
+        "friction": 410,
+        "slope_rough": 409
+      },
+      "elapsed_s": 67.12559065129608,
+      "mesh_sha256": "9b20aa8203b34ab844e949c03c44efad432ba8cdbeabb6d60b64a3279d8806b4",
+      "collider_sha256": "d75d16cd122c5d20c3d3de528e1bce8141f5b2e834ba3d60c3b54634932236c2",
+      "scanner_collider_max_error_m": 0.0,
+      "collision_filtering": {
+        "runtime_replications": [
+          {
+            "enable_env_ids": null,
+            "count": 0
+          },
+          {
+            "enable_env_ids": true,
+            "count": 4096
+          }
+        ],
+        "gpu_env_ids": true
+      },
+      "restore": {
+        "status": "passed",
+        "actor_exact": true,
+        "critic_exact": true,
+        "optimizer_exact": true,
+        "learning_rate": 0.00038443359375000017,
+        "next_iteration": 10100,
+        "curriculum_mode": "exact_curriculum",
+        "initial_gait_level": 1.0,
+        "initial_mean_terrain_level": 5.70703125,
+        "first_reset_preserved_levels": true,
+        "physics_and_rng_restored": false,
+        "parent": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+        "parent_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497"
+      },
+      "sources": [
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_zero_preservation_train.py",
+          "sha256": "80c13c103b2f717e31a535d341b01c4d05e37778b4bc1dafef3cb30600ac431a"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_train.py",
+          "sha256": "52489dd85570e07a5586015029a370882924582dacc04d027d609cb446e6be1c"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_ppo.py",
+          "sha256": "20f9084c4229861694a4c923d47b6c3e857ebbff01f7ac44c134225e3b9c337b"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_cfg.py",
+          "sha256": "812a0f0fb4a693b85eb8adcd4001ecca70c85f8c0a75972fa5b455e78bb75bb1"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_bank.py",
+          "sha256": "307c1c27c061907fbb9ab9f0dd1ca894f51fb99fe6a77c298c140e4860f17356"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_preservation.py",
+          "sha256": "908d925fa40521c3d9aec85c0eaa498ef917c10a557ba91e1d13e5a78fd4e08a"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume.py",
+          "sha256": "23fa9a2bb6246b838cdf5dcf2057e17a7a09b9c1fcd521bd468d48b0b1b82cca"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair.py",
+          "sha256": "6a2c1cc3f8ae335b510abbbb8e36a61679a4a88d54d5f1292b70625ae0cc8747"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance.py",
+          "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_cfg.py",
+          "sha256": "871eb849cf356525e384b9e21f5eebbe0666113ded6424acde5cf5569da4247c"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_train.py",
+          "sha256": "0618c14c99d39fd0d677f7dfbb147759519d347f464617732804e0e84bc62055"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation.py",
+          "sha256": "fca10d94601770f1f08f138096aa9d535764a83c211910f8c9639cd4e8d7f096"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py",
+          "sha256": "e25faf87435287d18587810e8835f949aa7b2962df1375e7a4ebaa158ee8b602"
+        }
+      ]
+    },
+    "B": {
+      "status": "passed",
+      "steps": 64,
+      "updates": 0,
+      "interactions": 262144,
+      "counts": {
+        "flat": 615,
+        "rough": 614,
+        "slope": 819,
+        "stairs_up": 615,
+        "stairs_down": 614,
+        "friction": 410,
+        "slope_rough": 409
+      },
+      "elapsed_s": 54.404173070564866,
+      "mesh_sha256": "9b20aa8203b34ab844e949c03c44efad432ba8cdbeabb6d60b64a3279d8806b4",
+      "collider_sha256": "d75d16cd122c5d20c3d3de528e1bce8141f5b2e834ba3d60c3b54634932236c2",
+      "scanner_collider_max_error_m": 0.0,
+      "collision_filtering": {
+        "runtime_replications": [
+          {
+            "enable_env_ids": null,
+            "count": 0
+          },
+          {
+            "enable_env_ids": true,
+            "count": 4096
+          }
+        ],
+        "gpu_env_ids": true
+      },
+      "restore": {
+        "status": "passed",
+        "actor_exact": true,
+        "critic_exact": true,
+        "optimizer_exact": true,
+        "learning_rate": 0.00038443359375000017,
+        "next_iteration": 10100,
+        "curriculum_mode": "exact_curriculum",
+        "initial_gait_level": 1.0,
+        "initial_mean_terrain_level": 5.70703125,
+        "first_reset_preserved_levels": true,
+        "physics_and_rng_restored": false,
+        "parent": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+        "parent_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497"
+      },
+      "sources": [
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_zero_preservation_train.py",
+          "sha256": "80c13c103b2f717e31a535d341b01c4d05e37778b4bc1dafef3cb30600ac431a"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_train.py",
+          "sha256": "52489dd85570e07a5586015029a370882924582dacc04d027d609cb446e6be1c"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_ppo.py",
+          "sha256": "20f9084c4229861694a4c923d47b6c3e857ebbff01f7ac44c134225e3b9c337b"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_cfg.py",
+          "sha256": "812a0f0fb4a693b85eb8adcd4001ecca70c85f8c0a75972fa5b455e78bb75bb1"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_bank.py",
+          "sha256": "307c1c27c061907fbb9ab9f0dd1ca894f51fb99fe6a77c298c140e4860f17356"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_preservation.py",
+          "sha256": "908d925fa40521c3d9aec85c0eaa498ef917c10a557ba91e1d13e5a78fd4e08a"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_resume.py",
+          "sha256": "23fa9a2bb6246b838cdf5dcf2057e17a7a09b9c1fcd521bd468d48b0b1b82cca"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_repair.py",
+          "sha256": "6a2c1cc3f8ae335b510abbbb8e36a61679a4a88d54d5f1292b70625ae0cc8747"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance.py",
+          "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_cfg.py",
+          "sha256": "871eb849cf356525e384b9e21f5eebbe0666113ded6424acde5cf5569da4247c"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_train.py",
+          "sha256": "0618c14c99d39fd0d677f7dfbb147759519d347f464617732804e0e84bc62055"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation.py",
+          "sha256": "fca10d94601770f1f08f138096aa9d535764a83c211910f8c9639cd4e8d7f096"
+        },
+        {
+          "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py",
+          "sha256": "e25faf87435287d18587810e8835f949aa7b2962df1375e7a4ebaa158ee8b602"
+        }
+      ]
+    }
+  },
+  "total_optimizer_updates": 0,
+  "total_interactions": 524288
+}
