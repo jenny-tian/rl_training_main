@@ -1,0 +1,40 @@
+{
+  "scene": "rough_randomized",
+  "env_id": 22,
+  "title": "随机化粗糙地面",
+  "both_replays_exact": true,
+  "metrics": {
+    "zero10100": {
+      "duration_s": 10.48,
+      "outcome": "success",
+      "complete_4_8s": true,
+      "yaw_actual_4_8s": -0.02792889066040516,
+      "yaw_mae_4_8s": 0.11613181978464127,
+      "forward_actual_4_8s": 0.31653693318367004,
+      "lateral_actual_4_8s": 0.02798282355070114,
+      "terminal_heading_error_deg": null,
+      "max_tilt_deg": 13.409956932067871
+    },
+    "B": {
+      "duration_s": 9.3,
+      "outcome": "lateral_exit",
+      "complete_4_8s": true,
+      "yaw_actual_4_8s": 0.03142554685473442,
+      "yaw_mae_4_8s": 0.11724243313074112,
+      "forward_actual_4_8s": 0.3405958116054535,
+      "lateral_actual_4_8s": 0.04616465047001839,
+      "terminal_heading_error_deg": null,
+      "max_tilt_deg": 14.160157203674316
+    }
+  },
+  "video": {
+    "frames": 116,
+    "fps": 10,
+    "video_duration_s": 11.6,
+    "shorter_clip_holds_terminal_state": true,
+    "decode": "passed",
+    "paired_videos_share_first_sample_time_s": 0.02,
+    "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+  },
+  "rendering_is_saved_state_replay": true
+}

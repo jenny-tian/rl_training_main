@@ -1,0 +1,711 @@
+{
+  "status": "completed",
+  "new_optimizer_updates": 0,
+  "new_formal_evaluation_episodes": 0,
+  "replay_episodes": 2240,
+  "single_policy_clips": 30,
+  "comparison_clips": 15,
+  "all_replays_exact": true,
+  "physics_steps_during_rendering": 0,
+  "formal_results_unchanged": true,
+  "jobs": [
+    {
+      "job_id": "zero10100_retention_training_randomized",
+      "elapsed_s": 98.9984235400334,
+      "peak_total_gpu_used_mib": 16206,
+      "reproduction": "exact",
+      "replay_episodes": 160
+    },
+    {
+      "job_id": "B_retention_training_randomized",
+      "elapsed_s": 308.37801606580615,
+      "peak_total_gpu_used_mib": 16277,
+      "reproduction": "exact",
+      "replay_episodes": 160
+    },
+    {
+      "job_id": "zero10100_retention_nominal",
+      "elapsed_s": 394.1375479269773,
+      "peak_total_gpu_used_mib": 16304,
+      "reproduction": "exact",
+      "replay_episodes": 160
+    },
+    {
+      "job_id": "B_retention_nominal",
+      "elapsed_s": 190.88106274604797,
+      "peak_total_gpu_used_mib": 16272,
+      "reproduction": "exact",
+      "replay_episodes": 160
+    },
+    {
+      "job_id": "zero10100_turn_nominal",
+      "elapsed_s": 168.35612501390278,
+      "peak_total_gpu_used_mib": 15707,
+      "reproduction": "exact",
+      "replay_episodes": 320
+    },
+    {
+      "job_id": "B_turn_nominal",
+      "elapsed_s": 166.23635452706367,
+      "peak_total_gpu_used_mib": 15771,
+      "reproduction": "exact",
+      "replay_episodes": 320
+    },
+    {
+      "job_id": "zero10100_heading_up_nominal",
+      "elapsed_s": 145.74546167254448,
+      "peak_total_gpu_used_mib": 15689,
+      "reproduction": "exact",
+      "replay_episodes": 240
+    },
+    {
+      "job_id": "B_heading_up_nominal",
+      "elapsed_s": 139.59474413841963,
+      "peak_total_gpu_used_mib": 15625,
+      "reproduction": "exact",
+      "replay_episodes": 240
+    },
+    {
+      "job_id": "zero10100_heading_down_nominal",
+      "elapsed_s": 112.90411125309765,
+      "peak_total_gpu_used_mib": 15753,
+      "reproduction": "exact",
+      "replay_episodes": 240
+    },
+    {
+      "job_id": "B_heading_down_nominal",
+      "elapsed_s": 108.86940452829003,
+      "peak_total_gpu_used_mib": 15689,
+      "reproduction": "exact",
+      "replay_episodes": 240
+    }
+  ],
+  "scenes": [
+    {
+      "scene": "rough_randomized",
+      "env_id": 22,
+      "title": "随机化粗糙地面",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 10.48,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.02792889066040516,
+          "yaw_mae_4_8s": 0.11613181978464127,
+          "forward_actual_4_8s": 0.31653693318367004,
+          "lateral_actual_4_8s": 0.02798282355070114,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 13.409956932067871
+        },
+        "B": {
+          "duration_s": 9.3,
+          "outcome": "lateral_exit",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": 0.03142554685473442,
+          "yaw_mae_4_8s": 0.11724243313074112,
+          "forward_actual_4_8s": 0.3405958116054535,
+          "lateral_actual_4_8s": 0.04616465047001839,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 14.160157203674316
+        }
+      },
+      "video": {
+        "frames": 116,
+        "fps": 10,
+        "video_duration_s": 11.6,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "startup_randomized",
+      "env_id": 5,
+      "title": "随机化平地起步",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 5.92,
+          "outcome": "lateral_exit",
+          "complete_4_8s": false,
+          "yaw_actual_4_8s": -0.03492499515414238,
+          "yaw_mae_4_8s": 0.09118982404470444,
+          "forward_actual_4_8s": 0.28041908144950867,
+          "lateral_actual_4_8s": 0.01658257283270359,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 22.774616241455078
+        },
+        "B": {
+          "duration_s": 0.54,
+          "outcome": "orientation_failure",
+          "complete_4_8s": false,
+          "yaw_actual_4_8s": null,
+          "yaw_mae_4_8s": null,
+          "forward_actual_4_8s": null,
+          "lateral_actual_4_8s": null,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 81.35704040527344
+        }
+      },
+      "video": {
+        "frames": 316,
+        "fps": 20,
+        "video_duration_s": 15.8,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "flat",
+      "env_id": 0,
+      "title": "普通平地",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 8.58,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.017053527757525444,
+          "yaw_mae_4_8s": 0.06298038363456726,
+          "forward_actual_4_8s": 0.418285071849823,
+          "lateral_actual_4_8s": 0.01678672432899475,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.8337953090667725
+        },
+        "B": {
+          "duration_s": 8.620000000000001,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.011233163066208363,
+          "yaw_mae_4_8s": 0.0782017707824707,
+          "forward_actual_4_8s": 0.41328415274620056,
+          "lateral_actual_4_8s": -0.005645161494612694,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.958491325378418
+        }
+      },
+      "video": {
+        "frames": 97,
+        "fps": 10,
+        "video_duration_s": 9.7,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "rough_nominal",
+      "env_id": 30,
+      "title": "普通粗糙地面",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 9.86,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.01744305156171322,
+          "yaw_mae_4_8s": 0.07990957796573639,
+          "forward_actual_4_8s": 0.33331185579299927,
+          "lateral_actual_4_8s": 0.016020745038986206,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.9841818809509277
+        },
+        "B": {
+          "duration_s": 9.78,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.01876908168196678,
+          "yaw_mae_4_8s": 0.09548479318618774,
+          "forward_actual_4_8s": 0.3564221262931824,
+          "lateral_actual_4_8s": -0.02591460756957531,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 4.782702445983887
+        }
+      },
+      "video": {
+        "frames": 110,
+        "fps": 10,
+        "video_duration_s": 11.0,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "slope_up",
+      "env_id": 50,
+      "title": "普通上坡",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 8.34,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.019264638423919678,
+          "yaw_mae_4_8s": 0.11938833445310593,
+          "forward_actual_4_8s": 0.47900664806365967,
+          "lateral_actual_4_8s": -0.013749693520367146,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 14.22613525390625
+        },
+        "B": {
+          "duration_s": 7.8,
+          "outcome": "success",
+          "complete_4_8s": false,
+          "yaw_actual_4_8s": -0.03792352229356766,
+          "yaw_mae_4_8s": 0.09285543113946915,
+          "forward_actual_4_8s": 0.5420450568199158,
+          "lateral_actual_4_8s": -0.07970298081636429,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 13.043061256408691
+        }
+      },
+      "video": {
+        "frames": 95,
+        "fps": 10,
+        "video_duration_s": 9.5,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "slope_down",
+      "env_id": 70,
+      "title": "普通下坡",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 12.1,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.038582347333431244,
+          "yaw_mae_4_8s": 0.09281554818153381,
+          "forward_actual_4_8s": 0.2846869230270386,
+          "lateral_actual_4_8s": 0.002101176418364048,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 8.893134117126465
+        },
+        "B": {
+          "duration_s": 10.86,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.03565259277820587,
+          "yaw_mae_4_8s": 0.08518535643815994,
+          "forward_actual_4_8s": 0.3157259523868561,
+          "lateral_actual_4_8s": 0.029103543609380722,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 8.497915267944336
+        }
+      },
+      "video": {
+        "frames": 132,
+        "fps": 10,
+        "video_duration_s": 13.2,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "friction_lateral",
+      "env_id": 90,
+      "title": "横向摩擦分区",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 8.3,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.01760454848408699,
+          "yaw_mae_4_8s": 0.06492041796445847,
+          "forward_actual_4_8s": 0.43915417790412903,
+          "lateral_actual_4_8s": 0.018083207309246063,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 6.279977321624756
+        },
+        "B": {
+          "duration_s": 8.120000000000001,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.01664373278617859,
+          "yaw_mae_4_8s": 0.07114050537347794,
+          "forward_actual_4_8s": 0.4486084282398224,
+          "lateral_actual_4_8s": -0.0003711520112119615,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 6.454761028289795
+        }
+      },
+      "video": {
+        "frames": 94,
+        "fps": 10,
+        "video_duration_s": 9.4,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "friction_longitudinal",
+      "env_id": 110,
+      "title": "纵向摩擦分区",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 8.42,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.023032929748296738,
+          "yaw_mae_4_8s": 0.06800714135169983,
+          "forward_actual_4_8s": 0.4239327609539032,
+          "lateral_actual_4_8s": 0.014255748130381107,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.4517323970794678
+        },
+        "B": {
+          "duration_s": 8.3,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.014480812475085258,
+          "yaw_mae_4_8s": 0.08274789899587631,
+          "forward_actual_4_8s": 0.43362441658973694,
+          "lateral_actual_4_8s": -0.007438350934535265,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.5576541423797607
+        }
+      },
+      "video": {
+        "frames": 95,
+        "fps": 10,
+        "video_duration_s": 9.5,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "slope_rough_up",
+      "env_id": 130,
+      "title": "粗糙上坡",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 13.08,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.050529297441244125,
+          "yaw_mae_4_8s": 0.12599115073680878,
+          "forward_actual_4_8s": 0.19960445165634155,
+          "lateral_actual_4_8s": -0.008077304810285568,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 15.633190155029297
+        },
+        "B": {
+          "duration_s": 8.36,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.011272461153566837,
+          "yaw_mae_4_8s": 0.11626937985420227,
+          "forward_actual_4_8s": 0.45305052399635315,
+          "lateral_actual_4_8s": -0.06399451196193695,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 15.272850036621094
+        }
+      },
+      "video": {
+        "frames": 142,
+        "fps": 10,
+        "video_duration_s": 14.2,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "slope_rough_down",
+      "env_id": 156,
+      "title": "粗糙下坡",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 12.16,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.02923988737165928,
+          "yaw_mae_4_8s": 0.10878942161798477,
+          "forward_actual_4_8s": 0.288133442401886,
+          "lateral_actual_4_8s": 0.020555786788463593,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 11.57007884979248
+        },
+        "B": {
+          "duration_s": 20.0,
+          "outcome": "timeout",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.04510077089071274,
+          "yaw_mae_4_8s": 0.1650010645389557,
+          "forward_actual_4_8s": 0.218398779630661,
+          "lateral_actual_4_8s": -0.014751816168427467,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 11.369051933288574
+        }
+      },
+      "video": {
+        "frames": 211,
+        "fps": 10,
+        "video_duration_s": 21.1,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "turn_right",
+      "env_id": 100,
+      "title": "中速右转",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 20.0,
+          "outcome": "survived",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.2824731767177582,
+          "yaw_mae_4_8s": 0.24185775220394135,
+          "forward_actual_4_8s": 0.020431842654943466,
+          "lateral_actual_4_8s": 0.0012095720740035176,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 2.514894485473633
+        },
+        "B": {
+          "duration_s": 20.0,
+          "outcome": "survived",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.28295204043388367,
+          "yaw_mae_4_8s": 0.2262202501296997,
+          "forward_actual_4_8s": 0.022388853132724762,
+          "lateral_actual_4_8s": -0.002857351675629616,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 2.9594919681549072
+        }
+      },
+      "video": {
+        "frames": 211,
+        "fps": 10,
+        "video_duration_s": 21.1,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "heading_right",
+      "env_id": 260,
+      "title": "右侧航向目标",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 20.0,
+          "outcome": "survived",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.09112712740898132,
+          "yaw_mae_4_8s": 0.20180922746658325,
+          "forward_actual_4_8s": 0.01586810313165188,
+          "lateral_actual_4_8s": -0.0015986153157427907,
+          "terminal_heading_error_deg": 21.3651180267334,
+          "max_tilt_deg": 3.7888922691345215
+        },
+        "B": {
+          "duration_s": 20.0,
+          "outcome": "survived",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.06594691425561905,
+          "yaw_mae_4_8s": 0.28961601853370667,
+          "forward_actual_4_8s": 0.00629811454564333,
+          "lateral_actual_4_8s": -0.0019449320388957858,
+          "terminal_heading_error_deg": 36.47655487060547,
+          "max_tilt_deg": 3.9132652282714844
+        }
+      },
+      "video": {
+        "frames": 211,
+        "fps": 10,
+        "video_duration_s": 21.1,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "arc_left",
+      "env_id": 280,
+      "title": "边走边左转",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 20.0,
+          "outcome": "survived",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": 0.4963659644126892,
+          "yaw_mae_4_8s": 0.08567163348197937,
+          "forward_actual_4_8s": 0.31444251537323,
+          "lateral_actual_4_8s": 0.025592224672436714,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.7888922691345215
+        },
+        "B": {
+          "duration_s": 20.0,
+          "outcome": "survived",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": 0.466136634349823,
+          "yaw_mae_4_8s": 0.06897328794002533,
+          "forward_actual_4_8s": 0.21783176064491272,
+          "lateral_actual_4_8s": 0.025856532156467438,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 3.9132652282714844
+        }
+      },
+      "video": {
+        "frames": 211,
+        "fps": 10,
+        "video_duration_s": 21.1,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "stairs_up_5cm",
+      "env_id": 200,
+      "title": "5 cm 上台阶",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 17.14,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": 0.03416167572140694,
+          "yaw_mae_4_8s": 0.20096391439437866,
+          "forward_actual_4_8s": 0.10789066553115845,
+          "lateral_actual_4_8s": 0.024303946644067764,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 12.381104469299316
+        },
+        "B": {
+          "duration_s": 10.22,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": 0.055470533668994904,
+          "yaw_mae_4_8s": 0.17844797670841217,
+          "forward_actual_4_8s": 0.32253414392471313,
+          "lateral_actual_4_8s": 0.013972797431051731,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 17.102041244506836
+        }
+      },
+      "video": {
+        "frames": 183,
+        "fps": 10,
+        "video_duration_s": 18.3,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    },
+    {
+      "scene": "stairs_down_5cm",
+      "env_id": 200,
+      "title": "5 cm 下台阶",
+      "both_replays_exact": true,
+      "metrics": {
+        "zero10100": {
+          "duration_s": 10.84,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": -0.002901644678786397,
+          "yaw_mae_4_8s": 0.0816173329949379,
+          "forward_actual_4_8s": 0.30326294898986816,
+          "lateral_actual_4_8s": 0.015154996886849403,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 8.3164701461792
+        },
+        "B": {
+          "duration_s": 10.38,
+          "outcome": "success",
+          "complete_4_8s": true,
+          "yaw_actual_4_8s": 0.0028503986541181803,
+          "yaw_mae_4_8s": 0.09827923774719238,
+          "forward_actual_4_8s": 0.31812167167663574,
+          "lateral_actual_4_8s": 0.003595879068598151,
+          "terminal_heading_error_deg": null,
+          "max_tilt_deg": 8.300139427185059
+        }
+      },
+      "video": {
+        "frames": 120,
+        "fps": 10,
+        "video_duration_s": 12.0,
+        "shorter_clip_holds_terminal_state": true,
+        "decode": "passed",
+        "paired_videos_share_first_sample_time_s": 0.02,
+        "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+      },
+      "rendering_is_saved_state_replay": true
+    }
+  ],
+  "analyzer_sha256": "acaea2fe2011c3680b92d2214d43a1ba6f82001e2493fa59d77c1023e83f475e",
+  "first_capture_metadata_failure": {
+    "elapsed_s": 137.45271764695644,
+    "capture_reused": true,
+    "policy_episodes": 160,
+    "repeated_policy_episodes": 0
+  },
+  "display_repairs": [
+    {
+      "policy": "zero10100",
+      "elapsed_s": 41.82427494134754,
+      "source_sha256": "eb764aaf0c608071b709bb7492b411188c8e58adcba051730140c2ac4b5d842e",
+      "policy_rollout_steps": 0,
+      "original_env_id": 0,
+      "render_display_env_id": 1
+    },
+    {
+      "policy": "B",
+      "elapsed_s": 76.21752051543444,
+      "source_sha256": "eb764aaf0c608071b709bb7492b411188c8e58adcba051730140c2ac4b5d842e",
+      "policy_rollout_steps": 0,
+      "original_env_id": 0,
+      "render_display_env_id": 1
+    }
+  ],
+  "total_execution_elapsed_s": 2089.5957645159215
+}

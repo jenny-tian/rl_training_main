@@ -1,0 +1,305 @@
+{
+  "status": "exact",
+  "configuration_exact": true,
+  "initial": {
+    "root": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        320,
+        13
+      ],
+      "formal_shape": [
+        320,
+        13
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "joint_pos": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        320,
+        12
+      ],
+      "formal_shape": [
+        320,
+        12
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "joint_vel": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        320,
+        12
+      ],
+      "formal_shape": [
+        320,
+        12
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "observation": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        320,
+        45
+      ],
+      "formal_shape": [
+        320,
+        45
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "materials": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        320,
+        22,
+        3
+      ],
+      "formal_shape": [
+        320,
+        22,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "phase_reference": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1,
+        4,
+        3
+      ],
+      "formal_shape": [
+        1,
+        4,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    }
+  },
+  "trace": {
+    "active": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320
+      ],
+      "formal_shape": [
+        1000,
+        320
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "command": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320,
+        3
+      ],
+      "formal_shape": [
+        1000,
+        320,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "velocity": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320,
+        6
+      ],
+      "formal_shape": [
+        1000,
+        320,
+        6
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "root": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320,
+        3
+      ],
+      "formal_shape": [
+        1000,
+        320,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "heading": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320
+      ],
+      "formal_shape": [
+        1000,
+        320
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "heading_error": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320
+      ],
+      "formal_shape": [
+        1000,
+        320
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "gravity": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320,
+        3
+      ],
+      "formal_shape": [
+        1000,
+        320,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "action": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320,
+        12
+      ],
+      "formal_shape": [
+        1000,
+        320,
+        12
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "reward_rates": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320,
+        24
+      ],
+      "formal_shape": [
+        1000,
+        320,
+        24
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "terminated": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320
+      ],
+      "formal_shape": [
+        1000,
+        320
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "truncated": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        320
+      ],
+      "formal_shape": [
+        1000,
+        320
+      ],
+      "maximum_absolute_delta": 0.0
+    }
+  },
+  "records_exact": true,
+  "frozen_actor": true,
+  "selected_records": [
+    {
+      "env_id": 100,
+      "formal": {
+        "env_id": 100,
+        "case": "turn_right",
+        "repeat": 0,
+        "outcome": "survived",
+        "duration_s": 20.0
+      },
+      "replay": {
+        "env_id": 100,
+        "case": "turn_right",
+        "repeat": 0,
+        "outcome": "survived",
+        "duration_s": 20.0
+      }
+    },
+    {
+      "env_id": 260,
+      "formal": {
+        "env_id": 260,
+        "case": "heading_right",
+        "repeat": 0,
+        "outcome": "survived",
+        "duration_s": 20.0
+      },
+      "replay": {
+        "env_id": 260,
+        "case": "heading_right",
+        "repeat": 0,
+        "outcome": "survived",
+        "duration_s": 20.0
+      }
+    },
+    {
+      "env_id": 280,
+      "formal": {
+        "env_id": 280,
+        "case": "arc_left",
+        "repeat": 0,
+        "outcome": "survived",
+        "duration_s": 20.0
+      },
+      "replay": {
+        "env_id": 280,
+        "case": "arc_left",
+        "repeat": 0,
+        "outcome": "survived",
+        "duration_s": 20.0
+      }
+    }
+  ],
+  "capture_is_pre_reset": true,
+  "rendering_is_state_replay": true,
+  "physics_steps_during_rendering": 0,
+  "optimizer_updates": 0,
+  "formal_success_counts_unchanged": true
+}

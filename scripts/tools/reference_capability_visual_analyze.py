@@ -48,6 +48,7 @@ def metrics(job_path, clip):
         yaw_mae_4_8s=float(np.abs(velocity[mask, 5]-command[mask, 2]).mean()) if mask.any() else None,
         forward_actual_4_8s=float(velocity[mask, 0].mean()) if mask.any() else None,
         lateral_actual_4_8s=float(velocity[mask, 1].mean()) if mask.any() else None,
+        terminal_heading_error_deg=None,
         max_tilt_deg=float(np.degrees(np.arccos(np.clip(-data["gravity"][:n, i, 2], -1, 1))).max()))
     if clip["name"] == "heading_right":
         result["terminal_heading_error_deg"] = float(np.degrees(abs(data["heading_error"][n-1, i])))
@@ -135,7 +136,7 @@ def main():
     plan = read(OUTPUT/"plan_v2.json")
     assert complete["status"] == "completed" and complete["replay_episodes"] == 2240
     assert all(sha(r["path"]) == r["sha256"] for r in plan["sources"]+plan["formal_manifests"])
-    sources, scenes, raw = [], {}, set()
+    sources, scenes, raw, display_repairs = [], {}, set(), []
     for entry in complete["matrix"]:
         path = Path(entry["path"])
         result = read(path/"visual_complete.json")
@@ -149,6 +150,23 @@ def main():
         for clip in result["clips"]:
             scene = clip["name"]
             assert scene in LABELS
+            if scene == "flat":
+                repair_path = OUTPUT/f"{policy}_flat_display_repair"
+                repair = read(repair_path/"repair_complete.json")
+                execution_repair = read(repair_path/"execution.json")
+                assert repair["status"] == execution_repair["status"] == "completed"
+                assert repair["policy_rollout_steps"] == repair["new_optimizer_updates"] == 0
+                assert repair["source_root_states_sha256"] == sha(path/"render_states.npz")
+                assert repair["clip"]["record"] == clip["record"] and repair["clip"]["frame_steps"] == clip["frame_steps"]
+                clip = repair["clip"]
+                evidence = DOCS/"evidence"/f"{policy}_flat_display_repair"
+                evidence.mkdir(parents=True, exist_ok=True)
+                for filename in ("execution.json", "repair_complete.json"):
+                    shutil.copy2(repair_path/filename, evidence/filename)
+                raw.update(p for p in repair_path.rglob("*") if p.is_file())
+                display_repairs.append(dict(policy=policy, elapsed_s=execution_repair["elapsed_s"],
+                    source_sha256=repair["source_sha256"], policy_rollout_steps=0,
+                    original_env_id=0, render_display_env_id=1))
             scenes.setdefault(scene, {})[policy] = (clip, path)
             target = DOCS/"clips"/policy/scene
             target.mkdir(parents=True, exist_ok=True)
@@ -192,11 +210,17 @@ def main():
     shutil.copy2(OUTPUT/"complete.json", DOCS/"completion.json")
     raw.update(p for p in OUTPUT.iterdir() if p.is_file())
     save(DOCS/"raw_manifest.json", [dict(path=str(p), bytes=p.stat().st_size, sha256=sha(p)) for p in sorted(raw)])
+    first_capture = read(OUTPUT/"zero10100_retention_training_randomized/execution.json")
+    assert first_capture["status"] == "failed"
     summary = dict(status="completed", new_optimizer_updates=0, new_formal_evaluation_episodes=0,
         replay_episodes=2240, single_policy_clips=30, comparison_clips=15,
         all_replays_exact=all(r["reproduction"] == "exact" for r in sources),
         physics_steps_during_rendering=0, formal_results_unchanged=True,
-        jobs=sources, scenes=rows, analyzer_sha256=sha(__file__))
+        jobs=sources, scenes=rows, analyzer_sha256=sha(__file__),
+        first_capture_metadata_failure=dict(elapsed_s=first_capture["elapsed_s"],
+            capture_reused=True, policy_episodes=160, repeated_policy_episodes=0),
+        display_repairs=display_repairs,
+        total_execution_elapsed_s=first_capture["elapsed_s"]+sum(r["elapsed_s"] for r in sources)+sum(r["elapsed_s"] for r in display_repairs))
     save(DOCS/"summary.json", summary)
     save(DOCS/"artifact_manifest.json", [dict(path=str(p.relative_to(DOCS)), bytes=p.stat().st_size, sha256=sha(p))
         for p in sorted(DOCS.rglob("*")) if p.is_file() and p.name != "artifact_manifest.json"])

@@ -1,0 +1,301 @@
+{
+  "status": "exact",
+  "configuration_exact": true,
+  "initial": {
+    "root": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        160,
+        13
+      ],
+      "formal_shape": [
+        160,
+        13
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "joint_pos": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        160,
+        12
+      ],
+      "formal_shape": [
+        160,
+        12
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "joint_vel": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        160,
+        12
+      ],
+      "formal_shape": [
+        160,
+        12
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "observation": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        160,
+        45
+      ],
+      "formal_shape": [
+        160,
+        45
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "origins": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        160,
+        3
+      ],
+      "formal_shape": [
+        160,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "materials": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        160,
+        22,
+        3
+      ],
+      "formal_shape": [
+        160,
+        22,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "phase_reference": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1,
+        4,
+        3
+      ],
+      "formal_shape": [
+        1,
+        4,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    }
+  },
+  "trace": {
+    "active": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160
+      ],
+      "formal_shape": [
+        1000,
+        160
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "root": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160,
+        3
+      ],
+      "formal_shape": [
+        1000,
+        160,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "velocity": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160,
+        6
+      ],
+      "formal_shape": [
+        1000,
+        160,
+        6
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "gravity": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160,
+        3
+      ],
+      "formal_shape": [
+        1000,
+        160,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "command": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160,
+        3
+      ],
+      "formal_shape": [
+        1000,
+        160,
+        3
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "action": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160,
+        12
+      ],
+      "formal_shape": [
+        1000,
+        160,
+        12
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "terminated": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160
+      ],
+      "formal_shape": [
+        1000,
+        160
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "truncated": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160
+      ],
+      "formal_shape": [
+        1000,
+        160
+      ],
+      "maximum_absolute_delta": 0.0
+    },
+    "support": {
+      "exact": true,
+      "finite": true,
+      "replay_shape": [
+        1000,
+        160
+      ],
+      "formal_shape": [
+        1000,
+        160
+      ],
+      "maximum_absolute_delta": 0.0
+    }
+  },
+  "records_exact": true,
+  "frozen_actor": true,
+  "selected_records": [
+    {
+      "env_id": 22,
+      "formal": {
+        "env_id": 22,
+        "terrain": "rough",
+        "column": 4,
+        "row": 1,
+        "repeat": 2,
+        "outcome": "lateral_exit",
+        "duration_s": 9.3,
+        "displacement": [
+          2.632343292236328,
+          1.0029067993164062,
+          0.016484588384628296
+        ]
+      },
+      "replay": {
+        "env_id": 22,
+        "terrain": "rough",
+        "column": 4,
+        "row": 1,
+        "repeat": 2,
+        "outcome": "lateral_exit",
+        "duration_s": 9.3,
+        "displacement": [
+          2.632343292236328,
+          1.0029067993164062,
+          0.016484588384628296
+        ]
+      }
+    },
+    {
+      "env_id": 5,
+      "formal": {
+        "env_id": 5,
+        "terrain": "flat",
+        "column": 0,
+        "row": 1,
+        "repeat": 5,
+        "outcome": "orientation_failure",
+        "duration_s": 0.54,
+        "displacement": [
+          -0.0064525604248046875,
+          0.1406097412109375,
+          0.05085375905036926
+        ]
+      },
+      "replay": {
+        "env_id": 5,
+        "terrain": "flat",
+        "column": 0,
+        "row": 1,
+        "repeat": 5,
+        "outcome": "orientation_failure",
+        "duration_s": 0.54,
+        "displacement": [
+          -0.0064525604248046875,
+          0.1406097412109375,
+          0.05085375905036926
+        ]
+      }
+    }
+  ],
+  "capture_is_pre_reset": true,
+  "rendering_is_state_replay": true,
+  "physics_steps_during_rendering": 0,
+  "optimizer_updates": 0,
+  "formal_success_counts_unchanged": true
+}

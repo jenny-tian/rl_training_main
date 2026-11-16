@@ -1,0 +1,40 @@
+{
+  "scene": "friction_lateral",
+  "env_id": 90,
+  "title": "横向摩擦分区",
+  "both_replays_exact": true,
+  "metrics": {
+    "zero10100": {
+      "duration_s": 8.3,
+      "outcome": "success",
+      "complete_4_8s": true,
+      "yaw_actual_4_8s": -0.01760454848408699,
+      "yaw_mae_4_8s": 0.06492041796445847,
+      "forward_actual_4_8s": 0.43915417790412903,
+      "lateral_actual_4_8s": 0.018083207309246063,
+      "terminal_heading_error_deg": null,
+      "max_tilt_deg": 6.279977321624756
+    },
+    "B": {
+      "duration_s": 8.120000000000001,
+      "outcome": "success",
+      "complete_4_8s": true,
+      "yaw_actual_4_8s": -0.01664373278617859,
+      "yaw_mae_4_8s": 0.07114050537347794,
+      "forward_actual_4_8s": 0.4486084282398224,
+      "lateral_actual_4_8s": -0.0003711520112119615,
+      "terminal_heading_error_deg": null,
+      "max_tilt_deg": 6.454761028289795
+    }
+  },
+  "video": {
+    "frames": 94,
+    "fps": 10,
+    "video_duration_s": 9.4,
+    "shorter_clip_holds_terminal_state": true,
+    "decode": "passed",
+    "paired_videos_share_first_sample_time_s": 0.02,
+    "terminal_sample_timing_note": "The last interval can be shorter than the regular sampling stride; on-screen time is authoritative."
+  },
+  "rendering_is_saved_state_replay": true
+}
