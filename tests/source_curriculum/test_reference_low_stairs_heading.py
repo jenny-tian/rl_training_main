@@ -1,10 +1,12 @@
 """反馈边界、准备时序和起点配对的 CPU 检查。"""
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 import torch
 
 from reference_low_stairs_heading_probe import CASES, attach_feedback, feedback
+from reference_low_stairs_heading_analyze import transition_rows, grouped, common_windows
 from reference_low_stairs_zero_preservation_analyze import paired_records
 
 
@@ -54,3 +56,26 @@ def test_reject_unpaired_start(change):
         after['records'].append(dict(a))
     with pytest.raises(AssertionError):
         paired_records(before, after, 'stairs')
+
+
+def test_equal_total_does_not_hide_new_failure():
+    def record(i, outcome):
+        return dict(env_id=i, height=.05, speed=.32, repeat=i, column=3,
+            outcome=outcome, duration_s=20., best_risers=5)
+    before={'records':[record(0,'success'), record(1,'lateral_exit')]}
+    after={'records':[record(0,'orientation_failure'), record(1,'success')]}
+    rows=transition_rows(before,after,'nominal','up')
+    group=grouped(rows,('profile','direction'))[0]
+    assert group['before_success']==group['after_success']==1
+    assert group['gained_success']==group['lost_success']==group['new_orientation_failure']==1
+    assert rows[0]['before']=='success' and rows[0]['after']=='orientation_failure'
+
+
+def test_incomplete_common_window_is_explicitly_retained():
+    pair=dict(profile='nominal',direction='up',env_id=0,height=.05,speed=.32,repeat=0)
+    quat=np.zeros((1000,1,4));quat[...,0]=1.
+    old=dict(active=np.ones((1000,1),bool),quat=quat,root=np.zeros((1000,1,3)),velocity=np.zeros((1000,1,6)))
+    new={k:v.copy() for k,v in old.items()};new['active'][100:,0]=False
+    rows=common_windows([pair],old,new)
+    assert len(rows)==4 and all(not r['complete'] for r in rows)
+    assert all(r['before_yaw_abs_mean_deg'] is None and r['after_yaw_abs_mean_deg'] is None for r in rows)

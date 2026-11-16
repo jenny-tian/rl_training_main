@@ -1,0 +1,79 @@
+{
+  "status": "passed",
+  "status_scope": "运行和配对核验通过，行为结果另行分析",
+  "new_episodes": 720,
+  "reused_heading_episodes": 240,
+  "optimizer_updates": 0,
+  "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+  "matrix": [
+    {
+      "name": "heading_up_nominal",
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal",
+      "baseline": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/up_nominal",
+      "profile": "nominal",
+      "direction": "up",
+      "episodes": 240,
+      "reused": true,
+      "initial_equal": true,
+      "configuration_equal": true,
+      "feedback_max_error": 1.1920928955078125e-07,
+      "log_check": {
+        "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal",
+        "runtime_errors": 0,
+        "physics_fallback_messages": 0
+      }
+    },
+    {
+      "name": "heading_down_nominal",
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal",
+      "baseline": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/down_nominal",
+      "profile": "nominal",
+      "direction": "down",
+      "episodes": 240,
+      "reused": false,
+      "initial_equal": true,
+      "configuration_equal": true,
+      "feedback_max_error": 1.1920928955078125e-07,
+      "log_check": {
+        "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal",
+        "runtime_errors": 0,
+        "physics_fallback_messages": 0
+      }
+    },
+    {
+      "name": "heading_up_training_randomized",
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized",
+      "baseline": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/up_training_randomized",
+      "profile": "training_randomized",
+      "direction": "up",
+      "episodes": 240,
+      "reused": false,
+      "initial_equal": true,
+      "configuration_equal": true,
+      "feedback_max_error": 2.384185791015625e-07,
+      "log_check": {
+        "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized",
+        "runtime_errors": 0,
+        "physics_fallback_messages": 0
+      }
+    },
+    {
+      "name": "heading_down_training_randomized",
+      "candidate": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_training_randomized",
+      "baseline": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/down_training_randomized",
+      "profile": "training_randomized",
+      "direction": "down",
+      "episodes": 240,
+      "reused": false,
+      "initial_equal": true,
+      "configuration_equal": true,
+      "feedback_max_error": 2.384185791015625e-07,
+      "log_check": {
+        "run": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_training_randomized",
+        "runtime_errors": 0,
+        "physics_fallback_messages": 0
+      }
+    }
+  ],
+  "automatic_extension": false
+}
