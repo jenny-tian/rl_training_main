@@ -1,0 +1,804 @@
+{
+  "protocol": {
+    "schema": 1,
+    "approval": "User approved NEXT_STAGE_PROPOSAL.md, 2026-11-16",
+    "models": {
+      "zero10100": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "B": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79"
+    },
+    "conditions": [
+      "stairs_05",
+      "stairs_06",
+      "stairs_07",
+      "stairs_08",
+      "boxes",
+      "rocky"
+    ],
+    "policy_dt": 0.02,
+    "physics_dt": 0.005,
+    "nominal": true,
+    "native_actuator_delay": [
+      0,
+      1
+    ],
+    "command": [
+      0.4,
+      0.0,
+      0.0
+    ],
+    "startup": "50 zero-action preparation steps, then 0.5 s pause and 0.5 s linear ramp",
+    "episode_steps": 1000,
+    "smoke_runs_max": 4,
+    "smoke_steps_per_run_max": 600,
+    "smoke_steps_include_preparation": true,
+    "smoke_models": [
+      "B",
+      "zero10100"
+    ],
+    "baseline_n": 32,
+    "grid_n": 8,
+    "confirmation_n": 16,
+    "budgets": {
+      "baseline": 384,
+      "grid": 1200,
+      "confirmation": 64,
+      "total": 1648
+    },
+    "seeds": {
+      "environment": 20261116,
+      "reset_table": 20261116,
+      "boxes": 101,
+      "rocky": 101
+    },
+    "namespaces": {
+      "smoke": 10,
+      "baseline": 11,
+      "grid": 12,
+      "confirmation": 13
+    },
+    "start_ranges": {
+      "x": [
+        0.2,
+        0.3
+      ],
+      "y": [
+        -0.1,
+        0.1
+      ],
+      "yaw": [
+        -0.03,
+        0.03
+      ]
+    },
+    "initial_velocity": 0.0,
+    "grid_values": [
+      -2.0,
+      -1.0,
+      0.0,
+      1.0,
+      2.0
+    ],
+    "bases": [
+      "sag",
+      "roll",
+      "hipx"
+    ],
+    "residual_limits": [
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2
+    ],
+    "rate_limit": 0.02,
+    "geometry": {
+      "tile_size": [
+        8.0,
+        8.0
+      ],
+      "stair_tread": 0.3,
+      "stair_platform": 3.0,
+      "stair_border": 1.0,
+      "boxes": {
+        "flat_length": 3.0,
+        "lane_width": 2.0,
+        "grid_width": 0.4,
+        "grid_height_range": [
+          0.08,
+          0.08
+        ],
+        "seed": 101
+      },
+      "rocky": {
+        "flat_length": 3.0,
+        "transition_length": 0.5,
+        "lane_width": 2.0,
+        "rough_amplitude": 0.08,
+        "grid_spacing": 0.1,
+        "rock_count": 24,
+        "rock_fraction": 0.58,
+        "radius_x": [
+          0.12,
+          0.32
+        ],
+        "radius_y": [
+          0.1,
+          0.28
+        ],
+        "height_range": [
+          0.045,
+          0.1
+        ],
+        "seed": 101
+      },
+      "difficulty_range": [
+        0.5,
+        0.5
+      ],
+      "boxes_goal_x": 5.5,
+      "rocky_goal_x": 5.0,
+      "stairs_goal": "last ray-audited positive riser + 0.30 m"
+    },
+    "outcomes": {
+      "priority": [
+        "posture_failure",
+        "lateral_exit",
+        "success",
+        "stuck_or_timeout"
+      ],
+      "lateral_abs_y_max": 1.0,
+      "success_hold_s": 0.26,
+      "support_feet_min": 2,
+      "torso_force_max_N": 1.0,
+      "success_clearance_m": [
+        0.18,
+        0.55
+      ],
+      "tilt_max_deg": 44.0,
+      "stairs_last_foot_x_margin": 0.05,
+      "stairs_last_foot_z_margin": -0.01,
+      "progress": "maximum forward root displacement divided by fixed route length",
+      "sustained_progress_min": 0.5,
+      "stuck_last5s_displacement_m": 0.15
+    },
+    "target_selection": {
+      "min_success": 7,
+      "max_success": 19,
+      "max_targets": 2,
+      "priority": "one ascending-height eligible stair, one boxes-then-rocky eligible novel family; then remaining eligible in condition order",
+      "exclude_zero_and_progress_below": 0.5
+    },
+    "grid_rank": [
+      "success descending",
+      "posture failures ascending",
+      "mean progress descending",
+      "basis/code order"
+    ],
+    "confirmation": {
+      "min_extra_success": 4,
+      "posture_failures_must_not_increase": true
+    },
+    "stop_on": [
+      "interface failure",
+      "unclear provenance",
+      "no confirmed headroom"
+    ],
+    "training": false,
+    "optimizer_updates": 0,
+    "media": "local only"
+  },
+  "provenance": {
+    "status": "passed",
+    "scratch_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+    "scratch_updates": 10000,
+    "scratch_checkpoint_loaded": null,
+    "scratch_terrain_audit": {
+      "status": "passed",
+      "profile": "low_stairs",
+      "step_height_range_m": [
+        0.02,
+        0.05
+      ],
+      "tread_depth_m": 0.3,
+      "max_init_terrain_level": 0,
+      "native_layout_and_progression_preserved": true,
+      "observation_and_ppo_unchanged": true,
+      "initial_level_change_applies_to_all_six_families": true,
+      "online_candidate_heights_m": [
+        0.06,
+        0.07,
+        0.08
+      ],
+      "later_validation_height_m": 0.1,
+      "checkpoint_initialization": "scratch_only",
+      "reference_unchanged": true
+    },
+    "stages": [
+      {
+        "model": "zero10100",
+        "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+        "sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+        "parent_sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+        "extra_updates": 100,
+        "terrain": {
+          "class_type": "isaaclab.terrains.terrain_generator:TerrainGenerator",
+          "seed": null,
+          "curriculum": true,
+          "size": [
+            8.0,
+            8.0
+          ],
+          "border_width": 20.0,
+          "border_height": 1.0,
+          "num_rows": 10,
+          "num_cols": 20,
+          "color_scheme": "none",
+          "horizontal_scale": 0.1,
+          "vertical_scale": 0.005,
+          "slope_threshold": 0.75,
+          "sub_terrains": {
+            "flat": {
+              "function": "isaaclab.terrains.trimesh.mesh_terrains:flat_terrain",
+              "proportion": 0.2,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null
+            },
+            "rough": {
+              "function": "isaaclab.terrains.height_field.hf_terrains:random_uniform_terrain",
+              "proportion": 0.2,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "noise_range": [
+                0.01,
+                0.06
+              ],
+              "noise_step": 0.01,
+              "downsampled_scale": null
+            },
+            "slope_up": {
+              "function": "isaaclab.terrains.height_field.hf_terrains:pyramid_sloped_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": true
+            },
+            "slope_down": {
+              "function": "isaaclab.terrains.height_field.hf_terrains:pyramid_sloped_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": false
+            },
+            "stairs_up": {
+              "function": "isaaclab.terrains.trimesh.mesh_terrains:inverted_pyramid_stairs_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 1.0,
+              "step_height_range": [
+                0.02,
+                0.05
+              ],
+              "step_width": 0.3,
+              "platform_width": 3.0,
+              "holes": false
+            },
+            "stairs_down": {
+              "function": "isaaclab.terrains.trimesh.mesh_terrains:pyramid_stairs_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 1.0,
+              "step_height_range": [
+                0.02,
+                0.05
+              ],
+              "step_width": 0.3,
+              "platform_width": 3.0,
+              "holes": false
+            },
+            "friction_lateral": {
+              "function": "reference_six_terrain_cfg:centered_friction",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "family": "friction_variation",
+              "seed": 10000,
+              "flat_length_m": 3.0,
+              "transition_length_m": 0.5,
+              "exit_flat_length_m": 0.0,
+              "rough_peak_valley_m": 0.02,
+              "rough_audit_window_m": 0.4,
+              "spatial_scales_m": [
+                0.2,
+                0.4
+              ],
+              "slope_angle_deg": 5.0,
+              "direction": "uphill",
+              "step_count": 3,
+              "step_height_m": 0.02,
+              "tread_depth_m": 0.5,
+              "friction_range": [
+                0.5,
+                1.0
+              ],
+              "friction_layout": "left_right_bands",
+              "friction_region_count": 4,
+              "grid_spacing_m": 0.1
+            },
+            "friction_longitudinal": {
+              "function": "reference_six_terrain_cfg:centered_friction",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "family": "friction_variation",
+              "seed": 10000,
+              "flat_length_m": 3.0,
+              "transition_length_m": 0.5,
+              "exit_flat_length_m": 0.0,
+              "rough_peak_valley_m": 0.02,
+              "rough_audit_window_m": 0.4,
+              "spatial_scales_m": [
+                0.2,
+                0.4
+              ],
+              "slope_angle_deg": 5.0,
+              "direction": "uphill",
+              "step_count": 3,
+              "step_height_m": 0.02,
+              "tread_depth_m": 0.5,
+              "friction_range": [
+                0.5,
+                1.0
+              ],
+              "friction_layout": "front_back_bands",
+              "friction_region_count": 4,
+              "grid_spacing_m": 0.1
+            },
+            "slope_rough_up": {
+              "function": "reference_six_terrain_cfg:slope_with_roughness",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": true,
+              "noise_range": [
+                0.01,
+                0.06
+              ],
+              "noise_step": 0.01,
+              "downsampled_scale": null
+            },
+            "slope_rough_down": {
+              "function": "reference_six_terrain_cfg:slope_with_roughness",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": false,
+              "noise_range": [
+                0.01,
+                0.06
+              ],
+              "noise_step": 0.01,
+              "downsampled_scale": null
+            }
+          },
+          "difficulty_range": [
+            0.0,
+            1.0
+          ],
+          "use_cache": false,
+          "cache_dir": "/tmp/isaaclab/terrains"
+        },
+        "configuration_sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+      },
+      {
+        "model": "B",
+        "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+        "sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+        "parent_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+        "extra_updates": 100,
+        "terrain": {
+          "class_type": "isaaclab.terrains.terrain_generator:TerrainGenerator",
+          "seed": null,
+          "curriculum": true,
+          "size": [
+            8.0,
+            8.0
+          ],
+          "border_width": 20.0,
+          "border_height": 1.0,
+          "num_rows": 10,
+          "num_cols": 20,
+          "color_scheme": "none",
+          "horizontal_scale": 0.1,
+          "vertical_scale": 0.005,
+          "slope_threshold": 0.75,
+          "sub_terrains": {
+            "flat": {
+              "function": "isaaclab.terrains.trimesh.mesh_terrains:flat_terrain",
+              "proportion": 0.2,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null
+            },
+            "rough": {
+              "function": "isaaclab.terrains.height_field.hf_terrains:random_uniform_terrain",
+              "proportion": 0.2,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "noise_range": [
+                0.01,
+                0.06
+              ],
+              "noise_step": 0.01,
+              "downsampled_scale": null
+            },
+            "slope_up": {
+              "function": "isaaclab.terrains.height_field.hf_terrains:pyramid_sloped_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": true
+            },
+            "slope_down": {
+              "function": "isaaclab.terrains.height_field.hf_terrains:pyramid_sloped_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": false
+            },
+            "stairs_up": {
+              "function": "isaaclab.terrains.trimesh.mesh_terrains:inverted_pyramid_stairs_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 1.0,
+              "step_height_range": [
+                0.02,
+                0.05
+              ],
+              "step_width": 0.3,
+              "platform_width": 3.0,
+              "holes": false
+            },
+            "stairs_down": {
+              "function": "isaaclab.terrains.trimesh.mesh_terrains:pyramid_stairs_terrain",
+              "proportion": 0.1,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 1.0,
+              "step_height_range": [
+                0.02,
+                0.05
+              ],
+              "step_width": 0.3,
+              "platform_width": 3.0,
+              "holes": false
+            },
+            "friction_lateral": {
+              "function": "reference_six_terrain_cfg:centered_friction",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "family": "friction_variation",
+              "seed": 10000,
+              "flat_length_m": 3.0,
+              "transition_length_m": 0.5,
+              "exit_flat_length_m": 0.0,
+              "rough_peak_valley_m": 0.02,
+              "rough_audit_window_m": 0.4,
+              "spatial_scales_m": [
+                0.2,
+                0.4
+              ],
+              "slope_angle_deg": 5.0,
+              "direction": "uphill",
+              "step_count": 3,
+              "step_height_m": 0.02,
+              "tread_depth_m": 0.5,
+              "friction_range": [
+                0.5,
+                1.0
+              ],
+              "friction_layout": "left_right_bands",
+              "friction_region_count": 4,
+              "grid_spacing_m": 0.1
+            },
+            "friction_longitudinal": {
+              "function": "reference_six_terrain_cfg:centered_friction",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "family": "friction_variation",
+              "seed": 10000,
+              "flat_length_m": 3.0,
+              "transition_length_m": 0.5,
+              "exit_flat_length_m": 0.0,
+              "rough_peak_valley_m": 0.02,
+              "rough_audit_window_m": 0.4,
+              "spatial_scales_m": [
+                0.2,
+                0.4
+              ],
+              "slope_angle_deg": 5.0,
+              "direction": "uphill",
+              "step_count": 3,
+              "step_height_m": 0.02,
+              "tread_depth_m": 0.5,
+              "friction_range": [
+                0.5,
+                1.0
+              ],
+              "friction_layout": "front_back_bands",
+              "friction_region_count": 4,
+              "grid_spacing_m": 0.1
+            },
+            "slope_rough_up": {
+              "function": "reference_six_terrain_cfg:slope_with_roughness",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": true,
+              "noise_range": [
+                0.01,
+                0.06
+              ],
+              "noise_step": 0.01,
+              "downsampled_scale": null
+            },
+            "slope_rough_down": {
+              "function": "reference_six_terrain_cfg:slope_with_roughness",
+              "proportion": 0.05,
+              "size": [
+                10.0,
+                10.0
+              ],
+              "flat_patch_sampling": null,
+              "border_width": 0.25,
+              "horizontal_scale": 0.1,
+              "vertical_scale": 0.005,
+              "slope_threshold": null,
+              "slope_range": [
+                0.0,
+                0.4
+              ],
+              "platform_width": 2.0,
+              "inverted": false,
+              "noise_range": [
+                0.01,
+                0.06
+              ],
+              "noise_step": 0.01,
+              "downsampled_scale": null
+            }
+          },
+          "difficulty_range": [
+            0.0,
+            1.0
+          ],
+          "use_cache": false,
+          "cache_dir": "/tmp/isaaclab/terrains"
+        },
+        "configuration_sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+      }
+    ],
+    "stair_range_m": [
+      0.02,
+      0.05
+    ],
+    "heldout_heights_m": [
+      0.06,
+      0.07,
+      0.08
+    ],
+    "slope_coefficient_range": [
+      0.0,
+      0.4
+    ],
+    "slope_max_deg": 21.80140948635181,
+    "rough_noise_range_m": [
+      0.01,
+      0.06
+    ],
+    "friction_range": [
+      0.5,
+      1.0
+    ],
+    "caveat": "Six families describe procedural generators, not disjoint height sets. Boxes/rocky use new geometry families; rocky amplitudes overlap trained roughness. Old high-stair checkpoints are not ancestors."
+  },
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_targets.py",
+      "sha256": "c4d03c7efaf28cf934777e92ac15ae47b8780f52b6b28c6236e159abfca46ff5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_interface.py",
+      "sha256": "9971e610cfec4b8521a79f60c9fabb3ee2a2a0ecaae81306d4b2347893a72f53"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_collect.py",
+      "sha256": "22999004fed7858ce0e820d9828b333fb3826c8f273fb0d6a52b1b0b01b6e09e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/basis.py",
+      "sha256": "18419f1be4f4b68bb6f5630ca2bbea9ee93920249c60b56b25b4973dd109b5a1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/residual_bridge.py",
+      "sha256": "bc7ea511aa055b74d9e018f40b3a9247ef737e05f23880778a9c5604c629d047"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/reset_table.py",
+      "sha256": "f425cf2763cb3c0223b2d24948b7d18b0fc76e0504307ff7f789eee96498c35e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/online_adaptation/safety.py",
+      "sha256": "d1e72e96ce014373553b9a21ff4521305dc924204842bda05c3d152c17f85bad"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/online_adaptation/types.py",
+      "sha256": "3a68708300456499113344789e6169487e1ac9f8fabedfdc18305528c512483d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/source_scan/bridge.py",
+      "sha256": "a94761c4bcb8cf7ff18e65af69ce9acaddd72d14d94bf3a941d585700e0fcce9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/heldout_boxes.py",
+      "sha256": "05c3080aa623195c29c6c8b657b3275c992a04e6786d69cc4dda1cc791c02ad6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/tasks/manager_based/locomotion/velocity/terrains/rocky_road_track.py",
+      "sha256": "ff62550c73219da089f2ccc75cc3b45cef152292373593eca6bedac5c979a2b8"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_continue.py",
+      "sha256": "114d4875bfb12ec98e8ba2fc48436cf0cdff341a1a7f0202cde0dcd653f45886"
+    }
+  ],
+  "continuation": {
+    "approved": true,
+    "approval": "User: 同意, after repair proposal",
+    "prior_lock_sha256": "dda0aa534dd2bee9855379109173d8e68891b6d9c8a484545179b2a8730217da",
+    "repair_evidence_sha256": "a2d05e1ec4b94e14adb87aaba329e1bb77170f93a5a813fe29d52eafafbb143b",
+    "proposal_sha256": "d5cb2b385bfd9f628b340f64c398de214eebac780c09b045cc5e42b36ca77861",
+    "prior_failed_attempt": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_20261116/smoke_B",
+    "inherited_smoke_attempts": 1,
+    "protocol_changed": false,
+    "callback_repair_only": true
+  }
+}

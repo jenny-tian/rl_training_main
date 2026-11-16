@@ -1,0 +1,140 @@
+{
+  "status": "stopped_at_interface_gate",
+  "runtime": {
+    "command": [
+      "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_continue.py",
+      "--kind",
+      "smoke",
+      "--model",
+      "B",
+      "--child"
+    ],
+    "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+    "physical_gpu": 1,
+    "admission_free_mib": 13987,
+    "peak_total_gpu_used_mib": 12888,
+    "sampling_interval_seconds": 2,
+    "status": "failed",
+    "minimum_free_mib": 10240,
+    "source_commit": "8a774c737cc6f5c92775c44b2d26701be3b987b7",
+    "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-repaired-20261116/\n?? scripts/tools/reference_online_continue.py\n?? tests/source_curriculum/test_reference_online_continue.py\n",
+    "pid": 4084802,
+    "exit_code": 1,
+    "failure": null,
+    "fatal_messages": [],
+    "elapsed_s": 77.96314754430205
+  },
+  "error": {
+    "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_continue.py\", line 124, in main\n    collector.collect(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_collect.py\", line 262, in collect\n    base_projection, _ = safety_diagnostics(trace)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_interface.py\", line 132, in safety_diagnostics\n    raise ValueError('zero residual changes a feasible base action')\nValueError: zero residual changes a feasible base action\n"
+  },
+  "reproduction": {
+    "kind": "synthetic_offline_reproduction_not_saved_simulator_frame",
+    "joint": "FL_HipY",
+    "default": -0.65,
+    "scale": 0.25,
+    "joint_lower": -2.65,
+    "joint_upper": 1.35,
+    "physical_margin_rad": 0.02,
+    "initial_base_action": 8.02,
+    "initial_zero_request": true,
+    "rate_limit": 0.02,
+    "results": {
+      "legacy": {
+        "first_action": 7.920000076293945,
+        "first_memory": -0.10000038146972656,
+        "next_requested_residual": 0.0,
+        "next_base_action": 0.0,
+        "next_executed_action": -0.0800003856420517,
+        "other_environment_exact_zero": true
+      },
+      "current": {
+        "first_action": 7.920000076293945,
+        "first_memory": 0.0,
+        "next_requested_residual": 0.0,
+        "next_base_action": 0.0,
+        "next_executed_action": 0.0,
+        "other_environment_exact_zero": true
+      }
+    },
+    "formula": "memory = P(base + residual) - P(base), with native projection arithmetic and guards preserved"
+  },
+  "checkpoint_hashes": {
+    "zero10100": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+    "B": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79"
+  },
+  "optimizer_updates": 0,
+  "formal_episodes": 0,
+  "smoke_runs_consumed_total": 2,
+  "smoke_runs_remaining": 2,
+  "this_run_preparation_steps": 50,
+  "this_run_actor_invoked": true,
+  "this_run_policy_steps_exact": null,
+  "this_run_control_steps_upper_bound": 600,
+  "missing_trace": "Trace arrays were only persisted on successful exit; failing tick/state cannot be recovered. No rerun performed.",
+  "offline_repair_simulation_verified": false,
+  "candidate_filter_connected_to_simulation": false,
+  "offline_tests_passed": 71,
+  "validation_command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=source/rl_training python -m pytest -q tests/ea_lpl/test_current_safety.py tests/source_curriculum/test_reference_online_failure_capture.py tests/online_adaptation/test_safety.py tests/ea_lpl/test_residual_bridge.py tests/ea_lpl/test_shadow.py tests/source_curriculum/test_reference_online_interface.py tests/source_curriculum/test_reference_online_continue.py tests/ea_lpl/test_reset_table.py tests/ea_lpl/test_basis.py",
+  "current_semantics": "projected_action_minus_projected_base_v1",
+  "limitations": [
+    "Synthetic reproduction proves the code path; it is not the exact failed simulator state.",
+    "No new model success rates, fixed-code headroom or online-learning gains measured.",
+    "Legacy EA shadow code constructs the legacy filter and must not replay current-memory snapshots."
+  ],
+  "attempts": [
+    {
+      "kind": "smoke",
+      "model": "B",
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_20261116/smoke_B",
+      "episodes": 12,
+      "max_control_steps": 600,
+      "inherited": true
+    },
+    {
+      "kind": "smoke",
+      "model": "B",
+      "condition": null,
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B",
+      "episodes": 12,
+      "inherited": false,
+      "max_control_steps": 600
+    }
+  ],
+  "raw_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B/execution.json",
+      "sha256": "d1ea54196687bef7e6b28a6f665626fcc50c46cfcb1505c0f0fe7f834c9d22f4"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B/error.json",
+      "sha256": "2fd28e520882f7b86f3f2f5a090f0de8a27dcda1f3175610ab89a48663caa63e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B/runtime.log",
+      "sha256": "a2e8d4dddcab4acad1254482e4206a98a8f52563837566f0f058ca0414726e7d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B/config.json",
+      "sha256": "492e50d881531ad96afd8a0db947cbd5fb08f4c2d6bfcb4de075e661fae8c944"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B/geometry.json",
+      "sha256": "9d7cee62eed5c9216fa4da6c93eec0dd996b38aeb1f0843449d30925aede8835"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B/initial.npz",
+      "sha256": "31088bd3c37cfe0fec3f44f47bb37e806f9986060eff21482647938ffc85ddc4"
+    }
+  ],
+  "repair_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/current_safety.py",
+      "sha256": "ec25c6b1e5f56e6b33d6db505b2b9689ea151a4a9953488083dc44938c1f0535"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_failure_capture.py",
+      "sha256": "f9af88165eaf3a3fd7179a9a509142e2888bb95b07ce24a33826b24a8d33be3e"
+    }
+  ]
+}
