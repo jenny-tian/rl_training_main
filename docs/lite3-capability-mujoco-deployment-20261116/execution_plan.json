@@ -1,0 +1,669 @@
+{
+  "status": "prepared",
+  "formal_episode_limit": 36,
+  "smoke_episode_limit": 4,
+  "optimizer_updates": 0,
+  "period_ms": 12,
+  "physics_step_ms": 1,
+  "torque_limits": [
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0,
+    30.0
+  ],
+  "nominal_pd": [
+    30.0,
+    1.0
+  ],
+  "primary_support_radius_m": 0.03,
+  "sensitivity_radii_m": [
+    0.025,
+    0.03,
+    0.04
+  ],
+  "startup": "reuse historical settled qpos/qvel/qacc_warmstart, no new settling",
+  "episodes": [
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "flat",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "flat",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_up_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_up_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "stairs_down_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "stairs_down_5cm",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "rough",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "rough",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "turn_right",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "turn_right",
+      "repeat": 2
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 0
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 0
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 1
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 1
+    },
+    {
+      "policy": "zero10100",
+      "scene": "arc_left",
+      "repeat": 2
+    },
+    {
+      "policy": "B",
+      "scene": "arc_left",
+      "repeat": 2
+    }
+  ],
+  "actor_parity": {
+    "zero10100": {
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "samples": 256,
+      "maximum_action_difference": 0.0
+    },
+    "B": {
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "samples": 256,
+      "maximum_action_difference": 0.0
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/terrains/height_field/hf_terrains.py",
+      "sha256": "830971981a5920d3feed55512d6f2bd820396a16af3476a593d26b97daaaeed1"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/Lite3_description/lite3_mjcf/mjcf/Lite3_stair.xml",
+      "sha256": "93b213e276b2d2e55b2e4bc3a7151cefbd6bfaac4d99f6dad075143ab9a40dac"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/Lite3_description/lite3_mjcf/mjcf/stair.xml",
+      "sha256": "00410b0655b3e95c13bdeee6888c32d2d1a9bea4de5f587fc8170deb6e8398d6"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/interface/robot/simulation/mujoco_simulation.py",
+      "sha256": "5eb861df10f468fe0f81258d415d7da214c2467245fd2136ee9274210a7c10ac"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/lite3_test_policy_runner_onnx.cpp",
+      "sha256": "4819969fefcfb87df298f6c69a53373ca4de0906b6d902a67161c52395239040"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/lite3_test_policy_runner_onnx.h",
+      "sha256": "cad6db9cf182a24b86c1d444beb303a5d822db4da6f391b8e76cf3a58915d6d7"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/parameters/lite3_control_parameters.cpp",
+      "sha256": "337945de8a7d8f58a7a0037f93ba87521696f51407a9f1e2c857d556789e8cab"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/rl_control_state_onnx.hpp",
+      "sha256": "25491327049efda12775cdf6f1c421363ae145ffeb9a9b168d8ef375f6f9ce88"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/standup_state.hpp",
+      "sha256": "bfb56e4a0a42f62114acc2f9d2185eb8c764c1daff23cf33eb4f2f0463b6d53e"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/hip.STL",
+      "sha256": "3386fa94992dbfc4d3e06c6d9fb110e2c4abd87f94c3ac766fdcce85c43341f3"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/shank.STL",
+      "sha256": "5410bae3b9b1e9fbc30343041450a80fc609806c2a83418bd2288b0720aec098"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/thigh.STL",
+      "sha256": "f29ea97407a9a30cb4549206d080848350d8b455bf4b9a63441241cdacab1719"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/meshes/torso.STL",
+      "sha256": "6f3f5fc4b9985db56d741ac1b6b93e11d9fb283eb128f8800ad9603772bbcda2"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/deep_robotics_model/Lite3/Lite3_mjcf/mjcf/Lite3.xml",
+      "sha256": "3632cb09785ca796d28b2568ef22d5c451c14c06eb539aeed28b229b80ba1006"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-capability-mujoco-20261116/PLAN.md",
+      "sha256": "80a6661157be4efd5496b1830f320c72216c976a28367b33ad8e914a24545f11"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-capability-mujoco-deployment-20261116/PLAN.md",
+      "sha256": "00efc95a7c549d0518573782e268f5930973e281c1da38e37aa7f95f199eb517"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/complete.json",
+      "sha256": "872379c0411e5f9adbf8076c9ca0fc24ce784e8a19a4eb4ae4e2a75dbaa0c76c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/contact_audit.json",
+      "sha256": "cba0a45bc6b98cb09deb0ba3f8a30ce105e5c74089c190a52b7535df9687403a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_arc_left_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_arc_left_0/trace.npz",
+      "sha256": "02e2ed4d20120d353e2f13e0dd00dab2b948cf05de4a98864b2db6ed430c4cee"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_arc_left_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_arc_left_1/trace.npz",
+      "sha256": "f7954c67b39bad63b48d4bbbd989b32ad612486c1863fc10aaf6f6b393634138"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_arc_left_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_arc_left_2/trace.npz",
+      "sha256": "0b459ad77097f214c05b46dd6eb2d54f31472c9516793c44f11771ac548a3a31"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_flat_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_flat_0/trace.npz",
+      "sha256": "c01dcdbc6e7e5f64d83a22d86a686a9b32028e4172998bbb16dd732bcdf9597a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_flat_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_flat_1/trace.npz",
+      "sha256": "e1084e230d077793ac545d490314fd8989e953a125b34ff8c2ee20c6cf9876c4"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_flat_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_flat_2/trace.npz",
+      "sha256": "038117ed553c91de85fc8e27be623ecc6b13cb40193b80df099996278bf454f3"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_rough_0/initial.npz",
+      "sha256": "c962d821210d26913741aefb72c7c207de8010d3337a3247ca3567bdf98cc631"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_rough_0/trace.npz",
+      "sha256": "28dea53f44dc29a375b6fed181d26608a8f282738ef4a6625734958f08ec7cf6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_rough_1/initial.npz",
+      "sha256": "166269978d56086292c54c65f7fccb80527dc0517bfa67ac3bfa7e20f7dd8e8f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_rough_1/trace.npz",
+      "sha256": "eb1ef0f3a9ae8cc0a8686ade4ac2e356e413698e7d819f03b2beae368275efa1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_rough_2/initial.npz",
+      "sha256": "985cd58b3a69efdef3be59946e4b0dc8301625f8ff0d195990cac0ba29ea057f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_rough_2/trace.npz",
+      "sha256": "c8349ddc06653655c49e3ed0a8b8322f6c6e17ebab9bdf2413a13841b83e0efd"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_down_5cm_0/initial.npz",
+      "sha256": "62ccefbcdaca2959b8a730ba38e6fd80d4e780ab5fbe02e358986c4277b1e8a6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_down_5cm_0/trace.npz",
+      "sha256": "d29ffc6afaeff9205e12d0afce989fcf4ea46d2872c72c997e1d5b62ab3fa402"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_down_5cm_1/initial.npz",
+      "sha256": "4f8e5b2efb2df5335f40de8e44311370b05de91b451e0e994ac9bf714dde16d0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_down_5cm_1/trace.npz",
+      "sha256": "b907fab7042c9d1171c7e5f5a3a88eab5d07df6ffc9bc43a6fa7c1277ac70964"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_down_5cm_2/initial.npz",
+      "sha256": "ece52b5e9a93d9742e5576b5f7131dd68062fc9569a9a3453c4bb574d922c9d8"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_down_5cm_2/trace.npz",
+      "sha256": "cfc558b09eb5885dea7e13f8e649086325e7b1ab895ca8ec412e88dc157fe8b6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_up_5cm_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_up_5cm_0/trace.npz",
+      "sha256": "40fc567164aa4a21e173292ae597bd73b9ec3686b6a145a1052cc78abf362e9f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_up_5cm_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_up_5cm_1/trace.npz",
+      "sha256": "87f3aa7a894fc11172a55508669b8f5a4584e15b372c6243c90f57a799fc8c19"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_up_5cm_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_stairs_up_5cm_2/trace.npz",
+      "sha256": "9cb82ed01f7f079b4e10af38fe4749893c7ca572e1aa27ff72b0b0a598b0ecd4"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_turn_right_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_turn_right_0/trace.npz",
+      "sha256": "3e9d4f0c29328dc750ac968a3806965a5cc0b0aa4b960b7b7dc5caf2c5d8f33f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_turn_right_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_turn_right_1/trace.npz",
+      "sha256": "d678ec8d343b749f0fcf26c89e666521342e514e07d466b99ad67f78f29e10bd"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_turn_right_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/B_turn_right_2/trace.npz",
+      "sha256": "97068f25cd4883bb98dc91aac2a14db75c2df06cc138285d9b8d854962fae9c2"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_arc_left_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_arc_left_0/trace.npz",
+      "sha256": "845c49ff0e977e0dede6fc896df8da7b9d3012a422fdd7ac83729bfc74c4e161"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_arc_left_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_arc_left_1/trace.npz",
+      "sha256": "0eb13a5e2ff5c9ac10d7f8796669feb5bea25af07adbe58d43a2bca2522f62f7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_arc_left_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_arc_left_2/trace.npz",
+      "sha256": "a5f8f472cc9ae3d1f1088b8594a299c48f018065b806b49bf4425f970b07c189"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_flat_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_flat_0/trace.npz",
+      "sha256": "4de1be3e32e114a0802fa1eda1e21bc6c693d2bf08da4939b1a74a856f95d15f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_flat_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_flat_1/trace.npz",
+      "sha256": "576ef25b1261d11d21a99dc1c73276f69dedeb3600525a796057b8aa135b7f16"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_flat_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_flat_2/trace.npz",
+      "sha256": "8320b81894313c9edae509b4220bd8501fce5911c9d732fd8cbad6010553b155"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_rough_0/initial.npz",
+      "sha256": "c962d821210d26913741aefb72c7c207de8010d3337a3247ca3567bdf98cc631"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_rough_0/trace.npz",
+      "sha256": "a7588c3a73542b74621a6b850e6555ff76072c1b664aceb0895a70bc4c0e717d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_rough_1/initial.npz",
+      "sha256": "166269978d56086292c54c65f7fccb80527dc0517bfa67ac3bfa7e20f7dd8e8f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_rough_1/trace.npz",
+      "sha256": "395bb748bc05f77efac741056f4e24d58a604d8ac63be7faaa14406967cd1a57"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_rough_2/initial.npz",
+      "sha256": "985cd58b3a69efdef3be59946e4b0dc8301625f8ff0d195990cac0ba29ea057f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_rough_2/trace.npz",
+      "sha256": "0a21d45debc80f959b439d0ccbfc0d951cee4778b0992525df47284f736bfd01"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_down_5cm_0/initial.npz",
+      "sha256": "62ccefbcdaca2959b8a730ba38e6fd80d4e780ab5fbe02e358986c4277b1e8a6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_down_5cm_0/trace.npz",
+      "sha256": "b48818a414e4614c442fb925cee6b5993ff47860e12f8a249afd4142a81dc2ed"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_down_5cm_1/initial.npz",
+      "sha256": "4f8e5b2efb2df5335f40de8e44311370b05de91b451e0e994ac9bf714dde16d0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_down_5cm_1/trace.npz",
+      "sha256": "c763794c5cedb8a32edbb4a9a4fe67b0cd0e992c4036def21efffbc2bd46c2a2"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_down_5cm_2/initial.npz",
+      "sha256": "ece52b5e9a93d9742e5576b5f7131dd68062fc9569a9a3453c4bb574d922c9d8"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_down_5cm_2/trace.npz",
+      "sha256": "b320a5617666e2f373580c84903c0f49982b138e10f0762e174ab83737919214"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_up_5cm_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_up_5cm_0/trace.npz",
+      "sha256": "d799fb57c45c82b90c8a934fcf6a2f41e75ec0d00f4bc413e9964cb2d2843ecb"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_up_5cm_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_up_5cm_1/trace.npz",
+      "sha256": "261ea823853118796c27d2bbb224d1cc42e72031545bbc9031bab9c9452f204c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_up_5cm_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_stairs_up_5cm_2/trace.npz",
+      "sha256": "36ddc2a470b0a79d00f145b6ae1e2d77f931474f66da4c994dbd53fd060117e6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_turn_right_0/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_turn_right_0/trace.npz",
+      "sha256": "057736cbdaaec0ebed4c1b862a599b1ff03a0385713dc652b801b3fb6bda7453"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_turn_right_1/initial.npz",
+      "sha256": "8733c84b8871cc458476ee3b1b33f461e1aae2d6eb5a95df01038dc1ad2098ac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_turn_right_1/trace.npz",
+      "sha256": "b2d1d06ef42e38e0c6de74a120ff5b44361545d3a7b1e82450b778b53f0ee7ce"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_turn_right_2/initial.npz",
+      "sha256": "f8cac4c60f8e6ff7562bfca7a56eee5b546b6c622657541b2159a67eb6ee1a48"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/episodes/zero10100_turn_right_2/trace.npz",
+      "sha256": "5d01b8c8ede373ee34a2bde12bb0031b2c594076033ee5c4bd3bc262161f3810"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/plan.json",
+      "sha256": "6bf3060e76dfcbbc2c390e09a395f0df2e3486e963ef55ada72d5ef12d7199ec"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/B_flat/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/B_flat/trace.npz",
+      "sha256": "865671ef53cc919a380788f6fcc66ed250b6690b209fe68e5da87497d92c87c0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/B_stand/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/B_stand/trace.npz",
+      "sha256": "272bee3b02669e664a4219f7074990ebe99e32c4c37dfb2a6a9e0b4893a286cc"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/zero10100_flat/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/zero10100_flat/trace.npz",
+      "sha256": "bd798a7a73a5bb366a6ae79c587cc24906faa4e0abf1adb23bfedd0769822eb2"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/zero10100_stand/initial.npz",
+      "sha256": "733d632270e5e2de5e5674a231f8b9cc81ea3f7eb2736dd2d8aff490ddf9380e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke/zero10100_stand/trace.npz",
+      "sha256": "7d764d64565ea63c0aaadb7b7d370a6cf77c346694b5f7284a05662bf52bf04a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_20261116/smoke.json",
+      "sha256": "b2fe85dc67c02ec70184b6ef36826137726b3012acb3a2ba305b6fcc23c17ca5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/capability_mujoco_deployment_20261116/baseline_contact_validation.json",
+      "sha256": "680b8128bdabf6c7654ecae8bee81b7210e24499fd1aa65d3180b0487c20cf42"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/configuration.json",
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/configuration.json",
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_capability_mujoco.py",
+      "sha256": "0101bd11348aef731b5e91be0f172aa81ee29e72c895568282e93d2ae0aa5c69"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_capability_mujoco_contact_audit.py",
+      "sha256": "8d5a2fc8c6d52e1918dda4c2852afd712846a03ab89315f94f678e819873beac"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_capability_mujoco_deployment.py",
+      "sha256": "6a496c63e4f26e9b21d57f06cbc969ab71d407da19b6e26f16b36d393bb4c64f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_eval_checkpoint.py",
+      "sha256": "0a279007b54dc5cde575995007082c626b19a5156c9a0361a2aa33e44ad62bdc"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stairs_eval.py",
+      "sha256": "ce61ccab401677011a75f1980e85a3dbcfa72500655f005d8c141cc6e7ad58df"
+    }
+  ]
+}
