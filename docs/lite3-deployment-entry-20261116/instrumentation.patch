@@ -1,0 +1,28 @@
+--- original/runner.cpp
++++ probe/runner.cpp
+@@ -1,3 +1,4 @@
++#include <cstdlib>
+ /**
+  * @file lite3_test_policy_runner_onnx.cpp
+  * @brief Implementation of Lite3TestPolicyRunnerONNX.
+@@ -48,7 +49,7 @@
+       joint_pos_rl(12),
+       joint_vel_rl(12) {
+ 
+-    model_path_ = GetAbsPath() + "/../policy/ppo/policy.onnx";
++    model_path_ = std::getenv("LITE3_ENTRY_AUDIT_MODEL");
+     std::cout << "[ONNX INIT] Loading model: " << model_path_ << std::endl;
+ 
+     ort_->session_options.SetIntraOpNumThreads(1);
+--- original/runner.h
++++ probe/runner.h
+@@ -29,6 +29,9 @@
+     void DisplayPolicyInfo() override;
+     void OnEnter() override;
+     RobotAction GetRobotAction(const RobotBasicState& ro) override;
++
++const VecXf& AuditObservation() const { return current_obs_; }
++    const VecXf& AuditLastAction() const { return last_action; }
+ 
+ private:
+     // Hides all onnxruntime types so callers don't need to include

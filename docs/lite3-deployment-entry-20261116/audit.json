@@ -1,0 +1,190 @@
+{
+  "status": "stopped_before_rollouts_on_interface_failure",
+  "physics_steps": 0,
+  "startup_checks_run": 0,
+  "startup_checks_limit": 2,
+  "formal_episodes_run": 0,
+  "formal_episode_limit": 12,
+  "optimizer_updates": 0,
+  "original_sources_unchanged": true,
+  "models": [
+    {
+      "policy": "zero10100",
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "onnx_sha256": "87cc3d722fe587a71b89a3b3c538fa56c86dda6c80fa840bfb10989c6ada36d2",
+      "export_samples": 1024,
+      "pytorch_onnx_max_abs_difference": 7.152557373046875e-07,
+      "cpp_python_onnx_max_abs_difference": 4.999996860988176e-09,
+      "command_scaling_matches": true,
+      "continuous_previous_action_matches": true,
+      "reentry_previous_action_max_abs": 1.5169105529785156,
+      "reentry_vs_zero_history_action_max_difference": 0.66129445990271,
+      "reentry_vs_zero_history_joint_target_max_difference_rad": 0.14505072676452258,
+      "joint_velocity_150_input_actual": 7.5,
+      "training_expected": 5.0,
+      "entry": {
+        "debug": {
+          "returncode": -6,
+          "first_entry_last_action_size_zero": true,
+          "eigen_dimension_assertion": true
+        },
+        "release": {
+          "returncode": 0,
+          "first_entry_last_action_size_zero": true,
+          "eigen_dimension_assertion": false
+        }
+      }
+    },
+    {
+      "policy": "B",
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "onnx_sha256": "9b2f534731c23057dd65613e87a99437b8755cc9f088b81f4b621f48136e58db",
+      "export_samples": 1024,
+      "pytorch_onnx_max_abs_difference": 7.152557373046875e-07,
+      "cpp_python_onnx_max_abs_difference": 4.8046899792097975e-09,
+      "command_scaling_matches": true,
+      "continuous_previous_action_matches": true,
+      "reentry_previous_action_max_abs": 1.574643850326538,
+      "reentry_vs_zero_history_action_max_difference": 0.6582261325040895,
+      "reentry_vs_zero_history_joint_target_max_difference_rad": 0.14693725853542405,
+      "joint_velocity_150_input_actual": 7.5,
+      "training_expected": 5.0,
+      "entry": {
+        "debug": {
+          "returncode": -6,
+          "first_entry_last_action_size_zero": true,
+          "eigen_dimension_assertion": true
+        },
+        "release": {
+          "returncode": 0,
+          "first_entry_last_action_size_zero": true,
+          "eigen_dimension_assertion": false
+        }
+      }
+    }
+  ],
+  "packet_probe": {
+    "payload_bytes": 188,
+    "copied_bytes": 184,
+    "last_joint_torque_sent": 45.0,
+    "last_joint_torque_decoded": 0.0,
+    "actor_uses_torque": false
+  },
+  "scheduling_review": "state counter counts observed timestamp changes, not elapsed simulation milliseconds; actual timing unmeasured",
+  "sources": [
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/lite3_test_policy_runner_onnx.cpp",
+      "sha256": "4819969fefcfb87df298f6c69a53373ca4de0906b6d902a67161c52395239040"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/lite3_test_policy_runner_onnx.h",
+      "sha256": "cad6db9cf182a24b86c1d444beb303a5d822db4da6f391b8e76cf3a58915d6d7"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/run_policy/policy_runner_base.hpp",
+      "sha256": "37d3185bb20927487841d785874a0c1a943b899ee3aa5bed6453e6b0aaf770ca"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/types/common_types.h",
+      "sha256": "99683e7f531ae204f3ef8568b5a7a903ecb3df4c783ad6f9993e2e9375c3dd85"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/types/custom_types.h",
+      "sha256": "af921039bd995d68cd19cfc7b3e92408b5331b8c843429d2d80334c579c88e33"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/utils/basic_function.hpp",
+      "sha256": "1f7251cee2aa51e225782c3c9684679ac39fcd8518fef24c99f156b47420b2d1"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/interface/robot/simulation/simulation_interface.hpp",
+      "sha256": "3ef2440f6b75852133e58c270e116513908efad2ac3a34d3ef1f48443dab23b0"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/interface/robot/simulation/mujoco_simulation.py",
+      "sha256": "5eb861df10f468fe0f81258d415d7da214c2467245fd2136ee9274210a7c10ac"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/rl_control_state_onnx.hpp",
+      "sha256": "25491327049efda12775cdf6f1c421363ae145ffeb9a9b168d8ef375f6f9ce88"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/state_machine.hpp",
+      "sha256": "b1b3b4fde89f7c9655de92da5357ad3eabd75b49be76a3068488148ca9a7578a"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/standup_state.hpp",
+      "sha256": "bfb56e4a0a42f62114acc2f9d2185eb8c764c1daff23cf33eb4f2f0463b6d53e"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/state_machine/parameters/lite3_control_parameters.cpp",
+      "sha256": "337945de8a7d8f58a7a0037f93ba87521696f51407a9f1e2c857d556789e8cab"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/CMakeLists.txt",
+      "sha256": "b6d72ac50374c1aea32eb6047b6bb1dcccd694303bb056b968068fe3d6919ec8"
+    },
+    {
+      "path": "/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/lib/libonnxruntime.so.1.22.0",
+      "sha256": "3da6146e14e7b8aaec625dde11d6114c7457c87a5f93d744897da8781e35c673"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_deployment_entry_audit.py",
+      "sha256": "4df2437a1a6fc3dcc32fc4ee3ecb3c5d8b812ca8765a335d6618413f36b05d50"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_deployment_entry_probe.cpp",
+      "sha256": "03e4d426188a852f322f284de372700c0d33dfb267e5b019bedb545c855c1adf"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-deployment-entry-20261116/PLAN.md",
+      "sha256": "db1230321b63b4af090ed4c07d936ef3fb660c112a47e00c31588327d5e551bb"
+    }
+  ],
+  "compile_commands": [
+    [
+      "g++",
+      "-std=c++17",
+      "-O0",
+      "-g",
+      "-I/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/deployment_entry_20261116/build",
+      "-I/home/tjx/Lite3_rl_deploy/run_policy",
+      "-I/home/tjx/Lite3_rl_deploy/types",
+      "-I/home/tjx/Lite3_rl_deploy/utils",
+      "-I/home/tjx/Lite3_rl_deploy/third_party/eigen",
+      "-I/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/include",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/deployment_entry_20261116/build/lite3_test_policy_runner_onnx.cpp",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_deployment_entry_probe.cpp",
+      "-L/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/lib",
+      "-Wl,-rpath,/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/lib",
+      "-lonnxruntime",
+      "-o",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/deployment_entry_20261116/build/debug"
+    ],
+    [
+      "g++",
+      "-std=c++17",
+      "-O2",
+      "-DNDEBUG",
+      "-I/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/deployment_entry_20261116/build",
+      "-I/home/tjx/Lite3_rl_deploy/run_policy",
+      "-I/home/tjx/Lite3_rl_deploy/types",
+      "-I/home/tjx/Lite3_rl_deploy/utils",
+      "-I/home/tjx/Lite3_rl_deploy/third_party/eigen",
+      "-I/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/include",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/deployment_entry_20261116/build/lite3_test_policy_runner_onnx.cpp",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_deployment_entry_probe.cpp",
+      "-L/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/lib",
+      "-Wl,-rpath,/home/tjx/Lite3_rl_deploy/third_party/onnxruntime/x86/lib",
+      "-lonnxruntime",
+      "-o",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/deployment_entry_20261116/build/release"
+    ]
+  ],
+  "versions": {
+    "torch": "2.7.0+cu128",
+    "onnx": "1.21.0",
+    "python_ort": "1.27.0",
+    "cpp_ort": "1.22.0"
+  }
+}
