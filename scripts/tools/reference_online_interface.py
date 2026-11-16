@@ -12,6 +12,22 @@ RESET_SEED = 20261116
 RESET_RANGES = {'x': (.20, .30), 'y': (-.10, .10), 'yaw': (-.03, .03)}
 
 
+def wrap_manager_compute(manager, after_compute):
+    """Preserve Isaac's compute(dt=...) API and the native returned value.
+
+    The observer runs immediately after native computation; for rewards this
+    remains before ManagerBasedRLEnv resets any terminated environment.
+    """
+    native = manager.compute
+
+    def compute(dt):
+        value = native(dt=dt)
+        after_compute(dt)
+        return value
+
+    manager.compute = compute
+
+
 def clip_action(action):
     if action.ndim != 2 or action.shape[1] != 12 or not torch.isfinite(action).all():
         raise ValueError('invalid current actor action')

@@ -47,7 +47,8 @@ def collect(args):
     from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
     from rl_training.ea_lpl.residual_bridge import ResidualSafetyBridge
     from rl_training.ea_lpl.basis import BASIS_NAMES, stacked_bases, residual_request
-    from reference_online_interface import CurrentIsaacAdapter, EpisodeLedger, clip_action, safety_diagnostics
+    from reference_online_interface import (CurrentIsaacAdapter, EpisodeLedger, clip_action,
+                                            safety_diagnostics, wrap_manager_compute)
 
     cfg.seed = p['seeds']['environment']
     cfg.scene.num_envs = len(specs)
@@ -167,11 +168,9 @@ def collect(args):
         command.is_heading_env[:] = command.is_standing_env[:] = False
         command.vel_command_b[:] = 0
         command.vel_command_b[:, 0] = .4 * min(max((next_tick*dt - .5) / .5, 0.), 1.) if next_tick >= 0 else 0.
-    native_compute = base.command_manager.compute
     def compute_command(step_dt):
-        native_compute(step_dt)
         set_command(tick + 1 if tick >= 0 else -1)
-    base.command_manager.compute = compute_command
+    wrap_manager_compute(base.command_manager, compute_command)
     set_command(-1)
     with torch.inference_mode():
         for _ in range(50):
@@ -201,13 +200,11 @@ def collect(args):
     residual_norm = np.zeros(n)
     buffers = {key: [] for key in ('root', 'gravity', 'feet', 'action', 'base_action', 'residual_request',
         'applied_torque', 'joint_pos', 'joint_vel', 'base_projection', 'paused', 'projected', 'active', 'terminated')}
-    native_reward = base.reward_manager.compute
     steps = 550 if args.kind == 'smoke' else p['episode_steps']
     trace = None
     base_projection = None
     auto_resets = 0
     def capture(step_dt):
-        value = native_reward(step_dt)
         data = robot.data
         relative = data.root_pos_w - base.scene.env_origins
         feet = data.body_pos_w[:, foot_ids] - base.scene.env_origins[:, None, :]
@@ -257,8 +254,7 @@ def collect(args):
                     final_root=root.tolist(), progress_fraction=float(min(1., maximum[i] / (geom['goal_x'] - x0[i]))),
                     max_forward_m=float(maximum[i]), reset_key=list(ledger.keys[i]))
         active[:] = [r is None for r in records]
-        return value
-    base.reward_manager.compute = capture
+    wrap_manager_compute(base.reward_manager, capture)
     with torch.inference_mode():
         for tick in range(steps):
             adapter.check_observation(obs['policy'], previous)

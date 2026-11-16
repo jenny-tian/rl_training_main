@@ -7,7 +7,8 @@ import pytest
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts/tools'))
-from reference_online_interface import DEFAULT, SCALE, EpisodeLedger, clip_action, observation, safety_diagnostics
+from reference_online_interface import (DEFAULT, SCALE, EpisodeLedger, clip_action, observation,
+                                        safety_diagnostics, wrap_manager_compute)
 from reference_online_targets import protocol, rows, choose_targets
 from rl_training.ea_lpl.residual_bridge import ResidualSafetyBridge
 from rl_training.online_adaptation.safety import SafetyFilter, SafetyLimits
@@ -21,6 +22,34 @@ def make_bridge():
         torch.zeros(2, 1, dtype=torch.bool), torch.zeros(2, 1, dtype=torch.bool))
     filt = SafetyFilter(SafetyLimits(residual_limits=torch.tensor([.24, .20, .20] * 4)))
     return ResidualSafetyBridge(NS(safety_state=lambda _: state), filt, action_clip=clip_action), state
+
+
+@pytest.mark.parametrize('keyword', [False, True])
+def test_native_manager_keyword_callback_contract_order_and_return(keyword):
+    events = []
+    reward = torch.tensor([1., 2.])
+    class Manager:
+        def compute(self, *, dt):
+            events.append(('native', dt))
+            return reward
+    manager = Manager()
+    wrap_manager_compute(manager, lambda step_dt: events.append(('observer', step_dt)))
+    result = manager.compute(dt=.02) if keyword else manager.compute(.02)
+    assert result is reward
+    assert events == [('native', .02), ('observer', .02)]
+
+
+def test_reward_capture_observes_terminal_state_before_reset():
+    events = []
+    terminal = torch.tensor([True, False])
+    class Manager:
+        def compute(self, *, dt):
+            return torch.zeros(2)
+    manager = Manager()
+    wrap_manager_compute(manager, lambda step_dt: events.append(terminal.clone()))
+    manager.compute(dt=.02)
+    terminal[:] = False  # The native step performs its reset after reward compute.
+    assert torch.equal(events[0], torch.tensor([True, False]))
 
 
 def test_zero_preserves_current_feasible_action_outside_legacy_clip():
