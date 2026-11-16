@@ -1,0 +1,259 @@
+{
+  "status": "passed",
+  "meaning": "Evidence and artifact checks passed; behavior acceptance failed.",
+  "phase_status": "stopped_regression",
+  "promoted": false,
+  "date": "2026-11-16",
+  "tests": {
+    "preparation_unique_passed": 52,
+    "preparation_rerun_at_closeout": false,
+    "final_analysis_unique_passed": 4,
+    "unique_total": 56,
+    "final_analysis_output": "4 passed in 2.95s",
+    "command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 /home/tjx/anaconda3/envs/env_isaaclab/bin/python -m pytest -q tests/source_curriculum/test_reference_stair_allocation_analysis.py"
+  },
+  "checks": {
+    "analysis_complete": true,
+    "training_checkpoints_and_budget": true,
+    "initial_and_common_configuration_exact": true,
+    "actor_adapter_max_error": {
+      "A": 0,
+      "B": 0
+    },
+    "first_episode_traces": true,
+    "heading_feedback_formula": true,
+    "summary_csv_counts": true,
+    "markdown_links": true,
+    "python_compile": true,
+    "git_diff_check": true
+  },
+  "observed_rows": {
+    "episodes_including_reused_baseline": 720,
+    "paired_transitions": 480,
+    "focus_windows": 30,
+    "common_contact_windows": 10
+  },
+  "evaluation": {
+    "new_episodes": 480,
+    "maximum": 6080,
+    "remaining_not_run": 5600,
+    "reason": "predefined paired regression gate"
+  },
+  "artifacts": [
+    {
+      "path": "scripts/tools/reference_stair_allocation_analyze.py",
+      "bytes": 22094,
+      "sha256": "8dd2c18ea9e580c68f7c50384f99d69e7e369261bfd8ecdcd78ed6b6d92954ef"
+    },
+    {
+      "path": "tests/source_curriculum/test_reference_stair_allocation_analysis.py",
+      "bytes": 3897,
+      "sha256": "f0c5e11898e6679a2bf0fdc15e565442dd261d4b5abec66c05807bd2eb3d5008"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/README.md",
+      "bytes": 2181,
+      "sha256": "80b8c245ef4dfce347572682cf424ba239248850f9bf6862ff915e1a945199a2"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/RESULTS.md",
+      "bytes": 12690,
+      "sha256": "ddd6a5df7af7a5fb0ae0e7f7b3c6778bad6183d822698d79de8944ba6e30c515"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/NEXT_STAGE_PROPOSAL.md",
+      "bytes": 3458,
+      "sha256": "98bf35bea06dd6674ffa1916cba053bd80137201459fa003750eb522f60d1efb"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_allocation_migration.json",
+      "bytes": 2792,
+      "sha256": "abd68fbc8adfad6edafcac65f66d0dfaa6f962198f38b89aa2e6e19dfec199f9"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_configuration.json",
+      "bytes": 71035,
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_execution.json",
+      "bytes": 780,
+      "sha256": "62c628d618cd0c8528e3d34918bd9abc21986ab23356e42d021a88887f2b9266"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_geometry.json",
+      "bytes": 7822,
+      "sha256": "96561815d362406324e738e073bedcc70e8a55397191934bf396498a74d5bd60"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_report.json",
+      "bytes": 58570,
+      "sha256": "1d4c76b7a18baa60926d859060048357af4a8cee455234124c296262736e1c88"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_restore.json",
+      "bytes": 616,
+      "sha256": "394e04226a474692686b3e5bf935aefddc6458a75a3f39c33f001c12ca9c12fb"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/A_simulation_audit.json",
+      "bytes": 4595,
+      "sha256": "a518fb340a4b5c4657fd61b9fb8cabba55d35583a1840926a0295358e2cb5af2"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_allocation_migration.json",
+      "bytes": 43088,
+      "sha256": "a69405a38f365495145ef5e04f38ded72a8f7bd81fd3bb599328e834612d90f7"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_configuration.json",
+      "bytes": 71035,
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_execution.json",
+      "bytes": 789,
+      "sha256": "2ca0f9921f5019b082ace1e3ea95c76caaf0fd7485aeecae9106825c3632e883"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_geometry.json",
+      "bytes": 7822,
+      "sha256": "96561815d362406324e738e073bedcc70e8a55397191934bf396498a74d5bd60"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_report.json",
+      "bytes": 58624,
+      "sha256": "1bd92d3d4dcc5d558525712ee358a99fbb9501db71a975e87b3823f43264c891"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_restore.json",
+      "bytes": 616,
+      "sha256": "394e04226a474692686b3e5bf935aefddc6458a75a3f39c33f001c12ca9c12fb"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/B_simulation_audit.json",
+      "bytes": 4595,
+      "sha256": "4672229c521d284b6cb9c973067c38bf94ac98b993d56a25ab4f3683fae47aba"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/common_contacts.csv",
+      "bytes": 795,
+      "sha256": "afde902f03f64a651c759f6f572e04483b78df7c32d4b0f2ff4e6c1c6a4e370a"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/crossings.csv",
+      "bytes": 2053386,
+      "sha256": "a953381c224f8c8e8ed44a36225ea602c05386e5cc7b823492babde8b8b7150b"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/focus_windows.csv",
+      "bytes": 10089,
+      "sha256": "e5d6454edb3be1292a2577c710a761ea27927ef0d58e22a405b39988b7226caa"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_A_config.json",
+      "bytes": 95537,
+      "sha256": "14af38e38baa344874719654894240eda8def7416b35c7c04e2866bc559fe034"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_A_execution.json",
+      "bytes": 1207,
+      "sha256": "52bd0096a76be6e1e04955e46ffcde6908781bc7f85a1b933853b8b65370b7d5"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_A_report.json",
+      "bytes": 87188,
+      "sha256": "482a3a87d7771bef64e8890234e71805ec3790f8e463ab49e26af3fecc5cc5c1"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_B_config.json",
+      "bytes": 95538,
+      "sha256": "237fad0831be7a868c407d2324fa56f48282d09ad30b2a837dca18a2b4b314c5"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_B_execution.json",
+      "bytes": 1207,
+      "sha256": "63e3ea5b607e8afb301fde888f96a08e764191724137f56d40ce0d4687d3810e"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_B_report.json",
+      "bytes": 85554,
+      "sha256": "863368d249a939556d0e0a9e2c449d6953941c5cc22125261da19d1e0f615da0"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_start159.png",
+      "bytes": 403148,
+      "sha256": "6af4f0a85158301f6c18272b9b494af90e709d252c77cf14fa5f27672244378a"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_start189.png",
+      "bytes": 445480,
+      "sha256": "7726953b79be61b6ebdd02366baa21113c21cde5ab8e7ae9ee5909f3a16b2223"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_start196.png",
+      "bytes": 460630,
+      "sha256": "fc0d121e4c3978f7c9d3e68e58dc3a729ae918586efbcfa42d5dc7ac88150b9f"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_start199.png",
+      "bytes": 474803,
+      "sha256": "1e862f236f3c90e544666450637638c5d98037eeb6984e4fcb1f93e02f2f7ace"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_start221.png",
+      "bytes": 416821,
+      "sha256": "f8547c7f4ed407f8bccfe5d58cddd54175f4cc3229f5c01dc0da692ba871427c"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_zero10100_config.json",
+      "bytes": 95562,
+      "sha256": "a2a7d9c623945f05e691c21550d5059b1b0d31ab51b9561965ab16ad068cd49d"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_zero10100_execution.json",
+      "bytes": 1188,
+      "sha256": "999e221e09216372be264d93b3dea90530f364d9a859bd57d5ef627415d40682"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/heading_up_nominal_zero10100_report.json",
+      "bytes": 85468,
+      "sha256": "e263c82ff76bd9f815b5170a8ec48337d70c217f0735ce0bbe12198fb862b43e"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/raw_manifest.json",
+      "bytes": 22892,
+      "sha256": "9fa69bb3d3cbc9b20aaf37692e1b1e442e00b710e4024846c97bab1ed1c3f8c2"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/stairs_episodes.csv",
+      "bytes": 230145,
+      "sha256": "df878566cdd5252608f564bf250abbe1320a97917aca88dcd00f3fd59fb6cc8c"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/stairs_groups.csv",
+      "bytes": 1827,
+      "sha256": "eb4cd5cfc4c463d2ce9422600584d494b25495602bee3d8d540f6da84eea5fa5"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/stairs_summary.csv",
+      "bytes": 263,
+      "sha256": "9753391e52d925d7edba9bd135768ca1fa0808d5551aa59c84163a457dace752"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/summary.json",
+      "bytes": 31134,
+      "sha256": "322f2e2413621293a178a2bfa90b9ee2110ed02ddbf6ffae1c8ebdaa68a3b8e8"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/training.png",
+      "bytes": 158196,
+      "sha256": "f1a9a795be553b6f5cc456fed57afbec12a067c3b8ecd9f136809875677f09f9"
+    },
+    {
+      "path": "docs/lite3-stair-allocation-20261116/results/transitions.csv",
+      "bytes": 49386,
+      "sha256": "88ae82921f2398887ab95cce5ba9e3401a2b18c2af9baa53c67ae812d8524cfe"
+    }
+  ]
+}

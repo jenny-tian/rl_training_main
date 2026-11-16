@@ -96,6 +96,49 @@ def foot_metrics(record, data, cfg):
         **{f'{leg}_max_stably_supported_level':stable[k] for k,leg in enumerate(LEGS)})
 
 
+def detail_windows(name, paths, traces, ids):
+    """Separate stopped stepping, rear-foot delay and lateral loss of posture."""
+    rows, common = [], []
+    for i in ids:
+        series = {}
+        for policy,path in paths.items():
+            cfg = read(path/'config.json'); r = read(path/'report.json')['records'][i]
+            d = traces[policy]; n = int(d['active'][:,i].sum())
+            f = stair_features(d['feet'][:n,i],d['forces'][:n,i],cfg['geometry'][r['column']])
+            support = f['support'] & ~f['wall']
+            angle = np.rad2deg(np.arccos(np.clip(-d['gravity'][:n,i,2],-1,1)))
+            cutoff = np.flatnonzero(angle>20.)
+            series[policy] = dict(n=n,cutoff=int(cutoff[0]) if len(cutoff) else n,features=f,data=d)
+            foot_speed = np.linalg.norm(np.diff(d['feet'][:n,i],axis=0),axis=-1)/DT
+            for label,lo,hi in [('first_2s',0,min(n,100)),('last_5s',max(0,n-250),n)]:
+                speed = foot_speed[lo:max(lo,hi-1)]
+                row = dict(name=name,policy=policy,env_id=i,outcome=r['outcome'],window=label,window_start_s=lo*DT,
+                    window_end_s=hi*DT,root_x_progress_m=float(d['root'][hi-1,i,0]-d['root'][lo,i,0]),
+                    root_y_progress_m=float(d['root'][hi-1,i,1]-d['root'][lo,i,1]),
+                    mean_body_vx_m_s=float(d['velocity'][lo:hi,i,0].mean()),
+                    mean_abs_body_vy_m_s=float(np.abs(d['velocity'][lo:hi,i,1]).mean()),
+                    mean_command_vx=float(d['command'][lo:hi,i,0].mean()),
+                    mean_action_temporal_std=float(d['action'][lo:hi,i].std(axis=0).mean()),
+                    four_feet_supported_fraction=float(support[lo:hi].all(-1).mean()),
+                    max_tilt_deg=float(angle[lo:hi].max()),
+                    first_tilt20_s=(int(cutoff[0])+1)*DT if len(cutoff) else None)
+                for foot,leg in enumerate(LEGS):
+                    row[f'{leg}_mean_foot_speed_m_s'] = float(speed[:,foot].mean()) if len(speed) else None
+                    row[f'{leg}_support_fraction'] = float(support[lo:hi,foot].mean())
+                    row[f'{leg}_wall_seconds'] = float(f['wall'][lo:hi,foot].sum()*DT)
+                rows.append(row)
+        for comparator in ('zero10100','A'):
+            a,b = series[comparator],series['B']; end = min(a['cutoff'],b['cutoff'])
+            mask = (a['data']['root'][:end,i,0]>.85) & (b['data']['root'][:end,i,0]>.85)
+            row = dict(name=name,env_id=i,comparator=comparator,common_end_s=end*DT,
+                common_exposure_s=float(mask.sum()*DT))
+            for policy,s in [('before',a),('B',b)]:
+                for key in ('wall','collision'):
+                    row[f'{policy}_{key}_foot_seconds'] = float(s['features'][key][:end][mask].sum()*DT)
+            common.append(row)
+    return rows, common
+
+
 def actor_adapter(checkpoint, initial):
     import torch
     from tensordict import TensorDict
@@ -203,6 +246,7 @@ def main():
             shutil.copy2(path/filename,out/f'{variant}_{filename}')
     episodes, crossings, transitions, summaries, turns, turn_windows, turn_pairs = [], [], [], [], [], [], []
     checks, visuals, raw = [], [], set()
+    focus_windows, common_contacts = [], []
     by_name = {}
     for entry in matrix: by_name.setdefault(entry['name'],{})[entry['variant']] = entry
     for name, entries in by_name.items():
@@ -255,9 +299,13 @@ def main():
                 plot_case(name,i,paths,traces,out)
                 visuals.append(dict(name=name,env_id=i,path=str(out/f'{name}_start{i}.png'),
                     selection='preselected old failures plus first four sorted lost-success IDs', simulator_rendering=False))
+            if entry['profile']=='nominal':
+                detail, common = detail_windows(name,paths,traces,ids)
+                focus_windows.extend(detail); common_contacts.extend(common)
         del traces
     for name, rows in [('stairs_episodes',episodes),('crossings',crossings),('transitions',transitions),
-        ('stairs_summary',summaries),('turn_groups',turns),('turn_windows',turn_windows),('turn_pairs',turn_pairs)]:
+        ('stairs_summary',summaries),('turn_groups',turns),('turn_windows',turn_windows),('turn_pairs',turn_pairs),
+        ('focus_windows',focus_windows),('common_contacts',common_contacts)]:
         if rows: write_csv(out/f'{name}.csv',rows)
     groups = []
     for name in by_name:
