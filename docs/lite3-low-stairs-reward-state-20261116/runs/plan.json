@@ -1,0 +1,145 @@
+{
+  "new_episodes": 480,
+  "optimizer_updates": 0,
+  "physical_gpu": 1,
+  "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+  "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+  "training_terms": {
+    "stair_clearance": {
+      "func": "reference_low_stairs_clearance_cfg:StairClearanceReward",
+      "params": {},
+      "weight": -1.0
+    },
+    "stair_progress": {
+      "func": "reference_low_stairs_rewards:stair_progress",
+      "params": {},
+      "weight": 1.0
+    },
+    "stair_landing": {
+      "func": "reference_low_stairs_cfg:StairLandingReward",
+      "params": {},
+      "weight": 1.0
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_rewards.py",
+      "sha256": "9543c116be288f5020c33e112711f95a94b337e088a115d76b22db1ee9f033b9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance.py",
+      "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_cfg.py",
+      "sha256": "da7e69545a4857e42917b7c27c2d0860be04be8eb80e463b40b65ead0de711d6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_clearance_cfg.py",
+      "sha256": "871eb849cf356525e384b9e21f5eebbe0666113ded6424acde5cf5569da4247c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_guarded_cfg.py",
+      "sha256": "812a0f0fb4a693b85eb8adcd4001ecca70c85f8c0a75972fa5b455e78bb75bb1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_reward_observer.py",
+      "sha256": "6f659b3584cae17fc7379bd3c70a30940977f7cf76f159a891c6043957d47c90"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_reward_state_probe.py",
+      "sha256": "535bcf10ba4d7c7481859b23b608bb4ff247283f5d244be045fff07df451871b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_heading_probe.py",
+      "sha256": "d568cd46445c500aa55f0e0382b2bcb3d9ed8d5dc681c699cd2fcc6539caed3c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+      "sha256": "c155ab8d2050e53eaabda24cb00bee91092a97b8b60a4303638c1a363157bab9"
+    }
+  ],
+  "automatic_extension": false,
+  "reused": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/config.json",
+      "sha256": "a2a7d9c623945f05e691c21550d5059b1b0d31ab51b9561965ab16ad068cd49d",
+      "bytes": 95562
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/execution.json",
+      "sha256": "999e221e09216372be264d93b3dea90530f364d9a859bd57d5ef627415d40682",
+      "bytes": 1188
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/geometry.json",
+      "sha256": "43135db947ceb3630a56951a993c8dfa6bb21fc431866dfc4c9f863c5f8b3b46",
+      "bytes": 1295
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/heading_intervention.json",
+      "sha256": "aa5c55da9e61c9b447485c67df1de9a1d2c84702b97d571f71301afaa1e58d40",
+      "bytes": 333
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/initial.npz",
+      "sha256": "ce4bd7f9a56b7998eb0cc063bbd23b3f09eced36c3b6c86022da0495ad730683",
+      "bytes": 49567
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/report.json",
+      "sha256": "e263c82ff76bd9f815b5170a8ec48337d70c217f0735ce0bbe12198fb862b43e",
+      "bytes": 85468
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/runtime.log",
+      "sha256": "94033b09e24efa8d85b34892825b10d5fc57439964d415cce12826d7353df034",
+      "bytes": 609583
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/trace.npz",
+      "sha256": "ffa8703c1332e1ae10e09f759a1ecddfd297119a063528f959cddc29142fb91e",
+      "bytes": 101309151
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/config.json",
+      "sha256": "3a2280613182b1571d4b881c2f108f094f8233d7f37421fc2eb7c6160fac4062",
+      "bytes": 100069
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/execution.json",
+      "sha256": "f94342dda6cc627c173b471c7a0a3986359f15ddd83828d9fc5116c153fbdbec",
+      "bytes": 786
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/geometry.json",
+      "sha256": "43135db947ceb3630a56951a993c8dfa6bb21fc431866dfc4c9f863c5f8b3b46",
+      "bytes": 1295
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/heading_intervention.json",
+      "sha256": "a6bf0921dc50e88fd759767b0a2db61a310b5576da0d115a90e7836abddadf08",
+      "bytes": 656
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/initial.npz",
+      "sha256": "d611fdd8574b8b94c525dc537a9027e02594f4e8d1f707d9998ebaa2615abba3",
+      "bytes": 84665
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/report.json",
+      "sha256": "3cdcc592057952286f121150995714483b53bd114cd74a808068f3bdd91ea6fa",
+      "bytes": 85436
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/runtime.log",
+      "sha256": "0842246d7a2055adc2ebd217d0937d3c549ddc3e69e7560f1a6b4ed159b86d6c",
+      "bytes": 609831
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_up_training_randomized/trace.npz",
+      "sha256": "5c7e3de48fb826575a4b3210f109c427e4cf7ea1c8f97fbb76e1eafa4bb03c16",
+      "bytes": 102397746
+    }
+  ]
+}
