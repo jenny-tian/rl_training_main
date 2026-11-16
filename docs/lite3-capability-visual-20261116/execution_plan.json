@@ -1,0 +1,912 @@
+{
+  "status": "prepared",
+  "physical_gpu": 1,
+  "training": false,
+  "optimizer_updates": 0,
+  "new_formal_evaluation_episodes": 0,
+  "maximum_replay_episodes": 2240,
+  "maximum_jobs": 10,
+  "selected_scenes": 15,
+  "selected_clips": 30,
+  "no_automatic_retry": true,
+  "no_deployment": true,
+  "jobs": [
+    {
+      "id": "zero10100_retention_training_randomized",
+      "policy": "zero10100",
+      "name": "retention_training_randomized",
+      "kind": "retention",
+      "profile": "training_randomized",
+      "direction": null,
+      "heading": false,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/training_randomized",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "replay_episodes": 160,
+      "selections": [
+        {
+          "name": "rough_randomized",
+          "env_id": 22,
+          "original": {
+            "env_id": 22,
+            "terrain": "rough",
+            "column": 4,
+            "row": 1,
+            "repeat": 2,
+            "outcome": "success",
+            "duration_s": 10.48,
+            "displacement": [
+              3.110227584838867,
+              0.3617706298828125,
+              0.0009299814701080322
+            ]
+          }
+        },
+        {
+          "name": "startup_randomized",
+          "env_id": 5,
+          "original": {
+            "env_id": 5,
+            "terrain": "flat",
+            "column": 0,
+            "row": 1,
+            "repeat": 5,
+            "outcome": "lateral_exit",
+            "duration_s": 5.92,
+            "displacement": [
+              -0.24571990966796875,
+              -1.00054931640625,
+              0.031586915254592896
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B_retention_training_randomized",
+      "policy": "B",
+      "name": "retention_training_randomized",
+      "kind": "retention",
+      "profile": "training_randomized",
+      "direction": null,
+      "heading": false,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/training_randomized",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "replay_episodes": 160,
+      "selections": [
+        {
+          "name": "rough_randomized",
+          "env_id": 22,
+          "original": {
+            "env_id": 22,
+            "terrain": "rough",
+            "column": 4,
+            "row": 1,
+            "repeat": 2,
+            "outcome": "lateral_exit",
+            "duration_s": 9.3,
+            "displacement": [
+              2.632343292236328,
+              1.0029067993164062,
+              0.016484588384628296
+            ]
+          }
+        },
+        {
+          "name": "startup_randomized",
+          "env_id": 5,
+          "original": {
+            "env_id": 5,
+            "terrain": "flat",
+            "column": 0,
+            "row": 1,
+            "repeat": 5,
+            "outcome": "orientation_failure",
+            "duration_s": 0.54,
+            "displacement": [
+              -0.0064525604248046875,
+              0.1406097412109375,
+              0.05085375905036926
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "zero10100_retention_nominal",
+      "policy": "zero10100",
+      "name": "retention_nominal",
+      "kind": "retention",
+      "profile": "nominal",
+      "direction": null,
+      "heading": false,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "replay_episodes": 160,
+      "selections": [
+        {
+          "name": "flat",
+          "env_id": 0,
+          "original": {
+            "env_id": 0,
+            "terrain": "flat",
+            "column": 0,
+            "row": 1,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.58,
+            "displacement": [
+              3.104747772216797,
+              -0.168609619140625,
+              -0.015303999185562134
+            ]
+          }
+        },
+        {
+          "name": "rough_nominal",
+          "env_id": 30,
+          "original": {
+            "env_id": 30,
+            "terrain": "rough",
+            "column": 4,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 9.86,
+            "displacement": [
+              3.102079391479492,
+              -0.2507514953613281,
+              -0.032799214124679565
+            ]
+          }
+        },
+        {
+          "name": "slope_up",
+          "env_id": 50,
+          "original": {
+            "env_id": 50,
+            "terrain": "slope_up",
+            "column": 8,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.34,
+            "displacement": [
+              3.1427440643310547,
+              -0.5568265914916992,
+              0.4478779733181
+            ]
+          }
+        },
+        {
+          "name": "slope_down",
+          "env_id": 70,
+          "original": {
+            "env_id": 70,
+            "terrain": "slope_down",
+            "column": 10,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 12.1,
+            "displacement": [
+              3.0553054809570312,
+              -0.6471092700958252,
+              -0.4642578065395355
+            ]
+          }
+        },
+        {
+          "name": "friction_lateral",
+          "env_id": 90,
+          "original": {
+            "env_id": 90,
+            "terrain": "friction_lateral",
+            "column": 16,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.3,
+            "displacement": [
+              3.1063575744628906,
+              -0.17810440063476562,
+              -0.004078686237335205
+            ]
+          }
+        },
+        {
+          "name": "friction_longitudinal",
+          "env_id": 110,
+          "original": {
+            "env_id": 110,
+            "terrain": "friction_longitudinal",
+            "column": 17,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.42,
+            "displacement": [
+              3.101015090942383,
+              -0.32907867431640625,
+              -0.01648235321044922
+            ]
+          }
+        },
+        {
+          "name": "slope_rough_up",
+          "env_id": 130,
+          "original": {
+            "env_id": 130,
+            "terrain": "slope_rough_up",
+            "column": 18,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 13.08,
+            "displacement": [
+              3.114309310913086,
+              -0.5979461669921875,
+              0.5130590200424194
+            ]
+          }
+        },
+        {
+          "name": "slope_rough_down",
+          "env_id": 156,
+          "original": {
+            "env_id": 156,
+            "terrain": "slope_rough_down",
+            "column": 19,
+            "row": 8,
+            "repeat": 6,
+            "outcome": "success",
+            "duration_s": 12.16,
+            "displacement": [
+              3.031076431274414,
+              -0.45615386962890625,
+              -0.40945661067962646
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "B_retention_nominal",
+      "policy": "B",
+      "name": "retention_nominal",
+      "kind": "retention",
+      "profile": "nominal",
+      "direction": null,
+      "heading": false,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "replay_episodes": 160,
+      "selections": [
+        {
+          "name": "flat",
+          "env_id": 0,
+          "original": {
+            "env_id": 0,
+            "terrain": "flat",
+            "column": 0,
+            "row": 1,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.620000000000001,
+            "displacement": [
+              3.1078128814697266,
+              -0.14984130859375,
+              -0.009728282690048218
+            ]
+          }
+        },
+        {
+          "name": "rough_nominal",
+          "env_id": 30,
+          "original": {
+            "env_id": 30,
+            "terrain": "rough",
+            "column": 4,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 9.78,
+            "displacement": [
+              3.0735626220703125,
+              -0.1177215576171875,
+              -0.01180383563041687
+            ]
+          }
+        },
+        {
+          "name": "slope_up",
+          "env_id": 50,
+          "original": {
+            "env_id": 50,
+            "terrain": "slope_up",
+            "column": 8,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 7.8,
+            "displacement": [
+              3.166339874267578,
+              -0.6198949813842773,
+              0.45452141761779785
+            ]
+          }
+        },
+        {
+          "name": "slope_down",
+          "env_id": 70,
+          "original": {
+            "env_id": 70,
+            "terrain": "slope_down",
+            "column": 10,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 10.86,
+            "displacement": [
+              3.0529842376708984,
+              -0.3082573413848877,
+              -0.4398059844970703
+            ]
+          }
+        },
+        {
+          "name": "friction_lateral",
+          "env_id": 90,
+          "original": {
+            "env_id": 90,
+            "terrain": "friction_lateral",
+            "column": 16,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.120000000000001,
+            "displacement": [
+              3.1105175018310547,
+              -0.11576080322265625,
+              -0.0018145740032196045
+            ]
+          }
+        },
+        {
+          "name": "friction_longitudinal",
+          "env_id": 110,
+          "original": {
+            "env_id": 110,
+            "terrain": "friction_longitudinal",
+            "column": 17,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.3,
+            "displacement": [
+              3.1106700897216797,
+              -0.36215972900390625,
+              -0.013698041439056396
+            ]
+          }
+        },
+        {
+          "name": "slope_rough_up",
+          "env_id": 130,
+          "original": {
+            "env_id": 130,
+            "terrain": "slope_rough_up",
+            "column": 18,
+            "row": 8,
+            "repeat": 0,
+            "outcome": "success",
+            "duration_s": 8.36,
+            "displacement": [
+              3.1377620697021484,
+              -0.5872573852539062,
+              0.5121716260910034
+            ]
+          }
+        },
+        {
+          "name": "slope_rough_down",
+          "env_id": 156,
+          "original": {
+            "env_id": 156,
+            "terrain": "slope_rough_down",
+            "column": 19,
+            "row": 8,
+            "repeat": 6,
+            "outcome": "timeout",
+            "duration_s": 20.0,
+            "displacement": [
+              2.012828826904297,
+              -0.36173248291015625,
+              -0.08770084381103516
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "zero10100_turn_nominal",
+      "policy": "zero10100",
+      "name": "turn_nominal",
+      "kind": "turn",
+      "profile": "nominal",
+      "direction": null,
+      "heading": false,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/turn_nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "replay_episodes": 320,
+      "selections": [
+        {
+          "name": "turn_right",
+          "env_id": 100,
+          "original": {
+            "env_id": 100,
+            "case": "turn_right",
+            "repeat": 0,
+            "outcome": "survived",
+            "duration_s": 20.0
+          }
+        },
+        {
+          "name": "heading_right",
+          "env_id": 260,
+          "original": {
+            "env_id": 260,
+            "case": "heading_right",
+            "repeat": 0,
+            "outcome": "survived",
+            "duration_s": 20.0
+          }
+        },
+        {
+          "name": "arc_left",
+          "env_id": 280,
+          "original": {
+            "env_id": 280,
+            "case": "arc_left",
+            "repeat": 0,
+            "outcome": "survived",
+            "duration_s": 20.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "B_turn_nominal",
+      "policy": "B",
+      "name": "turn_nominal",
+      "kind": "turn",
+      "profile": "nominal",
+      "direction": null,
+      "heading": false,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/turn_nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "replay_episodes": 320,
+      "selections": [
+        {
+          "name": "turn_right",
+          "env_id": 100,
+          "original": {
+            "env_id": 100,
+            "case": "turn_right",
+            "repeat": 0,
+            "outcome": "survived",
+            "duration_s": 20.0
+          }
+        },
+        {
+          "name": "heading_right",
+          "env_id": 260,
+          "original": {
+            "env_id": 260,
+            "case": "heading_right",
+            "repeat": 0,
+            "outcome": "survived",
+            "duration_s": 20.0
+          }
+        },
+        {
+          "name": "arc_left",
+          "env_id": 280,
+          "original": {
+            "env_id": 280,
+            "case": "arc_left",
+            "repeat": 0,
+            "outcome": "survived",
+            "duration_s": 20.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "zero10100_heading_up_nominal",
+      "policy": "zero10100",
+      "name": "heading_up_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "up",
+      "heading": true,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "replay_episodes": 240,
+      "selections": [
+        {
+          "name": "stairs_up_5cm",
+          "env_id": 200,
+          "original": {
+            "env_id": 200,
+            "height": 0.05,
+            "speed": 0.4,
+            "repeat": 0,
+            "column": 3,
+            "outcome": "success",
+            "duration_s": 17.14,
+            "final_root": [
+              3.409325122833252,
+              0.08333301544189453,
+              0.6492822170257568
+            ],
+            "best_risers": 7,
+            "termination_terms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "B_heading_up_nominal",
+      "policy": "B",
+      "name": "heading_up_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "up",
+      "heading": true,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/B/heading_up_nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "replay_episodes": 240,
+      "selections": [
+        {
+          "name": "stairs_up_5cm",
+          "env_id": 200,
+          "original": {
+            "env_id": 200,
+            "height": 0.05,
+            "speed": 0.4,
+            "repeat": 0,
+            "column": 3,
+            "outcome": "success",
+            "duration_s": 10.22,
+            "final_root": [
+              3.38883113861084,
+              -0.03968334197998047,
+              0.6530066728591919
+            ],
+            "best_risers": 7,
+            "termination_terms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "zero10100_heading_down_nominal",
+      "policy": "zero10100",
+      "name": "heading_down_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "down",
+      "heading": true,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "replay_episodes": 240,
+      "selections": [
+        {
+          "name": "stairs_down_5cm",
+          "env_id": 200,
+          "original": {
+            "env_id": 200,
+            "height": 0.05,
+            "speed": 0.4,
+            "repeat": 0,
+            "column": 3,
+            "outcome": "success",
+            "duration_s": 10.84,
+            "final_root": [
+              3.3930165767669678,
+              -0.04823112487792969,
+              -0.04542234539985657
+            ],
+            "best_risers": 7,
+            "termination_terms": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "B_heading_down_nominal",
+      "policy": "B",
+      "name": "heading_down_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "down",
+      "heading": true,
+      "formal": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/heading_down_nominal",
+      "checkpoint": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "replay_episodes": 240,
+      "selections": [
+        {
+          "name": "stairs_down_5cm",
+          "env_id": 200,
+          "original": {
+            "env_id": 200,
+            "height": 0.05,
+            "speed": 0.4,
+            "repeat": 0,
+            "column": 3,
+            "outcome": "success",
+            "duration_s": 10.38,
+            "final_root": [
+              3.3992457389831543,
+              -0.1297140121459961,
+              -0.04704409837722778
+            ],
+            "best_risers": 7,
+            "termination_terms": []
+          }
+        }
+      ]
+    }
+  ],
+  "rendering": "Re-run original full batches, capture pre-reset root/joints, compare initial/config/all traces, then render saved states without physics.",
+  "capture_mismatch": "Initial/config/nonfinite mismatch stops; finite trace differences are recorded and labelled, never counted as formal successes.",
+  "video_timing": "Ordinary clips sample 0.1 s at 10 fps; startup samples 0.02 s at 20 fps (0.4x). Final state held 1 s.",
+  "selection_rule": "Fixed representative starts, including known failures; selections frozen before rendering, not a new statistical sample.",
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_capability_visual_replay.py",
+      "sha256": "6ae60828bfd4aa7eed668fb5987c6946a146b255c9e34a8537bde132f256f7ae"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_capability_visual_run.py",
+      "sha256": "1ca8b65879d483023bfe770a2369bf2fe4d8c0c3697e09ac09ba72193d714f13"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_retention.py",
+      "sha256": "35a9efbf441307537c5cb819b579e90621df067efad736c1853f901044c87e40"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_turn_diagnose.py",
+      "sha256": "e53803a8f3f4716e7752cb1b0c1afb79938a072d60c92ff021907f3f9c780337"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+      "sha256": "c155ab8d2050e53eaabda24cb00bee91092a97b8b60a4303638c1a363157bab9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_heading_probe.py",
+      "sha256": "d568cd46445c500aa55f0e0382b2bcb3d9ed8d5dc681c699cd2fcc6539caed3c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_heading.py",
+      "sha256": "9aca1a7f0318c4dd36921764f08f19808879e5bf21aa8ad6d007b7beb45abb63"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_runtime.py",
+      "sha256": "2ca99f3438b1196f19362f481949651340d557252bd1b0466918f254a365f22c"
+    }
+  ],
+  "formal_manifests": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal/config.json",
+      "sha256": "fd48bdc1b67af83f767158440c7db92747a87af8028788e89583205b64856a0f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal/execution.json",
+      "sha256": "f2be973ae2f3f66781aca1695a791a5f3357c6f5b5619d934ebf97aaae85427d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal/initial.npz",
+      "sha256": "7d72b4162776a13063750f9415a0238d747749549e06b207c0307d3bf9543c20"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal/report.json",
+      "sha256": "f0126caff7ca8e39264aa07cd5e8abdad07a1c71fdaad51f277f395982750bbf"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_heading_stability_20261116/heading_down_nominal/trace.npz",
+      "sha256": "97c77b1f9c1564a9fbf63ce1738a06b4de0f0bf6431eb7489f9c8900be45dda3"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/config.json",
+      "sha256": "a2a7d9c623945f05e691c21550d5059b1b0d31ab51b9561965ab16ad068cd49d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/execution.json",
+      "sha256": "999e221e09216372be264d93b3dea90530f364d9a859bd57d5ef627415d40682"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/initial.npz",
+      "sha256": "ce4bd7f9a56b7998eb0cc063bbd23b3f09eced36c3b6c86022da0495ad730683"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/report.json",
+      "sha256": "e263c82ff76bd9f815b5170a8ec48337d70c217f0735ce0bbe12198fb862b43e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/heading_up_nominal/trace.npz",
+      "sha256": "ffa8703c1332e1ae10e09f759a1ecddfd297119a063528f959cddc29142fb91e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/turn_nominal/config.json",
+      "sha256": "6f6c9ac34483daf85c6428073ce828e09d603db825dabb1e76d53a62ccdeb11c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/turn_nominal/execution.json",
+      "sha256": "5920e1d8e39c5c1eeee4acc959e71024326628f15effbade567acdebb71f1067"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/turn_nominal/initial.npz",
+      "sha256": "e3f978a11c2b825aa2c5e9e8368468fdf52ae18440b772db302f5fcf9c99e89f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/turn_nominal/report.json",
+      "sha256": "100e937c0796789b49055a21169c937ae77088125afee086ba180e19b7c6fa7b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/low_stairs_zero_preservation_20261115/evaluation_10100/turn_nominal/trace.npz",
+      "sha256": "5d514b2baeb7f5c693921dccbf77fee5d5663211e4425eb7d64550f0628f0c83"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/B/heading_up_nominal/config.json",
+      "sha256": "237fad0831be7a868c407d2324fa56f48282d09ad30b2a837dca18a2b4b314c5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/B/heading_up_nominal/execution.json",
+      "sha256": "63e3ea5b607e8afb301fde888f96a08e764191724137f56d40ce0d4687d3810e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/B/heading_up_nominal/initial.npz",
+      "sha256": "ce4bd7f9a56b7998eb0cc063bbd23b3f09eced36c3b6c86022da0495ad730683"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/B/heading_up_nominal/report.json",
+      "sha256": "863368d249a939556d0e0a9e2c449d6953941c5cc22125261da19d1e0f615da0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/B/heading_up_nominal/trace.npz",
+      "sha256": "86372f3d9edc3193ca6d1153c6bd0e469f8fc462a27f1b0efac48052bcff9eae"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/heading_down_nominal/config.json",
+      "sha256": "14779c60ee94676db02fca0bca6c16b071141e2923385e7ae561078ccc4f93a0"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/heading_down_nominal/execution.json",
+      "sha256": "b98382418fff16b908504d3f6dd67135dad4abd49471c8850b3b6a62f5cb112c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/heading_down_nominal/initial.npz",
+      "sha256": "7d72b4162776a13063750f9415a0238d747749549e06b207c0307d3bf9543c20"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/heading_down_nominal/report.json",
+      "sha256": "b392472600682cefe2dc066a5d17d8cfb96761a06620f90d314e05513cb58c22"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/heading_down_nominal/trace.npz",
+      "sha256": "7163607daf50a1c2e4f23d3ba661aa4869cdd28d360a41d98767ec172a864e6d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/turn_nominal/config.json",
+      "sha256": "f243c2477de4f34b55309e56cb9b43071ab2d6e442c26225471ba33e52cb6131"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/turn_nominal/execution.json",
+      "sha256": "52fb6a44af8cb5504879ee84ac12dc5f55c2a6d0d337855f2416f4c2c8e9962e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/turn_nominal/initial.npz",
+      "sha256": "e3f978a11c2b825aa2c5e9e8368468fdf52ae18440b772db302f5fcf9c99e89f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/turn_nominal/report.json",
+      "sha256": "8a1d019d4640667210f382a9156d7d45790f08801c03bada0064a36446d5081b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/B/turn_nominal/trace.npz",
+      "sha256": "d240bc68d49dcd381816dd47b4140955a38a7d228350716f39a5364727708205"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/nominal/config.json",
+      "sha256": "85926e02956d03aa901cd894aa1c30779e243dab4b6aeace2dadeabb6c6d962c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/nominal/execution.json",
+      "sha256": "4fe8cf5ecc52430aab15df9ed1744cdda0c90dc219487210bcc6583471254de3"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/nominal/initial.npz",
+      "sha256": "7536e854f8484a9f0413b3a384632367d31564bd7aa19b9c9c0534621632f3d1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/nominal/report.json",
+      "sha256": "66124fa3910076353a199d35fd989c413026358f5b361ac4e07d4d5401696049"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/nominal/trace.npz",
+      "sha256": "c578c231c6797daed4bba1a7d0e7dc0991ce55110a6c4967eaf58bd3234a2e04"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/training_randomized/config.json",
+      "sha256": "31685169f609a33d9c4cc5b2cacbfd31511c8901cfa72e4e1e104aa72cf988c7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/training_randomized/execution.json",
+      "sha256": "459e399e418b6cf2c35a23ca6a7c4940e74b082825036d003988d6ec684f780c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/training_randomized/initial.npz",
+      "sha256": "39bcecb84151d19ace472a5a76ed140a0a92f769188c65e6e060090bf1b6f228"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/training_randomized/report.json",
+      "sha256": "098884dc0a4d1bf46bee47f99d85f496d2db9f53ee91f560bbcd84e17392ed1a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/B/training_randomized/trace.npz",
+      "sha256": "8051da6a4586ee9b41c882f638531e3eeecea195dc83e59db0cb59d4cbfbe342"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/nominal/config.json",
+      "sha256": "67e6f964b767e7ebae98b2bfb61b73214bd8d057be9379041f56cc0c903246aa"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/nominal/execution.json",
+      "sha256": "507e573cfd5d09b9ae630cbdaf53416fa97443ac2b784832ab3d44889756b375"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/nominal/initial.npz",
+      "sha256": "7536e854f8484a9f0413b3a384632367d31564bd7aa19b9c9c0534621632f3d1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/nominal/report.json",
+      "sha256": "c2469e3be71f81c89e7fbd94cf5a31dc9a3e38a26567ccb618859ac163f5e975"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/nominal/trace.npz",
+      "sha256": "8d067b49136addf5800e4fad1d33eea22e2acbcdd4a2273e19ab52ead7c2e84f"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/training_randomized/config.json",
+      "sha256": "f5907c513026b4800867f921f9b2936614e74b72ad730343eb0bd8de9fab4c26"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/training_randomized/execution.json",
+      "sha256": "306f8bb57405a0acf3ee72a8f5e4adaad760d1aa2245238cc05fbaf14946852c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/training_randomized/initial.npz",
+      "sha256": "39bcecb84151d19ace472a5a76ed140a0a92f769188c65e6e060090bf1b6f228"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/training_randomized/report.json",
+      "sha256": "44fe2b34308243d097473a63143a4fd56c9251fd31f3d2aba754341c25cb26f7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_completion_20261116/retention/zero10100/training_randomized/trace.npz",
+      "sha256": "efc70871487a0c4d67cc9e4cec0dbb67c2d0b237a9162b4b9c0541c52c655b9d"
+    }
+  ],
+  "previous_complete_sha256": "a9cca21cb8914f9ecb1e8afec3a56d13c9df7485873736bff335e934fa3e43a0"
+}
