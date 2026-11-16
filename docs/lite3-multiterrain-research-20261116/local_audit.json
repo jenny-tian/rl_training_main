@@ -1,0 +1,406 @@
+{
+  "status": "passed",
+  "date": "2026-11-16",
+  "new_simulation_episodes": 0,
+  "new_optimizer_updates": 0,
+  "upstream_files_verified": 26,
+  "upstream_manifest": {
+    "path": "docs/lite3-multiterrain-research-20261116/upstream_manifest.json",
+    "sha256": "1b8463944424cd4c0f680860436fbf1273deb8f4cc4686b0a2140e7f2e00b99d",
+    "bytes": 20719
+  },
+  "coverage": {
+    "total_environment_frames": 9830400,
+    "control_steps": 2400,
+    "by_type": [
+      {
+        "terrain": "flat",
+        "columns": 4,
+        "environments": 820,
+        "environment_frames": 1968000,
+        "share": 0.2001953125,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "rough",
+        "columns": 4,
+        "environments": 819,
+        "environment_frames": 1965600,
+        "share": 0.199951171875,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "slope_up",
+        "columns": 2,
+        "environments": 410,
+        "environment_frames": 984000,
+        "share": 0.10009765625,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "slope_down",
+        "columns": 2,
+        "environments": 409,
+        "environment_frames": 981600,
+        "share": 0.099853515625,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "stairs_up",
+        "columns": 2,
+        "environments": 410,
+        "environment_frames": 984000,
+        "share": 0.10009765625,
+        "positive_clearance_cost_frames": 205499,
+        "positive_clearance_cost_fraction": 0.20884044715447153
+      },
+      {
+        "terrain": "stairs_down",
+        "columns": 2,
+        "environments": 409,
+        "environment_frames": 981600,
+        "share": 0.099853515625,
+        "positive_clearance_cost_frames": 51679,
+        "positive_clearance_cost_fraction": 0.052647718011409946
+      },
+      {
+        "terrain": "friction_lateral",
+        "columns": 1,
+        "environments": 205,
+        "environment_frames": 492000,
+        "share": 0.050048828125,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "friction_longitudinal",
+        "columns": 1,
+        "environments": 205,
+        "environment_frames": 492000,
+        "share": 0.050048828125,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "slope_rough_up",
+        "columns": 1,
+        "environments": 205,
+        "environment_frames": 492000,
+        "share": 0.050048828125,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      },
+      {
+        "terrain": "slope_rough_down",
+        "columns": 1,
+        "environments": 204,
+        "environment_frames": 489600,
+        "share": 0.0498046875,
+        "positive_clearance_cost_frames": 0,
+        "positive_clearance_cost_fraction": 0
+      }
+    ],
+    "by_family": {
+      "flat": 1968000,
+      "rough": 1965600,
+      "slope": 1965600,
+      "stairs": 1965600,
+      "friction": 984000,
+      "slope_rough": 981600
+    },
+    "near_zero_command_frames": 2937135,
+    "near_zero_command_fraction": 0.29878082275390627,
+    "interpretation": "环境帧不等于跨阶次数；净空帧为至少一足 cost>0，非所有摆脚帧；近零命令为平移模长<0.1 且偏航绝对值<0.1。"
+  },
+  "policy_active_terms": [
+    "base_ang_vel",
+    "projected_gravity",
+    "velocity_commands",
+    "joint_pos",
+    "joint_vel",
+    "actions"
+  ],
+  "policy_history_length": null,
+  "agent": {
+    "seed": 42,
+    "device": "cuda:0",
+    "num_steps_per_env": 24,
+    "max_iterations": 100,
+    "empirical_normalization": {},
+    "obs_groups": {},
+    "clip_actions": 100,
+    "check_for_nan": true,
+    "save_interval": 100,
+    "experiment_name": "deeprobotics_lite3_rough",
+    "run_name": "",
+    "logger": "tensorboard",
+    "neptune_project": "isaaclab",
+    "wandb_project": "isaaclab",
+    "resume": false,
+    "load_run": ".*",
+    "load_checkpoint": "model_.*.pt",
+    "class_name": "OnPolicyRunner",
+    "actor": {
+      "class_name": "MLPModel",
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "activation": "elu",
+      "obs_normalization": false,
+      "distribution_cfg": {
+        "class_name": "GaussianDistribution",
+        "init_std": 1,
+        "std_type": "log"
+      }
+    },
+    "critic": {
+      "class_name": "MLPModel",
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "activation": "elu",
+      "obs_normalization": false,
+      "distribution_cfg": null
+    },
+    "algorithm": {
+      "class_name": "PPO",
+      "num_learning_epochs": 5,
+      "num_mini_batches": 4,
+      "learning_rate": 0.001,
+      "schedule": "adaptive",
+      "gamma": 0.99,
+      "lam": 0.95,
+      "entropy_coef": 0.01,
+      "desired_kl": 0.01,
+      "max_grad_norm": 1,
+      "optimizer": "adam",
+      "value_loss_coef": 1,
+      "use_clipped_value_loss": true,
+      "clip_param": 0.2,
+      "normalize_advantage_per_mini_batch": false,
+      "share_cnn_encoders": false,
+      "rnd_cfg": null,
+      "symmetry_cfg": null
+    },
+    "policy": {}
+  },
+  "clearance_sensitivity": {
+    "original_margin_m": 0.025,
+    "candidate_margin_m": 0.04,
+    "unchanged_trajectory_and_state": true,
+    "behavior_effect_measured": false,
+    "profiles": [
+      {
+        "profile": "nominal",
+        "original_formula_max_error": 0,
+        "all_first_episodes": {
+          "episodes": 240,
+          "environment_frames": 125459,
+          "original_positive_foot_frames": 81955,
+          "candidate_positive_foot_frames": 88840,
+          "newly_charged_foot_frames": 6885,
+          "original_clearance_return": -157.9895397801029,
+          "candidate_clearance_return": -216.25008755283716
+        },
+        "by_outcome": {
+          "success": {
+            "episodes": 238,
+            "environment_frames": 123459,
+            "original_positive_foot_frames": 79767,
+            "candidate_positive_foot_frames": 86544,
+            "newly_charged_foot_frames": 6777,
+            "original_clearance_return": -152.56231235147968,
+            "candidate_clearance_return": -209.52771927029983
+          },
+          "timeout": {
+            "episodes": 2,
+            "environment_frames": 2000,
+            "original_positive_foot_frames": 2188,
+            "candidate_positive_foot_frames": 2296,
+            "newly_charged_foot_frames": 108,
+            "original_clearance_return": -5.427227428623264,
+            "candidate_clearance_return": -6.7223682825373405
+          }
+        },
+        "failed_episodes": [
+          {
+            "env_id": 196,
+            "height": 0.05,
+            "speed": 0.32,
+            "outcome": "timeout",
+            "episodes": 1,
+            "environment_frames": 1000,
+            "original_positive_foot_frames": 1079,
+            "candidate_positive_foot_frames": 1119,
+            "newly_charged_foot_frames": 40,
+            "original_clearance_return": -2.7187533506803447,
+            "candidate_clearance_return": -3.3459032373128865
+          },
+          {
+            "env_id": 199,
+            "height": 0.05,
+            "speed": 0.32,
+            "outcome": "timeout",
+            "episodes": 1,
+            "environment_frames": 1000,
+            "original_positive_foot_frames": 1109,
+            "candidate_positive_foot_frames": 1177,
+            "newly_charged_foot_frames": 68,
+            "original_clearance_return": -2.7084740779429195,
+            "candidate_clearance_return": -3.376465045224454
+          }
+        ]
+      },
+      {
+        "profile": "training_randomized",
+        "original_formula_max_error": 0,
+        "all_first_episodes": {
+          "episodes": 240,
+          "environment_frames": 128678,
+          "original_positive_foot_frames": 82340,
+          "candidate_positive_foot_frames": 88316,
+          "newly_charged_foot_frames": 5976,
+          "original_clearance_return": -151.58853564383696,
+          "candidate_clearance_return": -211.82647011233047
+        },
+        "by_outcome": {
+          "lateral_exit": {
+            "episodes": 1,
+            "environment_frames": 425,
+            "original_positive_foot_frames": 331,
+            "candidate_positive_foot_frames": 380,
+            "newly_charged_foot_frames": 49,
+            "original_clearance_return": -0.623524461808407,
+            "candidate_clearance_return": -0.8545878462609915
+          },
+          "success": {
+            "episodes": 238,
+            "environment_frames": 127253,
+            "original_positive_foot_frames": 81234,
+            "candidate_positive_foot_frames": 87141,
+            "newly_charged_foot_frames": 5907,
+            "original_clearance_return": -149.43340480750226,
+            "candidate_clearance_return": -208.8803437029983
+          },
+          "timeout": {
+            "episodes": 1,
+            "environment_frames": 1000,
+            "original_positive_foot_frames": 775,
+            "candidate_positive_foot_frames": 795,
+            "newly_charged_foot_frames": 20,
+            "original_clearance_return": -1.5316063745263364,
+            "candidate_clearance_return": -2.0915385630711536
+          }
+        },
+        "failed_episodes": [
+          {
+            "env_id": 121,
+            "height": 0.03,
+            "speed": 0.32,
+            "outcome": "timeout",
+            "episodes": 1,
+            "environment_frames": 1000,
+            "original_positive_foot_frames": 775,
+            "candidate_positive_foot_frames": 795,
+            "newly_charged_foot_frames": 20,
+            "original_clearance_return": -1.5316063745263364,
+            "candidate_clearance_return": -2.0915385630711536
+          },
+          {
+            "env_id": 231,
+            "height": 0.05,
+            "speed": 0.6,
+            "outcome": "lateral_exit",
+            "episodes": 1,
+            "environment_frames": 425,
+            "original_positive_foot_frames": 331,
+            "candidate_positive_foot_frames": 380,
+            "newly_charged_foot_frames": 49,
+            "original_clearance_return": -0.623524461808407,
+            "candidate_clearance_return": -0.8545878462609915
+          }
+        ]
+      }
+    ]
+  },
+  "inputs": [
+    {
+      "path": "logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/configuration.json",
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5",
+      "bytes": 71035
+    },
+    {
+      "path": "logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/report.json",
+      "sha256": "3d3e086b598ff076d5f99cf495fb869b470db5befb76fb28c726222a4dc061e8",
+      "bytes": 56302
+    },
+    {
+      "path": "scripts/tools/reference_low_stairs_clearance.py",
+      "sha256": "f2f753cc7b71ad43d58a0065743ab3fa4d0b65f340691475336cf78e0db92fd0",
+      "bytes": 5161
+    },
+    {
+      "path": "scripts/tools/reference_low_stairs_rewards.py",
+      "sha256": "9543c116be288f5020c33e112711f95a94b337e088a115d76b22db1ee9f033b9",
+      "bytes": 9719
+    },
+    {
+      "path": "scripts/tools/reference_low_stairs_zero_preservation_train.py",
+      "sha256": "80c13c103b2f717e31a535d341b01c4d05e37778b4bc1dafef3cb30600ac431a",
+      "bytes": 17160
+    },
+    {
+      "path": "logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "bytes": 6805756
+    },
+    {
+      "path": "docs/lite3-low-stairs-reward-state-20261116/raw_manifest.json",
+      "sha256": "8fa4d0a06ed2943619c3aebda5211f87e46b8e11c2bbff2fb127b2242d71811c",
+      "bytes": 12072
+    },
+    {
+      "path": "logs/reference_six/low_stairs_reward_state_20261116/nominal/report.json",
+      "sha256": "e263c82ff76bd9f815b5170a8ec48337d70c217f0735ce0bbe12198fb862b43e",
+      "bytes": 85468
+    },
+    {
+      "path": "logs/reference_six/low_stairs_reward_state_20261116/nominal/trace.npz",
+      "sha256": "ffa8703c1332e1ae10e09f759a1ecddfd297119a063528f959cddc29142fb91e",
+      "bytes": 101309151
+    },
+    {
+      "path": "logs/reference_six/low_stairs_reward_state_20261116/nominal/reward_state.npz",
+      "sha256": "721f11245695d3ad6d9ccefa720ab34c56f3826a069d7c24536b0a4522674fd2",
+      "bytes": 81034208
+    },
+    {
+      "path": "logs/reference_six/low_stairs_reward_state_20261116/training_randomized/report.json",
+      "sha256": "3cdcc592057952286f121150995714483b53bd114cd74a808068f3bdd91ea6fa",
+      "bytes": 85436
+    },
+    {
+      "path": "logs/reference_six/low_stairs_reward_state_20261116/training_randomized/trace.npz",
+      "sha256": "5c7e3de48fb826575a4b3210f109c427e4cf7ea1c8f97fbb76e1eafa4bb03c16",
+      "bytes": 102397746
+    },
+    {
+      "path": "logs/reference_six/low_stairs_reward_state_20261116/training_randomized/reward_state.npz",
+      "sha256": "d87b6778c1ce620022df189ee93ab706903fab56a59697514b90fac19b20bd67",
+      "bytes": 83156710
+    }
+  ],
+  "audit_source": {
+    "path": "scripts/tools/reference_multiterrain_research_audit.py",
+    "sha256": "2121dc429119ff86fb0573146eb44d8f8b3fec1ab7df43d4b1857e15f157d77c",
+    "bytes": 8772
+  }
+}
