@@ -1,0 +1,223 @@
+{
+  "status": "prepared",
+  "training": false,
+  "new_optimizer_updates": 0,
+  "physical_gpu": 1,
+  "new_episode_limit": 5600,
+  "previous_episodes_reused": 480,
+  "combined_candidate_and_retention_episodes": 6080,
+  "behavior_early_stop": false,
+  "automatic_promotion": false,
+  "automatic_retry": false,
+  "stop_on": "runtime/numerical/provenance/pairing/budget error only",
+  "predecessor": {
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/evaluation/complete.json",
+    "sha256": "ffb905599b60a88e4e2b6cd290f3816160650552accc87253862751096770ad7"
+  },
+  "checkpoints": {
+    "A": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/A/train_001_100/model_updates_10200.pt",
+      "sha256": "b49e090f4bb272d557e5b7f51dbed9cf8441433b5d2d7656c8f38c06fc98f15d"
+    },
+    "B": {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79"
+    }
+  },
+  "remaining_core_jobs": [
+    {
+      "variant": "A",
+      "name": "heading_up_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "up",
+      "heading": true,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "heading_up_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "up",
+      "heading": true,
+      "episodes": 240
+    },
+    {
+      "variant": "A",
+      "name": "heading_down_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "down",
+      "heading": true,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "heading_down_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "down",
+      "heading": true,
+      "episodes": 240
+    },
+    {
+      "variant": "A",
+      "name": "heading_down_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "down",
+      "heading": true,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "heading_down_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "down",
+      "heading": true,
+      "episodes": 240
+    },
+    {
+      "variant": "A",
+      "name": "turn_nominal",
+      "kind": "turn",
+      "profile": "nominal",
+      "direction": null,
+      "heading": false,
+      "episodes": 320
+    },
+    {
+      "variant": "B",
+      "name": "turn_nominal",
+      "kind": "turn",
+      "profile": "nominal",
+      "direction": null,
+      "heading": false,
+      "episodes": 320
+    },
+    {
+      "variant": "A",
+      "name": "turn_training_randomized",
+      "kind": "turn",
+      "profile": "training_randomized",
+      "direction": null,
+      "heading": false,
+      "episodes": 320
+    },
+    {
+      "variant": "B",
+      "name": "turn_training_randomized",
+      "kind": "turn",
+      "profile": "training_randomized",
+      "direction": null,
+      "heading": false,
+      "episodes": 320
+    },
+    {
+      "variant": "A",
+      "name": "up_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "up",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "up_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "up",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "A",
+      "name": "up_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "up",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "up_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "up",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "A",
+      "name": "down_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "down",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "down_nominal",
+      "kind": "stairs",
+      "profile": "nominal",
+      "direction": "down",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "A",
+      "name": "down_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "down",
+      "heading": false,
+      "episodes": 240
+    },
+    {
+      "variant": "B",
+      "name": "down_training_randomized",
+      "kind": "stairs",
+      "profile": "training_randomized",
+      "direction": "down",
+      "heading": false,
+      "episodes": 240
+    }
+  ],
+  "retention_jobs": 6,
+  "retention_episodes": 960,
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_complete.py",
+      "sha256": "78615ae989c66ec58d718abc25569f1b20108fbf2f134d47457a16665a500af1"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_evaluate.py",
+      "sha256": "cd9216b7271850978bceb79912c1d787e8d8e163e886eecdd4c74490857b6c00"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_heading.py",
+      "sha256": "9aca1a7f0318c4dd36921764f08f19808879e5bf21aa8ad6d007b7beb45abb63"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_retention.py",
+      "sha256": "35a9efbf441307537c5cb819b579e90621df067efad736c1853f901044c87e40"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_turn_diagnose.py",
+      "sha256": "e53803a8f3f4716e7752cb1b0c1afb79938a072d60c92ff021907f3f9c780337"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_isaac_stairs_diagnose.py",
+      "sha256": "c155ab8d2050e53eaabda24cb00bee91092a97b8b60a4303638c1a363157bab9"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/source_block_runtime.py",
+      "sha256": "2ca99f3438b1196f19362f481949651340d557252bd1b0466918f254a365f22c"
+    }
+  ]
+}
