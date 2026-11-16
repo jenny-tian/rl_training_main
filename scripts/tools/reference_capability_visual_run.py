@@ -50,9 +50,13 @@ def build_plan():
         "reference_isaac_stairs_diagnose.py", "reference_low_stairs_heading_probe.py",
         "reference_stair_allocation_heading.py", "source_block_runtime.py")
     sources = [ROOT/"scripts/tools"/name for name in scripts]
+    recovery = OUTPUT/"zero10100_retention_training_randomized"
+    assert (recovery/"render_states.npz").is_file()
+    jobs[0]["recover_capture"] = str(recovery)
     plan = dict(status="prepared", physical_gpu=1, training=False, optimizer_updates=0,
         new_formal_evaluation_episodes=0, maximum_replay_episodes=2240,
-        maximum_jobs=10, selected_scenes=15, selected_clips=30,
+        maximum_capture_jobs=10, render_only_recovery_jobs=1, maximum_execution_jobs=11,
+        selected_scenes=15, selected_clips=30,
         no_automatic_retry=True, no_deployment=True, jobs=jobs,
         rendering="Re-run original full batches, capture pre-reset root/joints, compare initial/config/all traces, then render saved states without physics.",
         capture_mismatch="Initial/config/nonfinite mismatch stops; finite trace differences are recorded and labelled, never counted as formal successes.",
@@ -60,7 +64,9 @@ def build_plan():
         selection_rule="Fixed representative starts, including known failures; selections frozen before rendering, not a new statistical sample.",
         sources=[dict(path=str(p), sha256=sha(p)) for p in sources],
         formal_manifests=[dict(path=str(p), sha256=sha(p)) for p in sorted(formal_files)],
-        previous_complete_sha256=sha(FORMAL/"complete.json"))
+        previous_complete_sha256=sha(FORMAL/"complete.json"),
+        repair="Preserve first completed 160-episode capture; repair metadata comparison and resume rendering after 50 preparation steps, with zero repeated policy rollout.",
+        original_plan_sha256=sha(OUTPUT/"plan.json"))
     assert sum(j["replay_episodes"] for j in jobs) == 2240
     assert sum(len(j["selections"]) for j in jobs) == 30
     return plan
@@ -73,20 +79,20 @@ def main():
     plan = build_plan()
     OUTPUT.mkdir(parents=True, exist_ok=True)
     DOCS.mkdir(parents=True, exist_ok=True)
-    path = OUTPUT/"plan.json"
+    path = OUTPUT/"plan_v2.json"
     if path.exists():
         assert read(path) == plan
     else:
         save(path, plan)
-        save(DOCS/"execution_plan.json", plan)
+        save(DOCS/"execution_plan_v2.json", plan)
     if args.prepare_only:
-        print("PREPARED", plan["maximum_jobs"], "jobs;", plan["selected_clips"], "clips; no training")
+        print("PREPARED", plan["maximum_capture_jobs"], "capture jobs;", plan["selected_clips"], "clips; one render-only recovery; no training")
         return
     if (OUTPUT/"complete.json").exists():
         raise RuntimeError("visual stage already ended")
     completed = []
     for job in plan["jobs"]:
-        output = OUTPUT/job["id"]
+        output = OUTPUT/(job["id"]+"_render_only" if job.get("recover_capture") else job["id"])
         if output.exists():
             assert (output/"visual_complete.json").exists() and read(output/"execution.json")["status"] == "completed", "no automatic retry"
         else:

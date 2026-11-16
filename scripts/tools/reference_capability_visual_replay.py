@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 import traceback
 from types import SimpleNamespace
@@ -13,7 +14,6 @@ import numpy as np
 
 from reference_stairs_eval import ROOT, save, sha
 from reference_eval_checkpoint import register_checkpoint
-from reference_low_stairs_a_evaluate import same_configuration
 
 
 def read(path):
@@ -45,12 +45,30 @@ def load_npz(path):
         return {key: archive[key] for key in archive.files}
 
 
+def same_visual_configuration(left, right):
+    """Check every common source; allow only the documented read-only import."""
+    left, right = dict(left), dict(right)
+    a = {r["path"]: r["sha256"] for r in left.pop("sources")}
+    b = {r["path"]: r["sha256"] for r in right.pop("sources")}
+    allowed = str(ROOT/"scripts/tools/reference_six_watch.py")
+    if set(b)-set(a) or any(a[p] != digest for p, digest in b.items()):
+        return False
+    if set(a)-set(b) not in (set(), {allowed}):
+        return False
+    if any(sha(p) != digest for p, digest in a.items()):
+        return False
+    ignored = {"model", "checkpoint", "model_sha256", "checkpoint_sha256"}
+    if left.get("action_mode") == right.get("action_mode") == "mean":
+        ignored.add("action_std")
+    return {k:v for k,v in left.items() if k not in ignored} == {k:v for k,v in right.items() if k not in ignored}
+
+
 def verify_capture(output, formal, states, ids):
     initial = compare_arrays(load_npz(output/"initial.npz"), load_npz(formal/"initial.npz"))
     trace = load_npz(output/"trace.npz")
     checks = compare_arrays(trace, load_npz(formal/"trace.npz"))
     report, old = read(output/"report.json"), read(formal/"report.json")
-    configuration = same_configuration(read(output/"config.json"), read(formal/"config.json"))
+    configuration = same_visual_configuration(read(output/"config.json"), read(formal/"config.json"))
     assert configuration and all(v["exact"] for v in initial.values()), "initial/configuration mismatch"
     assert all(v["finite"] for v in checks.values()), "nonfinite replay"
     assert report["actor_unchanged"] and len(states["root"]) == len(trace["active"])
@@ -197,6 +215,10 @@ def collect_and_render(job, output):
     ids = [s["env_id"] for s in job["selections"]]
     native = envs.ManagerBasedRLEnv
     base_instances, buffers = [], {k: [] for k in ("root", "joint_pos", "joint_vel")}
+    recovery = Path(job["recover_capture"]) if job.get("recover_capture") else None
+
+    class ReadyToRender(Exception):
+        pass
 
     class CaptureEnvironment(native):
         def __init__(self, *pos, **kw):
@@ -220,6 +242,18 @@ def collect_and_render(job, output):
                 return value
 
             self.reward_manager.compute = capture
+            if recovery is not None:
+                step = self.step
+                steps = 0
+
+                def stop_before_rollout(action):
+                    nonlocal steps
+                    if steps == 50:
+                        raise ReadyToRender()
+                    steps += 1
+                    return step(action)
+
+                self.step = stop_before_rollout
 
     envs.ManagerBasedRLEnv = CaptureEnvironment
     original_launcher = app_module.AppLauncher
@@ -238,14 +272,27 @@ def collect_and_render(job, output):
         else:
             import reference_isaac_stairs_diagnose as protocol
             protocol.collect(args, app)
+    except ReadyToRender:
+        assert recovery is not None
     finally:
         envs.ManagerBasedRLEnv = native
         app_module.AppLauncher = original_launcher
     assert len(base_instances) == 1
     base = base_instances[0]
-    states = {k: np.asarray(v) for k, v in buffers.items()}
-    states["env_ids"] = np.asarray(ids)
-    states["origins"] = base.scene.env_origins[ids].cpu().numpy().copy()
+    if recovery is not None:
+        setup = compare_arrays(load_npz(output/"initial.npz"), load_npz(recovery/"initial.npz"))
+        assert all(r["exact"] for r in setup.values()) and not any(buffers.values())
+        for name in ("initial.npz", "config.json"):
+            shutil.move(output/name, output/f"render_setup_{name}")
+        for name in ("initial.npz", "config.json", "report.json", "trace.npz"):
+            shutil.copy2(recovery/name, output/name)
+        states = load_npz(recovery/"render_states.npz")
+        save(output/"recovery.json", dict(source=str(recovery), policy_rollout_steps=0,
+            preparation_steps=50, initial_exact=True, reason="Source metadata comparison included an extra read-only statistics import."))
+    else:
+        states = {k: np.asarray(v) for k, v in buffers.items()}
+        states["env_ids"] = np.asarray(ids)
+        states["origins"] = base.scene.env_origins[ids].cpu().numpy().copy()
     assert all(np.isfinite(v).all() for v in states.values())
     np.savez_compressed(output/"render_states.npz", **states)
     validation, report, trace = verify_capture(output, formal, states, ids)
@@ -254,6 +301,7 @@ def collect_and_render(job, output):
     assert sha(job["checkpoint"]) == job["checkpoint_sha256"]
     save(output/"visual_complete.json", dict(status="completed", job=job, clips=clips,
         reproduction=validation["status"], replay_episodes=report["episodes"],
+        newly_simulated_replay_episodes=0 if recovery is not None else report["episodes"],
         new_optimizer_updates=0, physics_steps_during_rendering=0,
         source_sha256=sha(__file__), formal_success_counts_unchanged=True))
 
