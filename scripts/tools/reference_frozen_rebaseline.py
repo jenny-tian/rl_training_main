@@ -33,6 +33,7 @@ def height(c):
     d = c.rsplit('_', 1)[1]
     return int(d) / (100. if len(d) == 2 else 1000.)
 HEAD_TARGETS = ('stairs_up_06', 'stairs_up_065', 'boxes_06', 'slope_rough_up_x11')
+WIDE_TARGETS = ('stairs_up_065', 'slope_rough_up_x11')
 RUNS = {
     'map_nominal_on': dict(layout='map', profile='nominal', heading=True, conditions=tuple(MAP_COLUMNS)),
     'map_randomized_on': dict(layout='map', profile='training_randomized', heading=True, conditions=tuple(MAP_COLUMNS)),
@@ -44,6 +45,8 @@ RUNS = {
     'smoke': dict(layout='fixed', profile='nominal', heading=True, conditions=BASE_FIXED + TARGETS, starts=15),
     'headroom_smoke': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=45, residual='grid', starts=2),
     'headroom_grid': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=43, residual='grid', starts=16),
+    'wide_grid': dict(layout='fixed', profile='nominal', heading=True, conditions=WIDE_TARGETS, namespace=46, residual='grid', starts=16, scale=2.),
+    'wide_confirm': dict(layout='fixed', profile='nominal', heading=True, conditions=WIDE_TARGETS[:1], namespace=47, residual='confirm', starts=64, scale=2., winners='winners_wide.json'),
     'headroom_confirm': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=44, residual='confirm', starts=64),
 }
 GRID_VALUES = (-1.5, 0., 1.5)
@@ -58,7 +61,7 @@ def codes_for(run, condition):
     if kind == 'grid':
         return [dict(basis=b, u=[u1, u2]) for b in BASES for u1 in GRID_VALUES for u2 in GRID_VALUES]
     import json
-    winner = json.loads((OUTPUT / 'winners.json').read_text())[condition]
+    winner = json.loads((OUTPUT / RUNS[run].get('winners', 'winners.json')).read_text())[condition]
     return [dict(basis='sag', u=[0., 0.]), dict(basis=winner['basis'], u=winner['u'])]
 
 
@@ -275,10 +278,10 @@ def collect(args):
         from rl_training.ea_lpl.residual_bridge import ResidualSafetyBridge
         from rl_training.ea_lpl.basis import BASIS_NAMES, stacked_bases, residual_request
         from reference_online_interface import CurrentIsaacAdapter, clip_action
-        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(RESIDUAL_LIMITS, device=device)))
+        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(RESIDUAL_LIMITS, device=device) * run.get('scale', 1.)))
         bridge = ResidualSafetyBridge(CurrentIsaacAdapter(base), safety, action_clip=clip_action)
         request = residual_request(torch.tensor([BASIS_NAMES.index(s['basis']) for s in specs], device=device),
-                                   torch.tensor([s['u'] for s in specs], device=device), stacked_bases(device=device))
+                                   torch.tensor([s['u'] for s in specs], device=device), stacked_bases(device=device)) * run.get('scale', 1.)
         no_timeout = torch.zeros(n, 1, dtype=torch.bool, device=device)
     delta_sum = torch.zeros(n, device=device); delta_steps = torch.zeros(n, device=device)
     with torch.inference_mode():
