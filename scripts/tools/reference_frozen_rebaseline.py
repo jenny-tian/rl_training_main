@@ -25,13 +25,21 @@ MAP_COLUMNS = dict(flat=0, rough=4, slope_up=8, slope_down=10, friction_lateral=
 BASE_FIXED = ('stairs_up_05', 'stairs_down_05')
 TARGETS = ('stairs_up_06', 'stairs_up_07', 'stairs_up_08', 'boxes_08', 'stairs_down_08', 'slope_rough_up_x13')
 # 训练上限：坡度参数 0.4，粗糙幅度 0.06 m。候选取约 1.3 倍。
-BEYOND = dict(slope=.52, noise=(.02, .08))
+BEYOND = {'x13': (.52, (.02, .08)), 'x11': (.44, (.01, .07)), 'x12': (.48, (.01, .07))}
+DENSE = ('stairs_up_065', 'boxes_05', 'boxes_06', 'slope_rough_up_x11', 'slope_rough_up_x12', 'stairs_down_10')
+
+
+def height(c):
+    d = c.rsplit('_', 1)[1]
+    return int(d) / (100. if len(d) == 2 else 1000.)
 RUNS = {
     'map_nominal_on': dict(layout='map', profile='nominal', heading=True, conditions=tuple(MAP_COLUMNS)),
     'map_randomized_on': dict(layout='map', profile='training_randomized', heading=True, conditions=tuple(MAP_COLUMNS)),
     'fixed_nominal_on': dict(layout='fixed', profile='nominal', heading=True, conditions=BASE_FIXED + TARGETS),
     'fixed_randomized_on': dict(layout='fixed', profile='training_randomized', heading=True, conditions=BASE_FIXED),
     'fixed_nominal_off': dict(layout='fixed', profile='nominal', heading=False, conditions=TARGETS),
+    'dense_nominal_on': dict(layout='fixed', profile='nominal', heading=True, conditions=DENSE, namespace=42),
+    'dense_map_nominal_on': dict(layout='map', profile='nominal', heading=True, conditions=('slope_rough_down',), namespace=42, row=8),
     'smoke': dict(layout='fixed', profile='nominal', heading=True, conditions=BASE_FIXED + TARGETS),
 }
 
@@ -40,10 +48,10 @@ def namespace_of(condition):
     return 41 if condition in TARGETS else 40
 
 
-def start_offset(condition, slot):
+def start_offset(condition, slot, ns=None):
     """起点只由（命名空间、条件名、编号）决定，所以闭环开/关两组逐一配对。"""
     import numpy as np
-    rng = np.random.default_rng([namespace_of(condition), zlib.crc32(condition.encode()), slot])
+    rng = np.random.default_rng([ns or namespace_of(condition), zlib.crc32(condition.encode()), slot])
     return rng.uniform([.20, -.10, -.03], [.30, .10, .03]).tolist()
 
 
@@ -52,9 +60,10 @@ def specs_for(run, starts=STARTS):
     out = []
     for condition in r['conditions']:
         for slot in range(starts):
-            row = (1 if slot < starts // 2 else 8) if r['layout'] == 'map' else 0
+            row = r.get('row', 1 if slot < starts // 2 else 8) if r['layout'] == 'map' else 0
+            ns = r.get('namespace', namespace_of(condition))
             out.append(dict(env_id=len(out), condition=condition, slot=slot, row=row,
-                            namespace=namespace_of(condition), offset=start_offset(condition, slot)))
+                            namespace=ns, offset=start_offset(condition, slot, ns)))
     return out
 
 
@@ -111,15 +120,16 @@ def collect(args):
         for c in conditions:
             if c.startswith('stairs'):
                 sub = copy.deepcopy(source['stairs_up' if '_up_' in c else 'stairs_down'])
-                sub.step_height_range = (int(c[-2:]) / 100.,) * 2
-            elif c == 'boxes_08':
+                sub.step_height_range = (height(c),) * 2
+            elif c.startswith('boxes'):
                 sub = HeldoutBoxesTrackCfg(flat_length=3., lane_width=2., grid_width=.4,
-                                           grid_height_range=[.08, .08], seed=101)
+                                           grid_height_range=[height(c)] * 2, seed=101)
             else:
                 sub = copy.deepcopy(source['slope_rough_up'])
                 assert tuple(sub.slope_range) == (0., .4) and tuple(sub.noise_range) == (.01, .06)
-                sub.slope_range = (BEYOND['slope'],) * 2
-                sub.noise_range = BEYOND['noise']
+                slope, noise = BEYOND[c.rsplit('_', 1)[1]]
+                sub.slope_range = (slope,) * 2
+                sub.noise_range = noise
             sub.proportion = 1. / len(conditions)
             subs[c] = sub
         gen.sub_terrains = subs
@@ -164,7 +174,7 @@ def collect(args):
         mesh = RayCaster.meshes[cfg.scene.terrain.prim_path]
         for c in conditions:
             origin = terrain.terrain_origins[0, columns[c]]
-            xs = torch.linspace(0., 6.8 if c == 'boxes_08' else 3.8, 3401, device=device)
+            xs = torch.linspace(0., 6.8 if c.startswith('boxes') else 3.8, 3401, device=device)
             starts = origin + torch.stack((xs, torch.zeros_like(xs), torch.full_like(xs, 20.)), -1)
             directions = torch.zeros_like(starts); directions[:, 2] = -1
             z = (raycast_mesh(starts, directions, mesh)[0][:, 2] - origin[2]).cpu().numpy()
@@ -172,14 +182,14 @@ def collect(args):
             xx = xs.cpu().numpy()
             fronts = []
             if c.startswith('stairs'):
-                h = int(c[-2:]) / 100.
+                h = height(c)
                 edges = np.flatnonzero(np.abs(np.diff(z)) > h * .5) + 1
                 fronts = ((xx[edges] + xx[edges - 1]) / 2).tolist()
                 steps = np.diff(z)[edges - 1]
                 assert len(fronts) >= 5 and np.allclose(np.abs(steps), h, atol=.003), (c, steps)
                 assert (steps > 0).all() if '_up_' in c else (steps < 0).all()
                 goals[c] = fronts[-1] + .30
-            elif c == 'boxes_08':
+            elif c.startswith('boxes'):
                 assert np.ptp(z) > .01
                 goals[c] = 5.5
             else:
