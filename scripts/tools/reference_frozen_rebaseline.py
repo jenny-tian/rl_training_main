@@ -32,6 +32,7 @@ DENSE = ('stairs_up_065', 'boxes_05', 'boxes_06', 'slope_rough_up_x11', 'slope_r
 def height(c):
     d = c.rsplit('_', 1)[1]
     return int(d) / (100. if len(d) == 2 else 1000.)
+HEAD_TARGETS = ('stairs_up_06', 'stairs_up_065', 'boxes_06', 'slope_rough_up_x11')
 RUNS = {
     'map_nominal_on': dict(layout='map', profile='nominal', heading=True, conditions=tuple(MAP_COLUMNS)),
     'map_randomized_on': dict(layout='map', profile='training_randomized', heading=True, conditions=tuple(MAP_COLUMNS)),
@@ -40,8 +41,25 @@ RUNS = {
     'fixed_nominal_off': dict(layout='fixed', profile='nominal', heading=False, conditions=TARGETS),
     'dense_nominal_on': dict(layout='fixed', profile='nominal', heading=True, conditions=DENSE, namespace=42),
     'dense_map_nominal_on': dict(layout='map', profile='nominal', heading=True, conditions=('slope_rough_down',), namespace=42, row=8),
-    'smoke': dict(layout='fixed', profile='nominal', heading=True, conditions=BASE_FIXED + TARGETS),
+    'smoke': dict(layout='fixed', profile='nominal', heading=True, conditions=BASE_FIXED + TARGETS, starts=15),
+    'headroom_smoke': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=45, residual='grid', starts=2),
+    'headroom_grid': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=43, residual='grid', starts=16),
+    'headroom_confirm': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=44, residual='confirm', starts=64),
 }
+GRID_VALUES = (-1.5, 0., 1.5)
+BASES = ('sag', 'roll', 'hipx')
+RESIDUAL_LIMITS = [.24, .20, .20] * 4
+
+
+def codes_for(run, condition):
+    kind = RUNS[run].get('residual')
+    if kind is None:
+        return [None]
+    if kind == 'grid':
+        return [dict(basis=b, u=[u1, u2]) for b in BASES for u1 in GRID_VALUES for u2 in GRID_VALUES]
+    import json
+    winner = json.loads((OUTPUT / 'winners.json').read_text())[condition]
+    return [dict(basis='sag', u=[0., 0.]), dict(basis=winner['basis'], u=winner['u'])]
 
 
 def namespace_of(condition):
@@ -55,15 +73,17 @@ def start_offset(condition, slot, ns=None):
     return rng.uniform([.20, -.10, -.03], [.30, .10, .03]).tolist()
 
 
-def specs_for(run, starts=STARTS):
+def specs_for(run):
     r = RUNS[run]
+    starts = r.get('starts', STARTS)
     out = []
     for condition in r['conditions']:
+      for code in codes_for(run, condition):
         for slot in range(starts):
             row = r.get('row', 1 if slot < starts // 2 else 8) if r['layout'] == 'map' else 0
             ns = r.get('namespace', namespace_of(condition))
             out.append(dict(env_id=len(out), condition=condition, slot=slot, row=row,
-                            namespace=ns, offset=start_offset(condition, slot, ns)))
+                            namespace=ns, offset=start_offset(condition, slot, ns), **(code or {})))
     return out
 
 
@@ -102,8 +122,8 @@ def collect(args):
     from rl_training.tasks.manager_based.locomotion.velocity.mdp import rewards as rewards_module
 
     run = RUNS[args.run]
-    smoke = args.run == 'smoke'
-    specs = specs_for(args.run, 15 if smoke else STARTS)
+    smoke = 'smoke' in args.run
+    specs = specs_for(args.run)
     n = len(specs)
     conditions = list(run['conditions'])
     if run['layout'] == 'map':
@@ -243,6 +263,24 @@ def collect(args):
     actor = load_actor('B').to(device)
     digest = lambda: hashlib.sha256(b''.join(v.cpu().numpy().tobytes() for v in actor.state_dict().values())).hexdigest()
     before = digest()
+    bridge = None
+    if run.get('residual'):
+        from reference_lite3_loader import namespace
+        package = ROOT / 'source/rl_training/rl_training'
+        sys.modules['rl_training'].__path__.append(str(package))
+        namespace('rl_training.online_adaptation', package / 'online_adaptation')
+        namespace('rl_training.ea_lpl', package / 'ea_lpl')
+        from rl_training.online_adaptation.safety import SafetyLimits
+        from rl_training.ea_lpl.current_safety import CurrentModelSafetyFilter
+        from rl_training.ea_lpl.residual_bridge import ResidualSafetyBridge
+        from rl_training.ea_lpl.basis import BASIS_NAMES, stacked_bases, residual_request
+        from reference_online_interface import CurrentIsaacAdapter, clip_action
+        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(RESIDUAL_LIMITS, device=device)))
+        bridge = ResidualSafetyBridge(CurrentIsaacAdapter(base), safety, action_clip=clip_action)
+        request = residual_request(torch.tensor([BASIS_NAMES.index(s['basis']) for s in specs], device=device),
+                                   torch.tensor([s['u'] for s in specs], device=device), stacked_bases(device=device))
+        no_timeout = torch.zeros(n, 1, dtype=torch.bool, device=device)
+    delta_sum = torch.zeros(n, device=device); delta_steps = torch.zeros(n, device=device)
     with torch.inference_mode():
         for _ in range(50):
             obs, _, terminated, truncated, _ = base.step(torch.zeros(n, 12, device=device))
@@ -250,6 +288,7 @@ def collect(args):
                 raise RuntimeError('standing preparation terminated')
     base.episode_length_buf[:] = 0
     base.action_manager.reset()
+    if bridge: safety.reset_temporal_state()
     tick = 0; set_command(0)
     obs = base.observation_manager.compute()
     start = (robot.data.root_pos_w - origins).cpu().numpy().copy()
@@ -305,16 +344,26 @@ def collect(args):
     with torch.inference_mode():
         for tick in range(total):
             assert torch.equal(obs['policy'][:, 6:9], command.command)
-            obs, *_ = base.step(actor(obs['policy']).clamp(-100, 100))
+            if bridge is None:
+                obs, *_ = base.step(actor(obs['policy']).clamp(-100, 100))
+            else:
+                trace = bridge.step(actor(obs['policy']), request, no_timeout)
+                live = torch.as_tensor(active, device=device)
+                delta_sum += (trace.executed_action - trace.base_action).norm(dim=-1) * live; delta_steps += live
+                obs, _, term, trunc, _ = base.step(trace.executed_action)
+                if (term | trunc).any():
+                    safety.reset_temporal_state(torch.where(term | trunc)[0])
             if not active.any():
                 break
     assert all(r is not None for r in records)
+    for i, r in enumerate(records):
+        r['mean_executed_delta'] = float(delta_sum[i] / delta_steps[i].clamp(min=1))
     assert digest() == before and sha(MODELS['B']) == HASHES['B']
     assert feedback_error <= 1e-5, feedback_error
     save(args.output / 'report.json', dict(status='passed', run=args.run, **{k: run[k] for k in ('layout', 'profile', 'heading')},
         model='B10200', model_sha256=HASHES['B'], episodes=n, records=records, actor_unchanged=True,
         first_episodes_only=True, optimizer_updates=0, step_dt=dt, feedback_max_error=feedback_error,
-        safety_filter=False, source_sha256=sha(__file__), sources=source_manifest(), goals=goals))
+        safety_filter=bridge is not None, source_sha256=sha(__file__), sources=source_manifest(), goals=goals))
 
 
 def main():
