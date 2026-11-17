@@ -1,0 +1,806 @@
+{
+  "status": "completed_bounded_frozen_validation",
+  "optimizer_updates": 0,
+  "checkpoint_hashes": {
+    "zero10100": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+    "B": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79"
+  },
+  "smoke_attempts_total": 4,
+  "inherited_failures": 2,
+  "formal_episodes": {
+    "baseline": 384,
+    "grid": 600,
+    "confirmation": 32
+  },
+  "formal_total": 1016,
+  "formal_ceiling": 1648,
+  "selected": [
+    "stairs_06"
+  ],
+  "attempts": [
+    {
+      "kind": "smoke",
+      "model": "B",
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_20261116/smoke_B",
+      "episodes": 12,
+      "max_control_steps": 600,
+      "inherited": true
+    },
+    {
+      "kind": "smoke",
+      "model": "B",
+      "condition": null,
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_repaired_20261116/smoke_B",
+      "episodes": 12,
+      "inherited": true,
+      "max_control_steps": 600
+    },
+    {
+      "kind": "smoke",
+      "model": "B",
+      "condition": null,
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B",
+      "episodes": 12,
+      "inherited": false,
+      "max_control_steps": 600
+    },
+    {
+      "kind": "smoke",
+      "model": "zero10100",
+      "condition": null,
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100",
+      "episodes": 12,
+      "inherited": false,
+      "max_control_steps": 600
+    },
+    {
+      "kind": "baseline",
+      "model": "B",
+      "condition": null,
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B",
+      "episodes": 192,
+      "inherited": false,
+      "max_control_steps": 1050
+    },
+    {
+      "kind": "baseline",
+      "model": "zero10100",
+      "condition": null,
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100",
+      "episodes": 192,
+      "inherited": false,
+      "max_control_steps": 1050
+    },
+    {
+      "kind": "grid",
+      "model": "B",
+      "condition": "stairs_06",
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06",
+      "episodes": 600,
+      "inherited": false,
+      "max_control_steps": 1050
+    },
+    {
+      "kind": "confirmation",
+      "model": "B",
+      "condition": "stairs_06",
+      "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06",
+      "episodes": 32,
+      "inherited": false,
+      "max_control_steps": 1050
+    }
+  ],
+  "runs": [
+    {
+      "attempt": {
+        "kind": "smoke",
+        "model": "B",
+        "condition": null,
+        "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B",
+        "episodes": 12,
+        "inherited": false,
+        "max_control_steps": 600
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current.py",
+          "--kind",
+          "smoke",
+          "--model",
+          "B",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 23468,
+        "peak_total_gpu_used_mib": 3407,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 10240,
+        "source_commit": "8ec25a9bc49804268789f7785e7ce8ca49fd6a0d",
+        "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-current-20261117/\n?? scripts/tools/reference_online_current.py\n?? scripts/tools/reference_online_current_collect.py\n?? source/rl_training/rl_training/ea_lpl/current_shadow.py\n?? tests/ea_lpl/test_current_shadow.py\n",
+        "pid": 731171,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 57.633067950606346
+      },
+      "report": {
+        "status": "passed",
+        "kind": "smoke",
+        "model": "B",
+        "episodes": 12,
+        "control_steps": 550,
+        "preparation_steps": 50,
+        "scored_transitions": 6461,
+        "automatic_reset_events": 1,
+        "first_episodes_only": true,
+        "actor_unchanged": true,
+        "optimizer_updates": 0,
+        "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+        "actor_digest": "9da29437a425919b29df6f3d2e3a1a4b46a013069054759067224ed4a0d6183c",
+        "interface": {
+          "current_observation_checked_every_step": true,
+          "zero_feasible_action_exact": true,
+          "safety_memory": "projected_action_minus_projected_base_v1",
+          "pre_reset_flags_exact": true,
+          "safety_snapshots_before_step": true,
+          "base_and_learned_components_separate": true,
+          "reset_filter_per_environment": true,
+          "action_clip": [
+            -100,
+            100
+          ],
+          "dt": 0.02,
+          "base_projection_steps": 339,
+          "zero_changed_steps": 135
+        },
+        "caveats": [
+          "Nominal domain with paired native 0/1 actuator delays.",
+          "Native automatic resets after scored first episodes are unscored and reported separately.",
+          "Boxes generator has a continuous base at z=0; negative box draws are buried, verified via ray heights.",
+          "Safety joint projection can modify even a zero residual and is separately recorded."
+        ]
+      }
+    },
+    {
+      "attempt": {
+        "kind": "smoke",
+        "model": "zero10100",
+        "condition": null,
+        "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100",
+        "episodes": 12,
+        "inherited": false,
+        "max_control_steps": 600
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current.py",
+          "--kind",
+          "smoke",
+          "--model",
+          "zero10100",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 23468,
+        "peak_total_gpu_used_mib": 3407,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 10240,
+        "source_commit": "8ec25a9bc49804268789f7785e7ce8ca49fd6a0d",
+        "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-current-20261117/\n?? scripts/tools/reference_online_current.py\n?? scripts/tools/reference_online_current_collect.py\n?? source/rl_training/rl_training/ea_lpl/current_shadow.py\n?? tests/ea_lpl/test_current_shadow.py\n",
+        "pid": 732882,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 49.35202332958579
+      },
+      "report": {
+        "status": "passed",
+        "kind": "smoke",
+        "model": "zero10100",
+        "episodes": 12,
+        "control_steps": 550,
+        "preparation_steps": 50,
+        "scored_transitions": 6600,
+        "automatic_reset_events": 0,
+        "first_episodes_only": true,
+        "actor_unchanged": true,
+        "optimizer_updates": 0,
+        "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+        "actor_digest": "125d5d66e69ef0afc36337fcd8083bd03d08e947c2e88ea6319045bbf069dc4e",
+        "interface": {
+          "current_observation_checked_every_step": true,
+          "zero_feasible_action_exact": true,
+          "safety_memory": "projected_action_minus_projected_base_v1",
+          "pre_reset_flags_exact": true,
+          "safety_snapshots_before_step": true,
+          "base_and_learned_components_separate": true,
+          "reset_filter_per_environment": true,
+          "action_clip": [
+            -100,
+            100
+          ],
+          "dt": 0.02,
+          "base_projection_steps": 392,
+          "zero_changed_steps": 188
+        },
+        "caveats": [
+          "Nominal domain with paired native 0/1 actuator delays.",
+          "Native automatic resets after scored first episodes are unscored and reported separately.",
+          "Boxes generator has a continuous base at z=0; negative box draws are buried, verified via ray heights.",
+          "Safety joint projection can modify even a zero residual and is separately recorded."
+        ]
+      }
+    },
+    {
+      "attempt": {
+        "kind": "baseline",
+        "model": "B",
+        "condition": null,
+        "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B",
+        "episodes": 192,
+        "inherited": false,
+        "max_control_steps": 1050
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current.py",
+          "--kind",
+          "baseline",
+          "--model",
+          "B",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 23468,
+        "peak_total_gpu_used_mib": 3481,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 10240,
+        "source_commit": "8ec25a9bc49804268789f7785e7ce8ca49fd6a0d",
+        "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-current-20261117/\n?? scripts/tools/reference_online_current.py\n?? scripts/tools/reference_online_current_analysis.py\n?? scripts/tools/reference_online_current_collect.py\n?? source/rl_training/rl_training/ea_lpl/current_shadow.py\n?? tests/ea_lpl/test_current_shadow.py\n",
+        "pid": 734981,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 90.59953265078366
+      },
+      "report": {
+        "status": "passed",
+        "kind": "baseline",
+        "model": "B",
+        "episodes": 192,
+        "control_steps": 1000,
+        "preparation_steps": 50,
+        "scored_transitions": 142911,
+        "automatic_reset_events": 198,
+        "first_episodes_only": true,
+        "actor_unchanged": true,
+        "optimizer_updates": 0,
+        "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+        "actor_digest": "9da29437a425919b29df6f3d2e3a1a4b46a013069054759067224ed4a0d6183c",
+        "interface": {
+          "current_observation_checked_every_step": true,
+          "zero_feasible_action_exact": true,
+          "safety_memory": "projected_action_minus_projected_base_v1",
+          "pre_reset_flags_exact": true,
+          "safety_snapshots_before_step": true,
+          "base_and_learned_components_separate": true,
+          "reset_filter_per_environment": true,
+          "action_clip": [
+            -100,
+            100
+          ],
+          "dt": 0.02,
+          "base_projection_steps": 5729,
+          "zero_changed_steps": 5729
+        },
+        "caveats": [
+          "Nominal domain with paired native 0/1 actuator delays.",
+          "Native automatic resets after scored first episodes are unscored and reported separately.",
+          "Boxes generator has a continuous base at z=0; negative box draws are buried, verified via ray heights.",
+          "Safety joint projection can modify even a zero residual and is separately recorded."
+        ]
+      }
+    },
+    {
+      "attempt": {
+        "kind": "baseline",
+        "model": "zero10100",
+        "condition": null,
+        "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100",
+        "episodes": 192,
+        "inherited": false,
+        "max_control_steps": 1050
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current.py",
+          "--kind",
+          "baseline",
+          "--model",
+          "zero10100",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 23468,
+        "peak_total_gpu_used_mib": 3481,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 10240,
+        "source_commit": "8ec25a9bc49804268789f7785e7ce8ca49fd6a0d",
+        "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-current-20261117/\n?? scripts/tools/reference_online_current.py\n?? scripts/tools/reference_online_current_analysis.py\n?? scripts/tools/reference_online_current_collect.py\n?? source/rl_training/rl_training/ea_lpl/current_shadow.py\n?? tests/ea_lpl/test_current_shadow.py\n",
+        "pid": 737684,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 90.51735611259937
+      },
+      "report": {
+        "status": "passed",
+        "kind": "baseline",
+        "model": "zero10100",
+        "episodes": 192,
+        "control_steps": 1000,
+        "preparation_steps": 50,
+        "scored_transitions": 161458,
+        "automatic_reset_events": 192,
+        "first_episodes_only": true,
+        "actor_unchanged": true,
+        "optimizer_updates": 0,
+        "checkpoint_sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+        "actor_digest": "125d5d66e69ef0afc36337fcd8083bd03d08e947c2e88ea6319045bbf069dc4e",
+        "interface": {
+          "current_observation_checked_every_step": true,
+          "zero_feasible_action_exact": true,
+          "safety_memory": "projected_action_minus_projected_base_v1",
+          "pre_reset_flags_exact": true,
+          "safety_snapshots_before_step": true,
+          "base_and_learned_components_separate": true,
+          "reset_filter_per_environment": true,
+          "action_clip": [
+            -100,
+            100
+          ],
+          "dt": 0.02,
+          "base_projection_steps": 11886,
+          "zero_changed_steps": 11886
+        },
+        "caveats": [
+          "Nominal domain with paired native 0/1 actuator delays.",
+          "Native automatic resets after scored first episodes are unscored and reported separately.",
+          "Boxes generator has a continuous base at z=0; negative box draws are buried, verified via ray heights.",
+          "Safety joint projection can modify even a zero residual and is separately recorded."
+        ]
+      }
+    },
+    {
+      "attempt": {
+        "kind": "grid",
+        "model": "B",
+        "condition": "stairs_06",
+        "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06",
+        "episodes": 600,
+        "inherited": false,
+        "max_control_steps": 1050
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current.py",
+          "--kind",
+          "grid",
+          "--model",
+          "B",
+          "--condition",
+          "stairs_06",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 23468,
+        "peak_total_gpu_used_mib": 3641,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 10240,
+        "source_commit": "8ec25a9bc49804268789f7785e7ce8ca49fd6a0d",
+        "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-current-20261117/\n?? scripts/tools/reference_online_current.py\n?? scripts/tools/reference_online_current_analysis.py\n?? scripts/tools/reference_online_current_collect.py\n?? scripts/tools/reference_online_current_replay.py\n?? source/rl_training/rl_training/ea_lpl/current_shadow.py\n?? tests/ea_lpl/test_current_shadow.py\n",
+        "pid": 740569,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 113.19780931714922
+      },
+      "report": {
+        "status": "passed",
+        "kind": "grid",
+        "model": "B",
+        "episodes": 600,
+        "control_steps": 1000,
+        "preparation_steps": 50,
+        "scored_transitions": 417900,
+        "automatic_reset_events": 620,
+        "first_episodes_only": true,
+        "actor_unchanged": true,
+        "optimizer_updates": 0,
+        "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+        "actor_digest": "9da29437a425919b29df6f3d2e3a1a4b46a013069054759067224ed4a0d6183c",
+        "interface": {
+          "current_observation_checked_every_step": true,
+          "zero_feasible_action_exact": true,
+          "safety_memory": "projected_action_minus_projected_base_v1",
+          "pre_reset_flags_exact": true,
+          "safety_snapshots_before_step": true,
+          "base_and_learned_components_separate": true,
+          "reset_filter_per_environment": true,
+          "action_clip": [
+            -100,
+            100
+          ],
+          "dt": 0.02,
+          "base_projection_steps": 13947,
+          "zero_changed_steps": 396
+        },
+        "caveats": [
+          "Nominal domain with paired native 0/1 actuator delays.",
+          "Native automatic resets after scored first episodes are unscored and reported separately.",
+          "Boxes generator has a continuous base at z=0; negative box draws are buried, verified via ray heights.",
+          "Safety joint projection can modify even a zero residual and is separately recorded."
+        ]
+      }
+    },
+    {
+      "attempt": {
+        "kind": "confirmation",
+        "model": "B",
+        "condition": "stairs_06",
+        "output": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06",
+        "episodes": 32,
+        "inherited": false,
+        "max_control_steps": 1050
+      },
+      "execution": {
+        "command": [
+          "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+          "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current.py",
+          "--kind",
+          "confirmation",
+          "--model",
+          "B",
+          "--condition",
+          "stairs_06",
+          "--child"
+        ],
+        "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+        "physical_gpu": 1,
+        "admission_free_mib": 23468,
+        "peak_total_gpu_used_mib": 3407,
+        "sampling_interval_seconds": 2,
+        "status": "completed",
+        "minimum_free_mib": 10240,
+        "source_commit": "8ec25a9bc49804268789f7785e7ce8ca49fd6a0d",
+        "source_status": "?? .superpowers/\n?? docs/lite3-online-targets-current-20261117/\n?? scripts/tools/reference_online_current.py\n?? scripts/tools/reference_online_current_analysis.py\n?? scripts/tools/reference_online_current_collect.py\n?? scripts/tools/reference_online_current_evidence.py\n?? scripts/tools/reference_online_current_replay.py\n?? source/rl_training/rl_training/ea_lpl/current_shadow.py\n?? tests/ea_lpl/test_current_shadow.py\n",
+        "pid": 743876,
+        "exit_code": 0,
+        "failure": null,
+        "fatal_messages": [],
+        "elapsed_s": 73.9550981586799
+      },
+      "report": {
+        "status": "passed",
+        "kind": "confirmation",
+        "model": "B",
+        "episodes": 32,
+        "control_steps": 940,
+        "preparation_steps": 50,
+        "scored_transitions": 20565,
+        "automatic_reset_events": 1,
+        "first_episodes_only": true,
+        "actor_unchanged": true,
+        "optimizer_updates": 0,
+        "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+        "actor_digest": "9da29437a425919b29df6f3d2e3a1a4b46a013069054759067224ed4a0d6183c",
+        "interface": {
+          "current_observation_checked_every_step": true,
+          "zero_feasible_action_exact": true,
+          "safety_memory": "projected_action_minus_projected_base_v1",
+          "pre_reset_flags_exact": true,
+          "safety_snapshots_before_step": true,
+          "base_and_learned_components_separate": true,
+          "reset_filter_per_environment": true,
+          "action_clip": [
+            -100,
+            100
+          ],
+          "dt": 0.02,
+          "base_projection_steps": 464,
+          "zero_changed_steps": 210
+        },
+        "caveats": [
+          "Nominal domain with paired native 0/1 actuator delays.",
+          "Native automatic resets after scored first episodes are unscored and reported separately.",
+          "Boxes generator has a continuous base at z=0; negative box draws are buried, verified via ray heights.",
+          "Safety joint projection can modify even a zero residual and is separately recorded."
+        ]
+      }
+    }
+  ],
+  "raw_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/execution.json",
+      "sha256": "12c422516f3171e27ddf8a18bcae189891d0927cb10d04a52ed28ba10e6ab5da",
+      "bytes": 964
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/runtime.log",
+      "sha256": "a8c8e96b671985378a7611dba601d017987e19074d7a908bcec98fef199fa819",
+      "bytes": 43681
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/report.json",
+      "sha256": "e12f34759e762fbeb10ffe8603ce63dba9cb11961d705c5604a4c2669bed3959",
+      "bytes": 10973
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/config.json",
+      "sha256": "16525e14025c2b1e0852762bb620ef5fab9b1c7883c29da364cd85200511c08f",
+      "bytes": 70892
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/geometry.json",
+      "sha256": "9d7cee62eed5c9216fa4da6c93eec0dd996b38aeb1f0843449d30925aede8835",
+      "bytes": 2642
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/initial.npz",
+      "sha256": "31088bd3c37cfe0fec3f44f47bb37e806f9986060eff21482647938ffc85ddc4",
+      "bytes": 4659
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_B/trace.npz",
+      "sha256": "15738c6c49a50266d9a536791a1f3e4581809dd44abf8fbd3ed27e4660293421",
+      "bytes": 3623699
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/execution.json",
+      "sha256": "765a00c34dc0da6c7c4386e95b44e2291ee1572aa82a132dfb3e22d6ff96d70c",
+      "bytes": 971
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/runtime.log",
+      "sha256": "4cf72f02240f9614b24fd2584bf38271269e9ed30e4153d4e4215c966188c356",
+      "bytes": 43624
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/report.json",
+      "sha256": "f9da380e512a2a40164735b78bef92ccb7dcb168285edffae4743316d4f9dfac",
+      "bytes": 10964
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/config.json",
+      "sha256": "c7984e805cc2105888a909d2fa6b3ba40060ed44cec6f9a619bacebc076e9cf2",
+      "bytes": 70900
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/geometry.json",
+      "sha256": "9d7cee62eed5c9216fa4da6c93eec0dd996b38aeb1f0843449d30925aede8835",
+      "bytes": 2642
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/initial.npz",
+      "sha256": "31088bd3c37cfe0fec3f44f47bb37e806f9986060eff21482647938ffc85ddc4",
+      "bytes": 4659
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/smoke_zero10100/trace.npz",
+      "sha256": "9a1bfa7838d175915c3365235276c54e5d87188696f113a8b6c9547d3f05ec99",
+      "bytes": 3620806
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/execution.json",
+      "sha256": "72b1dc858c6bce665223af36111a9cad845520ddc1fc62e7f5d392ef8f149f2b",
+      "bytes": 1021
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/runtime.log",
+      "sha256": "73072b9f7a836d59708f4629a00cff2db7ae5402425526ff79174f3676494027",
+      "bytes": 489724
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/report.json",
+      "sha256": "79edbc689f2756c652fff05a12187e6a494a0c8c6824d01bc3cba7f6f02632a7",
+      "bytes": 152942
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/config.json",
+      "sha256": "73c70bc5f5ecbdab339514344af3dd48477ab6e875e236bae8e7530c7dce0c80",
+      "bytes": 105935
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/geometry.json",
+      "sha256": "9d7cee62eed5c9216fa4da6c93eec0dd996b38aeb1f0843449d30925aede8835",
+      "bytes": 2642
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/initial.npz",
+      "sha256": "beebb06cccae371ca6f73a06c39df839e81e2c485cc3bc0be728be9cff81363c",
+      "bytes": 48880
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_B/trace.npz",
+      "sha256": "085b22376b37a00df40410fc60482d183180f08de71e98bf17e43bc01daff714",
+      "bytes": 104748281
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/execution.json",
+      "sha256": "39bbbb70b7c12c7d11f0082f0746f9b1e0d1abe1220d7bee5facd0ef5bdd2feb",
+      "bytes": 1029
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/runtime.log",
+      "sha256": "20289a57b7a28f2e4cac983a315601d7d76a2d6487bc922b28a43688f2d48655",
+      "bytes": 489750
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/report.json",
+      "sha256": "335765b16f5bb6ec7573ea573de2122d58d192d4ad243ff6a858ff53fbb8034b",
+      "bytes": 153514
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/config.json",
+      "sha256": "c2586ef350543823efb4c3e021c78be7a296ac3fa12b48e507d700742045c15c",
+      "bytes": 105943
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/geometry.json",
+      "sha256": "9d7cee62eed5c9216fa4da6c93eec0dd996b38aeb1f0843449d30925aede8835",
+      "bytes": 2642
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/initial.npz",
+      "sha256": "beebb06cccae371ca6f73a06c39df839e81e2c485cc3bc0be728be9cff81363c",
+      "bytes": 48880
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/baseline_zero10100/trace.npz",
+      "sha256": "b93ee42e9cce10baaabb9df9de103b66e88e8f183af7a25e3d04fdf0a9cbd235",
+      "bytes": 104972252
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/execution.json",
+      "sha256": "afa838bc19fb666a50f50f00b6820884fd4254b0e28b8ee54eb8d32a293153cd",
+      "bytes": 1107
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/runtime.log",
+      "sha256": "3d9103ecde2c35632151d24197135d2414d99a6d0b0e3b8e29bf4f8ed5604c6d",
+      "bytes": 1501082
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/report.json",
+      "sha256": "39e813673303d8bace0211f3ae6511658c9f8f6df0e92e0ecdb786bc9e3a97f2",
+      "bytes": 490586
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/config.json",
+      "sha256": "f340e91416749969a211b8710a635e3abcb4ec7c9482c9976ce1216c151a7763",
+      "bytes": 186527
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/geometry.json",
+      "sha256": "0475f6a4fee7ce338cfe4882b02c42745c3a7b53d7555c77139e2174122d1b90",
+      "bytes": 573
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/initial.npz",
+      "sha256": "2e0d10dd0cbac8078d27b80c471df783b9c3027eb5178626278571b419b20e73",
+      "bytes": 5318
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/grid_B_stairs_06/trace.npz",
+      "sha256": "6dc05c35fab69e81e320b01700e3db517ae0ad33f505390435fc069064e24e9f",
+      "bytes": 314319382
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/execution.json",
+      "sha256": "0c501053f7d33e0b250b9266a3936c32669d22e4a2db59de622741f4e8d7bc9c",
+      "bytes": 1168
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/runtime.log",
+      "sha256": "090b001f6180baa4902626dad1d340afa90a8f12879775816fe8c9c85cf6725f",
+      "bytes": 92728
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/report.json",
+      "sha256": "d7ece492ad7f8905fbc9b1723fbac629803155cad9884629e32eb87ece5cb049",
+      "bytes": 26946
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/config.json",
+      "sha256": "0972c2a5e57ddf1b4f0661e07ee543c42a286637a51e57cfd111e70f5f41f774",
+      "bytes": 71798
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/geometry.json",
+      "sha256": "0475f6a4fee7ce338cfe4882b02c42745c3a7b53d7555c77139e2174122d1b90",
+      "bytes": 573
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/initial.npz",
+      "sha256": "ba82ab216e42bc9e14604e39755ab38217df174d6d9a31f7406db39cee7311ee",
+      "bytes": 5774
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_targets_current_20261117/confirmation_B_stairs_06/trace.npz",
+      "sha256": "e4d8e2f640fae72908b24b1ec991320504e8900b97c67bd9ba480df9f560c465",
+      "bytes": 16542610
+    }
+  ],
+  "confirmed_targets": [],
+  "stopped_on": "no confirmed headroom",
+  "analysis_outputs": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/SELECTION.json",
+      "sha256": "6d65cf49c6d61ae3e3ba0961e2e634cf04f9a3a5dc7368698b56f15ea6673287"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/GRID_stairs_06.json",
+      "sha256": "eb296793203598e4e40efecf93b30d1d859120088dddb63db5b0eb3537a33d7d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/CONFIRMATION_stairs_06.json",
+      "sha256": "7da2d6d607f4751b5bdfabaccbb006921dc335682e09795c22096cc7b269fb98"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/REPLAY_baseline_B.json",
+      "sha256": "f460443be1f6922a126c14dacc54f2d003b024c37b545f9ad9162f1c4c112676"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/REPLAY_baseline_zero10100.json",
+      "sha256": "9fde00d1850d6335dc3cc9890ae1df8f25f221456a65a84d5022025eefe84d83"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/REPLAY_confirmation_B_stairs_06.json",
+      "sha256": "42726d41995ed3d650b58b1aec386657ecc330815031b1496b751e3c3c842ce8"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/REPLAY_grid_B_stairs_06.json",
+      "sha256": "942776ce9fc0c86286ce6289d7f56b021ce7e5c72efb5353d5a5cb1a4b370859"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/REPLAY_smoke_B.json",
+      "sha256": "5a2fc70038864927652b2b272858707a0c539b336c533948d77c04a7e27d8d0c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/docs/lite3-online-targets-current-20261117/REPLAY_smoke_zero10100.json",
+      "sha256": "60eb581188051e7c434cda6290d74e4d50fb7badb0a7fba13e8f8f880b2261b4"
+    }
+  ],
+  "analysis_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current_evidence.py",
+      "sha256": "0c2d9bfa2baef64ce4c3188816972014d0df6ca5e0bf047b43164aff59efe8d4"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current_analysis.py",
+      "sha256": "95604dab52ed71b3f2fe9c6fedfb0443b5c4cc6c71b31004fa1c95c94f15882b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_current_replay.py",
+      "sha256": "b08f840857a3211a261b20a093455ddb5a0d50b64af484cc345889f0248fa9fc"
+    }
+  ],
+  "lock_sha256": "82c9e64036c85f0fe810df5bcc756ab9a8c58a62192d33ea1d954554d8e42677",
+  "scope": "Frozen actor, fixed residual codes, offline current-filter replay. No learning updates.",
+  "media": "No simulation media generated or uploaded in this phase. Local raw arrays/checkpoints remain under logs."
+}
