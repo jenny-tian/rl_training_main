@@ -1,0 +1,209 @@
+{
+  "status": "stopped_on_missing_step_created_reset_buffer",
+  "runtime": {
+    "command": [
+      "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_continue.py",
+      "--kind",
+      "smoke",
+      "--child"
+    ],
+    "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+    "physical_gpu": 1,
+    "admission_free_mib": 23468,
+    "peak_total_gpu_used_mib": 3756,
+    "sampling_interval_seconds": 2,
+    "status": "failed",
+    "minimum_free_mib": 10240,
+    "source_commit": "36c8cdfad0fc8d2bfdd140a9abec16804fb69021",
+    "source_status": "?? .superpowers/\n?? docs/lite3-online-c1b-repaired-20261117/\n",
+    "pid": 806394,
+    "exit_code": 1,
+    "failure": null,
+    "fatal_messages": [],
+    "elapsed_s": 12.328437210991979
+  },
+  "error": {
+    "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_continue.py\", line 79, in main\n    collect(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_collect.py\", line 61, in collect\n    resets.append(env.reset(list(range(n)), episodes))\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_env_repaired.py\", line 139, in reset\n    self.base.reset_buf[index] = False\n    ^^^^^^^^^^^^^^^^^^^\nAttributeError: 'ManagerBasedRLEnv' object has no attribute 'reset_buf'\n"
+  },
+  "failure_capture": {
+    "status": "captured_existing_state",
+    "error": "'ManagerBasedRLEnv' object has no attribute 'reset_buf'",
+    "scalars": {
+      "steps": 600,
+      "n": 16,
+      "trace": null
+    },
+    "array_shapes": {
+      "previous": [
+        16,
+        12
+      ],
+      "counts.preparation": [
+        16
+      ],
+      "counts.policy": [
+        16
+      ],
+      "counts.waiting": [
+        16
+      ]
+    },
+    "recorded_control_steps": 0,
+    "preparation_completed": false,
+    "partial_records": [],
+    "trace_sha256": "e4d7e8b2cca98479d87409c419dbbf1117b0dc10e4f55a804fd8e030d5f55a0d",
+    "simulation_rerun": false
+  },
+  "actual_preparation_control_steps": 0,
+  "actual_policy_control_steps": 0,
+  "actual_waiting_control_steps": 0,
+  "actor_forward_calls": 0,
+  "base_optimizer_updates": 0,
+  "adapter_updates": 0,
+  "formal_train_or_evaluation_started": false,
+  "smoke_attempts_used": 2,
+  "smoke_attempts_remaining": 0,
+  "reserved_smoke_interactions_consumed": 19200,
+  "original_total_budget": 944000,
+  "original_non_smoke_remaining_budget": 924800,
+  "failed_slots_not_restored": true,
+  "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+  "repair_simulation_verified": false,
+  "simulations_after_failure": 0,
+  "delay_assignment_reached_past": true,
+  "native_reset_output_assignment_locations": [
+    {
+      "file": "envs/manager_based_rl_env.py",
+      "method": "step",
+      "attribute": "reset_buf",
+      "line": 204
+    },
+    {
+      "file": "envs/manager_based_rl_env.py",
+      "method": "step",
+      "attribute": "reset_terminated",
+      "line": 205
+    },
+    {
+      "file": "envs/manager_based_rl_env.py",
+      "method": "step",
+      "attribute": "reset_time_outs",
+      "line": 206
+    }
+  ],
+  "additional_offline_finding": "NumPy int64 env_id in update_logs is not JSON serializable",
+  "cpu_test_scope": "installed native method bodies plus locked collector; synthetic scene, physics, actor and checkpoint; not simulation or capability evidence",
+  "offline_tests": {
+    "tests": 60,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/offline_tests.xml",
+    "sha256": "2994afccb9b2fa4fbc6f1ef02a53a2bbada48d8d811b888a5ffa74580ed49e92",
+    "seconds": 26.28
+  },
+  "repair_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_env_reset_api.py",
+      "sha256": "b2de3cbf68e76b1c5291004ad63b5ba6b044f46f71eea5e7eed332f71bfeee5a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_collect_reset_api.py",
+      "sha256": "f8ea23212b736dd1f0fe2150ef0214b30d3b068560fd5e5a5e4a58598e505d8d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_reset_api.py",
+      "sha256": "47ae75781426b6ce9a62e9c962d9ca9233bae895f2d9b54be0f5b6f6c25265e5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_reset_failure_report.py",
+      "sha256": "e46ead70f84dd89608875686533f74831aef2a97fee687b43a5e375a4cf01ba5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/source_curriculum/test_c1b_native_reset_contract.py",
+      "sha256": "0cf437ff8ebd794f464d0029fba7aa5efbd4dda75ce15787baecfb8434aabb36"
+    }
+  ],
+  "native_sources": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_env.py",
+      "sha256": "74d495925e264521b05a92296bbaf98adcabb7d94f3787ab3ed61f4d0680a198"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/envs/manager_based_rl_env.py",
+      "sha256": "974977825dbbd916460b4f9bb12176ab2cde41026fadc05e1de02d8fbbc94725"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/managers/action_manager.py",
+      "sha256": "ddeca14586f2816930c20be42ce59497c92758bc1466dc23a3fb62f3dfe94167"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/managers/termination_manager.py",
+      "sha256": "cb6333f11fa6472f7d8034bae9835714e83ae3edde97894b767f1351a7eea99d"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/math.py",
+      "sha256": "881ab27758816475e26d6721bab22c934fd70d0c064392266a90b06f5bbe4149"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/buffers/delay_buffer.py",
+      "sha256": "648ce0cf011798a1ab4a8980bafbbeba16ef8cf02affbc404c67ff312ac02da2"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/buffers/circular_buffer.py",
+      "sha256": "7e3d298e9c43fb05edf96ff3bc9333ca1081faacba7d73b412e5edd5ca60198b"
+    }
+  ],
+  "raw_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/config.json",
+      "sha256": "45626535250be41a215b7d0496ec8f6092546fd3174ac7c9c2c1e92c5c214c9d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/error.json",
+      "sha256": "616ed3281606886467631fd397761e9e06e3c0a0d364d9ef782886aba0a00ed7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/execution.json",
+      "sha256": "149ce10fbcbe31cc8bc97d2f49684f3374d6878bf790c762cc6d70e90316411d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/failure_capture.json",
+      "sha256": "99e2e5f8dfff269abc9df95bdf2a13b6e100c3fe441c0660bb260d53be041ff6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/failure_trace.npz",
+      "sha256": "e4d7e8b2cca98479d87409c419dbbf1117b0dc10e4f55a804fd8e030d5f55a0d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/geometry.json",
+      "sha256": "dc55b317e801ab98abde5a4fcc51feb2c2189b6d5ed037c797fe6641fe9bf08d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/noise_table.npy",
+      "sha256": "818cf18be719f3efe119f1d91363561d46bf5bfc0e70f8ce61d72b5912ff066e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_repaired_20261117/smoke_2/runtime.log",
+      "sha256": "f5e9dae0c5cf7b6cbf8be662392c768344f1f4235bff494d21a29ed9b74c7740"
+    }
+  ],
+  "attempts": [
+    {
+      "name": "smoke_1",
+      "kind": "smoke",
+      "reserved_steps": 9600,
+      "environments": 16,
+      "inherited": true
+    },
+    {
+      "name": "smoke_2",
+      "kind": "smoke",
+      "reserved_steps": 9600,
+      "environments": 16,
+      "inherited": false
+    }
+  ],
+  "lock_sha256": "95375e8102ed4ebdae3a11d528d26705dfc6be1a40e69e912309d7f30c726d90"
+}

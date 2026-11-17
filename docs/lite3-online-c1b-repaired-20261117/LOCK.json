@@ -1,0 +1,126 @@
+{
+  "protocol": {
+    "schema": 1,
+    "approval": "User 同意 after state-conditioned pilot proposal, 2026-11-17",
+    "model": "B",
+    "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+    "reset_seed": 20261117,
+    "noise_seed": 2026111701,
+    "namespaces": {
+      "smoke": 20,
+      "train": 21,
+      "target": 22,
+      "retention": 23
+    },
+    "sessions": 8,
+    "train_control_steps": 20000,
+    "max_episodes": 64,
+    "policy_steps": 1000,
+    "preparation_steps": 50,
+    "macro_steps": 10,
+    "history_steps": 25,
+    "sigma": 0.6,
+    "gamma": 0.99,
+    "learning_rate": 0.01,
+    "gradient_norm_max": 1.0,
+    "ema": 0.9,
+    "parameters": 18,
+    "basis": "sag",
+    "residual_limits": [
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2
+    ],
+    "reward": "clip(dx,-.02,.02)-.5*abs(clip(dy,-.02,.02))-.001*mean((learned_effect/limits)^2)-posture-.5*lateral",
+    "mean_scale": [
+      0.5,
+      0.5,
+      0.2,
+      0.8,
+      10.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "feature_clip": [
+      -3.0,
+      3.0
+    ],
+    "loss_divisor": 100,
+    "budgets": {
+      "smoke": 19200,
+      "train": 320000,
+      "target": 268800,
+      "retention": 336000,
+      "total": 944000
+    },
+    "gpu": 1,
+    "minimum_free_mib": 10240,
+    "command": [
+      0.4,
+      0.0,
+      0.0
+    ],
+    "dt": 0.02,
+    "physics_dt": 0.005,
+    "terrain_seed_target": 20261116,
+    "terrain_seed_retention": 42,
+    "retention_rows": [
+      1,
+      8
+    ],
+    "paired_reset": "wait for both arms to finish; count every wait/preparation step; reset both together",
+    "native_auto_reset": "deferred without altering termination flags; explicit paired manager reset",
+    "smoke": {
+      "runs": 2,
+      "environments": 16,
+      "control_steps": 600,
+      "optimizer_updates": 0,
+      "run1_policy_cap": [
+        150,
+        150
+      ],
+      "run2_policy_cap": [
+        100,
+        150
+      ],
+      "reason": "exercise multiple and asynchronous endings"
+    },
+    "target_evaluation_starts": 16,
+    "retention_starts": 2,
+    "evaluation_exploration": false,
+    "base_optimizer_updates": 0,
+    "ea": false,
+    "no_automatic_retry": true,
+    "simulator_privilege": "terrain-relative safety rays and contact forces; dx/dy state-estimate proxy only in score"
+  },
+  "prior_lock_sha256": "5f1a75a29526e7035cf8bdb4baef8bcaba8654b3f8e1d0fc9ec69e9272828a8a",
+  "proposal_sha256": "03618876c1f59a858c769ba1406a15992dd59ee7b7293a49013c65b24b30605a",
+  "evidence_sha256": "86c087e023c5e1c1af8ebad9d719b6e11796c2617db8dd15608f98efab6bbf01",
+  "inherited_failed_smoke": "smoke_1",
+  "remaining_smoke": "smoke_2",
+  "change": "cast indexed lag writes to native buffer storage dtype",
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_continue.py",
+      "sha256": "4bb2be0a7226634889b6e1e7006ef69068f5b627a3090a21dcc80c31a350f78b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_env_repaired.py",
+      "sha256": "135089e7e5fe297584b955d6cc1c3f6342807763dda4bafbc5e1b504a93a6f8d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/c1b_delay.py",
+      "sha256": "bdac9a6479e99eeb17fc70524c06e0204e676306f6ab85692bb08e4b04ae60b5"
+    }
+  ]
+}
