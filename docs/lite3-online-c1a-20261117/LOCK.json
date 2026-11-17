@@ -1,0 +1,657 @@
+{
+  "protocol": {
+    "schema": 1,
+    "algorithm": "C1-a",
+    "scope": "one-target mechanism study; not v2 multi-target qualification",
+    "model": "B10200",
+    "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+    "pairs": 60,
+    "sessions_per_arm": 60,
+    "train_environments": 120,
+    "train_control_steps": 60000,
+    "primary_mark": 20000,
+    "marks": [
+      0,
+      5000,
+      10000,
+      20000,
+      40000,
+      60000
+    ],
+    "max_episodes": 400,
+    "batch_size": 4,
+    "parameters": 2,
+    "sigma": 0.6,
+    "learning_rate": 0.3,
+    "adam_betas": [
+      0.9,
+      0.999
+    ],
+    "adam_eps": 1e-08,
+    "mean_bound": 2.5,
+    "gradient_clipping": false,
+    "reward": "clip(final_forward_displacement_m,0,9)/9 + success - posture_failure",
+    "return_discount": null,
+    "baseline": "leave-one-out in four episodes from same session and parameter version",
+    "reset_seed": 20261117,
+    "noise_seed": 2026111702,
+    "namespaces": {
+      "smoke": 30,
+      "train": 31,
+      "target": 32,
+      "retention": 33
+    },
+    "dt": 0.02,
+    "physics_dt": 0.005,
+    "preparation_steps": 50,
+    "policy_steps": 1000,
+    "basis": "sag",
+    "residual_limits": [
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2
+    ],
+    "command": [
+      0.4,
+      0.0,
+      0.0
+    ],
+    "ea": false,
+    "smoke": {
+      "runs": 2,
+      "environments": 120,
+      "control_steps": 600,
+      "updates": 0
+    },
+    "target_starts": 4,
+    "target_marks": [
+      0,
+      5000,
+      10000,
+      20000,
+      40000,
+      60000
+    ],
+    "target_parts": 4,
+    "retention_starts_per_subtype": 2,
+    "retention_subtypes": [
+      "flat",
+      "rough",
+      "slope_up",
+      "slope_down",
+      "stairs_up",
+      "stairs_down",
+      "friction_lateral",
+      "friction_longitudinal",
+      "slope_rough_up",
+      "slope_rough_down"
+    ],
+    "retention_marks": [
+      20000
+    ],
+    "retention_parts": 20,
+    "retention_rows": [
+      1,
+      8
+    ],
+    "target_terrain": "stairs_06",
+    "target_terrain_seed": 20261116,
+    "retention_terrain_seed": 42,
+    "gpu": 1,
+    "minimum_free_mib": 10240,
+    "budgets": {
+      "smoke": 144000,
+      "train": 7200000,
+      "target": 3024000,
+      "retention": 2520000,
+      "total": 12888000
+    },
+    "snapshot_rule": "exact budget tick; no completion or batch forced across boundary",
+    "success_gain_min": 0.1,
+    "ci_lower_min": 0.0,
+    "safety_increase_max": 0.02,
+    "family_loss_max": 0.05,
+    "flat_xy_velocity_rmse_ratio_max": 1.1,
+    "bootstrap_samples": 10000,
+    "bootstrap_seed": 0,
+    "paired_reset": "wait for both arms; count preparation, policy and waiting; no automatic retries",
+    "simulator_privilege": "existing terrain-relative safety; geometric success enters original C1-a reward; not deployment-qualified"
+  },
+  "jobs": [
+    {
+      "name": "smoke_1",
+      "kind": "smoke",
+      "smoke_index": 1,
+      "part": 0,
+      "mark": 0,
+      "steps": 600,
+      "environments": 120,
+      "reserved_steps": 72000
+    },
+    {
+      "name": "smoke_2",
+      "kind": "smoke",
+      "smoke_index": 2,
+      "part": 0,
+      "mark": 0,
+      "steps": 600,
+      "environments": 120,
+      "reserved_steps": 72000
+    },
+    {
+      "name": "train",
+      "kind": "train",
+      "smoke_index": 1,
+      "part": 0,
+      "mark": 0,
+      "steps": 60000,
+      "environments": 120,
+      "reserved_steps": 7200000
+    },
+    {
+      "name": "target_0_00",
+      "kind": "target",
+      "mark": 0,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_0_01",
+      "kind": "target",
+      "mark": 0,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_0_02",
+      "kind": "target",
+      "mark": 0,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_0_03",
+      "kind": "target",
+      "mark": 0,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_5000_00",
+      "kind": "target",
+      "mark": 5000,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_5000_01",
+      "kind": "target",
+      "mark": 5000,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_5000_02",
+      "kind": "target",
+      "mark": 5000,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_5000_03",
+      "kind": "target",
+      "mark": 5000,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_10000_00",
+      "kind": "target",
+      "mark": 10000,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_10000_01",
+      "kind": "target",
+      "mark": 10000,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_10000_02",
+      "kind": "target",
+      "mark": 10000,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_10000_03",
+      "kind": "target",
+      "mark": 10000,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_20000_00",
+      "kind": "target",
+      "mark": 20000,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_20000_01",
+      "kind": "target",
+      "mark": 20000,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_20000_02",
+      "kind": "target",
+      "mark": 20000,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_20000_03",
+      "kind": "target",
+      "mark": 20000,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_40000_00",
+      "kind": "target",
+      "mark": 40000,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_40000_01",
+      "kind": "target",
+      "mark": 40000,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_40000_02",
+      "kind": "target",
+      "mark": 40000,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_40000_03",
+      "kind": "target",
+      "mark": 40000,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_60000_00",
+      "kind": "target",
+      "mark": 60000,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_60000_01",
+      "kind": "target",
+      "mark": 60000,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_60000_02",
+      "kind": "target",
+      "mark": 60000,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "target_60000_03",
+      "kind": "target",
+      "mark": 60000,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_00",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 0,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_01",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 1,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_02",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 2,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_03",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 3,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_04",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 4,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_05",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 5,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_06",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 6,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_07",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 7,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_08",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 8,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_09",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 9,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_10",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 10,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_11",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 11,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_12",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 12,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_13",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 13,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_14",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 14,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_15",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 15,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_16",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 16,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_17",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 17,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_18",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 18,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    },
+    {
+      "name": "retention_20000_19",
+      "kind": "retention",
+      "mark": 20000,
+      "part": 19,
+      "smoke_index": 1,
+      "steps": 1050,
+      "environments": 120,
+      "reserved_steps": 126000
+    }
+  ],
+  "base_path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+  "previous_lock_sha256": "43912c3bfb85d4637cc86324ee3cef3f39d1727a127aee553fccb9d556e582cc",
+  "sources": [
+    {
+      "path": "source/rl_training/rl_training/ea_lpl/c1a.py",
+      "sha256": "26ad26f9b67528905e4463b03608010f39c7e57d8b20cc20281d355222d10e8a"
+    },
+    {
+      "path": "docs/lite3-online-c1a-20261117/PLAN.md",
+      "sha256": "b5ca1dd9c2cadfa1069f73d3a670320e4dbab1de62b20225d74ab2e654812d1b"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1a.py",
+      "sha256": "e434ea00184008003b136a50f8bf33d37dd72b02f1f2322ddf6fbdda4ca0db2f"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1a_collect.py",
+      "sha256": "aec19e4cac18eb77f5493e1ac232f795998b8b338f9873dbae0d9fb238a14d4d"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1a_env.py",
+      "sha256": "61c99c36100d6aed8f828e52d9e902c527758bd750e7b14187bb5550d043c9a2"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1a_audit.py",
+      "sha256": "fa56a0a48f02980cb8fae124a51766e2c564b453714936c512cc3c0cb7cd8889"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1a_results.py",
+      "sha256": "d22706b2e8e35ed6659a7a691b9dc29b4221794a6b93511875776e8136a2f513"
+    },
+    {
+      "path": "scripts/tools/source_block_runtime.py",
+      "sha256": "2ca99f3438b1196f19362f481949651340d557252bd1b0466918f254a365f22c"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1b_env_repaired.py",
+      "sha256": "135089e7e5fe297584b955d6cc1c3f6342807763dda4bafbc5e1b504a93a6f8d"
+    },
+    {
+      "path": "scripts/tools/reference_online_c1b_env_reset_api.py",
+      "sha256": "b2de3cbf68e76b1c5291004ad63b5ba6b044f46f71eea5e7eed332f71bfeee5a"
+    },
+    {
+      "path": "source/rl_training/rl_training/ea_lpl/current_safety.py",
+      "sha256": "ec25c6b1e5f56e6b33d6db505b2b9689ea151a4a9953488083dc44938c1f0535"
+    },
+    {
+      "path": "source/rl_training/rl_training/ea_lpl/residual_bridge.py",
+      "sha256": "bc7ea511aa055b74d9e018f40b3a9247ef737e05f23880778a9c5604c629d047"
+    },
+    {
+      "path": "source/rl_training/rl_training/ea_lpl/basis.py",
+      "sha256": "18419f1be4f4b68bb6f5630ca2bbea9ee93920249c60b56b25b4973dd109b5a1"
+    }
+  ]
+}
