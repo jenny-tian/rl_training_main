@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -59,6 +59,8 @@ def collect(args):
     env = Environment(args,specs)
     from rl_training.ea_lpl.c1a import Session, exploration_table
     from rl_training.ea_lpl.c1b import digest
+    ea = VARIANT=='ea'
+    if ea: from rl_training.ea_lpl.c1a_ea import SessionEA as Session
     from rl_training.ea_lpl.basis import basis
     from rl_training.ea_lpl.current_safety import CurrentModelSafetyFilter
     from rl_training.ea_lpl.residual_bridge import ResidualSafetyBridge
@@ -80,6 +82,8 @@ def collect(args):
     safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device)))
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
     v = basis('sag',device=device)
+    projector = (v/(v**2).sum(0)).double()  # 执行残差在两个基方向上的系数
+    executed_requested, requested_squared = np.zeros((n,2)), np.zeros((n,2))
     previous = torch.zeros(n,12,device=device)
     timeout = torch.zeros(n,1,dtype=torch.bool,device=device)
     code = np.zeros((n,2),np.float64)
@@ -127,6 +131,9 @@ def collect(args):
                 if torch.count_nonzero(trace.executed_action[torch.as_tensor(~policy,device=device)]):
                     raise ValueError('nonzero preparation or waiting action')
                 components = safety.execution_components()
+                executed = (components['learned_effect'].double()@projector).cpu().numpy()
+                requested = np.tanh(code)
+                executed_requested[policy] += (executed*requested)[policy]; requested_squared[policy] += (requested**2)[policy]
                 if args.kind in ('target','retention') and torch.count_nonzero(components['learned_effect'][::2]):
                     raise ValueError('Frozen not equivalent to projected base')
                 values = {f'state.{f.name}':getattr(state,f.name).cpu().numpy().copy() for f in fields(state)}
@@ -176,7 +183,10 @@ def collect(args):
                     length = geometry['goal_x']-x0[i] if geometry['goal_x'] else 3.
                     value = episode_return(displacement,length,outcome=='success',outcome=='posture_failure')
                     terminal_return[i] = value
-                    stats = heads[i].finish(value,learn=args.kind=='train')
+                    learn = args.kind=='train'
+                    stats = heads[i].finish(value,learn=learn,**(dict(executed_requested=executed_requested[i],
+                        requested_squared=requested_squared[i],steps=int(age[i])) if ea and learn else {}))
+                    executed_requested[i] = requested_squared[i] = 0
                     records.append(dict(**spec,episode=int(episodes[i]),outcome=outcome,policy_steps=int(age[i]),
                         control_step=tick+1,final_root=root.tolist(),start_x=float(x0[i]),final_forward_displacement=displacement,
                         mean_progress=float(min(1.,progress[i]/length)),xy_velocity_error_sum=float(velocity_error_sum[i]),
@@ -207,6 +217,7 @@ def collect(args):
                     phase[reset_ids] = 0; preparation[reset_ids] = age[reset_ids] = 0
                     dwell[reset_ids] = progress[reset_ids] = velocity_error_sum[reset_ids] = 0
                     code[reset_ids] = 0
+                    executed_requested[reset_ids] = requested_squared[reset_ids] = 0
                     for i in reset_ids: positions[i] = []
                     index = torch.tensor(reset_ids,device=device)
                     safety.reset_temporal_state(index); previous[index] = 0; reset_filter[reset_ids] = True
@@ -214,7 +225,8 @@ def collect(args):
             writer.append(values)
             if args.kind=='train' and tick+1 in MARKS: checkpoint(f'at_{tick+1}.pt',tick+1)
             if (tick+1)%1000==0:
-                print(f'C1A {args.name}: {tick+1}/{args.steps}, episodes={len(records)}, updates={sum(h.updates for h in heads)}',flush=True)
+                print(f'C1A {args.name}: {tick+1}/{args.steps}, episodes={len(records)}, updates={sum(h.updates for h in heads)}'
+                      +(f', mean_std={np.mean([h.std.numpy() for h in heads[1::2]],0).round(3).tolist()}' if ea else ''),flush=True)
             if args.kind in ('target','retention') and (phase==2).all(): break
     except Exception:
         persist('partial_report.json'); checkpoint('failure.pt',completed_steps)

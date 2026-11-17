@@ -18,7 +18,10 @@ from reference_online_targets import HASHES
 TARGETS = ('stairs_up_06', 'boxes_06')
 TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
 assert TARGET in TARGETS
-OUTPUT = ROOT / 'logs/reference_six/online_c1a_heading_20261117' / TARGET
+# C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
+VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
+assert VARIANT in ('fixed', 'ea')
+OUTPUT = ROOT / 'logs/reference_six' / ('online_c1a_ea_20261117' if VARIANT == 'ea' else 'online_c1a_heading_20261117') / TARGET
 MARKS = (0, 20000, 40000, 60000)
 PRIMARY = 40000
 NOISE_SEED = 2026111703
@@ -27,7 +30,7 @@ TERRAINS = dict(flat=0, rough=4, slope_up=8, slope_down=10, stairs_up=12, stairs
 
 
 def protocol():
-    return dict(schema=1, algorithm='C1-a', heading_feedback=dict(gain=.5, limit=.8, target='world +x'),
+    return dict(schema=1, algorithm='C1-a-EA' if VARIANT == 'ea' else 'C1-a', covariance=VARIANT, heading_feedback=dict(gain=.5, limit=.8, target='world +x'),
         target=TARGET, model='B10200', checkpoint_sha256=HASHES['B'], pairs=60, train_control_steps=60000,
         primary_mark=PRIMARY, marks=list(MARKS), max_episodes=400, batch_size=4, sigma=.6, learning_rate=.3,
         mean_bound=2.5, basis='sag', residual_limits=[.24, .20, .20] * 4, command=[.4, 0., 'feedback'],
