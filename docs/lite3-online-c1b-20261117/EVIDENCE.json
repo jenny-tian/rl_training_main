@@ -1,0 +1,163 @@
+{
+  "status": "stopped_on_initial_reset_dtype",
+  "runtime": {
+    "command": [
+      "/home/tjx/anaconda3/envs/env_isaaclab/bin/python",
+      "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b.py",
+      "--kind",
+      "smoke",
+      "--smoke-index",
+      "1",
+      "--child"
+    ],
+    "cwd": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106",
+    "physical_gpu": 1,
+    "admission_free_mib": 23468,
+    "peak_total_gpu_used_mib": 3377,
+    "sampling_interval_seconds": 2,
+    "status": "failed",
+    "minimum_free_mib": 10240,
+    "source_commit": "e3a7f47d7de0c6c74c67e24d98371e3c6f8ae0e9",
+    "source_status": "?? .superpowers/\n?? docs/lite3-online-c1b-20261117/\n?? scripts/tools/reference_online_c1b.py\n?? scripts/tools/reference_online_c1b_collect.py\n?? scripts/tools/reference_online_c1b_env.py\n?? source/rl_training/rl_training/ea_lpl/c1b.py\n?? tests/ea_lpl/test_c1b.py\n",
+    "pid": 773923,
+    "exit_code": 1,
+    "failure": null,
+    "fatal_messages": [],
+    "elapsed_s": 12.350700777955353
+  },
+  "error": {
+    "error": "Traceback (most recent call last):\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b.py\", line 123, in main\n    collect(args)\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_collect.py\", line 61, in collect\n    resets.append(env.reset(list(range(n)), episodes))\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_env.py\", line 136, in reset\n    getattr(actuator,name).set_time_lag(lag, batch_ids=index)\n  File \"/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/buffers/delay_buffer.py\", line 137, in set_time_lag\n    self._time_lags[batch_ids] = time_lag.to(device=self.device)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^\nRuntimeError: Index put requires the source and destination dtypes match, got Int for the destination and Long for the source.\n"
+  },
+  "failure_capture": {
+    "status": "captured_existing_state",
+    "error": "Index put requires the source and destination dtypes match, got Int for the destination and Long for the source.",
+    "scalars": {
+      "steps": 600,
+      "n": 16,
+      "trace": null
+    },
+    "array_shapes": {
+      "previous": [
+        16,
+        12
+      ],
+      "counts.preparation": [
+        16
+      ],
+      "counts.policy": [
+        16
+      ],
+      "counts.waiting": [
+        16
+      ]
+    },
+    "recorded_control_steps": 0,
+    "preparation_completed": false,
+    "partial_records": [],
+    "trace_sha256": "e4d7e8b2cca98479d87409c419dbbf1117b0dc10e4f55a804fd8e030d5f55a0d",
+    "simulation_rerun": false
+  },
+  "actual_preparation_control_steps": 0,
+  "actual_policy_control_steps": 0,
+  "actor_forward_calls": 0,
+  "base_optimizer_updates": 0,
+  "adapter_updates": 0,
+  "formal_train_or_evaluation_started": false,
+  "smoke_attempts_used": 1,
+  "smoke_attempts_remaining": 1,
+  "reserved_smoke_interactions_consumed": 9600,
+  "original_total_budget": 944000,
+  "failed_slot_not_restored": true,
+  "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+  "repair_simulation_verified": false,
+  "simulations_after_failure": 0,
+  "reproduction": {
+    "kind": "CPU installed native buffers; synthetic values, not original lag tensor",
+    "basic_slice_accepts_int64": true,
+    "indexed_error": "Index put requires the source and destination dtypes match, got Int for the destination and Long for the source.",
+    "source_dtype": "torch.int64",
+    "destination_dtype": "torch.int32",
+    "repaired_lags": [
+      1,
+      0,
+      1,
+      1
+    ],
+    "untouched_rows_preserved": true
+  },
+  "repair_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/c1b_delay.py",
+      "sha256": "bdac9a6479e99eeb17fc70524c06e0204e676306f6ab85692bb08e4b04ae60b5"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_env_repaired.py",
+      "sha256": "135089e7e5fe297584b955d6cc1c3f6342807763dda4bafbc5e1b504a93a6f8d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_continue.py",
+      "sha256": "4bb2be0a7226634889b6e1e7006ef69068f5b627a3090a21dcc80c31a350f78b"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/tests/ea_lpl/test_c1b_delay.py",
+      "sha256": "fb23e4f662878d6fe91598fcd7a6983a204d6bdb945ce8132528661523672938"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_failure_report.py",
+      "sha256": "9389147e5908df4fac68a5979a0b6afa302022265e09b430a321ec805d3e3a84"
+    }
+  ],
+  "native_buffer_sources": [
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/buffers/delay_buffer.py",
+      "sha256": "648ce0cf011798a1ab4a8980bafbbeba16ef8cf02affbc404c67ff312ac02da2"
+    },
+    {
+      "path": "/home/tjx/IsaacLab/source/isaaclab/isaaclab/utils/buffers/circular_buffer.py",
+      "sha256": "7e3d298e9c43fb05edf96ff3bc9333ca1081faacba7d73b412e5edd5ca60198b"
+    }
+  ],
+  "raw_sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/config.json",
+      "sha256": "b56e1db1bee4113c768c299d11d14d91650306a97b3b1b9f3c53f00ba6323853"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/error.json",
+      "sha256": "92c6ed93ec61163f539a0758d57ecde5a326613cd9223f94f6092a615bbdf915"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/execution.json",
+      "sha256": "2350b448be8fa8612b92da8eb5e237139ca358c804e210586ff6907ca58cd47a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/failure_capture.json",
+      "sha256": "1c465dca5e92e0744d256a802f91443118e7cf75acdc0b6663415a7915739803"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/failure_trace.npz",
+      "sha256": "e4d7e8b2cca98479d87409c419dbbf1117b0dc10e4f55a804fd8e030d5f55a0d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/geometry.json",
+      "sha256": "dc55b317e801ab98abde5a4fcc51feb2c2189b6d5ed037c797fe6641fe9bf08d"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/noise_table.npy",
+      "sha256": "818cf18be719f3efe119f1d91363561d46bf5bfc0e70f8ce61d72b5912ff066e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/logs/reference_six/online_c1b_20261117/smoke_1/runtime.log",
+      "sha256": "0efa59eae4fe412363520fe1dc86f398e3d0fc4f7ab64fee0e172b4ef7b70dad"
+    }
+  ],
+  "attempts": [
+    {
+      "name": "smoke_1",
+      "kind": "smoke",
+      "reserved_steps": 9600,
+      "environments": 16
+    }
+  ],
+  "lock_sha256": "5f1a75a29526e7035cf8bdb4baef8bcaba8654b3f8e1d0fc9ec69e9272828a8a"
+}

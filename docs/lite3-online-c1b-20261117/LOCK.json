@@ -1,0 +1,142 @@
+{
+  "protocol": {
+    "schema": 1,
+    "approval": "User 同意 after state-conditioned pilot proposal, 2026-11-17",
+    "model": "B",
+    "checkpoint_sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+    "reset_seed": 20261117,
+    "noise_seed": 2026111701,
+    "namespaces": {
+      "smoke": 20,
+      "train": 21,
+      "target": 22,
+      "retention": 23
+    },
+    "sessions": 8,
+    "train_control_steps": 20000,
+    "max_episodes": 64,
+    "policy_steps": 1000,
+    "preparation_steps": 50,
+    "macro_steps": 10,
+    "history_steps": 25,
+    "sigma": 0.6,
+    "gamma": 0.99,
+    "learning_rate": 0.01,
+    "gradient_norm_max": 1.0,
+    "ema": 0.9,
+    "parameters": 18,
+    "basis": "sag",
+    "residual_limits": [
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2,
+      0.24,
+      0.2,
+      0.2
+    ],
+    "reward": "clip(dx,-.02,.02)-.5*abs(clip(dy,-.02,.02))-.001*mean((learned_effect/limits)^2)-posture-.5*lateral",
+    "mean_scale": [
+      0.5,
+      0.5,
+      0.2,
+      0.8,
+      10.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "feature_clip": [
+      -3.0,
+      3.0
+    ],
+    "loss_divisor": 100,
+    "budgets": {
+      "smoke": 19200,
+      "train": 320000,
+      "target": 268800,
+      "retention": 336000,
+      "total": 944000
+    },
+    "gpu": 1,
+    "minimum_free_mib": 10240,
+    "command": [
+      0.4,
+      0.0,
+      0.0
+    ],
+    "dt": 0.02,
+    "physics_dt": 0.005,
+    "terrain_seed_target": 20261116,
+    "terrain_seed_retention": 42,
+    "retention_rows": [
+      1,
+      8
+    ],
+    "paired_reset": "wait for both arms to finish; count every wait/preparation step; reset both together",
+    "native_auto_reset": "deferred without altering termination flags; explicit paired manager reset",
+    "smoke": {
+      "runs": 2,
+      "environments": 16,
+      "control_steps": 600,
+      "optimizer_updates": 0,
+      "run1_policy_cap": [
+        150,
+        150
+      ],
+      "run2_policy_cap": [
+        100,
+        150
+      ],
+      "reason": "exercise multiple and asynchronous endings"
+    },
+    "target_evaluation_starts": 16,
+    "retention_starts": 2,
+    "evaluation_exploration": false,
+    "base_optimizer_updates": 0,
+    "ea": false,
+    "no_automatic_retry": true,
+    "simulator_privilege": "terrain-relative safety rays and contact forces; dx/dy state-estimate proxy only in score"
+  },
+  "proposal_sha256": "9c4fe1335d23132f06b70265b6fbb8bcd6f3616d63a64e6004e34e2d9d14c431",
+  "prior_lock_sha256": "82c9e64036c85f0fe810df5bcc756ab9a8c58a62192d33ea1d954554d8e42677",
+  "sources": [
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b.py",
+      "sha256": "ca869776136b13397173a8502babf4265663b268ff2bf106fbc72098ed8bf8fc"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_env.py",
+      "sha256": "bd6e038ed7b831a973bb5d0be1da900815fb51c415e7c8b3940f884fab845ff7"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_online_c1b_collect.py",
+      "sha256": "a66d9cd9e2de929e0179e5e4357354c9c90df3881fb038d6fa4554e1e5121e5c"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/source/rl_training/rl_training/ea_lpl/c1b.py",
+      "sha256": "fa8986c1cb581337f567415650b4550744a3ebc656fd9e5d80976401e1f4cb3a"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_low_stairs_cfg.py",
+      "sha256": "da7e69545a4857e42917b7c27c2d0860be04be8eb80e463b40b65ead0de711d6"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_six_terrain_cfg.py",
+      "sha256": "e25faf87435287d18587810e8835f949aa7b2962df1375e7a4ebaa158ee8b602"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_lite3_loader.py",
+      "sha256": "b3ed55d4f1f002d248f89500fb2a0100d265dd46bab97a5fa53a1ea2ef995a8e"
+    },
+    {
+      "path": "/home/tjx/rl_training_main/.worktrees/lite3-ea-lpl-20261106/scripts/tools/reference_stair_allocation_retention.py",
+      "sha256": "35a9efbf441307537c5cb819b579e90621df067efad736c1853f901044c87e40"
+    }
+  ]
+}
