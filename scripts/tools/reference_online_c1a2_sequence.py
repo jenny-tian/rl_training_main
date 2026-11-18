@@ -22,7 +22,7 @@ def main():
     assert passed('smoke'), 'run the smoke job first'
     for job in jobs()[1:]:
         name = job['name']
-        if passed(name): continue
+        if passed(name) or job.get('script'): continue
         print('SEQUENCE', TARGET, name, flush=True)
         subprocess.run([sys.executable, str(ROOT / 'scripts/tools/reference_online_c1a2.py'), '--job', name,
                         '--gpu', str(args.gpu)], cwd=ROOT, stdout=subprocess.DEVNULL)

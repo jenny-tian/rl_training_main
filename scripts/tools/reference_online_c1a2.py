@@ -20,19 +20,28 @@ TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
 assert TARGET in TARGETS
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
 # C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
+# C1A2_VARIANT=bh 时码由高度特征决定（C1-b-H），每 10 步重新计算，探索加在 8 个参数上。方案见 docs/lite3-online-c1b-height-20261118/PLAN.md。
 VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
-assert VARIANT in ('fixed', 'ea', 'm4')
-REPLICAS = 4 if VARIANT == 'm4' else 1
-OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118')[VARIANT] / TARGET
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh')
+REPLICAS = 4 if VARIANT in ('m4', 'bh') else 1
+OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
+                                            bh='online_c1b_height_20261118')[VARIANT] / TARGET
 MARKS = (0, 20000, 40000, 60000)
 PRIMARY = 40000
-NOISE_SEED = 2026111703
+NOISE_SEED = 2026111801 if VARIANT == 'bh' else 2026111703
+POSTURE_PENALTY = 3. if VARIANT == 'bh' else 1.
+SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
 TERRAINS = dict(flat=0, rough=4, slope_up=8, slope_down=10, stairs_up=12, stairs_down=14,
                 friction_lateral=16, friction_longitudinal=17, slope_rough_up=18, slope_rough_down=19)
 
 
 def protocol():
     extra = dict(algorithm='C1-a-M4', replicas=4, optimizer='plain gradient step', sigma=1., learning_rate=.6, max_rounds=100) if VARIANT == 'm4' else {}
+    if VARIANT == 'bh':
+        extra = dict(algorithm='C1-b-H', replicas=4, optimizer='plain gradient step', sigma=.7, learning_rate=.6, max_rounds=100,
+            parameters=8, features=['rough', 'entry', 'middle', 'top'], decision_interval=10, exploration='per-episode parameter noise',
+            reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure',
+            script_starts=SCRIPT_STARTS, script_slot=SCRIPT_SLOT)
     return dict(_protocol(), **extra)
 
 
@@ -50,14 +59,23 @@ def _protocol():
 
 def episode_return(displacement, length, completed, safety_ending):
     assert np.isfinite(displacement) and length > 0 and not (completed and safety_ending)
-    return float(np.clip(displacement / length, 0., 1.) + bool(completed) - bool(safety_ending))
+    return float(np.clip(displacement / length, 0., 1.) + bool(completed) - POSTURE_PENALTY * bool(safety_ending))
 
 
-def rows(kind, *, part=0, smoke_index=1):
+def rows(kind, *, part=0, smoke_index=1, script=None):
     parts = 4 if kind == 'target' else 20 if kind == 'retention' else 1
     assert kind in ('smoke', 'train', 'target', 'retention') and 0 <= part < parts
     width = 60 // parts
     result = []
+    if script == 'target':
+        # 每个起点三对环境：Frozen 都是零码（A），Updated 依次是 B、C、D 三组固定参数。
+        assert VARIANT == 'bh' and kind == 'target'
+        for start in range(SCRIPT_STARTS):
+            for repeat, name in enumerate('BCD'):
+                for arm in ('Frozen', 'Updated'):
+                    result.append(dict(env_id=len(result), session=start, arm=arm, condition=TARGET, slot=SCRIPT_SLOT + start,
+                        repeat=repeat, column=0, row=0, script=name if arm == 'Updated' else 'A'))
+        return result
     cases = list(TERRAINS) if kind == 'retention' else [TARGET]
     for pair in range(part * width, (part + 1) * width):
         for case_index, case in enumerate(cases):
@@ -68,6 +86,9 @@ def rows(kind, *, part=0, smoke_index=1):
                 for arm in ('Frozen', 'Updated'):
                     result.append(dict(env_id=len(result), session=pair, arm=arm, condition=case, slot=slot,
                         repeat=repeat, column=TERRAINS.get(case, 0), row=(1, 8)[repeat] if kind == 'retention' else 0))
+    if script:
+        assert VARIANT == 'bh' and script == 'retention' and kind == 'retention'
+        for row in result: row['script'] = 'A'  # 保持地形上两组都是零码，只记录特征
     return result
 
 
@@ -76,6 +97,9 @@ def jobs():
               dict(name='train', kind='train', part=0, mark=0, steps=60000)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] for p in range(4)]
     result += [dict(name=f'retention_{PRIMARY}_{p:02d}', kind='retention', mark=PRIMARY, part=p, steps=1050) for p in range(20)]
+    if VARIANT == 'bh':
+        result += [dict(name='script', kind='target', part=0, mark=0, steps=1050, script='target'),
+                   dict(name='script_retention', kind='retention', part=0, mark=0, steps=1050, script='retention')]
     for job in result: job['smoke_index'] = 1
     return result
 
@@ -87,6 +111,7 @@ def main():
     parser.add_argument('--child', action='store_true')
     args = parser.parse_args()
     for key, value in next(j for j in jobs() if j['name'] == args.job).items(): setattr(args, key, value)
+    args.script = getattr(args, 'script', None)
     args.output = OUTPUT / args.job
     if not args.child:
         from source_block_runtime import run

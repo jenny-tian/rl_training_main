@@ -55,11 +55,13 @@ def collect(args):
     from reference_online_c1a2_env import Environment
     torch.backends.cuda.matmul.allow_tf32 = torch.backends.cudnn.allow_tf32 = False
     torch.set_num_threads(1)
-    specs = rows(args.kind,part=args.part,smoke_index=args.smoke_index)
+    script = getattr(args,'script',None)
+    specs = rows(args.kind,part=args.part,smoke_index=args.smoke_index,script=script)
     env = Environment(args,specs)
     from rl_training.ea_lpl.c1a import Session, exploration_table
     from rl_training.ea_lpl.c1b import digest
-    ea = VARIANT=='ea'
+    ea, bh = VARIANT=='ea', VARIANT=='bh'
+    if bh: from rl_training.ea_lpl import c1b_h
     if ea: from rl_training.ea_lpl.c1a_ea import SessionEA as Session
     from rl_training.ea_lpl.basis import basis
     from rl_training.ea_lpl.current_safety import CurrentModelSafetyFilter
@@ -67,20 +69,25 @@ def collect(args):
     from rl_training.online_adaptation.safety import SafetyLimits
     from reference_online_interface import clip_action
     n, device = len(specs), env.device
-    noise = exploration_table(seed=NOISE_SEED)
+    noise = c1b_h.exploration_table(seed=NOISE_SEED) if bh else exploration_table(seed=NOISE_SEED)
     noise_sha = hashlib.sha256(noise.tobytes()).hexdigest()
     np.save(args.output/'noise_table.npy',noise)
     parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
     width = 2*REPLICAS if parallel else 2  # 一起重置的相邻环境数
     if parallel:
-        from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
+        if bh: ParallelSession, Slot = c1b_h.ParallelSession, c1b_h.Slot
+        else: from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
         groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
         heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
         for k in range(0,n,width):
             if len({s['session'] for s in specs[k:k+width]})!=1 or k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
+    elif bh:
+        heads = [c1b_h.Slot(c1b_h.ParallelSession(False,replicas=1),0) for s in specs]
     else:
         heads = [Session(args.kind=='train' and s['arm']=='Updated') for s in specs]
-    if args.kind in ('target','retention'):
+    if script:
+        for head,spec in zip(heads,specs): head.load_evaluation_mean(c1b_h.scripted(spec['script']))
+    elif args.kind in ('target','retention'):
         path = OUTPUT/'train'/('initial.pt' if args.mark==0 else f'at_{args.mark}.pt')
         checkpoint = torch.load(path,map_location='cpu',weights_only=True)
         if checkpoint['control_steps'] != args.mark: raise ValueError('wrong evaluation snapshot')
@@ -96,6 +103,10 @@ def collect(args):
     previous = torch.zeros(n,12,device=device)
     timeout = torch.zeros(n,1,dtype=torch.bool,device=device)
     code = np.zeros((n,2),np.float64)
+    if bh:
+        scanner = env.base.scene['height_scanner']
+        terrain_features = c1b_h.TerrainFeatures(scanner.ray_starts[0,:,:2])
+        if not torch.equal(scanner.ray_starts[:,:,:2],scanner.ray_starts[:1,:,:2].expand(n,-1,-1)): raise ValueError('ray grids differ')
     phase, preparation, episodes, age = (np.zeros(n,int) for _ in range(4))
     counts = {k:np.zeros(n,int) for k in ('preparation','policy','waiting')}
     dwell, progress, x0, velocity_error_sum = (np.zeros(n) for _ in range(4))
@@ -129,6 +140,9 @@ def collect(args):
             for i in np.flatnonzero(decisions):
                 exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') else None
                 code[i] = heads[i].begin(exploration)
+            if bh:
+                features = terrain_features(scanner.data.ray_hits_w[:,:,2]).cpu().numpy()
+                for i in np.flatnonzero(policy & (age%c1b_h.INTERVAL==0)): code[i] = heads[i].choose(features[i])
             for i in np.flatnonzero(policy):
                 if not np.array_equal(code[i],heads[i].requested_code()): raise ValueError('code changed inside episode')
             with torch.no_grad():
@@ -154,6 +168,7 @@ def collect(args):
                     phase=phase.copy(),episode=episodes.copy(),age=age.copy(),code=code.copy(),decision=decisions.copy(),
                     paused=trace.decision.paused[:,0].cpu().numpy().copy(),projected=trace.decision.projected[:,0].cpu().numpy().copy(),
                     before_root=before['root'],command=env.command.vel_command_b.cpu().numpy().copy())
+                if bh: values['features'] = features.astype(np.float32)
                 env.obs,_,term,trunc,_ = env.base.step(trace.executed_action)
                 completed_steps += 1
                 if not torch.equal(env.base.action_manager.action,trace.executed_action): raise ValueError('executed action mismatch')
@@ -261,6 +276,7 @@ def collect(args):
         paired_max_error=max(max(p['errors'].values()) for p in pairs),counts=counts,noise_sha256=noise_sha,
         incomplete_policy_rows=np.flatnonzero(phase==1),incomplete_episodes_used_for_update=False,
         pending_complete_episodes=[len(h.batch) for h in heads],final_sha256=sha(args.output/'final.pt'),
-        trace_index_sha256=sha(args.output/'trace_index.json'),feedback_max_error=env.feedback_error))
+        trace_index_sha256=sha(args.output/'trace_index.json'),feedback_max_error=env.feedback_error,
+        **(dict(missing_rays=terrain_features.missing) if bh else {})))
     assert env.feedback_error<=1e-5
     print(f'COMPLETE {args.name}: episodes={len(records)}, updates={sum(h.updates for h in heads)}',flush=True)
