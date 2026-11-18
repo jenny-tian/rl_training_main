@@ -1,0 +1,146 @@
+{
+ "settings": {
+  "scale": 1.0,
+  "rate": 0.02,
+  "slot": 910000,
+  "residual_limits": [
+   0.23999999463558197,
+   0.20000000298023224,
+   0.20000000298023224,
+   0.23999999463558197,
+   0.20000000298023224,
+   0.20000000298023224,
+   0.23999999463558197,
+   0.20000000298023224,
+   0.20000000298023224,
+   0.23999999463558197,
+   0.20000000298023224,
+   0.20000000298023224
+  ],
+  "residual_rate_limit": 0.02
+ },
+ "groups": {
+  "R": {
+   "zero": {
+    "stuck": 25,
+    "success": 57,
+    "posture_failure": 5,
+    "timeout": 32,
+    "lateral_exit": 1
+   },
+   "scripted": {
+    "success": 66,
+    "stuck": 21,
+    "timeout": 26,
+    "posture_failure": 7
+   },
+   "success_gain": 0.075,
+   "ci95": [
+    -0.05,
+    0.2
+   ],
+   "posture_increase": 2,
+   "gained": 34,
+   "lost": 25,
+   "failures_by_section": {
+    "0.0-1.0": {},
+    "1.0-1.65": {},
+    "1.65-2.85": {
+     "stuck": 1
+    },
+    "2.85-9.0": {
+     "stuck": 20,
+     "timeout": 26,
+     "posture_failure": 7
+    }
+   },
+   "rear_swing_share": 0.2587700085783643,
+   "rear_knee_requested_in_swing": 0.15137960016727448,
+   "rear_knee_executed_in_swing": 0.047011811286211014,
+   "rear_knee_executed_in_stance": 0.007888766936957836,
+   "meets_condition": false
+  },
+  "Q": {
+   "zero": {
+    "stuck": 25,
+    "success": 57,
+    "posture_failure": 5,
+    "timeout": 32,
+    "lateral_exit": 1
+   },
+   "scripted": {
+    "success": 75,
+    "stuck": 21,
+    "timeout": 18,
+    "posture_failure": 5,
+    "lateral_exit": 1
+   },
+   "success_gain": 0.15,
+   "ci95": [
+    0.025,
+    0.275
+   ],
+   "posture_increase": 0,
+   "gained": 40,
+   "lost": 22,
+   "failures_by_section": {
+    "0.0-1.0": {},
+    "1.0-1.65": {},
+    "1.65-2.85": {
+     "stuck": 2
+    },
+    "2.85-9.0": {
+     "stuck": 19,
+     "timeout": 18,
+     "posture_failure": 5,
+     "lateral_exit": 1
+    }
+   },
+   "rear_swing_share": 0.2618203639611477,
+   "rear_knee_requested_in_swing": 0.15104149281978607,
+   "rear_knee_executed_in_swing": 0.04695527255535126,
+   "rear_knee_executed_in_stance": 0.008094916120171547,
+   "meets_condition": true
+  },
+  "S": {
+   "zero": {
+    "stuck": 25,
+    "success": 57,
+    "posture_failure": 5,
+    "timeout": 32,
+    "lateral_exit": 1
+   },
+   "scripted": {
+    "success": 90,
+    "posture_failure": 2,
+    "stuck": 11,
+    "timeout": 17
+   },
+   "success_gain": 0.275,
+   "ci95": [
+    0.15,
+    0.4
+   ],
+   "posture_increase": -3,
+   "gained": 50,
+   "lost": 17,
+   "failures_by_section": {
+    "0.0-1.0": {},
+    "1.0-1.65": {},
+    "1.65-2.85": {
+     "stuck": 1
+    },
+    "2.85-9.0": {
+     "posture_failure": 2,
+     "stuck": 10,
+     "timeout": 17
+    }
+   },
+   "rear_swing_share": 0.2713189354061101,
+   "rear_knee_requested_in_swing": 0.15018902719020844,
+   "rear_knee_executed_in_swing": 0.049057163298130035,
+   "rear_knee_executed_in_stance": 0.008576729334890842,
+   "meets_condition": true
+  }
+ }
+}
