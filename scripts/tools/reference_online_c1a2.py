@@ -31,6 +31,10 @@ PRIMARY = 40000
 NOISE_SEED = 2026111801 if VARIANT == 'bh' else 2026111703
 POSTURE_PENALTY = 3. if VARIANT == 'bh' else 1.
 SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
+# 摆动抬脚检查（docs/lite3-online-swing-probe-20261118/PLAN.md）：任务名 -> 残差上限倍数、每步变化上限、起点槽位。
+SWING = dict(swing_a=dict(scale=1., rate=.02, slot=910000), swing_b=dict(scale=1., rate=None, slot=910000),
+             swing_c=dict(scale=2., rate=None, slot=910000), swing_d=dict(scale=4., rate=None, slot=910000),
+             swing_confirm=dict(scale=None, rate=None, slot=930000))
 TERRAINS = dict(flat=0, rough=4, slope_up=8, slope_down=10, stairs_up=12, stairs_down=14,
                 friction_lateral=16, friction_longitudinal=17, slope_rough_up=18, slope_rough_down=19)
 
@@ -76,6 +80,15 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
                     result.append(dict(env_id=len(result), session=start, arm=arm, condition=TARGET, slot=SCRIPT_SLOT + start,
                         repeat=repeat, column=0, row=0, script=name if arm == 'Updated' else 'A'))
         return result
+    if script in SWING:
+        # 每个起点三对环境：Frozen 是零残差，Updated 依次是 R、Q、S 三组摆动抬脚残差；W 都是 0。
+        assert VARIANT == 'bh' and kind == 'target'
+        for start in range(SCRIPT_STARTS):
+            for repeat, name in enumerate('RQS'):
+                for arm in ('Frozen', 'Updated'):
+                    result.append(dict(env_id=len(result), session=start, arm=arm, condition=TARGET, slot=SWING[script]['slot'] + start,
+                        repeat=repeat, column=0, row=0, script='A', swing=name if arm == 'Updated' else None))
+        return result
     cases = list(TERRAINS) if kind == 'retention' else [TARGET]
     for pair in range(part * width, (part + 1) * width):
         for case_index, case in enumerate(cases):
@@ -100,6 +113,7 @@ def jobs():
     if VARIANT == 'bh':
         result += [dict(name='script', kind='target', part=0, mark=0, steps=1050, script='target'),
                    dict(name='script_retention', kind='retention', part=0, mark=0, steps=1050, script='retention')]
+        result += [dict(name=name, kind='target', part=0, mark=0, steps=1050, script=name) for name in SWING]
     for job in result: job['smoke_index'] = 1
     return result
 
@@ -109,6 +123,8 @@ def main():
     parser.add_argument('--job', choices=[j['name'] for j in jobs()], required=True)
     parser.add_argument('--gpu', type=int, default=1)
     parser.add_argument('--child', action='store_true')
+    parser.add_argument('--swing-scale', type=float)
+    parser.add_argument('--swing-rate', type=float)
     args = parser.parse_args()
     for key, value in next(j for j in jobs() if j['name'] == args.job).items(): setattr(args, key, value)
     args.script = getattr(args, 'script', None)

@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -95,7 +95,17 @@ def collect(args):
             head.load_evaluation_mean(checkpoint['heads'][2*spec['session']+int(spec['arm']=='Updated')])
     initial_digests = [h.digest() for h in heads]
     base_digest = digest(env.actor)
-    safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device)))
+    swing = dict(SWING[script]) if script in SWING else None
+    if swing:
+        # 只在脚本化检查里放大残差上限或放开每步变化上限；确认任务的两个值由命令行给出。
+        from rl_training.ea_lpl.swing_lift import swing_request
+        if swing['scale'] is None: swing.update(scale=args.swing_scale,rate=args.swing_rate)
+        limit = torch.tensor(protocol()['residual_limits'],device=device)*swing['scale']
+        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=limit,residual_rate_limit=swing['rate'] or float(limit.max())))
+        swing_groups = [s['swing'] for s in specs]
+        save(args.output/'swing.json',dict(swing,residual_limits=limit.tolist(),residual_rate_limit=safety.limits.residual_rate_limit))
+    else:
+        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device)))
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
     v = basis('sag',device=device)
     projector = (v/(v**2).sum(0)).double()  # 执行残差在两个基方向上的系数
@@ -149,6 +159,9 @@ def collect(args):
                 raw = env.actor(env.obs['policy'])
                 raw[torch.as_tensor(~policy,device=device)] = 0
                 request = torch.einsum('jk,nk->nj',v,torch.tanh(torch.tensor(code,dtype=torch.float32,device=device)))
+                if swing:
+                    stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
+                    request = request+swing_request(stance,torch.as_tensor(features[:,0],device=device),swing_groups,swing['scale'])
                 request[torch.as_tensor(~policy,device=device)] = 0
                 trace = bridge.step(raw,request,timeout)
                 state = trace.safety_state
@@ -169,6 +182,7 @@ def collect(args):
                     paused=trace.decision.paused[:,0].cpu().numpy().copy(),projected=trace.decision.projected[:,0].cpu().numpy().copy(),
                     before_root=before['root'],command=env.command.vel_command_b.cpu().numpy().copy())
                 if bh: values['features'] = features.astype(np.float32)
+                if swing: values['stance'] = stance.cpu().numpy().copy()
                 env.obs,_,term,trunc,_ = env.base.step(trace.executed_action)
                 completed_steps += 1
                 if not torch.equal(env.base.action_manager.action,trace.executed_action): raise ValueError('executed action mismatch')
