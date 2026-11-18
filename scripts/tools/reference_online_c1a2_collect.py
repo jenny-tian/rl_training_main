@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -70,7 +70,16 @@ def collect(args):
     noise = exploration_table(seed=NOISE_SEED)
     noise_sha = hashlib.sha256(noise.tobytes()).hexdigest()
     np.save(args.output/'noise_table.npy',noise)
-    heads = [Session(args.kind=='train' and s['arm']=='Updated') for s in specs]
+    parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
+    width = 2*REPLICAS if parallel else 2  # 一起重置的相邻环境数
+    if parallel:
+        from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
+        groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
+        heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
+        for k in range(0,n,width):
+            if len({s['session'] for s in specs[k:k+width]})!=1 or k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
+    else:
+        heads = [Session(args.kind=='train' and s['arm']=='Updated') for s in specs]
     if args.kind in ('target','retention'):
         path = OUTPUT/'train'/('initial.pt' if args.mark==0 else f'at_{args.mark}.pt')
         checkpoint = torch.load(path,map_location='cpu',weights_only=True)
@@ -98,7 +107,8 @@ def collect(args):
     resets.append(env.reset(list(range(n)),episodes))
 
     def checkpoint(name,step):
-        torch.save(dict(heads=[h.snapshot() for h in heads],control_steps=step,
+        saved = [groups[s,arm].snapshot() for s in range(60) for arm in ('Frozen','Updated')] if parallel else [h.snapshot() for h in heads]
+        torch.save(dict(heads=saved,control_steps=step,
             base_sha256=HASHES['B'],noise_sha256=noise_sha,kind=args.kind),args.output/name)
 
     def persist(name):
@@ -117,7 +127,7 @@ def collect(args):
             before = env.frame()
             decisions = policy & (age==0)
             for i in np.flatnonzero(decisions):
-                exploration = noise[specs[i]['session'],episodes[i]] if args.kind in ('train','smoke') else None
+                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') else None
                 code[i] = heads[i].begin(exploration)
             for i in np.flatnonzero(policy):
                 if not np.array_equal(code[i],heads[i].requested_code()): raise ValueError('code changed inside episode')
@@ -210,8 +220,8 @@ def collect(args):
                     if max(errors.values())>1.e-6: raise ValueError('paired preparation mismatch')
             reset_ids = []
             if args.kind in ('train','smoke') and args.steps-tick-1>50:
-                for i in range(0,n,2):
-                    if phase[i]==phase[i+1]==2 and episodes[i]<399: reset_ids.extend([i,i+1])
+                for i in range(0,n,width):
+                    if (phase[i:i+width]==2).all() and episodes[i]<400//REPLICAS-1: reset_ids.extend(range(i,i+width))
                 if reset_ids:
                     episodes[reset_ids] += 1; resets.append(env.reset(reset_ids,episodes))
                     phase[reset_ids] = 0; preparation[reset_ids] = age[reset_ids] = 0

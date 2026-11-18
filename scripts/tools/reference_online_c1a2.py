@@ -19,9 +19,11 @@ TARGETS = ('stairs_up_06', 'boxes_06')
 TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
 assert TARGET in TARGETS
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
+# C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
 VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
-assert VARIANT in ('fixed', 'ea')
-OUTPUT = ROOT / 'logs/reference_six' / ('online_c1a_ea_20261117' if VARIANT == 'ea' else 'online_c1a_heading_20261117') / TARGET
+assert VARIANT in ('fixed', 'ea', 'm4')
+REPLICAS = 4 if VARIANT == 'm4' else 1
+OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118')[VARIANT] / TARGET
 MARKS = (0, 20000, 40000, 60000)
 PRIMARY = 40000
 NOISE_SEED = 2026111703
@@ -30,7 +32,12 @@ TERRAINS = dict(flat=0, rough=4, slope_up=8, slope_down=10, stairs_up=12, stairs
 
 
 def protocol():
-    return dict(schema=1, algorithm='C1-a-EA' if VARIANT == 'ea' else 'C1-a', covariance=VARIANT, heading_feedback=dict(gain=.5, limit=.8, target='world +x'),
+    extra = dict(algorithm='C1-a-M4', replicas=4, optimizer='plain gradient step', sigma=1., learning_rate=.6, max_rounds=100) if VARIANT == 'm4' else {}
+    return dict(_protocol(), **extra)
+
+
+def _protocol():
+    return dict(schema=1, algorithm='C1-a-EA' if VARIANT == 'ea' else 'C1-a', covariance='fixed' if VARIANT == 'm4' else VARIANT, heading_feedback=dict(gain=.5, limit=.8, target='world +x'),
         target=TARGET, model='B10200', checkpoint_sha256=HASHES['B'], pairs=60, train_control_steps=60000,
         primary_mark=PRIMARY, marks=list(MARKS), max_episodes=400, batch_size=4, sigma=.6, learning_rate=.3,
         mean_bound=2.5, basis='sag', residual_limits=[.24, .20, .20] * 4, command=[.4, 0., 'feedback'],
@@ -54,8 +61,10 @@ def rows(kind, *, part=0, smoke_index=1):
     cases = list(TERRAINS) if kind == 'retention' else [TARGET]
     for pair in range(part * width, (part + 1) * width):
         for case_index, case in enumerate(cases):
-            for repeat in range(4 if kind == 'target' else 2 if kind == 'retention' else 1):
-                slot = pair if kind in ('train', 'smoke') else pair * 1000 + case_index * 100 + repeat
+            training = kind in ('train', 'smoke')
+            for repeat in range(4 if kind == 'target' else 2 if kind == 'retention' else REPLICAS):
+                # 训练时 repeat 是会话内并行环境的编号，各用自己的起点槽位。
+                slot = pair + 1000 * repeat if training else pair * 1000 + case_index * 100 + repeat
                 for arm in ('Frozen', 'Updated'):
                     result.append(dict(env_id=len(result), session=pair, arm=arm, condition=case, slot=slot,
                         repeat=repeat, column=TERRAINS.get(case, 0), row=(1, 8)[repeat] if kind == 'retention' else 0))
@@ -82,7 +91,7 @@ def main():
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--child'], gpu=args.gpu,
-                   output=args.output, timeout=18000 if args.kind == 'train' else 3600, minimum_free_mib=8192)
+                   output=args.output, timeout=18000 * REPLICAS if args.kind == 'train' else 3600, minimum_free_mib=8192)
     try:
         from isaaclab.app import AppLauncher
         AppLauncher(headless=True, device='cuda:0',

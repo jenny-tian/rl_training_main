@@ -13,7 +13,6 @@ from reference_online_c1a2 import OUTPUT, TARGET, MARKS, PRIMARY, TERRAINS, VARI
 from reference_online_c1a_results import FAMILY, paired_summary
 from reference_stairs_eval import ROOT, save
 
-assert VARIANT == 'ea'
 DOCS = ROOT / 'docs/lite3-online-c1a-ea-20261117'
 FIXED = ROOT / 'logs/reference_six/online_c1a_heading_20261117' / TARGET
 
@@ -70,6 +69,7 @@ def exploration(train):
 
 
 def main():
+    assert VARIANT == 'ea'
     p = protocol()
     schedule = jobs()[1:]
     reports = {j['name']: read(OUTPUT, j['name'], 'report.json') for j in schedule}
