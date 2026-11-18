@@ -60,8 +60,9 @@ def collect(args):
     env = Environment(args,specs)
     from rl_training.ea_lpl.c1a import Session, exploration_table
     from rl_training.ea_lpl.c1b import digest
-    ea, bh = VARIANT=='ea', VARIANT=='bh'
-    if bh: from rl_training.ea_lpl import c1b_h
+    ea, bh, bs = VARIANT=='ea', VARIANT=='bh', VARIANT in ('bs','bsf')
+    if bh or bs: from rl_training.ea_lpl import c1b_h
+    if bs: from rl_training.ea_lpl import c1b_s
     if ea: from rl_training.ea_lpl.c1a_ea import SessionEA as Session
     from rl_training.ea_lpl.basis import basis
     from rl_training.ea_lpl.current_safety import CurrentModelSafetyFilter
@@ -69,18 +70,21 @@ def collect(args):
     from rl_training.online_adaptation.safety import SafetyLimits
     from reference_online_interface import clip_action
     n, device = len(specs), env.device
-    noise = c1b_h.exploration_table(seed=NOISE_SEED) if bh else exploration_table(seed=NOISE_SEED)
+    noise = c1b_s.exploration_table(seed=NOISE_SEED) if bs else c1b_h.exploration_table(seed=NOISE_SEED) if bh else exploration_table(seed=NOISE_SEED)
     noise_sha = hashlib.sha256(noise.tobytes()).hexdigest()
     np.save(args.output/'noise_table.npy',noise)
     parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
     width = 2*REPLICAS if parallel else 2  # 一起重置的相邻环境数
     if parallel:
-        if bh: ParallelSession, Slot = c1b_h.ParallelSession, c1b_h.Slot
+        if bs: ParallelSession, Slot = c1b_s.ParallelSession, c1b_s.Slot
+        elif bh: ParallelSession, Slot = c1b_h.ParallelSession, c1b_h.Slot
         else: from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
         groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
         heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
         for k in range(0,n,width):
             if len({s['session'] for s in specs[k:k+width]})!=1 or k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
+    elif bs:
+        heads = [c1b_s.Slot(c1b_s.ParallelSession(False,replicas=1),0) for s in specs]
     elif bh:
         heads = [c1b_h.Slot(c1b_h.ParallelSession(False,replicas=1),0) for s in specs]
     else:
@@ -105,15 +109,16 @@ def collect(args):
         swing_groups = [s['swing'] for s in specs]
         save(args.output/'swing.json',dict(swing,residual_limits=limit.tolist(),residual_rate_limit=safety.limits.residual_rate_limit))
     else:
-        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device)))
+        safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device),
+            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs else {})))
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
     v = basis('sag',device=device)
     projector = (v/(v**2).sum(0)).double()  # 执行残差在两个基方向上的系数
     executed_requested, requested_squared = np.zeros((n,2)), np.zeros((n,2))
     previous = torch.zeros(n,12,device=device)
     timeout = torch.zeros(n,1,dtype=torch.bool,device=device)
-    code = np.zeros((n,2),np.float64)
-    if bh:
+    code = np.zeros((n,4 if bs else 2),np.float64)
+    if bh or bs:
         scanner = env.base.scene['height_scanner']
         terrain_features = c1b_h.TerrainFeatures(scanner.ray_starts[0,:,:2])
         if not torch.equal(scanner.ray_starts[:,:,:2],scanner.ray_starts[:1,:,:2].expand(n,-1,-1)): raise ValueError('ray grids differ')
@@ -150,15 +155,18 @@ def collect(args):
             for i in np.flatnonzero(decisions):
                 exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') else None
                 code[i] = heads[i].begin(exploration)
+            if bh or bs: features = terrain_features(scanner.data.ray_hits_w[:,:,2]).cpu().numpy()
             if bh:
-                features = terrain_features(scanner.data.ray_hits_w[:,:,2]).cpu().numpy()
                 for i in np.flatnonzero(policy & (age%c1b_h.INTERVAL==0)): code[i] = heads[i].choose(features[i])
             for i in np.flatnonzero(policy):
                 if not np.array_equal(code[i],heads[i].requested_code()): raise ValueError('code changed inside episode')
             with torch.no_grad():
                 raw = env.actor(env.obs['policy'])
                 raw[torch.as_tensor(~policy,device=device)] = 0
-                request = torch.einsum('jk,nk->nj',v,torch.tanh(torch.tensor(code,dtype=torch.float32,device=device)))
+                if bs:
+                    stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
+                    request = c1b_s.residual_request(torch.tensor(code,dtype=torch.float32,device=device),stance,torch.as_tensor(features[:,0],device=device))
+                else: request = torch.einsum('jk,nk->nj',v,torch.tanh(torch.tensor(code,dtype=torch.float32,device=device)))
                 if swing:
                     stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
                     request = request+swing_request(stance,torch.as_tensor(features[:,0],device=device),swing_groups,swing['scale'])
@@ -169,8 +177,9 @@ def collect(args):
                     raise ValueError('nonzero preparation or waiting action')
                 components = safety.execution_components()
                 executed = (components['learned_effect'].double()@projector).cpu().numpy()
-                requested = np.tanh(code)
-                executed_requested[policy] += (executed*requested)[policy]; requested_squared[policy] += (requested**2)[policy]
+                if not bs:
+                    requested = np.tanh(code)
+                    executed_requested[policy] += (executed*requested)[policy]; requested_squared[policy] += (requested**2)[policy]
                 if args.kind in ('target','retention') and torch.count_nonzero(components['learned_effect'][::2]):
                     raise ValueError('Frozen not equivalent to projected base')
                 values = {f'state.{f.name}':getattr(state,f.name).cpu().numpy().copy() for f in fields(state)}
@@ -181,8 +190,8 @@ def collect(args):
                     phase=phase.copy(),episode=episodes.copy(),age=age.copy(),code=code.copy(),decision=decisions.copy(),
                     paused=trace.decision.paused[:,0].cpu().numpy().copy(),projected=trace.decision.projected[:,0].cpu().numpy().copy(),
                     before_root=before['root'],command=env.command.vel_command_b.cpu().numpy().copy())
-                if bh: values['features'] = features.astype(np.float32)
-                if swing: values['stance'] = stance.cpu().numpy().copy()
+                if bh or bs: values['features'] = features.astype(np.float32)
+                if swing or bs: values['stance'] = stance.cpu().numpy().copy()
                 env.obs,_,term,trunc,_ = env.base.step(trace.executed_action)
                 completed_steps += 1
                 if not torch.equal(env.base.action_manager.action,trace.executed_action): raise ValueError('executed action mismatch')
@@ -291,6 +300,6 @@ def collect(args):
         incomplete_policy_rows=np.flatnonzero(phase==1),incomplete_episodes_used_for_update=False,
         pending_complete_episodes=[len(h.batch) for h in heads],final_sha256=sha(args.output/'final.pt'),
         trace_index_sha256=sha(args.output/'trace_index.json'),feedback_max_error=env.feedback_error,
-        **(dict(missing_rays=terrain_features.missing) if bh else {})))
+        **(dict(missing_rays=terrain_features.missing) if bh or bs else {})))
     assert env.feedback_error<=1e-5
     print(f'COMPLETE {args.name}: episodes={len(records)}, updates={sum(h.updates for h in heads)}',flush=True)

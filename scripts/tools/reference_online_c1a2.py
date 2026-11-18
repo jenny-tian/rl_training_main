@@ -21,15 +21,19 @@ assert TARGET in TARGETS
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
 # C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
 # C1A2_VARIANT=bh 时码由高度特征决定（C1-b-H），每 10 步重新计算，探索加在 8 个参数上。方案见 docs/lite3-online-c1b-height-20261118/PLAN.md。
+# C1A2_VARIANT=bs 时学固定偏置和摆动缩腿共 4 个幅度（C1-b-S）；bsf 是放开每步变化上限的对照组，只做上阶。方案见 docs/lite3-online-c1b-swing-20261118/PLAN.md。
 VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh')
-REPLICAS = 4 if VARIANT in ('m4', 'bh') else 1
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf')
+assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
+SWING_BASIS = VARIANT in ('bs', 'bsf')
+REPLICAS = 4 if VARIANT in ('m4', 'bh', 'bs', 'bsf') else 1
 OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
-                                            bh='online_c1b_height_20261118')[VARIANT] / TARGET
+                                            bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118',
+                                            bsf='online_c1b_swing_fast_20261118')[VARIANT] / TARGET
 MARKS = (0, 20000, 40000, 60000)
 PRIMARY = 40000
-NOISE_SEED = 2026111801 if VARIANT == 'bh' else 2026111703
-POSTURE_PENALTY = 3. if VARIANT == 'bh' else 1.
+NOISE_SEED = 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
+POSTURE_PENALTY = 3. if VARIANT == 'bh' or SWING_BASIS else 1.
 SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
 # 摆动抬脚检查（docs/lite3-online-swing-probe-20261118/PLAN.md）：任务名 -> 残差上限倍数、每步变化上限、起点槽位。
 SWING = dict(swing_a=dict(scale=1., rate=.02, slot=910000), swing_b=dict(scale=1., rate=None, slot=910000),
@@ -47,6 +51,11 @@ def protocol():
             parameters=8, features=['rough', 'entry', 'middle', 'top'], decision_interval=10, exploration='per-episode parameter noise',
             reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure',
             script_starts=SCRIPT_STARTS, script_slot=SCRIPT_SLOT)
+    if SWING_BASIS:
+        extra = dict(algorithm='C1-b-S', replicas=4, optimizer='plain gradient step', sigma=.7, learning_rate=.6, max_rounds=100,
+            parameters=['front_static', 'rear_static', 'front_swing', 'rear_swing'], basis='sag static + sag in swing, times roughness',
+            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT == 'bsf' else .02,
+            reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure')
     return dict(_protocol(), **extra)
 
 
