@@ -21,8 +21,8 @@ def fatal_line(line):
 
 
 def run(command, *, gpu, output, timeout=1800, minimum_free_mib=12288):
-    if gpu not in (0, 1):
-        raise ValueError("B1 uses only GPU0/1")
+    if gpu not in (0, 1, 2, 3):  # 2026-11-18 用户确认四块 GPU 都可以用，哪块有空用哪块
+        raise ValueError("GPU index must be 0..3")
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
     def memory():
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--pilot", action="store_true", required=True)
-    parser.add_argument("--gpu", type=int, choices=(0, 1), default=0)
+    parser.add_argument("--gpu", type=int, choices=(0, 1, 2, 3), default=0)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     checkpoint = ROOT / "logs/rsl_rl/deeprobotics_lite3_source_curriculum/2026-11-10_16-00-10_full_seed42/model_3497.pt"
