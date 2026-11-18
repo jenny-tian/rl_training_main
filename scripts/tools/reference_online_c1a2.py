@@ -34,7 +34,8 @@ SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与
 # 摆动抬脚检查（docs/lite3-online-swing-probe-20261118/PLAN.md）：任务名 -> 残差上限倍数、每步变化上限、起点槽位。
 SWING = dict(swing_a=dict(scale=1., rate=.02, slot=910000), swing_b=dict(scale=1., rate=None, slot=910000),
              swing_c=dict(scale=2., rate=None, slot=910000), swing_d=dict(scale=4., rate=None, slot=910000),
-             swing_confirm=dict(scale=None, rate=None, slot=930000))
+             swing_confirm=dict(scale=None, rate=None, slot=930000),
+             swing_confirm_a=dict(scale=1., rate=.02, slot=930000))  # 方案之外加的：现有安全过滤在确认起点上的结果
 TERRAINS = dict(flat=0, rough=4, slope_up=8, slope_down=10, stairs_up=12, stairs_down=14,
                 friction_lateral=16, friction_longitudinal=17, slope_rough_up=18, slope_rough_down=19)
 
