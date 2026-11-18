@@ -1,0 +1,298 @@
+{
+ "swing_a": {
+  "settings": {
+   "scale": 1.0,
+   "rate": 0.02,
+   "slot": 910000,
+   "residual_limits": [
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224,
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224,
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224,
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224
+   ],
+   "residual_rate_limit": 0.02
+  },
+  "groups": {
+   "R": {
+    "zero": {
+     "success": 28,
+     "timeout": 46,
+     "posture_failure": 45,
+     "lateral_exit": 1
+    },
+    "scripted": {
+     "posture_failure": 42,
+     "timeout": 41,
+     "success": 36,
+     "lateral_exit": 1
+    },
+    "success_gain": 0.06666666666666667,
+    "ci95": [
+     -0.05,
+     0.18333333333333332
+    ],
+    "posture_increase": -3,
+    "gained": 30,
+    "lost": 22,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {
+      "posture_failure": 21,
+      "timeout": 4
+     },
+     "1.65-2.85": {
+      "posture_failure": 21,
+      "timeout": 37,
+      "lateral_exit": 1
+     },
+     "2.85-9.0": {}
+    },
+    "rear_swing_share": 0.22649755465886623,
+    "rear_knee_requested_in_swing": 0.18334528803825378,
+    "rear_knee_executed_in_swing": 0.05215447023510933,
+    "rear_knee_executed_in_stance": 0.0079391710460186,
+    "meets_condition": false
+   },
+   "Q": {
+    "zero": {
+     "success": 28,
+     "timeout": 46,
+     "posture_failure": 45,
+     "lateral_exit": 1
+    },
+    "scripted": {
+     "posture_failure": 36,
+     "success": 38,
+     "timeout": 44,
+     "lateral_exit": 2
+    },
+    "success_gain": 0.08333333333333333,
+    "ci95": [
+     -0.025,
+     0.19166666666666668
+    ],
+    "posture_increase": -9,
+    "gained": 28,
+    "lost": 18,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {
+      "timeout": 4,
+      "posture_failure": 17
+     },
+     "1.65-2.85": {
+      "posture_failure": 19,
+      "timeout": 40,
+      "lateral_exit": 2
+     },
+     "2.85-9.0": {}
+    },
+    "rear_swing_share": 0.23607986969095926,
+    "rear_knee_requested_in_swing": 0.18471011519432068,
+    "rear_knee_executed_in_swing": 0.051508400589227676,
+    "rear_knee_executed_in_stance": 0.007831068709492683,
+    "meets_condition": false
+   },
+   "S": {
+    "zero": {
+     "success": 28,
+     "timeout": 46,
+     "posture_failure": 45,
+     "lateral_exit": 1
+    },
+    "scripted": {
+     "posture_failure": 54,
+     "success": 25,
+     "timeout": 39,
+     "lateral_exit": 2
+    },
+    "success_gain": -0.025,
+    "ci95": [
+     -0.13333333333333333,
+     0.08333333333333333
+    ],
+    "posture_increase": 9,
+    "gained": 19,
+    "lost": 22,
+    "failures_by_section": {
+     "0.0-1.0": {
+      "lateral_exit": 1,
+      "posture_failure": 1
+     },
+     "1.0-1.65": {
+      "posture_failure": 22,
+      "timeout": 1,
+      "lateral_exit": 1
+     },
+     "1.65-2.85": {
+      "posture_failure": 31,
+      "timeout": 38
+     },
+     "2.85-9.0": {}
+    },
+    "rear_swing_share": 0.25485773172267706,
+    "rear_knee_requested_in_swing": 0.18529149889945984,
+    "rear_knee_executed_in_swing": 0.04728061705827713,
+    "rear_knee_executed_in_stance": 0.007605466526001692,
+    "meets_condition": false
+   }
+  }
+ },
+ "swing_c": {
+  "settings": {
+   "scale": 2.0,
+   "rate": null,
+   "slot": 910000,
+   "residual_limits": [
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645,
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645,
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645,
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645
+   ],
+   "residual_rate_limit": 0.47999998927116394
+  },
+  "groups": {
+   "R": {
+    "zero": {
+     "success": 28,
+     "timeout": 46,
+     "posture_failure": 45,
+     "lateral_exit": 1
+    },
+    "scripted": {
+     "posture_failure": 39,
+     "timeout": 38,
+     "success": 39,
+     "lateral_exit": 4
+    },
+    "success_gain": 0.09166666666666666,
+    "ci95": [
+     -0.016666666666666666,
+     0.2
+    ],
+    "posture_increase": -6,
+    "gained": 27,
+    "lost": 16,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {
+      "posture_failure": 21,
+      "timeout": 2,
+      "lateral_exit": 3
+     },
+     "1.65-2.85": {
+      "timeout": 36,
+      "posture_failure": 18,
+      "lateral_exit": 1
+     },
+     "2.85-9.0": {}
+    },
+    "rear_swing_share": 0.2571249222052922,
+    "rear_knee_requested_in_swing": 0.3723825514316559,
+    "rear_knee_executed_in_swing": 0.3013753890991211,
+    "rear_knee_executed_in_stance": 0.0,
+    "meets_condition": false
+   },
+   "Q": {
+    "zero": {
+     "success": 28,
+     "timeout": 46,
+     "posture_failure": 45,
+     "lateral_exit": 1
+    },
+    "scripted": {
+     "success": 41,
+     "posture_failure": 39,
+     "timeout": 37,
+     "lateral_exit": 3
+    },
+    "success_gain": 0.10833333333333334,
+    "ci95": [
+     -0.008333333333333333,
+     0.225
+    ],
+    "posture_increase": -6,
+    "gained": 32,
+    "lost": 19,
+    "failures_by_section": {
+     "0.0-1.0": {
+      "lateral_exit": 1
+     },
+     "1.0-1.65": {
+      "posture_failure": 14,
+      "timeout": 2,
+      "lateral_exit": 1
+     },
+     "1.65-2.85": {
+      "posture_failure": 25,
+      "timeout": 35,
+      "lateral_exit": 1
+     },
+     "2.85-9.0": {}
+    },
+    "rear_swing_share": 0.2726036987340295,
+    "rear_knee_requested_in_swing": 0.3716822862625122,
+    "rear_knee_executed_in_swing": 0.2648144066333771,
+    "rear_knee_executed_in_stance": 0.0,
+    "meets_condition": true
+   },
+   "S": {
+    "zero": {
+     "success": 28,
+     "timeout": 46,
+     "posture_failure": 45,
+     "lateral_exit": 1
+    },
+    "scripted": {
+     "success": 43,
+     "timeout": 30,
+     "lateral_exit": 4,
+     "posture_failure": 43
+    },
+    "success_gain": 0.125,
+    "ci95": [
+     0.016666666666666666,
+     0.23333333333333334
+    ],
+    "posture_increase": -2,
+    "gained": 31,
+    "lost": 16,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {
+      "lateral_exit": 3,
+      "posture_failure": 22,
+      "timeout": 4
+     },
+     "1.65-2.85": {
+      "timeout": 26,
+      "posture_failure": 21,
+      "lateral_exit": 1
+     },
+     "2.85-9.0": {}
+    },
+    "rear_swing_share": 0.2706709932406638,
+    "rear_knee_requested_in_swing": 0.3727288246154785,
+    "rear_knee_executed_in_swing": 0.26351943612098694,
+    "rear_knee_executed_in_stance": 0.0,
+    "meets_condition": true
+   }
+  }
+ }
+}

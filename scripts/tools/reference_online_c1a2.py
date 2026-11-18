@@ -16,8 +16,10 @@ from reference_stairs_eval import ROOT, save, sha
 from reference_online_targets import HASHES
 
 TARGETS = ('stairs_up_06', 'boxes_06')
+# 只用于脚本化检查的候选目标（2026-11-17 筛选时搁下的两个），不能用来训练。
+PROBE_TARGETS = ('stairs_up_065', 'slope_rough_up_x11')
 TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
-assert TARGET in TARGETS
+assert TARGET in TARGETS + PROBE_TARGETS
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
 # C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
 # C1A2_VARIANT=bh 时码由高度特征决定（C1-b-H），每 10 步重新计算，探索加在 8 个参数上。方案见 docs/lite3-online-c1b-height-20261118/PLAN.md。
@@ -138,6 +140,7 @@ def main():
     args = parser.parse_args()
     for key, value in next(j for j in jobs() if j['name'] == args.job).items(): setattr(args, key, value)
     args.script = getattr(args, 'script', None)
+    assert TARGET in TARGETS or args.script in SWING, 'probe targets only run the swing checks'
     args.output = OUTPUT / args.job
     if not args.child:
         from source_block_runtime import run

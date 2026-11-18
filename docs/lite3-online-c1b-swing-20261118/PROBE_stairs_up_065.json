@@ -1,0 +1,307 @@
+{
+ "swing_a": {
+  "settings": {
+   "scale": 1.0,
+   "rate": 0.02,
+   "slot": 910000,
+   "residual_limits": [
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224,
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224,
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224,
+    0.23999999463558197,
+    0.20000000298023224,
+    0.20000000298023224
+   ],
+   "residual_rate_limit": 0.02
+  },
+  "groups": {
+   "R": {
+    "zero": {
+     "stuck": 49,
+     "success": 32,
+     "timeout": 31,
+     "posture_failure": 8
+    },
+    "scripted": {
+     "stuck": 45,
+     "success": 39,
+     "timeout": 30,
+     "posture_failure": 6
+    },
+    "success_gain": 0.058333333333333334,
+    "ci95": [
+     -0.05,
+     0.16666666666666666
+    ],
+    "posture_increase": -2,
+    "gained": 27,
+    "lost": 20,
+    "failures_by_section": {
+     "0.0-1.0": {
+      "posture_failure": 1
+     },
+     "1.0-1.65": {
+      "posture_failure": 1
+     },
+     "1.65-2.85": {
+      "timeout": 2,
+      "posture_failure": 3
+     },
+     "2.85-9.0": {
+      "stuck": 45,
+      "timeout": 28,
+      "posture_failure": 1
+     }
+    },
+    "rear_swing_share": 0.27417874505883955,
+    "rear_knee_requested_in_swing": 0.1935681402683258,
+    "rear_knee_executed_in_swing": 0.08959007263183594,
+    "rear_knee_executed_in_stance": 0.01410138700157404,
+    "meets_condition": false
+   },
+   "Q": {
+    "zero": {
+     "stuck": 49,
+     "success": 32,
+     "timeout": 31,
+     "posture_failure": 8
+    },
+    "scripted": {
+     "success": 64,
+     "stuck": 38,
+     "timeout": 14,
+     "posture_failure": 3,
+     "lateral_exit": 1
+    },
+    "success_gain": 0.26666666666666666,
+    "ci95": [
+     0.14166666666666666,
+     0.39166666666666666
+    ],
+    "posture_increase": -5,
+    "gained": 48,
+    "lost": 16,
+    "failures_by_section": {
+     "0.0-1.0": {
+      "posture_failure": 1
+     },
+     "1.0-1.65": {},
+     "1.65-2.85": {
+      "stuck": 2
+     },
+     "2.85-9.0": {
+      "stuck": 36,
+      "timeout": 14,
+      "posture_failure": 2,
+      "lateral_exit": 1
+     }
+    },
+    "rear_swing_share": 0.2666598208348003,
+    "rear_knee_requested_in_swing": 0.1928829401731491,
+    "rear_knee_executed_in_swing": 0.08343005180358887,
+    "rear_knee_executed_in_stance": 0.013111823238432407,
+    "meets_condition": true
+   },
+   "S": {
+    "zero": {
+     "stuck": 49,
+     "success": 32,
+     "timeout": 31,
+     "posture_failure": 8
+    },
+    "scripted": {
+     "timeout": 30,
+     "stuck": 36,
+     "success": 43,
+     "posture_failure": 11
+    },
+    "success_gain": 0.09166666666666666,
+    "ci95": [
+     -0.03333333333333333,
+     0.21666666666666667
+    ],
+    "posture_increase": 3,
+    "gained": 34,
+    "lost": 23,
+    "failures_by_section": {
+     "0.0-1.0": {
+      "posture_failure": 1
+     },
+     "1.0-1.65": {
+      "posture_failure": 6
+     },
+     "1.65-2.85": {
+      "timeout": 3,
+      "posture_failure": 4,
+      "stuck": 2
+     },
+     "2.85-9.0": {
+      "timeout": 27,
+      "stuck": 34
+     }
+    },
+    "rear_swing_share": 0.2800257335996313,
+    "rear_knee_requested_in_swing": 0.1933460682630539,
+    "rear_knee_executed_in_swing": 0.08033375442028046,
+    "rear_knee_executed_in_stance": 0.012296169064939022,
+    "meets_condition": false
+   }
+  }
+ },
+ "swing_c": {
+  "settings": {
+   "scale": 2.0,
+   "rate": null,
+   "slot": 910000,
+   "residual_limits": [
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645,
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645,
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645,
+    0.47999998927116394,
+    0.4000000059604645,
+    0.4000000059604645
+   ],
+   "residual_rate_limit": 0.47999998927116394
+  },
+  "groups": {
+   "R": {
+    "zero": {
+     "stuck": 49,
+     "success": 32,
+     "timeout": 31,
+     "posture_failure": 8
+    },
+    "scripted": {
+     "success": 92,
+     "stuck": 16,
+     "lateral_exit": 2,
+     "timeout": 3,
+     "posture_failure": 7
+    },
+    "success_gain": 0.5,
+    "ci95": [
+     0.39166666666666666,
+     0.6083333333333333
+    ],
+    "posture_increase": -1,
+    "gained": 66,
+    "lost": 6,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {
+      "posture_failure": 5
+     },
+     "1.65-2.85": {
+      "posture_failure": 1
+     },
+     "2.85-9.0": {
+      "stuck": 16,
+      "lateral_exit": 2,
+      "timeout": 3,
+      "posture_failure": 1
+     }
+    },
+    "rear_swing_share": 0.29633307411616916,
+    "rear_knee_requested_in_swing": 0.38432827591896057,
+    "rear_knee_executed_in_swing": 0.35251450538635254,
+    "rear_knee_executed_in_stance": 0.0,
+    "meets_condition": true
+   },
+   "Q": {
+    "zero": {
+     "stuck": 49,
+     "success": 32,
+     "timeout": 31,
+     "posture_failure": 8
+    },
+    "scripted": {
+     "success": 115,
+     "stuck": 3,
+     "timeout": 1,
+     "lateral_exit": 1
+    },
+    "success_gain": 0.6916666666666667,
+    "ci95": [
+     0.6,
+     0.7833333333333333
+    ],
+    "posture_increase": -8,
+    "gained": 85,
+    "lost": 2,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {},
+     "1.65-2.85": {},
+     "2.85-9.0": {
+      "stuck": 3,
+      "timeout": 1,
+      "lateral_exit": 1
+     }
+    },
+    "rear_swing_share": 0.27662840265956673,
+    "rear_knee_requested_in_swing": 0.3795832395553589,
+    "rear_knee_executed_in_swing": 0.35965263843536377,
+    "rear_knee_executed_in_stance": 0.0,
+    "meets_condition": true
+   },
+   "S": {
+    "zero": {
+     "stuck": 49,
+     "success": 32,
+     "timeout": 31,
+     "posture_failure": 8
+    },
+    "scripted": {
+     "success": 96,
+     "stuck": 10,
+     "timeout": 5,
+     "lateral_exit": 5,
+     "posture_failure": 4
+    },
+    "success_gain": 0.5333333333333333,
+    "ci95": [
+     0.425,
+     0.6333333333333333
+    ],
+    "posture_increase": -4,
+    "gained": 71,
+    "lost": 7,
+    "failures_by_section": {
+     "0.0-1.0": {},
+     "1.0-1.65": {
+      "posture_failure": 2
+     },
+     "1.65-2.85": {
+      "stuck": 1,
+      "lateral_exit": 3,
+      "posture_failure": 1,
+      "timeout": 1
+     },
+     "2.85-9.0": {
+      "stuck": 9,
+      "timeout": 4,
+      "lateral_exit": 2,
+      "posture_failure": 1
+     }
+    },
+    "rear_swing_share": 0.29987643226241295,
+    "rear_knee_requested_in_swing": 0.3838447332382202,
+    "rear_knee_executed_in_swing": 0.344252347946167,
+    "rear_knee_executed_in_stance": 0.0,
+    "meets_condition": true
+   }
+  }
+ }
+}
