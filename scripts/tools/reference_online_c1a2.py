@@ -25,16 +25,21 @@ assert TARGET in TARGETS + PROBE_TARGETS
 # C1A2_VARIANT=bh 时码由高度特征决定（C1-b-H），每 10 步重新计算，探索加在 8 个参数上。方案见 docs/lite3-online-c1b-height-20261118/PLAN.md。
 # C1A2_VARIANT=bs 时学固定偏置和摆动缩腿共 4 个幅度（C1-b-S）；bsf 是放开每步变化上限的对照组，只做上阶。方案见 docs/lite3-online-c1b-swing-20261118/PLAN.md。
 VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf')
+# s2f / s2n 是 C1-b-S 第二轮的两种做法，目标可以是 6 cm 或 6.5 cm 上阶。方案见 docs/lite3-online-c1b-swing2-20261119/PLAN.md。
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n')
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
-SWING_BASIS = VARIANT in ('bs', 'bsf')
-REPLICAS = 4 if VARIANT in ('m4', 'bh', 'bs', 'bsf') else 1
+ROUND2 = VARIANT in ('s2f', 's2n')
+assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065')
+TRAINABLE = ('stairs_up_06', 'stairs_up_065') if ROUND2 else TARGETS
+SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n')
+REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
 OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
                                             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118',
-                                            bsf='online_c1b_swing_fast_20261118')[VARIANT] / TARGET
+                                            bsf='online_c1b_swing_fast_20261118', s2f='online_c1b_s2f_20261119',
+                                            s2n='online_c1b_s2n_20261119')[VARIANT] / TARGET
 MARKS = (0, 20000, 40000, 60000)
-PRIMARY = 40000
-NOISE_SEED = 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
+PRIMARY = 60000 if VARIANT == 's2n' else 40000
+NOISE_SEED = 2026111901 if ROUND2 else 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
 POSTURE_PENALTY = 3. if VARIANT == 'bh' or SWING_BASIS else 1.
 SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
 # 摆动抬脚检查（docs/lite3-online-swing-probe-20261118/PLAN.md）：任务名 -> 残差上限倍数、每步变化上限、起点槽位。
@@ -56,8 +61,11 @@ def protocol():
     if SWING_BASIS:
         extra = dict(algorithm='C1-b-S', replicas=4, optimizer='plain gradient step', sigma=.7, learning_rate=.6, max_rounds=100,
             parameters=['front_static', 'rear_static', 'front_swing', 'rear_swing'], basis='sag static + sag in swing, times roughness',
-            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT == 'bsf' else .02,
+            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT in ('bsf', 's2f') else .02,
             reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure')
+        if ROUND2:
+            extra.update(algorithm='C1-b-S round 2 ' + VARIANT, namespaces=dict(smoke=60, train=61, target=62, retention=63),
+                         active_parameters=['front_swing', 'rear_swing'] if VARIANT == 's2n' else None)
     return dict(_protocol(), **extra)
 
 
@@ -140,7 +148,7 @@ def main():
     args = parser.parse_args()
     for key, value in next(j for j in jobs() if j['name'] == args.job).items(): setattr(args, key, value)
     args.script = getattr(args, 'script', None)
-    assert TARGET in TARGETS or args.script in SWING, 'probe targets only run the swing checks'
+    assert TARGET in TRAINABLE or args.script in SWING, 'probe targets only run the swing checks'
     args.output = OUTPUT / args.job
     if not args.child:
         from source_block_runtime import run

@@ -8,14 +8,14 @@ import json
 
 import numpy as np
 
-from reference_online_c1a2 import OUTPUT, TARGET, MARKS, PRIMARY, TERRAINS, VARIANT, jobs, protocol
+from reference_online_c1a2 import OUTPUT, TARGET, MARKS, PRIMARY, TERRAINS, VARIANT, ROUND2, jobs, protocol
 from reference_online_c1a_results import FAMILY, paired_summary
 from reference_online_c1aea_results import against_fixed, frozen_reproduced, read
 from reference_stairs_eval import ROOT, save
 
-assert VARIANT in ('bs', 'bsf')
-DOCS = ROOT / 'docs/lite3-online-c1b-swing-20261118'
-NAME = f'RESULTS_{TARGET}' + ('_fast' if VARIANT == 'bsf' else '')
+assert VARIANT in ('bs', 'bsf', 's2f', 's2n')
+DOCS = ROOT / ('docs/lite3-online-c1b-swing2-20261119' if ROUND2 else 'docs/lite3-online-c1b-swing-20261118')
+NAME = f'RESULTS_{TARGET}' + dict(bs='', bsf='_fast', s2f='_s2f', s2n='_s2n')[VARIANT]
 M4 = ROOT / 'logs/reference_six/online_c1a_m4_20261118' / TARGET
 
 
@@ -47,11 +47,11 @@ def main():
     reports = {j['name']: read(OUTPUT, j['name'], 'report.json') for j in schedule}
     assert all(r['status'] == 'passed' for r in reports.values())
     records = {j['name']: read(OUTPUT, j['name'])['records'] for j in schedule}
-    m4 = {j['name']: read(M4, j['name'])['records'] for j in schedule if j['kind'] != 'train'}
+    m4 = None if ROUND2 else {j['name']: read(M4, j['name'])['records'] for j in schedule if j['kind'] != 'train'}  # 第二轮换了起点，不与 C1-a 改进版比较
     target_rows = lambda source, m: [r for j in schedule if j['kind'] == 'target' and j['mark'] == m for r in source[j['name']]]
     curves = {str(m): paired_summary(target_rows(records, m)) for m in MARKS[1:]}
-    versus = {str(m): against_fixed(target_rows(records, m), target_rows(m4, m)) for m in MARKS[1:]}
-    reproduced = {str(m): frozen_reproduced(target_rows(records, m), target_rows(m4, m)) for m in MARKS[1:]}
+    versus = {} if ROUND2 else {str(m): against_fixed(target_rows(records, m), target_rows(m4, m)) for m in MARKS[1:]}
+    reproduced = {} if ROUND2 else {str(m): frozen_reproduced(target_rows(records, m), target_rows(m4, m)) for m in MARKS[1:]}
     retained = [r for j in schedule if j['kind'] == 'retention' for r in records[j['name']]]
     families = {f: paired_summary([r for r in retained if FAMILY[r['condition']] == f],
                 repeats=2 * sum(v == f for v in FAMILY.values())) for f in dict.fromkeys(FAMILY.values())}

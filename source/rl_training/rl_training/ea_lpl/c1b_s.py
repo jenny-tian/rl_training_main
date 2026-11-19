@@ -49,9 +49,13 @@ def _digest(w):
 
 
 class ParallelSession:
-    def __init__(self, updated, *, replicas=REPLICAS, sigma=SIGMA, learning_rate=LEARNING_RATE):
+    def __init__(self, updated, *, replicas=REPLICAS, sigma=SIGMA, learning_rate=LEARNING_RATE, active=None):
         self.updated, self.replicas, self.sigma, self.learning_rate = bool(updated), replicas, sigma, learning_rate
         self.w = torch.zeros(len(PARAMETERS), dtype=torch.float64)
+        # active 里没有的参数不加扰动，所以也不会被更新，恒为 0。
+        self.mask = torch.tensor([float(active is None or name in active) for name in PARAMETERS], dtype=torch.float64)
+        if active is not None and (not active or set(active) - set(PARAMETERS)):
+            raise ValueError('unknown or empty active parameters')
         self.updates = 0
         self.active = {}
         self.batch = []
@@ -69,6 +73,7 @@ class ParallelSession:
         noise = torch.zeros_like(self.w) if noise is None else torch.as_tensor(noise, dtype=torch.float64).detach().clone()
         if noise.shape != self.w.shape or not torch.isfinite(noise).all() or not torch.isfinite(self.w).all():
             raise ValueError('finite 4-vectors required')
+        noise = noise * self.mask
         self.active[replica] = dict(replica=replica, mean=self.w.clone(), noise=noise, code=self.w + self.sigma * noise, version=self.updates)
         return self.requested_code(replica)
 

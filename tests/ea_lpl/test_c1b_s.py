@@ -82,5 +82,15 @@ def test_snapshot_loads_for_evaluation():
     with pytest.raises(ValueError): ParallelSession(False).load_evaluation_mean(bad)
 
 
+def test_inactive_parameters_stay_zero_and_active_ones_update_as_before():
+    noises = np.random.default_rng(3).standard_normal((4, 4)); returns = [1.5, -2.4, 1., 0.]
+    full, swing = ParallelSession(True), ParallelSession(True, active=('front_swing', 'rear_swing'))
+    assert np.allclose(swing.begin(0, noises[0]), [0., 0., .7 * noises[0, 2], .7 * noises[0, 3]]); swing.finish(0, 0., learn=False)
+    for _ in range(5): play(full, noises, returns); play(swing, noises, returns)
+    assert not swing.w[:2].any() and torch.allclose(swing.w[2:], full.w[2:]) and swing.w[2:].any()
+    with pytest.raises(ValueError): ParallelSession(True, active=('knee',))
+    with pytest.raises(ValueError): ParallelSession(True, active=())
+
+
 def test_exploration_table():
     assert exploration_table().shape == (60, 400, 4) and np.array_equal(exploration_table(), exploration_table())
