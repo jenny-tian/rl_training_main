@@ -84,11 +84,10 @@ def collect(args):
             ParallelSession, Slot = functools.partial(c1b_s.ParallelSession,active=protocol().get('active_parameters')), c1b_s.Slot
         elif bh: ParallelSession, Slot = c1b_h.ParallelSession, c1b_h.Slot
         else: from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
-        sessions = sorted({s['session'] for s in specs})  # 训练分成几部分时，这里只有本部分的会话
-        groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in sessions for arm in ('Frozen','Updated')}
+        groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
         heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
         for k in range(0,n,width):
-            if len({s['session'] for s in specs[k:k+width]})!=1 or sessions[0]+k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
+            if len({s['session'] for s in specs[k:k+width]})!=1 or k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
     elif bs:
         heads = [c1b_s.Slot(c1b_s.ParallelSession(False,replicas=1),0) for s in specs]
     elif bh:
@@ -139,10 +138,9 @@ def collect(args):
     resets.append(env.reset(list(range(n)),episodes))
 
     def checkpoint(name,step):
-        saved = [groups[s,arm].snapshot() for s in sessions for arm in ('Frozen','Updated')] if parallel else [h.snapshot() for h in heads]
+        saved = [groups[s,arm].snapshot() for s in range(60) for arm in ('Frozen','Updated')] if parallel else [h.snapshot() for h in heads]
         torch.save(dict(heads=saved,control_steps=step,
-            base_sha256=HASHES['B'],noise_sha256=noise_sha,kind=args.kind,
-            **(dict(sessions=sessions) if parallel and len(sessions)!=60 else {})),args.output/name)
+            base_sha256=HASHES['B'],noise_sha256=noise_sha,kind=args.kind),args.output/name)
 
     def persist(name):
         writer.flush()
@@ -310,7 +308,6 @@ def collect(args):
         paired_max_error=max(max(p['errors'].values()) for p in pairs),counts=counts,noise_sha256=noise_sha,
         incomplete_policy_rows=np.flatnonzero(phase==1),incomplete_episodes_used_for_update=False,
         pending_complete_episodes=[len(h.batch) for h in heads],final_sha256=sha(args.output/'final.pt'),
-        **(dict(sessions=sessions) if parallel and len(sessions)!=60 else {}),
         trace_index_sha256=sha(args.output/'trace_index.json'),feedback_max_error=env.feedback_error,
         **(dict(missing_rays=terrain_features.missing) if bh or bs else {})))
     assert env.feedback_error<=1e-5

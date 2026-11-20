@@ -40,10 +40,9 @@ OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117',
                                             s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120')[VARIANT] / TARGET
 MARKS = (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' else (0, 20000, 40000, 60000)
 PRIMARY = 60000 if VARIANT in ('s2n', 's2ea') else 40000
-# 只作描述的早期快照。s2n 训练时没有存这两个时刻，由训练记录重建（reference_online_c1bea_early.py），已登记的 MARKS 不变。
-EXTRA_MARKS = (5000, 10000) if VARIANT == 's2n' else ()
-# 会话之间互相独立，训练可以按会话分成几个进程并行，再由 reference_online_c1a2_merge.py 合并。
-TRAIN_PARTS = 4 if VARIANT == 's2ea' else 1
+# 只作描述的早期快照，评估排在登记的任务之后。s2ea 训练时直接保存；s2n 当时没有存，由训练记录重建
+# （reference_online_c1bea_early.py），s2n 已登记的 MARKS 不变。
+EARLY_MARKS = (5000, 10000) if VARIANT in ('s2n', 's2ea') else ()
 NOISE_SEED = 2026111901 if ROUND2 else 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
 POSTURE_PENALTY = 3. if VARIANT == 'bh' or SWING_BASIS else 1.
 SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
@@ -72,7 +71,7 @@ def protocol():
             extra.update(algorithm='C1-b-S round 2 ' + VARIANT, namespaces=dict(smoke=60, train=61, target=62, retention=63),
                          active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea') else None)
         if VARIANT == 's2ea':
-            extra.update(algorithm='C1-b-S-EA', covariance='execution-aware', train_parts=TRAIN_PARTS)
+            extra.update(algorithm='C1-b-S-EA', covariance='execution-aware')
     return dict(_protocol(), **extra)
 
 
@@ -94,7 +93,7 @@ def episode_return(displacement, length, completed, safety_ending):
 
 
 def rows(kind, *, part=0, smoke_index=1, script=None):
-    parts = 4 if kind == 'target' else 20 if kind == 'retention' else TRAIN_PARTS if kind == 'train' else 1
+    parts = 4 if kind == 'target' else 20 if kind == 'retention' else 1
     assert kind in ('smoke', 'train', 'target', 'retention') and 0 <= part < parts
     width = 60 // parts
     result = []
@@ -133,15 +132,11 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600)]
-    if TRAIN_PARTS == 1:
-        result.append(dict(name='train', kind='train', part=0, mark=0, steps=60000))
-    else:
-        result += [dict(name=f'train_{p:02d}', kind='train', part=p, mark=0, steps=60000) for p in range(TRAIN_PARTS)]
-        result.append(dict(name='train', kind='merge', part=0, mark=0, steps=0))
-    result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] for p in range(4)]
+    result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
+              dict(name='train', kind='train', part=0, mark=0, steps=60000)]
+    result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] if m not in EARLY_MARKS for p in range(4)]
     result += [dict(name=f'retention_{PRIMARY}_{p:02d}', kind='retention', mark=PRIMARY, part=p, steps=1050) for p in range(20)]
-    result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050, extra=True) for m in EXTRA_MARKS for p in range(4)]
+    result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050, extra=True) for m in EARLY_MARKS for p in range(4)]
     if VARIANT == 'bh':
         result += [dict(name='script', kind='target', part=0, mark=0, steps=1050, script='target'),
                    dict(name='script_retention', kind='retention', part=0, mark=0, steps=1050, script='retention')]
@@ -162,13 +157,11 @@ def main():
     args.script = getattr(args, 'script', None)
     assert TARGET in TRAINABLE or args.script in SWING, 'probe targets only run the swing checks'
     args.output = OUTPUT / args.job
-    if args.kind == 'merge':
-        from reference_online_c1a2_merge import merge
-        return merge()
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--child'], gpu=args.gpu,
-                   output=args.output, timeout=18000 * REPLICAS if args.kind == 'train' else 3600, minimum_free_mib=8192)
+                   output=args.output, timeout=18000 * REPLICAS if args.kind == 'train' else 3600,
+                   minimum_free_mib=int(os.environ.get('C1A2_MIN_FREE_MIB', 8192)))  # 并行调度时由 reference_online_c1a2_pool.py 给出
     try:
         from isaaclab.app import AppLauncher
         AppLauncher(headless=True, device='cuda:0',

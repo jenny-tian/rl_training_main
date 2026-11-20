@@ -12,7 +12,7 @@ import json
 
 import numpy as np
 
-from reference_online_c1a2 import EXTRA_MARKS, MARKS, OUTPUT, VARIANT
+from reference_online_c1a2 import EARLY_MARKS, MARKS, OUTPUT, VARIANT
 from reference_online_targets import HASHES
 
 
@@ -30,7 +30,7 @@ def reconstruct(records, mark, sessions=60):
 
 def main():
     import torch
-    assert VARIANT == 's2n' and EXTRA_MARKS
+    assert VARIANT == 's2n' and EARLY_MARKS
     train = OUTPUT / 'train'
     records = json.loads((train / 'episodes.json').read_text())['records']
     digest = lambda w: hashlib.sha256(torch.as_tensor(w, dtype=torch.float64).numpy().tobytes()).hexdigest()
@@ -42,7 +42,7 @@ def main():
         for k, head in enumerate(saved['heads']):
             if digest(rebuilt[k // 2, k % 2]) != head['parameter_sha256']: raise ValueError(f'reconstruction differs at {mark}, head {k}')
     print('reconstruction matches the saved snapshots at', MARKS[1:], flush=True)
-    for mark in EXTRA_MARKS:
+    for mark in EARLY_MARKS:
         path = train / f'at_{mark}.pt'
         if path.exists(): raise FileExistsError(path)
         rebuilt = reconstruct(records, mark)
