@@ -16,7 +16,7 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from reference_online_c1a2 import OUTPUT, TARGET, jobs
+from reference_online_c1a2 import OUTPUT, SOURCE, TARGET, jobs
 from reference_stairs_eval import ROOT
 
 LOCK, PENDING = '/tmp/c1a2_gpu.lock', '/tmp/c1a2_gpu_pending.json'
@@ -58,8 +58,8 @@ def main():
     parser.add_argument('--only', choices=['train', 'evaluate'], help='只跑训练或只跑评估')
     parser.add_argument('--minimum-mib', type=int, default=MINIMUM_MIB, help='开始一个任务所需的空闲显存（扣掉刚派出的任务之后）')
     args = parser.parse_args()
-    assert passed('smoke'), 'run the smoke job first'
-    schedule = [j for j in jobs()[1:] if not j.get('script')]
+    assert SOURCE or passed('smoke'), 'run the smoke job first'  # 参数迁移只有评估任务，用的是已经跑通的入口
+    schedule = [j for j in jobs() if j['kind'] != 'smoke' and not j.get('script')]
     stages = [[j for j in schedule if j['kind'] == 'train'], [j for j in schedule if j['kind'] in ('target', 'retention')]]
     if args.only == 'train': stages = stages[:1]
     if args.only == 'evaluate': stages = stages[1:]

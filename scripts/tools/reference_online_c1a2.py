@@ -34,10 +34,19 @@ assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065')
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') if ROUND2 else TARGETS
 SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea')
 REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
-OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
-                                            bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118',
-                                            bsf='online_c1b_swing_fast_20261118', s2f='online_c1b_s2f_20261119',
-                                            s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120')[VARIANT] / TARGET
+RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
+            bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
+            s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120')
+OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
+# 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
+# Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
+# 变体仍决定评估起点和安全过滤设置：箱体用 bs，上阶用 s2n，所以 Frozen 组与该目标原来的评估逐回合相同。
+SOURCE = os.environ.get('C1A2_SOURCE')
+if SOURCE:
+    _variant, _target, _mark, *_pooled = SOURCE.split(':')
+    assert VARIANT in ('bs', 's2n') and _variant in ('bs', 's2n') and _target != TARGET and _pooled in ([], ['pooled'])
+    SOURCE_FILE, SOURCE_MARK, SOURCE_POOLED = ROOT / 'logs/reference_six' / RUNS[_variant] / _target / 'train' / f'at_{int(_mark)}.pt', int(_mark), bool(_pooled)
+    OUTPUT = ROOT / 'logs/reference_six/online_transfer_20261120' / TARGET / ('from_' + SOURCE.replace(':', '_'))
 MARKS = (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' else (0, 20000, 40000, 60000)
 PRIMARY = 60000 if VARIANT in ('s2n', 's2ea') else 40000
 # 只作描述的早期快照，评估排在登记的任务之后。s2ea 训练时直接保存；s2n 当时没有存，由训练记录重建
@@ -72,6 +81,8 @@ def protocol():
                          active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea') else None)
         if VARIANT == 's2ea':
             extra.update(algorithm='C1-b-S-EA', covariance='execution-aware')
+        if SOURCE:
+            extra.update(transfer_source=SOURCE)
     return dict(_protocol(), **extra)
 
 
@@ -132,6 +143,8 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
+    if SOURCE:
+        return [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
               dict(name='train', kind='train', part=0, mark=0, steps=60000)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] if m not in EARLY_MARKS for p in range(4)]

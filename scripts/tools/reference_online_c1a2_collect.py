@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -97,8 +97,12 @@ def collect(args):
     if script:
         for head,spec in zip(heads,specs): head.load_evaluation_mean(c1b_h.scripted(spec['script']))
     elif args.kind in ('target','retention'):
-        path = OUTPUT/'train'/('initial.pt' if args.mark==0 else f'at_{args.mark}.pt')
-        checkpoint = torch.load(path,map_location='cpu',weights_only=True)
+        if SOURCE:  # 参数迁移：Updated 组用在另一个地形上学到的参数
+            from reference_online_transfer import load_source
+            checkpoint = load_source()
+        else:
+            path = OUTPUT/'train'/('initial.pt' if args.mark==0 else f'at_{args.mark}.pt')
+            checkpoint = torch.load(path,map_location='cpu',weights_only=True)
         if checkpoint['control_steps'] != args.mark: raise ValueError('wrong evaluation snapshot')
         for head,spec in zip(heads,specs):
             head.load_evaluation_mean(checkpoint['heads'][2*spec['session']+int(spec['arm']=='Updated')])
