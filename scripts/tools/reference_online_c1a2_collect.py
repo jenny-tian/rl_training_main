@@ -61,8 +61,10 @@ def collect(args):
     from rl_training.ea_lpl.c1a import Session, exploration_table
     from rl_training.ea_lpl.c1b import digest
     ea, bh, bs = VARIANT=='ea', VARIANT=='bh', SWING_BASIS
+    bsea = VARIANT=='s2ea'  # C1-b-EA：摆动幅度的探索标准差按执行响应调整
     if bh or bs: from rl_training.ea_lpl import c1b_h
     if bs: from rl_training.ea_lpl import c1b_s
+    if bsea: from rl_training.ea_lpl import c1b_s_ea
     if ea: from rl_training.ea_lpl.c1a_ea import SessionEA as Session
     from rl_training.ea_lpl.basis import basis
     from rl_training.ea_lpl.current_safety import CurrentModelSafetyFilter
@@ -76,15 +78,17 @@ def collect(args):
     parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
     width = 2*REPLICAS if parallel else 2  # 一起重置的相邻环境数
     if parallel:
-        if bs:
+        if bsea: ParallelSession, Slot = c1b_s_ea.ParallelSessionEA, c1b_s_ea.SlotEA
+        elif bs:
             import functools
             ParallelSession, Slot = functools.partial(c1b_s.ParallelSession,active=protocol().get('active_parameters')), c1b_s.Slot
         elif bh: ParallelSession, Slot = c1b_h.ParallelSession, c1b_h.Slot
         else: from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
-        groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
+        sessions = sorted({s['session'] for s in specs})  # 训练分成几部分时，这里只有本部分的会话
+        groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in sessions for arm in ('Frozen','Updated')}
         heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
         for k in range(0,n,width):
-            if len({s['session'] for s in specs[k:k+width]})!=1 or k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
+            if len({s['session'] for s in specs[k:k+width]})!=1 or sessions[0]+k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
     elif bs:
         heads = [c1b_s.Slot(c1b_s.ParallelSession(False,replicas=1),0) for s in specs]
     elif bh:
@@ -135,9 +139,10 @@ def collect(args):
     resets.append(env.reset(list(range(n)),episodes))
 
     def checkpoint(name,step):
-        saved = [groups[s,arm].snapshot() for s in range(60) for arm in ('Frozen','Updated')] if parallel else [h.snapshot() for h in heads]
+        saved = [groups[s,arm].snapshot() for s in sessions for arm in ('Frozen','Updated')] if parallel else [h.snapshot() for h in heads]
         torch.save(dict(heads=saved,control_steps=step,
-            base_sha256=HASHES['B'],noise_sha256=noise_sha,kind=args.kind),args.output/name)
+            base_sha256=HASHES['B'],noise_sha256=noise_sha,kind=args.kind,
+            **(dict(sessions=sessions) if parallel and len(sessions)!=60 else {})),args.output/name)
 
     def persist(name):
         writer.flush()
@@ -179,7 +184,10 @@ def collect(args):
                     raise ValueError('nonzero preparation or waiting action')
                 components = safety.execution_components()
                 executed = (components['learned_effect'].double()@projector).cpu().numpy()
-                if not bs:
+                if bsea:
+                    done, squared = c1b_s_ea.execution_sums(request,components['learned_effect'])
+                    executed_requested[policy] += done[policy]; requested_squared[policy] += squared[policy]
+                elif not bs:
                     requested = np.tanh(code)
                     executed_requested[policy] += (executed*requested)[policy]; requested_squared[policy] += (requested**2)[policy]
                 if args.kind in ('target','retention') and torch.count_nonzero(components['learned_effect'][::2]):
@@ -235,7 +243,7 @@ def collect(args):
                     terminal_return[i] = value
                     learn = args.kind=='train'
                     stats = heads[i].finish(value,learn=learn,**(dict(executed_requested=executed_requested[i],
-                        requested_squared=requested_squared[i],steps=int(age[i])) if ea and learn else {}))
+                        requested_squared=requested_squared[i],steps=int(age[i])) if (ea or bsea) and learn else {}))
                     executed_requested[i] = requested_squared[i] = 0
                     records.append(dict(**spec,episode=int(episodes[i]),outcome=outcome,policy_steps=int(age[i]),
                         control_step=tick+1,final_root=root.tolist(),start_x=float(x0[i]),final_forward_displacement=displacement,
@@ -276,7 +284,8 @@ def collect(args):
             if args.kind=='train' and tick+1 in MARKS: checkpoint(f'at_{tick+1}.pt',tick+1)
             if (tick+1)%1000==0:
                 print(f'C1A {args.name}: {tick+1}/{args.steps}, episodes={len(records)}, updates={sum(h.updates for h in heads)}'
-                      +(f', mean_std={np.mean([h.std.numpy() for h in heads[1::2]],0).round(3).tolist()}' if ea else ''),flush=True)
+                      +(f', mean_std={np.mean([h.std.numpy() for h in heads[1::2]],0).round(3).tolist()}' if ea else '')
+                      +(f', mean_std={np.mean([g.std.numpy()[2:] for (_,arm),g in groups.items() if arm=="Updated"],0).round(3).tolist()}' if bsea and parallel else ''),flush=True)
             if args.kind in ('target','retention') and (phase==2).all(): break
     except Exception:
         persist('partial_report.json'); checkpoint('failure.pt',completed_steps)
@@ -301,6 +310,7 @@ def collect(args):
         paired_max_error=max(max(p['errors'].values()) for p in pairs),counts=counts,noise_sha256=noise_sha,
         incomplete_policy_rows=np.flatnonzero(phase==1),incomplete_episodes_used_for_update=False,
         pending_complete_episodes=[len(h.batch) for h in heads],final_sha256=sha(args.output/'final.pt'),
+        **(dict(sessions=sessions) if parallel and len(sessions)!=60 else {}),
         trace_index_sha256=sha(args.output/'trace_index.json'),feedback_max_error=env.feedback_error,
         **(dict(missing_rays=terrain_features.missing) if bh or bs else {})))
     assert env.feedback_error<=1e-5

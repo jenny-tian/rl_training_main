@@ -26,19 +26,24 @@ assert TARGET in TARGETS + PROBE_TARGETS
 # C1A2_VARIANT=bs 时学固定偏置和摆动缩腿共 4 个幅度（C1-b-S）；bsf 是放开每步变化上限的对照组，只做上阶。方案见 docs/lite3-online-c1b-swing-20261118/PLAN.md。
 VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # s2f / s2n 是 C1-b-S 第二轮的两种做法，目标可以是 6 cm 或 6.5 cm 上阶。方案见 docs/lite3-online-c1b-swing2-20261119/PLAN.md。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n')
+# s2ea 是 C1-b-EA：做法二（s2n）加执行感知的探索标准差，其余相同。方案见 docs/lite3-online-c1b-ea-20261120/PLAN.md。
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea')
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
-ROUND2 = VARIANT in ('s2f', 's2n')
+ROUND2 = VARIANT in ('s2f', 's2n', 's2ea')
 assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065')
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') if ROUND2 else TARGETS
-SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n')
+SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea')
 REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
 OUTPUT = ROOT / 'logs/reference_six' / dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
                                             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118',
                                             bsf='online_c1b_swing_fast_20261118', s2f='online_c1b_s2f_20261119',
-                                            s2n='online_c1b_s2n_20261119')[VARIANT] / TARGET
-MARKS = (0, 20000, 40000, 60000)
-PRIMARY = 60000 if VARIANT == 's2n' else 40000
+                                            s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120')[VARIANT] / TARGET
+MARKS = (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' else (0, 20000, 40000, 60000)
+PRIMARY = 60000 if VARIANT in ('s2n', 's2ea') else 40000
+# 只作描述的早期快照。s2n 训练时没有存这两个时刻，由训练记录重建（reference_online_c1bea_early.py），已登记的 MARKS 不变。
+EXTRA_MARKS = (5000, 10000) if VARIANT == 's2n' else ()
+# 会话之间互相独立，训练可以按会话分成几个进程并行，再由 reference_online_c1a2_merge.py 合并。
+TRAIN_PARTS = 4 if VARIANT == 's2ea' else 1
 NOISE_SEED = 2026111901 if ROUND2 else 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
 POSTURE_PENALTY = 3. if VARIANT == 'bh' or SWING_BASIS else 1.
 SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
@@ -65,7 +70,9 @@ def protocol():
             reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure')
         if ROUND2:
             extra.update(algorithm='C1-b-S round 2 ' + VARIANT, namespaces=dict(smoke=60, train=61, target=62, retention=63),
-                         active_parameters=['front_swing', 'rear_swing'] if VARIANT == 's2n' else None)
+                         active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea') else None)
+        if VARIANT == 's2ea':
+            extra.update(algorithm='C1-b-S-EA', covariance='execution-aware', train_parts=TRAIN_PARTS)
     return dict(_protocol(), **extra)
 
 
@@ -87,7 +94,7 @@ def episode_return(displacement, length, completed, safety_ending):
 
 
 def rows(kind, *, part=0, smoke_index=1, script=None):
-    parts = 4 if kind == 'target' else 20 if kind == 'retention' else 1
+    parts = 4 if kind == 'target' else 20 if kind == 'retention' else TRAIN_PARTS if kind == 'train' else 1
     assert kind in ('smoke', 'train', 'target', 'retention') and 0 <= part < parts
     width = 60 // parts
     result = []
@@ -126,10 +133,15 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
-              dict(name='train', kind='train', part=0, mark=0, steps=60000)]
+    result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600)]
+    if TRAIN_PARTS == 1:
+        result.append(dict(name='train', kind='train', part=0, mark=0, steps=60000))
+    else:
+        result += [dict(name=f'train_{p:02d}', kind='train', part=p, mark=0, steps=60000) for p in range(TRAIN_PARTS)]
+        result.append(dict(name='train', kind='merge', part=0, mark=0, steps=0))
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] for p in range(4)]
     result += [dict(name=f'retention_{PRIMARY}_{p:02d}', kind='retention', mark=PRIMARY, part=p, steps=1050) for p in range(20)]
+    result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050, extra=True) for m in EXTRA_MARKS for p in range(4)]
     if VARIANT == 'bh':
         result += [dict(name='script', kind='target', part=0, mark=0, steps=1050, script='target'),
                    dict(name='script_retention', kind='retention', part=0, mark=0, steps=1050, script='retention')]
@@ -150,6 +162,9 @@ def main():
     args.script = getattr(args, 'script', None)
     assert TARGET in TRAINABLE or args.script in SWING, 'probe targets only run the swing checks'
     args.output = OUTPUT / args.job
+    if args.kind == 'merge':
+        from reference_online_c1a2_merge import merge
+        return merge()
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--child'], gpu=args.gpu,
@@ -159,7 +174,11 @@ def main():
         AppLauncher(headless=True, device='cuda:0',
                     kit_args=f'--/renderer/multiGpu/enabled=False --/renderer/activeGpu={args.gpu}').app
         from reference_online_c1a2_collect import collect
-        collect(args)
+        if os.environ.get('C1A2_PROFILE'):  # 只用于查用时分布，不改变采集内容
+            import cProfile
+            profiler = cProfile.Profile(); profiler.runcall(collect, args); profiler.dump_stats(str(args.output / 'profile.pstats'))
+        else:
+            collect(args)
         sys.stdout.flush(); os._exit(0)
     except Exception:
         traceback.print_exc(); save(args.output / 'error.json', dict(error=traceback.format_exc()))

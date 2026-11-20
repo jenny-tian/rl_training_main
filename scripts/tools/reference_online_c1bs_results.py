@@ -43,7 +43,7 @@ def velocity_ratios(retained):
 def main():
     import torch
     p = protocol()
-    schedule = [j for j in jobs()[1:] if not j.get('script')]
+    schedule = [j for j in jobs()[1:] if not j.get('script') and not j.get('extra')]  # extra 是后来加的早期快照评估，不属于登记的结果
     reports = {j['name']: read(OUTPUT, j['name'], 'report.json') for j in schedule}
     assert all(r['status'] == 'passed' for r in reports.values())
     records = {j['name']: read(OUTPUT, j['name'])['records'] for j in schedule}
