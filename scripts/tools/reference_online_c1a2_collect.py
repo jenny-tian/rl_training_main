@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -65,6 +65,7 @@ def collect(args):
     if bh or bs: from rl_training.ea_lpl import c1b_h
     if bs: from rl_training.ea_lpl import c1b_s
     if bsea: from rl_training.ea_lpl import c1b_s_ea
+    if WINDOWED: from rl_training.ea_lpl import c1b_w
     if ea: from rl_training.ea_lpl.c1a_ea import SessionEA as Session
     from rl_training.ea_lpl.basis import basis
     from rl_training.ea_lpl.current_safety import CurrentModelSafetyFilter
@@ -72,10 +73,11 @@ def collect(args):
     from rl_training.online_adaptation.safety import SafetyLimits
     from reference_online_interface import clip_action
     n, device = len(specs), env.device
-    noise = c1b_s.exploration_table(seed=NOISE_SEED) if bs else c1b_h.exploration_table(seed=NOISE_SEED) if bh else exploration_table(seed=NOISE_SEED)
+    noise = c1b_w.exploration_table(seed=NOISE_SEED) if WINDOWED else c1b_s.exploration_table(seed=NOISE_SEED) if bs else c1b_h.exploration_table(seed=NOISE_SEED) if bh else exploration_table(seed=NOISE_SEED)
     noise_sha = hashlib.sha256(noise.tobytes()).hexdigest()
     np.save(args.output/'noise_table.npy',noise)
     parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
+    windowed = WINDOWED and parallel  # 回合内按窗口换扰动并更新；评估时与 C1-b-S 相同
     width = 2*REPLICAS if parallel else 2  # 一起重置的相邻环境数
     if parallel:
         if bsea: ParallelSession, Slot = c1b_s_ea.ParallelSessionEA, c1b_s_ea.SlotEA
@@ -84,7 +86,15 @@ def collect(args):
             ParallelSession, Slot = functools.partial(c1b_s.ParallelSession,active=protocol().get('active_parameters')), c1b_s.Slot
         elif bh: ParallelSession, Slot = c1b_h.ParallelSession, c1b_h.Slot
         else: from rl_training.ea_lpl.c1a_m4 import ParallelSession, Slot
-        groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
+        if windowed:
+            Slot, initial = c1b_w.Slot, None
+            if WINDOW_INITIAL:  # 只有 Updated 组从迁移来的平均参数出发；Frozen 组保持为 0
+                source = torch.load(WINDOW_INITIAL,map_location='cpu',weights_only=True)
+                if source['control_steps']!=60000 or source['kind']!='train' or len(source['heads'])!=120: raise ValueError('unexpected initial snapshot')
+                initial = torch.stack([torch.as_tensor(h['w'],dtype=torch.float64) for h in source['heads'][1::2]]).mean(0)
+            groups = {(s,arm):c1b_w.WindowSession(args.kind=='train' and arm=='Updated',noise[s],active=protocol().get('active_parameters'),
+                initial=initial if arm=='Updated' else None) for s in range(60) for arm in ('Frozen','Updated')}
+        else: groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
         heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
         for k in range(0,n,width):
             if len({s['session'] for s in specs[k:k+width]})!=1 or k//width!=specs[k]['session']: raise ValueError('session rows not contiguous')
@@ -162,8 +172,10 @@ def collect(args):
             before = env.frame()
             decisions = policy & (age==0)
             for i in np.flatnonzero(decisions):
-                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') else None
+                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') and not windowed else None
                 code[i] = heads[i].begin(exploration)
+            if windowed:
+                for i in np.flatnonzero(policy): code[i] = heads[i].requested_code()
             if bh or bs: features = terrain_features(scanner.data.ray_hits_w[:,:,2]).cpu().numpy()
             if bh:
                 for i in np.flatnonzero(policy & (age%c1b_h.INTERVAL==0)): code[i] = heads[i].choose(features[i])
@@ -219,6 +231,9 @@ def collect(args):
             preparation[prep] += 1
             finished = []
             for i in np.flatnonzero(policy):
+                if windowed:
+                    heads[i].observe(values['stance'][i],(after['feet'][i,:,0]-before['feet'][i,:,0])/.02,
+                                     features[i,0],after['root'][i,0]-before['root'][i,0])
                 age[i] += 1
                 spec, root = specs[i], after['root'][i]
                 geometry = env.geometry[f'{spec["condition"]}:{spec["row"]}']
@@ -245,13 +260,16 @@ def collect(args):
                     terminal_return[i] = value
                     learn = args.kind=='train'
                     stats = heads[i].finish(value,learn=learn,**(dict(executed_requested=executed_requested[i],
-                        requested_squared=requested_squared[i],steps=int(age[i])) if (ea or bsea) and learn else {}))
+                        requested_squared=requested_squared[i],steps=int(age[i])) if (ea or bsea) and learn else {}),
+                        **(dict(posture=outcome=='posture_failure') if windowed else {}))
                     executed_requested[i] = requested_squared[i] = 0
                     records.append(dict(**spec,episode=int(episodes[i]),outcome=outcome,policy_steps=int(age[i]),
                         control_step=tick+1,final_root=root.tolist(),start_x=float(x0[i]),final_forward_displacement=displacement,
                         mean_progress=float(min(1.,progress[i]/length)),xy_velocity_error_sum=float(velocity_error_sum[i]),
                         xy_velocity_rmse=float(np.sqrt(velocity_error_sum[i]/age[i])),**stats))
                     phase[i] = 2; code[i] = 0; finished.append(i)
+            if windowed:
+                for group in groups.values(): group.tick(learn=args.kind=='train')
             if finished:
                 safety.reset_temporal_state(torch.tensor(finished,device=device)); reset_filter[finished] = True
             ready = np.flatnonzero(prep & (preparation==50))
@@ -301,9 +319,11 @@ def collect(args):
     if sum(int(value.sum()) for value in counts.values())!=completed_steps*n: raise ValueError('missing control accounting')
     if args.kind in ('target','retention') and len(records)!=n: raise ValueError('incomplete evaluation')
     if args.kind=='smoke' and (not (episodes>=2).all() or any(h.updates for h in heads)): raise ValueError('smoke incomplete')
+    if windowed and any(g.windows==0 for g in groups.values()): raise ValueError('no window closed')
     if args.kind=='smoke' and args.smoke_index==2 and counts['waiting'][::2].min()<50: raise ValueError('no asynchronous waiting')
     if args.kind=='train' and any(h.updates==0 for i,h in enumerate(heads) if specs[i]['arm']=='Updated'): raise ValueError('no training updates')
     checkpoint('final.pt',completed_steps); persist('episodes.json')
+    if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
     save(args.output/'report.json',dict(status='passed',name=args.name,kind=args.kind,environments=n,
         control_steps=completed_steps,interactions=completed_steps*n,complete_episodes=len(records),
         adapter_updates=sum(h.updates for h in heads),session_updates=[h.updates for h in heads],
