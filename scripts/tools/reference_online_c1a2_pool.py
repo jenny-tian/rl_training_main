@@ -57,9 +57,10 @@ def main():
     parser.add_argument('--workers', type=int, default=4)
     parser.add_argument('--only', choices=['train', 'evaluate'], help='只跑训练或只跑评估')
     parser.add_argument('--minimum-mib', type=int, default=MINIMUM_MIB, help='开始一个任务所需的空闲显存（扣掉刚派出的任务之后）')
+    parser.add_argument('--skip-retention', action='store_true', help='只做目标评估')
     args = parser.parse_args()
     assert SOURCE or passed('smoke'), 'run the smoke job first'  # 参数迁移只有评估任务，用的是已经跑通的入口
-    schedule = [j for j in jobs() if j['kind'] != 'smoke' and not j.get('script')]
+    schedule = [j for j in jobs() if j['kind'] != 'smoke' and not j.get('script') and not (args.skip_retention and j['kind'] == 'retention')]
     stages = [[j for j in schedule if j['kind'] == 'train'], [j for j in schedule if j['kind'] in ('target', 'retention')]]
     if args.only == 'train': stages = stages[:1]
     if args.only == 'evaluate': stages = stages[1:]

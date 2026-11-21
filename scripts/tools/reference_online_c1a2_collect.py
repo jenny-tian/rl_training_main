@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -92,8 +92,13 @@ def collect(args):
                 source = torch.load(WINDOW_INITIAL,map_location='cpu',weights_only=True)
                 if source['control_steps']!=60000 or source['kind']!='train' or len(source['heads'])!=120: raise ValueError('unexpected initial snapshot')
                 initial = torch.stack([torch.as_tensor(h['w'],dtype=torch.float64) for h in source['heads'][1::2]]).mean(0)
-            groups = {(s,arm):c1b_w.WindowSession(args.kind=='train' and arm=='Updated',noise[s],active=protocol().get('active_parameters'),
-                initial=initial if arm=='Updated' else None) for s in range(60) for arm in ('Frozen','Updated')}
+            if LIBRARY:  # Updated 组先从参数库里选；Frozen 组与 C1-b-W 相同
+                from rl_training.ea_lpl import c1b_l
+                from reference_online_transfer import library
+                entries = library()
+            make = lambda s,arm: (c1b_l.LibrarySession(args.kind=='train',noise[s],entries) if LIBRARY and arm=='Updated' else
+                c1b_w.WindowSession(args.kind=='train' and arm=='Updated',noise[s],active=protocol().get('active_parameters'),initial=initial if arm=='Updated' else None))
+            groups = {(s,arm):make(s,arm) for s in range(60) for arm in ('Frozen','Updated')}
         else: groups = {(s,arm):ParallelSession(args.kind=='train' and arm=='Updated') for s in range(60) for arm in ('Frozen','Updated')}
         heads = [Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
         for k in range(0,n,width):
@@ -324,6 +329,9 @@ def collect(args):
     if args.kind=='train' and any(h.updates==0 for i,h in enumerate(heads) if specs[i]['arm']=='Updated'): raise ValueError('no training updates')
     checkpoint('final.pt',completed_steps); persist('episodes.json')
     if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
+    if windowed and LIBRARY:
+        save(args.output/'selection.json',dict(library=entries.tolist(),sessions=[groups[s,'Updated'].selection for s in range(60)]))
+        if any(groups[s,'Updated'].selection is None for s in range(60)): raise ValueError('selection incomplete')
     save(args.output/'report.json',dict(status='passed',name=args.name,kind=args.kind,environments=n,
         control_steps=completed_steps,interactions=completed_steps*n,complete_episodes=len(records),
         adapter_updates=sum(h.updates for h in heads),session_updates=[h.updates for h in heads],

@@ -10,19 +10,23 @@ import reference_online_c1b_env_reset_api as reset_module
 from reference_online_c1a2 import protocol, TARGET
 
 
+STAIR_HEIGHT = dict(stairs_up_065=.065, stairs_up_07=.07)
+BOX_HEIGHT = dict(boxes_06=.06, boxes_07=.07)
+
+
 class Environment(reset_module.Environment):
     def __init__(self, args, specs):
         resolve = environment_module.resolve_lite3_asset
 
         def resolve_with_target(cfg):
             # 基类在保存 config.json 和创建环境之前调用这里，所以记录下来的配置就是实际使用的地形。
-            if TARGET == 'boxes_06' and args.kind != 'retention':
+            if TARGET in BOX_HEIGHT and args.kind != 'retention':
                 from lite3_terrain_reuse.heldout_boxes import HeldoutBoxesTrackCfg
-                sub = HeldoutBoxesTrackCfg(flat_length=3., lane_width=2., grid_width=.4, grid_height_range=[.06, .06], seed=101)
+                sub = HeldoutBoxesTrackCfg(flat_length=3., lane_width=2., grid_width=.4, grid_height_range=[BOX_HEIGHT[TARGET]] * 2, seed=101)
                 sub.proportion = 1.
-                cfg.scene.terrain.terrain_generator.sub_terrains = {'boxes_06': sub}
-            if TARGET == 'stairs_up_065' and args.kind != 'retention':
-                cfg.scene.terrain.terrain_generator.sub_terrains['stairs_06'].step_height_range = (.065, .065)
+                cfg.scene.terrain.terrain_generator.sub_terrains = {TARGET: sub}
+            if TARGET in STAIR_HEIGHT and args.kind != 'retention':
+                cfg.scene.terrain.terrain_generator.sub_terrains['stairs_06'].step_height_range = (STAIR_HEIGHT[TARGET],) * 2
             if TARGET == 'slope_rough_up_x11' and args.kind != 'retention':
                 # 与 reference_frozen_rebaseline 的 x11 相同：坡度参数 0.44，粗糙幅度 0.01 到 0.07 m。
                 sub = captured['slope_rough_up']
@@ -80,8 +84,9 @@ class Environment(reset_module.Environment):
         self.feedback_error = max(getattr(self, 'feedback_error', 0.), float(np.abs(wz.double().cpu().numpy() - expect).max()))
 
     def audit_geometry(self, path):
-        if TARGET == 'stairs_up_065' and self.args.kind != 'retention':
-            # 基类按 6 cm 核对台阶高度；这里用同样的做法按 6.5 cm 核对。
+        if TARGET in STAIR_HEIGHT and self.args.kind != 'retention':
+            # 基类按 6 cm 核对台阶高度；这里用同样的做法按该目标的高度核对。
+            height = STAIR_HEIGHT[TARGET]
             from isaaclab.sensors import RayCaster
             from isaaclab.utils.warp import raycast_mesh
             origin = self.terrain.env_origins[0]
@@ -91,15 +96,15 @@ class Environment(reset_module.Environment):
             hits = raycast_mesh(starts, directions, RayCaster.meshes[path])[0]
             assert torch.isfinite(hits).all()
             z, x = (hits[:, 2] - origin[2]).cpu().numpy(), xs.cpu().numpy()
-            edges = np.flatnonzero(np.diff(z) > .0325) + 1
+            edges = np.flatnonzero(np.diff(z) > height / 2) + 1
             fronts, tops = ((x[edges] + x[edges - 1]) / 2).tolist(), z[edges].tolist()
-            assert len(fronts) >= 5 and np.allclose(np.diff([0.] + tops), .065, atol=.002)
+            assert len(fronts) >= 5 and np.allclose(np.diff([0.] + tops), height, atol=.002)
             return {f'{TARGET}:0': dict(fronts=fronts, tops=tops, goal_x=fronts[-1] + .3,
                                         centerline_min_z=float(z.min()), centerline_max_z=float(z.max()))}
         result = super().audit_geometry(path)
         for key, value in result.items():
             if key.startswith('boxes'):
-                assert value['centerline_max_z'] > .01
+                assert .01 < value['centerline_max_z'] <= BOX_HEIGHT[TARGET] + .002
                 value['goal_x'] = 5.5
         return result
 

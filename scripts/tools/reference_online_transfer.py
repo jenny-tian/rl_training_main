@@ -13,6 +13,18 @@ def pooled_heads(heads):
     return [dict(h, w=mean.clone(), parameter_sha256=digest) if k % 2 else h for k, h in enumerate(heads)]
 
 
+def library():
+    """参数库：各来源 60 个 Updated 会话的平均参数，加一组全 0。返回 (4, 4)。"""
+    from reference_online_c1a2 import LIBRARY_SOURCES, ROOT, RUNS
+    rows = []
+    for variant, target, mark in LIBRARY_SOURCES:
+        checkpoint = torch.load(ROOT / 'logs/reference_six' / RUNS[variant] / target / 'train' / f'at_{mark}.pt', map_location='cpu', weights_only=True)
+        if checkpoint['control_steps'] != mark or checkpoint['kind'] != 'train' or len(checkpoint['heads']) != 120:
+            raise ValueError('unexpected library snapshot')
+        rows.append(torch.stack([torch.as_tensor(h['w'], dtype=torch.float64) for h in checkpoint['heads'][1::2]]).mean(0))
+    return torch.stack(rows + [torch.zeros(4, dtype=torch.float64)])
+
+
 def load_source():
     from reference_online_c1a2 import SOURCE_FILE, SOURCE_MARK, SOURCE_POOLED
     checkpoint = torch.load(SOURCE_FILE, map_location='cpu', weights_only=True)
