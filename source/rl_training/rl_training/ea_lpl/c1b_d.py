@@ -75,7 +75,8 @@ class SelectSession(WindowSession):
                 self.total[arm] += self.outcomes[k] + SCORE_WINDOW * (float(np.mean(self.scores[k])) if self.scores[k] else 0.)
             self.round += 1
             means = self.means()
-            order = sorted((k for k, m in enumerate(means) if m is not None), key=lambda k: -means[k])
+            # 得分完全相同时先取全 0 的一组（库的最后一组），与 C1-b-L 没有可用得分时的做法一致。
+            order = sorted((k for k, m in enumerate(means) if m is not None), key=lambda k: (-means[k], k != self.replicas - 1))
             self.leader = order[0]
             if self.expand and self.round == EXPAND_AFTER and len(order) > 1:
                 for row in candidates(self.arms[order[0]], self.arms[order[1]]):

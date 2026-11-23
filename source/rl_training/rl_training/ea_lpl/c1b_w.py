@@ -153,5 +153,5 @@ class Slot:
     def begin(self, noise=None): return self.group.begin(self.replica, noise)
     def requested_code(self): return self.group.requested_code(self.replica)
     def observe(self, *args): return self.group.observe(self.replica, *args)
-    def finish(self, value, *, learn=True, posture=False): return self.group.finish(self.replica, value, learn=learn, posture=posture)
+    def finish(self, value, *, learn=True, posture=False, **extra): return self.group.finish(self.replica, value, learn=learn, posture=posture, **extra)
     def snapshot(self): return self.group.snapshot()

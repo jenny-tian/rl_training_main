@@ -54,6 +54,7 @@ def test_later_rounds_sample_by_success_and_use_exactly_the_candidate_parameters
     for k in range(4): group.begin(k)
     for k in range(4): group.observe(k, FRONT_SWING, np.full(4, .5), 1., .008)
     assert set(group.finish(0, 1., success=True)) >= {'candidate', 'leader', 'code'} and 'arm' not in group.finish(1, 1.)
+    assert c1b_w.Slot(group, 2).finish(1., learn=True, posture=False, success=True)['candidate'] == group.assignment[2]  # 采集循环经过 Slot 调用
     assert c1b_d.SelectSession(True, c1b_w.exploration_table()[0], LIBRARY, seed=[7, 1]).rng.random() != session().rng.random()
 
 
@@ -74,6 +75,9 @@ def test_window_score_only_breaks_ties():
             if t == 149: group.finish(k, 1.)
         group.tick()
     assert group.leader == 2  # 都不成功时按窗口反馈
+    group = session()
+    episode(group, set(), steps=20)  # 回合太短，没有窗口反馈，也没有成功
+    assert group.leader == 3 and torch.count_nonzero(group.w) == 0 and group.selection['scores'] == [0.] * 4
 
 
 def test_expansion_adds_candidates_from_the_two_leading_entries_once():
