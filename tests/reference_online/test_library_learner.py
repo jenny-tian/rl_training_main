@@ -57,6 +57,9 @@ def test_a_group_that_does_not_update_records_the_choice_but_keeps_its_parameter
     group = c1b_l.LibrarySession(False, c1b_w.exploration_table()[2], LIBRARY)
     for _ in range(2): episode(group, [0., 0., .5, 0.])
     assert group.selection['entry'] == 2 and not group.selection['applied'] and torch.count_nonzero(group.w) == 0
+    empty = c1b_l.LibrarySession(True, c1b_w.exploration_table()[0], LIBRARY)
+    for _ in range(2): episode(empty, [.5] * 4, steps=20)  # 回合太短，没有可用窗口
+    assert empty.selection == dict(entry=3, scores=[None] * 4, windows=[0] * 4, applied=True)
     with pytest.raises(ValueError): c1b_l.LibrarySession(True, c1b_w.exploration_table()[0], LIBRARY[:3])
     with pytest.raises(ValueError): c1b_l.LibrarySession(True, c1b_w.exploration_table()[0], LIBRARY * 9)
 

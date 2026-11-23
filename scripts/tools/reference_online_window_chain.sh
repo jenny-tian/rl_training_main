@@ -1,7 +1,7 @@
 #!/bin/bash
 # 窗口学习器（w2、c3）一个目标的全流程：冒烟、训练、评估。已通过的任务跳过。
 # 用法：reference_online_window_chain.sh <目标> <冒烟和训练用的 GPU> [变体，默认 w2] [传给评估调度的其他参数]
-t=$1; g=$2; v=${3:-w2}; shift 3 2>/dev/null
+t=$1; g=$2; v=${3:-w2}; shift $(( $# < 3 ? $# : 3 ))
 W=$(cd "$(dirname "$0")/../.." && pwd)
 PY=/home/tjx/anaconda3/envs/env_isaaclab/bin/python
 cd $W/scripts/tools || exit 2

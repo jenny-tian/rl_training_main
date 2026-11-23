@@ -46,8 +46,10 @@ class LibrarySession(WindowSession):
         if self.episode != episode:
             self.round += 1
             if not self.selecting:
-                means = [float(np.mean(s)) if s else float('-inf') for s in self.scores]
-                best = int(np.argmax(means))
+                # 没有可用窗口的参数不参与比较；全都没有时用最后一组（全 0）。
+                means = [float(np.mean(s)) if s else None for s in self.scores]
+                valid = [k for k, m in enumerate(means) if m is not None]
+                best = max(valid, key=lambda k: means[k]) if valid else len(means) - 1
                 self.selection = dict(entry=best, scores=means, windows=[len(s) for s in self.scores], applied=self.updated)
                 if self.updated: self.w = self.library[best].clone()
             self._open()  # 换成下一轮的参数；选择结束后是新起点加扰动
