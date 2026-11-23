@@ -37,21 +37,22 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # 只用于新地形。方案见 docs/lite3-online-select-20261123/PLAN.md。
 # s4n 是在新地形上做本地学习用的 C1-b-S：4 个幅度都学，现有安全过滤，起点槽位与其他变体在新地形上的相同，40000 步。
 # d3 与 d1 相同，参数库换成扩充后的 6 组。方案见 docs/lite3-online-library2-20261123/PLAN.md。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3')
-WINDOWED, LIBRARY, SELECT = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3')
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1')
+# r1 是 C1-b-R：从 0 起，用摆动受阻比例直接修正两个摆动幅度，不加扰动。方案见 docs/lite3-online-stall-20261123/PLAN.md。
+WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3'), VARIANT == 'r1'
 assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS
-assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3')
-assert not (LIBRARY or SELECT or VARIANT == 's4n') or TARGET in NEW_TARGETS
+assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1')
+assert not (LIBRARY or SELECT or STALL or VARIANT == 's4n') or TARGET in NEW_TARGETS
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
 ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06')
 assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS if ROUND2 else TARGETS
-SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3')
+SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1')
 REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
 RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
             s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122',
-            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123')
+            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123')
 OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
 # 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
 # Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
@@ -91,7 +92,7 @@ if RATE:
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
 MARKS = ((0, 1250, 2500, 5000, 10000) if WINDOWED else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
          else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' or (VARIANT == 's2n' and TARGET in NEW_TARGETS) else (0, 20000, 40000, 60000))
-PRIMARY = 2500 if LIBRARY else 10000 if SELECT else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
+PRIMARY = 2500 if LIBRARY or STALL else 10000 if SELECT else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
 TRAIN_STEPS = 10000 if WINDOWED else 40000 if VARIANT == 's4n' else 60000
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
@@ -130,7 +131,7 @@ def protocol():
             reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure')
         if ROUND2:
             extra.update(algorithm='C1-b-S round 2 ' + VARIANT, namespaces=dict(smoke=60, train=61, target=62, retention=63),
-                         active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea', 'w2') else None)
+                         active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea', 'w2', 'r1') else None)
         if VARIANT == 's4n':
             extra.update(train_control_steps=TRAIN_STEPS)
         if LIBRARY:
@@ -141,7 +142,8 @@ def protocol():
         if VARIANT == 's2ea':
             extra.update(algorithm='C1-b-S-EA', covariance='execution-aware')
         if WINDOWED:
-            extra.update(algorithm='C1-b-L' if LIBRARY else 'C1-b-D' if SELECT else 'C1-b-W', exploration='none; one candidate per attempt' if SELECT else 'per-window parameter noise', window_steps=100, settle_steps=10,
+            extra.update(algorithm='C1-b-L' if LIBRARY else 'C1-b-D' if SELECT else 'C1-b-R' if STALL else 'C1-b-W',
+                         exploration='none; one candidate per attempt' if SELECT else 'none; stall-ratio feedback' if STALL else 'per-window parameter noise', window_steps=100, settle_steps=10,
                          train_control_steps=TRAIN_STEPS, primary_mark=PRIMARY, marks=list(MARKS),
                          reward='own-leg unimpeded swing ratio + window progress - 3*posture_failure',
                          initial='pooled s2n stairs_up_06 at 60000' if WINDOW_INITIAL else 'selected from library' if LIBRARY or SELECT else 'zero')

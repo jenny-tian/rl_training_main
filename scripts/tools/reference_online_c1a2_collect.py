@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -96,7 +96,9 @@ def collect(args):
                 from rl_training.ea_lpl import c1b_l, c1b_d
                 from reference_online_transfer import library
                 entries = library()
-            make = lambda s,arm: (c1b_d.SelectSession(args.kind=='train',noise[s],entries,seed=[SELECT_SEED,s],expand=VARIANT=='d2') if SELECT and arm=='Updated' else
+            if STALL: from rl_training.ea_lpl import c1b_r
+            make = lambda s,arm: (c1b_r.StallSession(args.kind=='train',noise[s]) if STALL and arm=='Updated' else
+                c1b_d.SelectSession(args.kind=='train',noise[s],entries,seed=[SELECT_SEED,s],expand=VARIANT=='d2') if SELECT and arm=='Updated' else
                 c1b_l.LibrarySession(args.kind=='train',noise[s],entries) if LIBRARY and arm=='Updated' else
                 c1b_w.WindowSession(args.kind=='train' and arm=='Updated',noise[s],active=protocol().get('active_parameters'),initial=initial if arm=='Updated' else None))
             groups = {(s,arm):make(s,arm) for s in range(60) for arm in ('Frozen','Updated')}
