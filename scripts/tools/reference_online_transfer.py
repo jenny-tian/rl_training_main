@@ -34,3 +34,13 @@ def load_source():
         raise ValueError('source Frozen parameters are not zero')
     if SOURCE_POOLED: checkpoint['heads'] = pooled_heads(checkpoint['heads'])
     return checkpoint
+
+
+def candidate_heads(name):
+    """候选参数的不学习评估：120 个会话位，Frozen（偶数位）是全 0，Updated（奇数位）都是名字指定的一组参数。"""
+    from rl_training.ea_lpl.c1b_d import candidates
+    rows = library()
+    w = candidates(rows[int(name[0])], rows[int(name[1])])['mud'.index(name[2])]
+    zero = torch.zeros(4, dtype=torch.float64)
+    head = lambda x: dict(w=x.clone(), parameter_sha256=hashlib.sha256(x.numpy().tobytes()).hexdigest())
+    return [head(w if k % 2 else zero) for k in range(120)]

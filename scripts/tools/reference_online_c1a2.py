@@ -32,20 +32,23 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # w2 是加快学习 B（C1-b-W）：扰动和更新放到回合内部，每 100 个策略步一个窗口。上阶从 0 学两个摆动幅度，起点和安全过滤与 s2n 相同；
 # 箱体从上阶学到的平均参数出发学 4 个幅度，起点和安全过滤与 bs 相同。方案见 docs/lite3-online-window-20261121/PLAN.md。
 # c3 是加快学习 C（C1-b-L）：先从参数库里选一组，再按 C1-b-W 修正 4 个幅度，只用于新地形。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3')
-WINDOWED, LIBRARY = VARIANT in ('w2', 'c3'), VARIANT == 'c3'
+# d1 是加快学习 D（C1-b-D）：整个会话在参数库里持续选择，不加扰动、不做梯度更新；d2 另外在第 4 个回合后加入由领先两组生成的候选。
+# 只用于新地形。方案见 docs/lite3-online-select-20261123/PLAN.md。
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2')
+WINDOWED, LIBRARY, SELECT = VARIANT in ('w2', 'c3', 'd1', 'd2'), VARIANT == 'c3', VARIANT in ('d1', 'd2')
 assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS
-assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3')
-assert not LIBRARY or TARGET in NEW_TARGETS
+assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2')
+assert not (LIBRARY or SELECT) or TARGET in NEW_TARGETS
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
 ROUND2 = VARIANT in ('s2f', 's2n', 's2ea') or (WINDOWED and TARGET != 'boxes_06')
 assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS if ROUND2 else TARGETS
-SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3')
+SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2')
 REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
 RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
-            s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122')
+            s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122',
+            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123')
 OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
 # 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
 # Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
@@ -56,8 +59,16 @@ if SOURCE:
     assert VARIANT in ('bs', 's2n') and _variant in ('bs', 's2n') and _target != TARGET and _pooled in ([], ['pooled'])
     SOURCE_FILE, SOURCE_MARK, SOURCE_POOLED = ROOT / 'logs/reference_six' / RUNS[_variant] / _target / 'train' / f'at_{int(_mark)}.pt', int(_mark), bool(_pooled)
     OUTPUT = ROOT / 'logs/reference_six' / ('online_library_transfer_20261122' if TARGET in NEW_TARGETS else 'online_transfer_20261120') / TARGET / ('from_' + SOURCE.replace(':', '_'))
+# 候选参数的不学习评估（加快学习 D 的 D0）：C1A2_CANDIDATE=<名字> 时只做目标评估，Updated 组全部用这一组固定参数。
+# 名字是 <领先的库编号><第二的库编号><m|u|d>：m 是 tanh 空间里两组的中点，u、d 是领先一组的摆动幅度乘 1.2、0.8（与 c1b_d.candidates 相同）。
+CANDIDATE = os.environ.get('C1A2_CANDIDATE')
+if CANDIDATE:
+    assert not SOURCE and VARIANT == 's2n' and TARGET in NEW_TARGETS and len(CANDIDATE) == 3 and CANDIDATE[0] != CANDIDATE[1]
+    assert CANDIDATE[0] in '012' and CANDIDATE[1] in '0123' and CANDIDATE[2] in 'mud'
+    SOURCE_MARK = 0
+    OUTPUT = ROOT / 'logs/reference_six/online_select_candidates_20261123' / TARGET / CANDIDATE
 MARKS = (0, 1250, 2500, 5000, 10000) if WINDOWED else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' else (0, 20000, 40000, 60000)
-PRIMARY = 2500 if LIBRARY else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
+PRIMARY = 2500 if LIBRARY else 10000 if SELECT else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
 TRAIN_STEPS = 10000 if WINDOWED else 60000
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
@@ -66,7 +77,9 @@ WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train
 EARLY_MARKS = (5000, 10000) if VARIANT in ('s2n', 's2ea') else ()
 # 参数库：（变体, 地形, 快照）的 60 个会话平均参数，最后一组是全 0。
 LIBRARY_SOURCES = (('s2n', 'stairs_up_06', 60000), ('s2n', 'stairs_up_065', 60000), ('bs', 'boxes_06', 40000))
-NOISE_SEED = 2026112201 if LIBRARY else 2026112101 if WINDOWED else 2026111901 if ROUND2 else 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
+# d1、d2 的 Frozen 训练组用和 c3 相同的扰动表；选择用的随机数另有种子。
+SELECT_SEED = 2026112301
+NOISE_SEED = 2026112201 if LIBRARY or SELECT else 2026112101 if WINDOWED else 2026111901 if ROUND2 else 2026111802 if SWING_BASIS else 2026111801 if VARIANT == 'bh' else 2026111703
 POSTURE_PENALTY = 3. if VARIANT == 'bh' or SWING_BASIS else 1.
 SCRIPT_STARTS, SCRIPT_SLOT = 120, 900000  # 脚本化检查的起点槽位不与训练和评估共用
 # 摆动抬脚检查（docs/lite3-online-swing-probe-20261118/PLAN.md）：任务名 -> 残差上限倍数、每步变化上限、起点槽位。
@@ -95,15 +108,20 @@ def protocol():
                          active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea', 'w2') else None)
         if LIBRARY:
             extra.update(library=[list(x) for x in LIBRARY_SOURCES] + ['zero'], select_rounds=2)
+        if SELECT:
+            extra.update(library=[list(x) for x in LIBRARY_SOURCES] + ['zero'], rotate_rounds=2, allocation='Thompson sampling on success, Beta(1, 1) prior',
+                         score='success + 0.01 * mean window feedback', select_seed=SELECT_SEED, expand_after_round=4 if VARIANT == 'd2' else None)
         if VARIANT == 's2ea':
             extra.update(algorithm='C1-b-S-EA', covariance='execution-aware')
         if WINDOWED:
-            extra.update(algorithm='C1-b-L' if LIBRARY else 'C1-b-W', exploration='per-window parameter noise', window_steps=100, settle_steps=10,
+            extra.update(algorithm='C1-b-L' if LIBRARY else 'C1-b-D' if SELECT else 'C1-b-W', exploration='none; one candidate per attempt' if SELECT else 'per-window parameter noise', window_steps=100, settle_steps=10,
                          train_control_steps=TRAIN_STEPS, primary_mark=PRIMARY, marks=list(MARKS),
                          reward='own-leg unimpeded swing ratio + window progress - 3*posture_failure',
-                         initial='pooled s2n stairs_up_06 at 60000' if WINDOW_INITIAL else 'selected from library' if LIBRARY else 'zero')
+                         initial='pooled s2n stairs_up_06 at 60000' if WINDOW_INITIAL else 'selected from library' if LIBRARY or SELECT else 'zero')
         if SOURCE:
             extra.update(transfer_source=SOURCE)
+        if CANDIDATE:
+            extra.update(candidate=CANDIDATE)
     return dict(_protocol(), **extra)
 
 
@@ -164,7 +182,7 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    if SOURCE:
+    if SOURCE or CANDIDATE:
         return [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
               dict(name='train', kind='train', part=0, mark=0, steps=TRAIN_STEPS)]
