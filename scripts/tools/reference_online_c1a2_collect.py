@@ -95,7 +95,8 @@ def collect(args):
             if LIBRARY or SELECT:  # Updated 组先从参数库里选；Frozen 组与 C1-b-W 相同
                 from rl_training.ea_lpl import c1b_l, c1b_d
                 from reference_online_transfer import library
-                entries = library()
+                from reference_online_c1a2 import LIBRARY_SOURCES_6
+                entries = library(LIBRARY_SOURCES_6 if VARIANT=='d3' else None)
             if STALL: from rl_training.ea_lpl import c1b_r
             make = lambda s,arm: (c1b_r.StallSession(args.kind=='train',noise[s]) if STALL and arm=='Updated' else
                 c1b_d.SelectSession(args.kind=='train',noise[s],entries,seed=[SELECT_SEED,s],expand=VARIANT=='d2') if SELECT and arm=='Updated' else

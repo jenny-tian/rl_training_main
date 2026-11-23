@@ -62,7 +62,8 @@ if SOURCE:
     _variant, _target, _mark, *_pooled = SOURCE.split(':')
     assert VARIANT in ('bs', 's2n') and _variant in ('bs', 's2n', 's4n') and _target != TARGET and _pooled in ([], ['pooled'])
     SOURCE_FILE, SOURCE_MARK, SOURCE_POOLED = ROOT / 'logs/reference_six' / RUNS[_variant] / _target / 'train' / f'at_{int(_mark)}.pt', int(_mark), bool(_pooled)
-    OUTPUT = ROOT / 'logs/reference_six' / ('online_library_transfer_20261122' if TARGET in NEW_TARGETS else 'online_transfer_20261120') / TARGET / ('from_' + SOURCE.replace(':', '_'))
+    OUTPUT = ROOT / 'logs/reference_six' / ('online_library2_transfer_20261123' if TARGET in NEW_TARGETS[2:] else 'online_library_transfer_20261122' if TARGET in NEW_TARGETS
+                                            else 'online_transfer_20261120') / TARGET / ('from_' + SOURCE.replace(':', '_'))
 # 候选参数的不学习评估（加快学习 D 的 D0）：C1A2_CANDIDATE=<名字> 时只做目标评估，Updated 组全部用这一组固定参数。
 # 名字是 <领先的库编号><第二的库编号><m|u|d>：m 是 tanh 空间里两组的中点，u、d 是领先一组的摆动幅度乘 1.2、0.8（与 c1b_d.candidates 相同）。
 CANDIDATE = os.environ.get('C1A2_CANDIDATE')

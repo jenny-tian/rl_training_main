@@ -137,3 +137,40 @@ def test_candidate_evaluation_uses_the_target_starts_and_its_own_folder(monkeypa
     assert [j['name'] for j in module.jobs()] == [f'target_0_{p:02d}' for p in range(4)] and module.protocol()['namespaces']['target'] == 62
     assert module.protocol()['candidate'] == '21m'
     sys.modules.pop('reference_online_c1a2', None)
+
+
+LIBRARY6 = torch.cat([LIBRARY[:3], torch.tensor([[0, 0, 1.5, .5], [.3, -.3, .5, .5]], dtype=torch.float64), LIBRARY[3:]])
+
+
+def test_a_six_entry_library_tries_every_entry_twice_in_three_rounds():
+    group = c1b_d.SelectSession(True, c1b_w.exploration_table()[0], LIBRARY6, seed=[7, 0])
+    assert group.rotate_rounds == 3 and group.zero == 5 and group.leader == 5
+    used = []
+    for _ in range(3):
+        codes, arms = episode(group, {4})
+        assert np.allclose(codes, LIBRARY6[arms]); used.append(arms)
+    assert used == [[0, 1, 2, 3], [4, 5, 0, 1], [2, 3, 4, 5]] and group.tries == [2] * 6 and group.wins == [0, 0, 0, 0, 2, 0]
+    assert group.leader == 4 and torch.equal(group.w, LIBRARY6[4])
+    for _ in range(6): episode(group, {4})
+    assert group.tries[4] > 12 and sum(group.tries) == 36 and len(group.arms) == 6
+    empty = c1b_d.SelectSession(True, c1b_w.exploration_table()[0], LIBRARY6, seed=[7, 0])
+    episode(empty, set(), steps=20)
+    assert empty.leader == 5 and torch.count_nonzero(empty.w) == 0  # 得分都相同时取全 0
+
+
+@pytest.mark.parametrize('target', ['stairs_up_075', 'boxes_08'])
+def test_entry_registers_the_harder_targets_and_the_six_entry_library(monkeypatch, target):
+    for name in ('C1A2_SOURCE', 'C1A2_CANDIDATE', 'C1A2_LEAD', 'C1A2_RATE'): monkeypatch.delenv(name, raising=False)
+    monkeypatch.syspath_prepend(TOOLS)
+    for variant, rounds, entries in (('d3', 3, 6), ('d1', 2, 4)):
+        monkeypatch.setenv('C1A2_VARIANT', variant); monkeypatch.setenv('C1A2_TARGET', target)
+        sys.modules.pop('reference_online_c1a2', None)
+        module = importlib.import_module('reference_online_c1a2')
+        p = module.protocol()
+        assert p['rotate_rounds'] == rounds and len(p['library']) == entries and p['library'][-1] == 'zero' and module.PRIMARY == 10000
+        assert target in str(module.OUTPUT) and ('select6' in str(module.OUTPUT)) == (variant == 'd3')
+    monkeypatch.setenv('C1A2_VARIANT', 's2n'); monkeypatch.setenv('C1A2_SOURCE', 's4n:boxes_07:40000:pooled')
+    sys.modules.pop('reference_online_c1a2', None)
+    module = importlib.import_module('reference_online_c1a2')
+    assert f'online_library2_transfer_20261123/{target}/from_s4n_boxes_07_40000_pooled' in str(module.OUTPUT) and 'online_c1b_s4n_20261123/boxes_07/train/at_40000.pt' in str(module.SOURCE_FILE)
+    sys.modules.pop('reference_online_c1a2', None)
