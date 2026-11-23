@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -116,6 +116,10 @@ def collect(args):
         if SOURCE:  # 参数迁移：Updated 组用在另一个地形上学到的参数
             from reference_online_transfer import load_source
             checkpoint = load_source()
+        elif LEAD:  # 提前起抬的脚本化检查：Updated 组都用库里的一组参数
+            from reference_online_c1a2 import LEAD_ENTRY
+            from reference_online_transfer import library_heads
+            checkpoint = dict(control_steps=0,heads=library_heads(LEAD_ENTRY))
         elif CANDIDATE:  # 候选参数的不学习评估：Updated 组都用同一组固定参数
             from reference_online_transfer import candidate_heads
             checkpoint = dict(control_steps=0,heads=candidate_heads(CANDIDATE))
@@ -140,6 +144,11 @@ def collect(args):
         safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device),
             **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs else {})))
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
+    lead = None
+    if LEAD:
+        from reference_online_c1a2 import LEAD_RULE
+        from rl_training.ea_lpl.swing_lead import SwingLead
+        lead = SwingLead(LEAD_RULE,n,device)
     v = basis('sag',device=device)
     projector = (v/(v**2).sum(0)).double()  # 执行残差在两个基方向上的系数
     executed_requested, requested_squared = np.zeros((n,2)), np.zeros((n,2))
@@ -195,7 +204,8 @@ def collect(args):
                 raw[torch.as_tensor(~policy,device=device)] = 0
                 if bs:
                     stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
-                    request = c1b_s.residual_request(torch.tensor(code,dtype=torch.float32,device=device),stance,torch.as_tensor(features[:,0],device=device))
+                    request_stance = lead.step(stance,clip_action(raw)) if lead else stance
+                    request = c1b_s.residual_request(torch.tensor(code,dtype=torch.float32,device=device),request_stance,torch.as_tensor(features[:,0],device=device))
                 else: request = torch.einsum('jk,nk->nj',v,torch.tanh(torch.tensor(code,dtype=torch.float32,device=device)))
                 if swing:
                     stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
@@ -288,6 +298,7 @@ def collect(args):
                 env.base.episode_length_buf[index] = 0; env.base.action_manager.reset(index)
                 safety.reset_temporal_state(index); reset_filter[ready] = True; previous[index] = 0
                 phase[ready] = 1; age[ready] = 0; x0[ready] = after['root'][ready,0]
+                if lead: lead.reset(index)
                 env.policy_active[:] = phase==1; env.policy_age[:] = age; env.refresh()
                 prepared = env.prepared_state(ready.tolist())
                 prepared_states.append(dict(control_step=tick+1,ids=ready,episode=episodes[ready],**prepared))

@@ -36,6 +36,13 @@ def load_source():
     return checkpoint
 
 
+def library_heads(entry):
+    """120 个会话位，Frozen（偶数位）是全 0，Updated（奇数位）都是库里的一组参数。"""
+    w, zero = library()[entry], torch.zeros(4, dtype=torch.float64)
+    head = lambda x: dict(w=x.clone(), parameter_sha256=hashlib.sha256(x.numpy().tobytes()).hexdigest())
+    return [head(w if k % 2 else zero) for k in range(120)]
+
+
 def candidate_heads(name):
     """候选参数的不学习评估：120 个会话位，Frozen（偶数位）是全 0，Updated（奇数位）都是名字指定的一组参数。"""
     from rl_training.ea_lpl.c1b_d import candidates

@@ -67,6 +67,15 @@ if CANDIDATE:
     assert CANDIDATE[0] in '012' and CANDIDATE[1] in '0123' and CANDIDATE[2] in 'mud'
     SOURCE_MARK = 0
     OUTPUT = ROOT / 'logs/reference_six/online_select_candidates_20261123' / TARGET / CANDIDATE
+# 提前起抬的脚本化检查（docs/lite3-online-lead-20261123/PLAN.md）：C1A2_LEAD=<规则>:<库编号> 时只做目标评估，
+# Updated 组全部用库里这一组参数，并按规则在腿离地前就开始请求摆动残差。安全过滤不变。
+LEAD = os.environ.get('C1A2_LEAD')
+if LEAD:
+    LEAD_RULE, _entry = LEAD.split(':')
+    assert not SOURCE and not CANDIDATE and VARIANT == 's2n' and TARGET in ('stairs_up_06',) + NEW_TARGETS
+    assert LEAD_RULE in ('none', 'knee', 'partner', 'age') and _entry in '012'
+    LEAD_ENTRY, SOURCE_MARK = int(_entry), 0
+    OUTPUT = ROOT / 'logs/reference_six/online_lead_20261123' / TARGET / LEAD.replace(':', '_')
 MARKS = (0, 1250, 2500, 5000, 10000) if WINDOWED else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' else (0, 20000, 40000, 60000)
 PRIMARY = 2500 if LIBRARY else 10000 if SELECT else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
 TRAIN_STEPS = 10000 if WINDOWED else 60000
@@ -122,6 +131,8 @@ def protocol():
             extra.update(transfer_source=SOURCE)
         if CANDIDATE:
             extra.update(candidate=CANDIDATE)
+        if LEAD:
+            extra.update(lead=LEAD)
     return dict(_protocol(), **extra)
 
 
@@ -182,7 +193,7 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    if SOURCE or CANDIDATE:
+    if SOURCE or CANDIDATE or LEAD:
         return [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
               dict(name='train', kind='train', part=0, mark=0, steps=TRAIN_STEPS)]
