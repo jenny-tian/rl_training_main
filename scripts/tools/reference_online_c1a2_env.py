@@ -10,8 +10,8 @@ import reference_online_c1b_env_reset_api as reset_module
 from reference_online_c1a2 import protocol, TARGET
 
 
-STAIR_HEIGHT = dict(stairs_up_065=.065, stairs_up_07=.07)
-BOX_HEIGHT = dict(boxes_06=.06, boxes_07=.07)
+STAIR_HEIGHT = dict(stairs_up_065=.065, stairs_up_07=.07, stairs_up_075=.075)
+BOX_HEIGHT = dict(boxes_06=.06, boxes_07=.07, boxes_08=.08)
 
 
 class Environment(reset_module.Environment):

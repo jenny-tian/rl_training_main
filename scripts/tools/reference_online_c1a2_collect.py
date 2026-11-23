@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -116,10 +116,10 @@ def collect(args):
         if SOURCE:  # 参数迁移：Updated 组用在另一个地形上学到的参数
             from reference_online_transfer import load_source
             checkpoint = load_source()
-        elif LEAD:  # 提前起抬的脚本化检查：Updated 组都用库里的一组参数
-            from reference_online_c1a2 import LEAD_ENTRY
+        elif LEAD or RATE:  # 提前起抬、每步变化上限的脚本化检查：Updated 组都用库里的一组参数
+            from reference_online_c1a2 import FIXED_ENTRY
             from reference_online_transfer import library_heads
-            checkpoint = dict(control_steps=0,heads=library_heads(LEAD_ENTRY))
+            checkpoint = dict(control_steps=0,heads=library_heads(FIXED_ENTRY))
         elif CANDIDATE:  # 候选参数的不学习评估：Updated 组都用同一组固定参数
             from reference_online_transfer import candidate_heads
             checkpoint = dict(control_steps=0,heads=candidate_heads(CANDIDATE))

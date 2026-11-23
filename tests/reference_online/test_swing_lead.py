@@ -73,3 +73,35 @@ def test_entry_registers_the_lead_check(monkeypatch, target, lead):
     p = module.protocol()
     assert p['lead'] == lead and p['residual_rate_limit'] == .02 and p['namespaces']['target'] == 62
     sys.modules.pop('reference_online_c1a2', None)
+
+
+@pytest.mark.parametrize('target,rate', [('stairs_up_06', '0.04:0'), ('stairs_up_07', '0.24:0'), ('boxes_07', '0.10:2')])
+def test_entry_registers_the_rate_sweep(monkeypatch, target, rate):
+    monkeypatch.setenv('C1A2_VARIANT', 's2n'); monkeypatch.setenv('C1A2_TARGET', target); monkeypatch.setenv('C1A2_RATE', rate)
+    for name in ('C1A2_SOURCE', 'C1A2_CANDIDATE', 'C1A2_LEAD'): monkeypatch.delenv(name, raising=False)
+    monkeypatch.syspath_prepend(TOOLS)
+    sys.modules.pop('reference_online_c1a2', None)
+    module = importlib.import_module('reference_online_c1a2')
+    assert f"online_rate_20261123/{target}/rate_{rate.replace(':', '_')}" in str(module.OUTPUT)
+    assert [j['name'] for j in module.jobs()] == [f'target_0_{p:02d}' for p in range(4)]
+    p = module.protocol()
+    assert p['residual_rate_limit'] == float(rate.split(':')[0]) and p['rate_check'] == rate and p['residual_limits'] == [.24, .20, .20] * 4
+    sys.modules.pop('reference_online_c1a2', None)
+
+
+@pytest.mark.parametrize('variant,target,marks,primary,active', [
+    ('s2n', 'stairs_up_07', [0, 5000, 10000, 20000, 40000, 60000], 60000, ['front_swing', 'rear_swing']),
+    ('s4n', 'boxes_07', [0, 5000, 10000, 20000, 40000], 40000, None),
+    ('s2n', 'stairs_up_06', [0, 20000, 40000, 60000], 60000, ['front_swing', 'rear_swing'])])
+def test_entry_registers_native_learning_on_the_new_targets(monkeypatch, variant, target, marks, primary, active):
+    monkeypatch.setenv('C1A2_VARIANT', variant); monkeypatch.setenv('C1A2_TARGET', target)
+    for name in ('C1A2_SOURCE', 'C1A2_CANDIDATE', 'C1A2_LEAD', 'C1A2_RATE'): monkeypatch.delenv(name, raising=False)
+    monkeypatch.syspath_prepend(TOOLS)
+    sys.modules.pop('reference_online_c1a2', None)
+    module = importlib.import_module('reference_online_c1a2')
+    p = module.protocol()
+    assert list(module.MARKS) == marks and module.PRIMARY == primary == p['primary_mark'] and module.TRAIN_STEPS == marks[-1]
+    assert p.get('active_parameters') == active and p['residual_rate_limit'] == .02 and p['namespaces'] == dict(smoke=60, train=61, target=62, retention=63)
+    names = [j['name'] for j in module.jobs()]
+    assert all(f'target_{m}_00' in names for m in marks[1:]) and f'retention_{primary}_00' in names and len(names) == len(set(names))
+    sys.modules.pop('reference_online_c1a2', None)
