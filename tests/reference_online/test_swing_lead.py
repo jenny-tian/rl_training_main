@@ -83,7 +83,8 @@ def test_entry_registers_the_rate_sweep(monkeypatch, target, rate):
     sys.modules.pop('reference_online_c1a2', None)
     module = importlib.import_module('reference_online_c1a2')
     assert f"online_rate_20261123/{target}/rate_{rate.replace(':', '_')}" in str(module.OUTPUT)
-    assert [j['name'] for j in module.jobs()] == [f'target_0_{p:02d}' for p in range(4)]
+    names = [j['name'] for j in module.jobs()]
+    assert names[:4] == [f'target_0_{p:02d}' for p in range(4)] and len(names) == 4
     p = module.protocol()
     assert p['residual_rate_limit'] == float(rate.split(':')[0]) and p['rate_check'] == rate and p['residual_limits'] == [.24, .20, .20] * 4
     sys.modules.pop('reference_online_c1a2', None)
@@ -104,4 +105,23 @@ def test_entry_registers_native_learning_on_the_new_targets(monkeypatch, variant
     assert p.get('active_parameters') == active and p['residual_rate_limit'] == .02 and p['namespaces'] == dict(smoke=60, train=61, target=62, retention=63)
     names = [j['name'] for j in module.jobs()]
     assert all(f'target_{m}_00' in names for m in marks[1:]) and f'retention_{primary}_00' in names and len(names) == len(set(names))
+    sys.modules.pop('reference_online_c1a2', None)
+
+
+def test_rate_004_adds_retention_on_the_new_targets_and_d4_selects_at_004(monkeypatch):
+    for name in ('C1A2_SOURCE', 'C1A2_CANDIDATE', 'C1A2_LEAD'): monkeypatch.delenv(name, raising=False)
+    monkeypatch.syspath_prepend(TOOLS)
+    monkeypatch.setenv('C1A2_VARIANT', 's2n'); monkeypatch.setenv('C1A2_TARGET', 'stairs_up_07'); monkeypatch.setenv('C1A2_RATE', '0.04:0')
+    sys.modules.pop('reference_online_c1a2', None)
+    module = importlib.import_module('reference_online_c1a2')
+    names = [j['name'] for j in module.jobs()]
+    assert names == [f'target_0_{p:02d}' for p in range(4)] + [f'retention_0_{p:02d}' for p in range(20)]
+    monkeypatch.delenv('C1A2_RATE'); monkeypatch.setenv('C1A2_VARIANT', 'd4')
+    for target in ('stairs_up_07', 'boxes_08'):
+        monkeypatch.setenv('C1A2_TARGET', target)
+        sys.modules.pop('reference_online_c1a2', None)
+        module = importlib.import_module('reference_online_c1a2')
+        p = module.protocol()
+        assert p['residual_rate_limit'] == .04 and p['algorithm'] == 'C1-b-D' and module.PRIMARY == 10000 and len(p['library']) == 4
+        assert f'online_c1b_select_rate04_20261124/{target}' in str(module.OUTPUT) and p['residual_limits'] == [.24, .20, .20] * 4
     sys.modules.pop('reference_online_c1a2', None)

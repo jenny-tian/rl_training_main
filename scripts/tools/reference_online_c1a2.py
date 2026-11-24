@@ -37,22 +37,23 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # 只用于新地形。方案见 docs/lite3-online-select-20261123/PLAN.md。
 # s4n 是在新地形上做本地学习用的 C1-b-S：4 个幅度都学，现有安全过滤，起点槽位与其他变体在新地形上的相同，40000 步。
 # d3 与 d1 相同，参数库换成扩充后的 6 组。方案见 docs/lite3-online-library2-20261123/PLAN.md。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1')
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4')
+# d4 与 d1 相同，只是仿真里安全过滤的每步变化上限用 0.04（用户 2026-11-24 同意）。方案见 docs/lite3-online-rate04-20261124/PLAN.md。
 # r1 是 C1-b-R：从 0 起，用摆动受阻比例直接修正两个摆动幅度，不加扰动。方案见 docs/lite3-online-stall-20261123/PLAN.md。
-WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3'), VARIANT == 'r1'
+WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1', 'd4'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3', 'd4'), VARIANT == 'r1'
 assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS
-assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1')
+assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4')
 assert not (LIBRARY or SELECT or STALL or VARIANT == 's4n') or TARGET in NEW_TARGETS
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
 ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06')
 assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS if ROUND2 else TARGETS
-SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1')
+SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4')
 REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
 RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
             s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122',
-            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123')
+            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123', d4='online_c1b_select_rate04_20261124')
 OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
 # 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
 # Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
@@ -128,7 +129,7 @@ def protocol():
     if SWING_BASIS:
         extra = dict(algorithm='C1-b-S', replicas=4, optimizer='plain gradient step', sigma=.7, learning_rate=.6, max_rounds=100,
             parameters=['front_static', 'rear_static', 'front_swing', 'rear_swing'], basis='sag static + sag in swing, times roughness',
-            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT in ('bsf', 's2f') else .02,
+            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT in ('bsf', 's2f') else .04 if VARIANT == 'd4' else .02,
             reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure')
         if ROUND2:
             extra.update(algorithm='C1-b-S round 2 ' + VARIANT, namespaces=dict(smoke=60, train=61, target=62, retention=63),
@@ -217,7 +218,10 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 def jobs():
     if SOURCE or CANDIDATE or LEAD or RATE:
-        return [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
+        result = [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
+        if RATE and RATE_LIMIT == .04 and TARGET in NEW_TARGETS:  # 上限 0.04 的保持评估（docs/lite3-online-rate04-20261124/PLAN.md）
+            result += [dict(name=f'retention_0_{p:02d}', kind='retention', mark=0, part=p, steps=1050, smoke_index=1) for p in range(20)]
+        return result
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
               dict(name='train', kind='train', part=0, mark=0, steps=TRAIN_STEPS)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] if m not in EARLY_MARKS for p in range(4)]
