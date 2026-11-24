@@ -37,7 +37,11 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # 只用于新地形。方案见 docs/lite3-online-select-20261123/PLAN.md。
 # s4n 是在新地形上做本地学习用的 C1-b-S：4 个幅度都学，现有安全过滤，起点槽位与其他变体在新地形上的相同，40000 步。
 # d3 与 d1 相同，参数库换成扩充后的 6 组。方案见 docs/lite3-online-library2-20261123/PLAN.md。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2')
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau')
+# ft、lora 是直接微调基础策略的对照：全参数微调和秩 1 LoRA，每个会话一份网络，PPO，上限 0.04；ftu、lorau 另外放开残差幅度上限和每步变化上限，
+# 只做 7 cm 上阶和 7 cm 箱体。方案见 docs/lite3-online-finetune-20261124/PLAN.md。
+FINETUNE, UNFILTERED = VARIANT in ('ft', 'lora', 'ftu', 'lorau'), VARIANT in ('ftu', 'lorau')
+FINETUNE_SEED = 2026112401
 # h1 是 C1-b-RD：不用参数库，第一个回合按受阻比例学摆动幅度，再在几种动作形式里持续选择；r2 是上限 0.04 下的 r1。
 # 两者都用上限 0.04。方案见 docs/lite3-online-hybrid-20261124/PLAN.md。
 # d4 与 d1 相同，只是仿真里安全过滤的每步变化上限用 0.04（用户 2026-11-24 同意）。方案见 docs/lite3-online-rate04-20261124/PLAN.md。
@@ -45,18 +49,20 @@ assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea',
 WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1', 'd4', 'h1', 'r2'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3', 'd4', 'h1'), VARIANT in ('r1', 'r2')
 HYBRID = VARIANT == 'h1'
 assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS
-assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2')
+assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2') or FINETUNE
+assert not FINETUNE or TARGET in (NEW_TARGETS[:2] if UNFILTERED else NEW_TARGETS)
 assert not (LIBRARY or SELECT or STALL or VARIANT == 's4n') or TARGET in NEW_TARGETS
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
-ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06')
+ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06') or FINETUNE
 assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS if ROUND2 else TARGETS
 SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2')
-REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS else 1
+REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS or FINETUNE else 1
 RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
             s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122',
-            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123', d4='online_c1b_select_rate04_20261124', h1='online_c1b_hybrid_20261124', r2='online_c1b_stall_rate04_20261124')
+            d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123', d4='online_c1b_select_rate04_20261124', h1='online_c1b_hybrid_20261124', r2='online_c1b_stall_rate04_20261124',
+            ft='online_finetune_full_20261124', lora='online_finetune_lora_20261124', ftu='online_finetune_full_unfiltered_20261124', lorau='online_finetune_lora_unfiltered_20261124')
 OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
 # 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
 # Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
@@ -95,10 +101,12 @@ if RATE:
     RATE_LIMIT, FIXED_ENTRY, SOURCE_MARK = float(_rate), int(_entry), 0
     OUTPUT = ROOT / 'logs/reference_six/online_rate_20261123' / TARGET / ('rate_' + RATE.replace(':', '_'))
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
-MARKS = ((0, 1250, 2500, 5000, 10000) if WINDOWED else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
+MARKS = ((0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
          else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' or (VARIANT == 's2n' and TARGET in NEW_TARGETS) else (0, 20000, 40000, 60000))
-PRIMARY = 2500 if LIBRARY or STALL else 10000 if SELECT else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
-TRAIN_STEPS = 10000 if WINDOWED else 40000 if VARIANT == 's4n' else 60000
+PRIMARY = 2500 if LIBRARY or STALL else 10000 if SELECT or FINETUNE else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
+# 微调的对照在 10000 步和 45000 步各做一次保持评估，其他变体只在 PRIMARY 做。
+RETENTION_MARKS = (PRIMARY, 45000) if FINETUNE else (PRIMARY,)
+TRAIN_STEPS = 45000 if FINETUNE else 10000 if WINDOWED else 40000 if VARIANT == 's4n' else 60000
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
 # 只作描述的早期快照，评估排在登记的任务之后。s2ea 训练时直接保存；s2n 当时没有存，由训练记录重建
@@ -163,6 +171,16 @@ def protocol():
             extra.update(lead=LEAD)
         if RATE:
             extra.update(rate_check=RATE, residual_rate_limit=RATE_LIMIT)
+    if FINETUNE:
+        # 45000 步、每个会话 4 个环境，相当于一台机器人 60 分钟。
+        extra = dict(algorithm='PPO fine-tuning ' + VARIANT, replicas=4, namespaces=dict(smoke=60, train=61, target=62, retention=63),
+            train_control_steps=TRAIN_STEPS, primary_mark=PRIMARY, marks=list(MARKS), retention_marks=list(RETENTION_MARKS),
+            residual_rate_limit=100. if UNFILTERED else .04, reward='native training reward of the environment',
+            exploration='gaussian action noise, std from the checkpoint, trainable', initial='base policy',
+            finetune=dict(mode='lora' if VARIANT in ('lora', 'lorau') else 'full', rank=1, alpha=1., learning_rate=1e-2 if VARIANT in ('lora', 'lorau') else 1e-3,
+                horizon=250, minimum_valid=64, seed=FINETUNE_SEED, gamma=.99, lam=.95, clip=.2, entropy=.01, value=1., epochs=5, minibatches=4,
+                max_grad_norm=1., desired_kl=.01, learning_rate_range=[1e-5, 1e-2]))
+        if UNFILTERED: extra.update(residual_limits=[100.] * 12)
     return dict(_protocol(), **extra)
 
 
@@ -231,7 +249,7 @@ def jobs():
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
               dict(name='train', kind='train', part=0, mark=0, steps=TRAIN_STEPS)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] if m not in EARLY_MARKS for p in range(4)]
-    result += [dict(name=f'retention_{PRIMARY}_{p:02d}', kind='retention', mark=PRIMARY, part=p, steps=1050) for p in range(20)]
+    result += [dict(name=f'retention_{m}_{p:02d}', kind='retention', mark=m, part=p, steps=1050) for m in RETENTION_MARKS for p in range(20)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050, extra=True) for m in EARLY_MARKS for p in range(4)]
     if VARIANT == 'bh':
         result += [dict(name='script', kind='target', part=0, mark=0, steps=1050, script='target'),

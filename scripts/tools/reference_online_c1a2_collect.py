@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -79,7 +79,25 @@ def collect(args):
     parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
     windowed = WINDOWED and parallel  # 回合内按窗口换扰动并更新；评估时与 C1-b-S 相同
     width = 2*REPLICAS if parallel else 2  # 一起重置的相邻环境数
-    if parallel:
+    tuner = None
+    if FINETUNE:  # 直接微调基础策略：每个会话（评估时每个环境）一份网络，Updated 组在奇数行
+        from rl_training.ea_lpl import finetune
+        settings = protocol()['finetune']
+        states = torch.load(MODEL_PATHS['B'],map_location='cpu',weights_only=False)
+        if any(specs[i]['arm']!=('Frozen','Updated')[i%2] for i in range(n)): raise ValueError('arms not alternating')
+        tuner = finetune.Tuner(states['actor_state_dict'],states['critic_state_dict'],copies=60 if parallel else n//2,replicas=REPLICAS if parallel else 1,
+            mode=settings['mode'],learn=args.kind=='train',seed=settings['seed'],device=device,lr=settings['learning_rate'],
+            horizon=settings['horizon'],minimum=settings['minimum_valid'])
+        probe = env.obs['policy'][1::2]
+        with torch.no_grad(): mismatch = float((tuner.act(probe,env.obs['critic'][1::2],torch.zeros(n//2,dtype=torch.bool,device=device),sample=False)-env.actor(probe)).abs().max())
+        if mismatch>1.e-4: raise ValueError(f'fine-tuning copies do not start at the base policy: {mismatch}')
+        if parallel:
+            groups = {(s,arm):finetune.Group(tuner if arm=='Updated' else None,s if arm=='Updated' else None) for s in range(60) for arm in ('Frozen','Updated')}
+            heads = [finetune.Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
+            if any(specs[2*k+1]['session']!=k//REPLICAS or specs[2*k+1]['repeat']!=k%REPLICAS for k in range(n//2)): raise ValueError('session rows not contiguous')
+        else:
+            heads = [finetune.Slot(finetune.Group(tuner,i//2) if i%2 else finetune.Group(None,None),0) for i in range(n)]
+    elif parallel:
         if bsea: ParallelSession, Slot = c1b_s_ea.ParallelSessionEA, c1b_s_ea.SlotEA
         elif bs:
             import functools
@@ -149,7 +167,7 @@ def collect(args):
         save(args.output/'swing.json',dict(swing,residual_limits=limit.tolist(),residual_rate_limit=safety.limits.residual_rate_limit))
     else:
         safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device),
-            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs else {})))
+            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs or FINETUNE else {})))
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
     lead = None
     if LEAD:
@@ -197,7 +215,7 @@ def collect(args):
             before = env.frame()
             decisions = policy & (age==0)
             for i in np.flatnonzero(decisions):
-                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') and not windowed else None
+                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') and not windowed and not FINETUNE else None
                 code[i] = heads[i].begin(exploration)
             if windowed:
                 for i in np.flatnonzero(policy): code[i] = heads[i].requested_code()
@@ -214,6 +232,9 @@ def collect(args):
                     request_stance = lead.step(stance,clip_action(raw)) if lead else stance
                     request = c1b_s.residual_request(torch.tensor(code,dtype=torch.float32,device=device),request_stance,torch.as_tensor(features[:,0],device=device))
                 else: request = torch.einsum('jk,nk->nj',v,torch.tanh(torch.tensor(code,dtype=torch.float32,device=device)))
+                if tuner:  # 微调后的动作（训练时带采样噪声）与冻结策略动作的差作为残差请求
+                    tuned = tuner.act(env.obs['policy'][1::2],env.obs['critic'][1::2],torch.as_tensor(policy[1::2],device=device),sample=args.kind=='train')
+                    request[1::2] = clip_action(tuned)-clip_action(raw[1::2])
                 if swing:
                     stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
                     request = request+swing_request(stance,torch.as_tensor(features[:,0],device=device),swing_groups,swing['scale'])
@@ -242,7 +263,8 @@ def collect(args):
                     before_root=before['root'],command=env.command.vel_command_b.cpu().numpy().copy())
                 if bh or bs: values['features'] = features.astype(np.float32)
                 if swing or bs: values['stance'] = stance.cpu().numpy().copy()
-                env.obs,_,term,trunc,_ = env.base.step(trace.executed_action)
+                env.obs,reward,term,trunc,_ = env.base.step(trace.executed_action)
+                if tuner: values['reward'] = reward.cpu().numpy().copy()
                 completed_steps += 1
                 if not torch.equal(env.base.action_manager.action,trace.executed_action): raise ValueError('executed action mismatch')
                 previous = trace.executed_action.clone()
@@ -297,6 +319,10 @@ def collect(args):
                     phase[i] = 2; code[i] = 0; finished.append(i)
             if windowed:
                 for group in groups.values(): group.tick(learn=args.kind=='train')
+            if tuner and args.kind=='train':
+                ended = np.zeros(n,bool); ended[finished] = True
+                tuner.record(reward[1::2],env.obs['critic'][1::2],torch.as_tensor(ended[1::2],device=device),torch.as_tensor((ended&terminated)[1::2],device=device))
+                if tuner.ready(): tuner.update()
             if finished:
                 safety.reset_temporal_state(torch.tensor(finished,device=device)); reset_filter[finished] = True
             ready = np.flatnonzero(prep & (preparation==50))
@@ -333,7 +359,9 @@ def collect(args):
             if (tick+1)%1000==0:
                 print(f'C1A {args.name}: {tick+1}/{args.steps}, episodes={len(records)}, updates={sum(h.updates for h in heads)}'
                       +(f', mean_std={np.mean([h.std.numpy() for h in heads[1::2]],0).round(3).tolist()}' if ea else '')
-                      +(f', mean_std={np.mean([g.std.numpy()[2:] for (_,arm),g in groups.items() if arm=="Updated"],0).round(3).tolist()}' if bsea and parallel else ''),flush=True)
+                      +(f', mean_std={np.mean([g.std.numpy()[2:] for (_,arm),g in groups.items() if arm=="Updated"],0).round(3).tolist()}' if bsea and parallel else '')
+                      +(f', success Frozen/Updated={sum(r["outcome"]=="success" and r["arm"]=="Frozen" for r in records)}/{sum(r["outcome"]=="success" and r["arm"]=="Updated" for r in records)}'
+                        +(f', lr={np.mean(tuner.log[-1]["lr"]):.2e}, kl={np.mean(tuner.log[-1]["kl"]):.4f}, value_loss={np.mean(tuner.log[-1]["value_loss"]):.3f}, std={np.mean(tuner.log[-1]["std"]):.3f}, reward={np.mean(tuner.log[-1]["mean_reward"]):.4f}' if tuner.log else '') if tuner else ''),flush=True)
             if args.kind in ('target','retention') and (phase==2).all(): break
     except Exception:
         persist('partial_report.json'); checkpoint('failure.pt',completed_steps)
@@ -352,6 +380,7 @@ def collect(args):
     if args.kind=='train' and any(h.updates==0 for i,h in enumerate(heads) if specs[i]['arm']=='Updated'): raise ValueError('no training updates')
     checkpoint('final.pt',completed_steps); persist('episodes.json')
     if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
+    if tuner and args.kind=='train': save(args.output/'finetune.json',dict(settings=settings,updates=tuner.updates,log=tuner.log))
     if windowed and (LIBRARY or SELECT):
         save(args.output/'selection.json',dict(library=entries.tolist(),sessions=[groups[s,'Updated'].selection for s in range(60)]))
         if any(groups[s,'Updated'].selection is None for s in range(60)): raise ValueError('selection incomplete')

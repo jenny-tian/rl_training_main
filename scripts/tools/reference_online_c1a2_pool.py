@@ -36,6 +36,11 @@ def choose(free, pending, now, minimum=MINIMUM_MIB):
     return (gpu if effective[gpu] >= minimum else None), pending
 
 
+def allowed(free, spec):
+    """spec 是环境变量 C1A2_GPUS 的值（如 '1' 或 '1,3'）；给出时只在这些 GPU 里挑，用于别的任务占着其余 GPU 的时候。"""
+    return free if not spec else {g: f for g, f in free.items() if g in {int(x) for x in spec.split(',')}}
+
+
 def pick_gpu(minimum=MINIMUM_MIB, wait_minutes=720):
     for _ in range(wait_minutes * 2):
         with open(LOCK, 'w') as lock:
@@ -44,7 +49,7 @@ def pick_gpu(minimum=MINIMUM_MIB, wait_minutes=720):
             except (FileNotFoundError, ValueError): pending = []
             free = {int(a): int(b) for a, b in (line.split(',') for line in subprocess.check_output(
                 ['nvidia-smi', '--query-gpu=index,memory.free', '--format=csv,noheader,nounits'], text=True).strip().splitlines())}
-            gpu, pending = choose(free, pending, time.time(), minimum)
+            gpu, pending = choose(allowed(free, os.environ.get('C1A2_GPUS')), pending, time.time(), minimum)
             if gpu is not None: pending.append([gpu, time.time()])
             json.dump(pending, open(PENDING, 'w'))
         if gpu is not None: return gpu
