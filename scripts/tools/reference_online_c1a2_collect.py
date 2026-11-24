@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -92,13 +92,17 @@ def collect(args):
                 source = torch.load(WINDOW_INITIAL,map_location='cpu',weights_only=True)
                 if source['control_steps']!=60000 or source['kind']!='train' or len(source['heads'])!=120: raise ValueError('unexpected initial snapshot')
                 initial = torch.stack([torch.as_tensor(h['w'],dtype=torch.float64) for h in source['heads'][1::2]]).mean(0)
-            if LIBRARY or SELECT:  # Updated 组先从参数库里选；Frozen 组与 C1-b-W 相同
+            if HYBRID:
+                from rl_training.ea_lpl import c1b_rd
+                entries = torch.zeros(4,4,dtype=torch.float64)  # 候选在第一个回合后生成，这里只占位
+            elif LIBRARY or SELECT:  # Updated 组先从参数库里选；Frozen 组与 C1-b-W 相同
                 from rl_training.ea_lpl import c1b_l, c1b_d
                 from reference_online_transfer import library
                 from reference_online_c1a2 import LIBRARY_SOURCES_6
                 entries = library(LIBRARY_SOURCES_6 if VARIANT=='d3' else None)
             if STALL: from rl_training.ea_lpl import c1b_r
-            make = lambda s,arm: (c1b_r.StallSession(args.kind=='train',noise[s]) if STALL and arm=='Updated' else
+            make = lambda s,arm: (c1b_rd.StallSelectSession(args.kind=='train',noise[s],seed=[SELECT_SEED,s]) if HYBRID and arm=='Updated' else
+                c1b_r.StallSession(args.kind=='train',noise[s]) if STALL and arm=='Updated' else
                 c1b_d.SelectSession(args.kind=='train',noise[s],entries,seed=[SELECT_SEED,s],expand=VARIANT=='d2') if SELECT and arm=='Updated' else
                 c1b_l.LibrarySession(args.kind=='train',noise[s],entries) if LIBRARY and arm=='Updated' else
                 c1b_w.WindowSession(args.kind=='train' and arm=='Updated',noise[s],active=protocol().get('active_parameters'),initial=initial if arm=='Updated' else None))
