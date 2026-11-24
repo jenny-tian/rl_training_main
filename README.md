@@ -1,5 +1,8 @@
 # rl_training
 
+Lite3 Isaac Lab 六类地形训练代码、B10200 / zero10100 / lowstairs10000 权重及配套配置：
+[六类地形模型与训练说明](models/lite3_six_terrain/README.md)。
+
 [![IsaacSim](https://img.shields.io/badge/IsaacSim-5.1.0-silver.svg)](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html)
 [![Isaac Lab](https://img.shields.io/badge/IsaacLab-2.3.2-silver)](https://isaac-sim.github.io/IsaacLab)
 [![RSL-RL](https://img.shields.io/badge/RSL--RL-5.0.1-silver)](https://github.com/leggedrobotics/rsl_rl)

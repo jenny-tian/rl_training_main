@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "recommended_model": "B10200",
+  "models": {
+    "lowstairs10000": {
+      "path": "weights/lowstairs10000.pt",
+      "sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f",
+      "original_path": "logs/reference_six/low_stairs_training/scratch_seed42_10000/model_updates_10000.pt",
+      "source_commit": "bffb1505d1cfa30c53c8039b8e6950bd3f5dcb09"
+    },
+    "zero10100": {
+      "path": "weights/zero10100.pt",
+      "sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497",
+      "original_path": "logs/reference_six/low_stairs_zero_preservation_20261115/train_001_100/model_updates_10100.pt",
+      "source_commit": "b2937612b6239f29db1c735dce467e6d987e9550"
+    },
+    "B10200": {
+      "path": "weights/B10200.pt",
+      "sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79",
+      "original_path": "logs/reference_six/stair_allocation_20261116/B/train_001_100/model_updates_10200.pt",
+      "source_commit": "57c5ac9d0ef508d3684a1b93505092cdd7760202"
+    }
+  },
+  "terrain_families": [
+    "flat",
+    "rough",
+    "slope",
+    "stairs",
+    "slope_rough",
+    "friction_variation"
+  ],
+  "stair_height_m": [
+    0.02,
+    0.05
+  ],
+  "policy_observations": 45,
+  "critic_observations": 393,
+  "actions": 12,
+  "reference_repository": "https://github.com/DeepRoboticsLab/rl_training.git",
+  "reference_commit": "127b4ff1081b1c7a2f08842298d06dcc5e9460e4",
+  "project_source_commit": "d3203c38d437029488532e1a4744b32f2ec7a725",
+  "packaging_environment": {
+    "isaacsim": "5.1.0.0",
+    "isaaclab": "0.54.3",
+    "isaaclab_rl": "0.5.0",
+    "rsl-rl-lib": "5.0.1",
+    "torch": "2.7.0+cu128",
+    "numpy": "1.26.0",
+    "tensordict": "0.11.0"
+  },
+  "files": [
+    {
+      "path": "weights/lowstairs10000.pt",
+      "bytes": 6686543,
+      "sha256": "419921855e24b40af058ac6642083eca8538f639e596606c51c2150ae7549a8f"
+    },
+    {
+      "path": "configs/lowstairs10000/params/env.yaml",
+      "bytes": 61033,
+      "sha256": "973467480f0e02cf1f9d6490c559fac7bad434354987e7f25645c68c3a383859"
+    },
+    {
+      "path": "configs/lowstairs10000/params/agent.yaml",
+      "bytes": 1140,
+      "sha256": "595082892a5c4d9b2b54b116e87750b7a497e7ead8dc12e5bc4c1e4bb448b16a"
+    },
+    {
+      "path": "configs/lowstairs10000/runtime_overrides.json",
+      "bytes": 276,
+      "sha256": "e974a0078feabe4263d8075f1d3d2780b96f5b94a34fd9c4eeda6d5d0494c4f7"
+    },
+    {
+      "path": "configs/lowstairs10000/low_stairs_terrain_audit.json",
+      "bytes": 492,
+      "sha256": "c82179ee662cdec0bc1152ae187e0f5d883cee8b7b94ed89f70af11bae2b5304"
+    },
+    {
+      "path": "configs/lowstairs10000/reward_override_audit.json",
+      "bytes": 15445,
+      "sha256": "2bf26e5c0c888193f4badd0e2559cb47dd410f576837f0f5cfcbf931e20a8498"
+    },
+    {
+      "path": "configs/lowstairs10000/execution.json",
+      "bytes": 964,
+      "sha256": "ab4bf085e0b026a08f8c04d2eb059cc220d7ee809ab43ed6b926d2fa1b302af3"
+    },
+    {
+      "path": "weights/zero10100.pt",
+      "bytes": 6805756,
+      "sha256": "290d94746c467b5cd21ef74c47a908011521c1f145da35ba7b94f1b92d9b7497"
+    },
+    {
+      "path": "configs/zero10100/configuration.json",
+      "bytes": 71035,
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+    },
+    {
+      "path": "configs/zero10100/configuration_audit.json",
+      "bytes": 19217,
+      "sha256": "9dbfcfd607d1ddef542698228e1155360cd558bfa4b563305357006f4a1026cb"
+    },
+    {
+      "path": "configs/zero10100/execution.json",
+      "bytes": 780,
+      "sha256": "7c46d73dcf016bc031f77aa50dfe18295a82900abba15fd0d9ef40e1091a7a94"
+    },
+    {
+      "path": "weights/B10200.pt",
+      "bytes": 6822076,
+      "sha256": "aba3a52e362fbb6f6c860bb8db384c12a84d13f6f39b53cae16465eaf2a84b79"
+    },
+    {
+      "path": "configs/B10200/configuration.json",
+      "bytes": 71035,
+      "sha256": "295bac50b58ddf23790c6eb5c87587fe05a1b50107ced8e85796fd40f47fabf5"
+    },
+    {
+      "path": "configs/B10200/configuration_audit.json",
+      "bytes": 19217,
+      "sha256": "9dbfcfd607d1ddef542698228e1155360cd558bfa4b563305357006f4a1026cb"
+    },
+    {
+      "path": "configs/B10200/allocation_migration.json",
+      "bytes": 43088,
+      "sha256": "a69405a38f365495145ef5e04f38ded72a8f7bd81fd3bb599328e834612d90f7"
+    },
+    {
+      "path": "configs/B10200/implementation_sources.json",
+      "bytes": 2791,
+      "sha256": "a3c6e74bab7e8d389890caf7dbe8cfce137d6060bf90f317be49f8bf4906030e"
+    },
+    {
+      "path": "configs/B10200/execution.json",
+      "bytes": 789,
+      "sha256": "2ca0f9921f5019b082ace1e3ea95c76caaf0fd7485aeecae9106825c3632e883"
+    }
+  ]
+}
