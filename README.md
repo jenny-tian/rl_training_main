@@ -1,16 +1,16 @@
 # rl_training
 
-## Lite3 六类地形：新同学从这里开始
+## Lite3 六类地形训练与权重
 
 本分支提供 Lite3 在平地、粗糙地面、坡面、台阶、粗糙坡面和摩擦变化地形上的 Isaac Lab 训练代码，以及 B10200、zero10100、lowstairs10000 三份权重和配套配置。一份策略用于六类地形，当前发布版本的台阶高度为 2–5 cm。
 
-**请先阅读 [六类地形新生上手指南](models/lite3_six_terrain/README.md)**，按“下载与安装 → 权重检查 → 仿真启动检查 → 3 次更新检查 → 正式训练”的顺序操作。指南包含每一步的命令、通过条件、输出位置和常见错误。
+**请先阅读 [六类地形训练与使用说明](models/lite3_six_terrain/README.md)**，按“下载与安装 → 权重检查 → 仿真启动检查 → 3 次更新检查 → 正式训练”的顺序操作。说明包含每一步的命令、通过条件、输出位置和常见错误。
 
-- 只查看现成权重：从指南第 4 节开始，需要已安装 PyTorch。
-- 从头训练：按指南第 2–7 节准备 Isaac Lab 环境并运行。
-- 阅读模型和实验实现：查看指南第 8 节的源码索引。
+- 只查看现成权重：从使用说明第 4 节开始，需要已安装 PyTorch。
+- 从头训练：按使用说明第 2–7 节准备 Isaac Lab 环境并运行。
+- 阅读模型和实验实现：查看使用说明第 8 节的源码索引。
 
-下面保留上游项目的通用介绍和 Rough 任务示例。**本分支六类地形训练使用指南中的 `scripts/tools/train_lite3_six_terrain.py` 入口**；下方通用 Rough 任务命令不对应这套六类地形配置。
+下面保留上游项目的通用介绍和 Rough 任务示例。**本分支六类地形训练使用 `scripts/tools/train_lite3_six_terrain.py` 入口**；下方通用 Rough 任务命令不对应这套六类地形配置。
 
 [![IsaacSim](https://img.shields.io/badge/IsaacSim-5.1.0-silver.svg)](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html)
 [![Isaac Lab](https://img.shields.io/badge/IsaacLab-2.3.2-silver)](https://isaac-sim.github.io/IsaacLab)
