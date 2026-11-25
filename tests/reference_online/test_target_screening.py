@@ -246,3 +246,33 @@ def test_path_coefficients_follow_the_band_layout(tool):
     assert tool.path_coefficients(longitudinal, (8., 8.)) == dict(forward_m=[.3, 1.5, 2.5, 3.2], left=[.12, .12, .07, .07], right=[.12, .12, .07, .07])
     with pytest.raises(ValueError):
         tool.path_coefficients(longitudinal[:3], (8., 8.))
+
+
+def test_diagnostic_means_skip_missing_values_and_can_be_limited_to_failures(screening):
+    d = lambda slip, stall, tilt: dict(steps=10, stance_slip_ratio=slip, stance_foot_speed=.01, swing_stall_ratio_front=stall,
+                                       swing_stall_ratio_rear=stall, swing_hit_ratio=None, torque_limit_ratio=0., max_tilt_deg=tilt)
+    rows = [dict(outcome='success', diagnostics=d(.1, .2, 10.)), dict(outcome='stuck', diagnostics=d(.3, None, 20.)),
+            dict(outcome='posture_failure', diagnostics=d(.5, .6, 50.)), dict(outcome='start_failure', diagnostics=None)]
+    everything = screening.diagnostic_means(rows)
+    assert everything['episodes'] == 3 and everything['stance_slip_ratio'] == pytest.approx(.3)
+    assert everything['swing_stall_ratio_front'] == pytest.approx(.4) and everything['swing_hit_ratio'] is None
+    assert everything['max_tilt_deg'] == pytest.approx(80 / 3) and 'steps' not in everything
+    failures = screening.diagnostic_means(rows, failures_only=True)
+    assert failures['episodes'] == 2 and failures['stance_slip_ratio'] == pytest.approx(.4) and failures['max_tilt_deg'] == pytest.approx(35.)
+    assert screening.diagnostic_means([rows[3]])['episodes'] == 0 and screening.diagnostic_means([rows[3]])['stance_slip_ratio'] is None
+
+
+def test_rough_audit_ignores_the_flat_border_at_the_edge_of_the_tile(tool):
+    # 8 m 的地块边缘有 0.25 m 高度为 0 的平边，中心线上从 3.75 m 开始；机器人走不到那里，不能算进高度范围。
+    heights = np.repeat(np.random.default_rng(2).integers(1, 10, 39) / 100., 10)[:381]
+    heights[X > 3.75] = 0.
+    assert tool.terrain_audit('rough_09', X, heights)['measured_height_range'] == pytest.approx(np.ptp(heights[X <= 3.6]))
+
+
+def test_slope_audit_allows_one_height_field_slope_step(tool):
+    # 高度场水平 0.1 m、竖直按 5 mm 取整，局部坡度以 0.05 为一档；名义 0.6 的坡在拟合区间里实测 0.631。
+    assert tool.terrain_audit('slope_up_60', X, ramp(.631))['measured_slope'] == pytest.approx(.631, abs=1e-6)
+    assert tool.terrain_audit('slope_down_60', X, ramp(-.607))['measured_slope'] == pytest.approx(-.607, abs=1e-6)
+    for steepness in (.66, .54):
+        with pytest.raises(ValueError):
+            tool.terrain_audit('slope_up_60', X, ramp(steepness))

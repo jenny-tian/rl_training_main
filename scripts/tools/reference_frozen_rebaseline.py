@@ -147,13 +147,15 @@ def terrain_audit(condition, x, z):
         slope, sign = spec['slope_range'][0], 1 if spec['source'].endswith('_up') else -1
         fit = (x >= 2.2) & (x <= 3.4)
         measured = float(np.polyfit(x[fit], z[fit], 1)[0])
-        if abs(measured - sign * slope) > (.15 if noise else .05) * slope:
+        # 高度场水平 0.1 m、竖直按 5 mm 取整，局部坡度以 0.05 为一档；粗糙坡面再加上起伏幅度在拟合区间上的影响。
+        if abs(measured - sign * slope) > .05 + (noise[1] / 1.2 if noise else 0.):
             raise ValueError(f'{condition}: measured slope {measured:.3f}, expected {sign * slope:.3f}')
         level = float(np.median(z[x <= 1.]))
         beyond = np.flatnonzero(np.abs(z - level) > (noise[1] if noise else 0.) + .02)
         return dict(measured_slope=measured, slope_start_x=float(x[beyond[0]]) if len(beyond) else None)
     if noise:
-        span, measured = noise[1] - noise[0], float(np.ptp(z))
+        # 地块边缘有 0.25 m 高度为 0 的平边（中心线上从 3.75 m 起），机器人走不到，只看 3.6 m 以内。
+        span, measured = noise[1] - noise[0], float(np.ptp(z[x <= 3.6]))
         if not .5 * span <= measured <= span + .006:
             raise ValueError(f'{condition}: height range {measured:.3f} on the centre line, expected about {span:.3f}')
         return dict(measured_height_range=measured)

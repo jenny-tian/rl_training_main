@@ -122,3 +122,12 @@ def select(stats, chains=None):
             bracket = pairs[0] if pairs else None
         result[family] = dict(chosen=chosen, bracket=bracket, classes=classes)
     return result
+
+
+def diagnostic_means(records, failures_only=False):
+    """一个候选各回合诊断量的平均，没有值的回合不计；failures_only 时只统计没有成功的回合。"""
+    rows = [r['diagnostics'] for r in records if r.get('diagnostics') and not (failures_only and r['outcome'] == 'success')]
+    names = ('stance_slip_ratio', 'stance_foot_speed', 'swing_stall_ratio_front', 'swing_stall_ratio_rear', 'swing_hit_ratio',
+             'torque_limit_ratio', 'max_tilt_deg')
+    mean = lambda values: sum(values) / len(values) if values else None
+    return dict(episodes=len(rows), **{name: mean([row[name] for row in rows if row[name] is not None]) for name in names})
