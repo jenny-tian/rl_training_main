@@ -9,7 +9,7 @@
 更新
   a  PPO：自定义奖励，损失里加对基础动作的偏离惩罚；critic 从基础策略的复制，先校准再更新适配器。
   b  有方向的误差：适配器输出的残差回归到 directed_target，每个控制步更新一次。
-  c  a 的损失里加 beta(更新次数) × b 的损失。
+  c  a 和 b 同时进行：b 每个控制步更新，学习率再乘 beta(PPO 更新次数)；a 每批更新。校准阶段两者都不更新适配器。
 环境按 [copies, replicas] 的顺序排列，与 finetune.Tuner 相同。
 """
 from __future__ import annotations
@@ -22,13 +22,15 @@ import torch
 from torch import nn
 
 from .c1b_s import HIPY, KNEE
-from .finetune import CLIP, DESIRED_KL, EPOCHS, GAMMA, LAM, MAX_GRAD_NORM, MINIBATCHES, StackedAdam, StackedMLP, adapt_lr, clip_per_copy, gae
+from .finetune import CLIP, DESIRED_KL, EPOCHS, GAMMA, LAM, MAX_GRAD_NORM, MINIBATCHES, StackedAdam, StackedMLP, clip_per_copy, gae
 
 FILM_HIDDEN, RESIDUAL_HIDDEN, FILM_SCALE = 16, 64, .5
 DT, TRACK_SPEED, TRACK_WIDTH, FREE_WEIGHT, CORRECTION_WEIGHT, FAILURE_PENALTY = .02, .4, .0625, .5, 2., 1.
 STD, LEARNING_RATE, DEVIATION, VALUE, CALIBRATION, HORIZON, MINIMUM = .1, 1e-3, .5, 1., 1000, 250, 64
 TRACK_GAIN, SLOW, DECAY_STEPS, WEIGHT_DECAY = .2, .02, 5000, 1e-4
 BETA_START, BETA_HALF = 1., 10
+RESIDUAL_LIMITS = [.24, .20, .20] * 4
+LR_LOW, LR_HIGH = 1e-6, 1e-2  # 探索标准差只有 0.1，同样的 KL 对应的步长比基础训练小得多，下限比基础训练的 1e-5 低一档
 
 
 class StackedAdapter(nn.Module):
@@ -97,7 +99,13 @@ def directed_target(error, stalled):
     lift = stalled.to(error)
     target[:, 1::3] = target[:, 1::3] + HIPY * lift
     target[:, 2::3] = target[:, 2::3] + KNEE * lift
-    return target
+    limits = torch.tensor(RESIDUAL_LIMITS, dtype=target.dtype, device=target.device)
+    return torch.maximum(torch.minimum(target, limits), -limits)  # 超过残差上限的部分会被安全过滤截掉，不作为目标
+
+
+def adapt_lr(lr, kl, desired=DESIRED_KL):
+    lr = torch.where(kl > 2 * desired, (lr / 1.5).clamp(min=LR_LOW), lr)
+    return torch.where((kl < desired / 2) & (kl > 0), (lr * 1.5).clamp(max=LR_HIGH), lr)
 
 
 def beta(updates):
@@ -118,7 +126,9 @@ class Learner:
         self.actor_parameters = [*self.adapter.parameters()] + ([self.log_std] if self.ppo else [])
         self.critic = StackedMLP(critic_state, copies, 'full').to(device) if self.ppo and self.learn else None
         lr = torch.full((copies,), LEARNING_RATE, device=device)
-        self.optimizer = StackedAdam(self.actor_parameters, lr) if self.learn else None
+        self.optimizer = StackedAdam(self.actor_parameters, lr) if self.learn and self.ppo else None
+        self.directed = StackedAdam(list(self.adapter.parameters()), lr.clone()) if self.learn and update in ('b', 'c') else None
+        self.directed_loss = []
         self.critic_optimizer = StackedAdam(list(self.critic.parameters()), lr) if self.critic is not None else None
         self.generator = torch.Generator(device=device).manual_seed(seed + 1)
         n = copies * replicas
@@ -172,7 +182,8 @@ class Learner:
         row, self.pending = self.pending, None
         row['target'] = self._shape(self.target(error, stalled, row['valid'].reshape(-1)))
         self.steps += 1
-        if not self.ppo: return self._supervised(row)
+        if not self.ppo: return self._supervised(row, 1.)
+        if self.update == 'c' and self.steps > self.calibration: self._supervised(row, beta(self.rounds))
         with torch.no_grad():
             row.update(reward=self._shape(reward.float()), next_value=self.critic(self._shape(next_critic_obs.float())).squeeze(-1),
                        done=self._shape(done), failed=self._shape(failed))
@@ -184,22 +195,23 @@ class Learner:
             for p in self.adapter.parameters():
                 p.mul_(torch.where(active, 1 - lr * WEIGHT_DECAY, torch.ones_like(lr)).view((-1,) + (1,) * (p.ndim - 1)))
 
-    def _supervised(self, row):
+    def _supervised(self, row, scale):
         weight = row['valid'].float()
         count = weight.sum(1)
         active = count > 0
         if not active.any(): return None
         mean, base = self.adapter(row['obs'], row['extra'])
         loss = (((mean - base - row['target'])**2).sum(-1) * weight).sum(1) / count.clamp(min=1)
-        self.optimizer.zero_grad()
+        self.directed.zero_grad()
         (loss * active).sum().backward()
-        clip_per_copy(self.actor_parameters, MAX_GRAD_NORM)
-        self.optimizer.lr.fill_(self.learning_rate())
-        self.optimizer.step(active)
-        self._decay(active, self.optimizer.lr)
+        clip_per_copy(self.directed.params, MAX_GRAD_NORM)
+        self.directed.lr.fill_(self.learning_rate() * scale)
+        self.directed.step(active)
+        self._decay(active, self.directed.lr)
         if not all(torch.isfinite(p).all() for p in self.adapter.parameters()):
             raise ValueError('nonfinite adapter weights')
-        self.updates[active.cpu().numpy()] += 1
+        if self.ppo: self.directed_loss.append(float(loss.detach()[active].mean()))
+        else: self.updates[active.cpu().numpy()] += 1
         return dict(loss=loss.detach())
 
     def _ppo(self):
@@ -216,7 +228,7 @@ class Learner:
         data['advantage'] = (data['advantage'] - centre) / (spread + 1e-8)
         data['weight'] = weight
         calibrating = self.steps <= self.calibration  # 这一批数据全部来自校准阶段：只更新 critic
-        strength = beta(self.rounds) if self.update == 'c' else 0.
+        with torch.no_grad(): data['start'] = self.adapter(data['obs'], data['extra'])[0]  # KL 相对这次更新开始时的策略；c 里采集期间均值还在被 b 改变
         old_sigma = self.log_std.detach().exp()[:, None, :].clone()
         entry = dict(valid=count.int().tolist(), mean_reward=((data['reward'] * weight).sum(1) / count.clamp(min=1)).tolist(), calibrating=calibrating)
         for _ in range(EPOCHS):
@@ -236,15 +248,14 @@ class Learner:
                 mean, base = self.adapter(b['obs'], b['extra'])
                 sigma = self.log_std.exp()[:, None, :]
                 with torch.no_grad():
-                    kl = (torch.log(sigma / old_sigma) + (old_sigma**2 + (b['mean'] - mean)**2) / (2 * sigma**2) - .5).sum(-1)
+                    kl = (torch.log(sigma / old_sigma) + (old_sigma**2 + (b['start'] - mean)**2) / (2 * sigma**2) - .5).sum(-1)
                     kl = (kl * b['weight']).sum(1) / n
                     self.optimizer.lr = torch.where(active, adapt_lr(self.optimizer.lr, kl), self.optimizer.lr)
                     self.critic_optimizer.lr = self.optimizer.lr
                 ratio = (self._logp(b['action'], mean, self.log_std) - b['logp']).exp()
                 surrogate = -torch.minimum(b['advantage'] * ratio, b['advantage'] * ratio.clamp(1 - CLIP, 1 + CLIP))
                 deviation = ((mean - base)**2).sum(-1)
-                supervised = ((mean - base - b['target'])**2).sum(-1)
-                loss = ((surrogate + DEVIATION * deviation + strength * supervised) * b['weight']).sum(1) / n
+                loss = ((surrogate + DEVIATION * deviation) * b['weight']).sum(1) / n
                 self.optimizer.zero_grad()
                 (loss * active).sum().backward()
                 clip_per_copy(self.actor_parameters, MAX_GRAD_NORM)
@@ -255,7 +266,8 @@ class Learner:
         if not calibrating:
             self.updates[used] += 1; self.rounds += 1
             entry.update(kl=kl.tolist(), deviation=((deviation * b['weight']).sum(1) / n).tolist())
-            if self.update == 'c': entry.update(supervised=((supervised * b['weight']).sum(1) / n).tolist(), beta=strength)
+            if self.update == 'c':
+                entry.update(supervised=float(np.mean(self.directed_loss)) if self.directed_loss else None, beta=beta(self.rounds - 1)); self.directed_loss = []
             if not all(torch.isfinite(p).all() for p in self.actor_parameters):
                 raise ValueError('nonfinite adapter weights')
         self.log.append(entry)

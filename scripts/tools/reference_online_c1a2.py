@@ -37,7 +37,16 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # 只用于新地形。方案见 docs/lite3-online-select-20261123/PLAN.md。
 # s4n 是在新地形上做本地学习用的 C1-b-S：4 个幅度都学，现有安全过滤，起点槽位与其他变体在新地形上的相同，40000 步。
 # d3 与 d1 相同，参数库换成扩充后的 6 组。方案见 docs/lite3-online-library2-20261123/PLAN.md。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau', 'sa1', 'sa2')
+# m + 结构（f：FiLM 调制，r：动作残差网络）+ 更新方式（a：PPO，b：有方向的误差，c：两者相加）是 S1 的小模型，冻结基础策略，每个会话一份，
+# 第 0 级是 r2 的受阻修正；末尾加 z 的不带第 0 级。只做 7 cm 上阶和粗糙上坡。方案见 docs/lite3-online-adapter-20261126/PLAN.md。
+ADAPTER_VARIANTS = {f'm{k}{u}{z}': dict(kind=dict(f='film', r='residual')[k], update=u, level0=not z) for k in 'fr' for u in 'abc' for z in ('', 'z')}
+ADAPTER_TARGETS = ('stairs_up_07', 'slope_rough_up_x11')
+ADAPTER_SEED = 2026112601
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau', 'sa1', 'sa2') + tuple(ADAPTER_VARIANTS)
+ADAPTER = ADAPTER_VARIANTS.get(VARIANT)
+assert not ADAPTER or TARGET in ADAPTER_TARGETS
+# 粗糙上坡除了小模型，只有 r2 可以训练（作为小模型的参照）。
+SLOPE = ('slope_rough_up_x11',) if ADAPTER or VARIANT == 'r2' else ()
 # sa1、sa2 是 SARA 式在线残差的对照（学习率相差 5 倍），上限 0.04。方案见 docs/lite3-online-baselines-20261125/PLAN.md。
 SARA = VARIANT in ('sa1', 'sa2')
 SARA_SEED = 2026112501
@@ -49,25 +58,25 @@ FINETUNE_SEED = 2026112401
 # 两者都用上限 0.04。方案见 docs/lite3-online-hybrid-20261124/PLAN.md。
 # d4 与 d1 相同，只是仿真里安全过滤的每步变化上限用 0.04（用户 2026-11-24 同意）。方案见 docs/lite3-online-rate04-20261124/PLAN.md。
 # r1 是 C1-b-R：从 0 起，用摆动受阻比例直接修正两个摆动幅度，不加扰动。方案见 docs/lite3-online-stall-20261123/PLAN.md。
-WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1', 'd4', 'h1', 'r2'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3', 'd4', 'h1'), VARIANT in ('r1', 'r2')
+WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1', 'd4', 'h1', 'r2') or bool(ADAPTER), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3', 'd4', 'h1'), VARIANT in ('r1', 'r2') or bool(ADAPTER)
 HYBRID = VARIANT == 'h1'
-assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS
-assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2') or FINETUNE or SARA
+assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS + SLOPE
+assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2') or FINETUNE or SARA or ADAPTER
 assert not SARA or TARGET in NEW_TARGETS
 assert not FINETUNE or TARGET in (NEW_TARGETS[:2] if UNFILTERED else NEW_TARGETS)
-assert not (LIBRARY or SELECT or STALL or VARIANT == 's4n') or TARGET in NEW_TARGETS
+assert not (LIBRARY or SELECT or STALL or VARIANT == 's4n') or TARGET in NEW_TARGETS + SLOPE
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
 ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06') or FINETUNE or SARA
-assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS
-TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS if ROUND2 else TARGETS
-SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2')
+assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS + SLOPE
+TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS + SLOPE if ROUND2 else TARGETS
+SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2') or bool(ADAPTER)
 REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS or FINETUNE or SARA else 1
 RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
             s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122',
             d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123', d4='online_c1b_select_rate04_20261124', h1='online_c1b_hybrid_20261124', r2='online_c1b_stall_rate04_20261124',
             ft='online_finetune_full_20261124', lora='online_finetune_lora_20261124', ftu='online_finetune_full_unfiltered_20261124', lorau='online_finetune_lora_unfiltered_20261124',
-            sa1='online_sara_1_20261125', sa2='online_sara_2_20261125')
+            sa1='online_sara_1_20261125', sa2='online_sara_2_20261125', **{v: f'online_adapter_{v}_20261126' for v in ADAPTER_VARIANTS})
 OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
 # 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
 # Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
@@ -113,12 +122,17 @@ if REFLEX:
     SOURCE_MARK = 0
     OUTPUT = ROOT / 'logs/reference_six/online_reflex_20261125' / TARGET / REFLEX
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
-MARKS = ((0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED or SARA else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
+MARKS = ((0, 1250, 2500, 5000, 10000, 20000) if ADAPTER else (0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED or SARA else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
          else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' or (VARIANT == 's2n' and TARGET in NEW_TARGETS) else (0, 20000, 40000, 60000))
-PRIMARY = 2500 if LIBRARY or STALL else 10000 if SELECT or FINETUNE or SARA else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
+PRIMARY = 10000 if ADAPTER else 2500 if LIBRARY or STALL else 10000 if SELECT or FINETUNE or SARA else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
 # 微调的对照在 10000 步和 45000 步各做一次保持评估，其他变体只在 PRIMARY 做。
 RETENTION_MARKS = (PRIMARY, 45000) if FINETUNE else (PRIMARY,)
-TRAIN_STEPS = 45000 if FINETUNE else 10000 if WINDOWED or SARA else 40000 if VARIANT == 's4n' else 60000
+TRAIN_STEPS = 20000 if ADAPTER else 45000 if FINETUNE else 10000 if WINDOWED or SARA else 40000 if VARIANT == 's4n' else 60000
+# 短训练检查：C1A2_TRIAL=<步数> 时训练只跑这么多步，输出放到 <目标>_trial，不影响正式运行的目录。只用于启动前确认训练路径能跑通。
+TRIAL = int(os.environ.get('C1A2_TRIAL', 0))
+if TRIAL:
+    assert ADAPTER and not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX)
+    TRAIN_STEPS, OUTPUT = TRIAL, OUTPUT.parent / (TARGET + '_trial')
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
 # 只作描述的早期快照，评估排在登记的任务之后。s2ea 训练时直接保存；s2n 当时没有存，由训练记录重建
@@ -152,11 +166,11 @@ def protocol():
     if SWING_BASIS:
         extra = dict(algorithm='C1-b-S', replicas=4, optimizer='plain gradient step', sigma=.7, learning_rate=.6, max_rounds=100,
             parameters=['front_static', 'rear_static', 'front_swing', 'rear_swing'], basis='sag static + sag in swing, times roughness',
-            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT in ('bsf', 's2f') else .04 if VARIANT in ('d4', 'h1', 'r2') else .02,
+            exploration='per-episode parameter noise', residual_rate_limit=.24 if VARIANT in ('bsf', 's2f') else .04 if VARIANT in ('d4', 'h1', 'r2') or ADAPTER else .02,
             reward='clip(final_forward_displacement/route_length,0,1) + success - 3*posture_failure')
         if ROUND2:
             extra.update(algorithm='C1-b-S round 2 ' + VARIANT, namespaces=dict(smoke=60, train=61, target=62, retention=63),
-                         active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea', 'w2', 'r1', 'r2') else None)
+                         active_parameters=['front_swing', 'rear_swing'] if VARIANT in ('s2n', 's2ea', 'w2', 'r1', 'r2') or ADAPTER else None)
         if VARIANT == 's4n':
             extra.update(train_control_steps=TRAIN_STEPS)
         if LIBRARY:
@@ -185,6 +199,14 @@ def protocol():
             extra.update(rate_check=RATE, residual_rate_limit=RATE_LIMIT)
         if REFLEX:
             extra.update(reflex=REFLEX, residual_rate_limit=.04)
+        if ADAPTER:
+            from rl_training.ea_lpl import adapter
+            extra.update(algorithm='small adapter ' + VARIANT, exploration='gaussian action noise, trainable' if ADAPTER['update'] in 'ac' else 'none',
+                reward='forward speed tracking + 0.5 * unimpeded swing ratio - 2 * filter correction^2, posture termination -1' if ADAPTER['update'] in 'ac' else 'none; directed error',
+                initial='zero output layers; identical to the base policy',
+                adapter=dict(kind=ADAPTER['kind'], update=ADAPTER['update'], level0='stall correction (C1-b-R)' if ADAPTER['level0'] else None, seed=ADAPTER_SEED,
+                    inputs=['policy observation 45', 'terrain features 4', 'stance 4', 'previous filter correction 12'],
+                    **{k.lower(): getattr(adapter, k) for k in dir(adapter) if k.isupper()}))
     if SARA:
         from rl_training.ea_lpl import sara
         extra = dict(algorithm='SARA-style residual ' + VARIANT, replicas=4, namespaces=dict(smoke=60, train=61, target=62, retention=63),

@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX, ADAPTER
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -74,6 +74,7 @@ def collect(args):
     from reference_online_interface import clip_action
     n, device = len(specs), env.device
     noise = c1b_w.exploration_table(seed=NOISE_SEED) if WINDOWED else c1b_s.exploration_table(seed=NOISE_SEED) if bs else c1b_h.exploration_table(seed=NOISE_SEED) if bh else exploration_table(seed=NOISE_SEED)
+    if ADAPTER: noise = np.zeros((60,500,REPLICAS,4))  # 小模型的两组都不加参数扰动；训练 20000 步的窗口数超过原表的 160
     noise_sha = hashlib.sha256(noise.tobytes()).hexdigest()
     np.save(args.output/'noise_table.npy',noise)
     parallel = REPLICAS>1 and args.kind in ('train','smoke')  # 一个会话的并行环境共用一个均值
@@ -131,7 +132,8 @@ def collect(args):
                 from reference_online_c1a2 import LIBRARY_SOURCES_6
                 entries = library(LIBRARY_SOURCES_6 if VARIANT=='d3' else None)
             if STALL: from rl_training.ea_lpl import c1b_r
-            make = lambda s,arm: (c1b_rd.StallSelectSession(args.kind=='train',noise[s],seed=[SELECT_SEED,s]) if HYBRID and arm=='Updated' else
+            make = lambda s,arm: (c1b_r.StallSession(args.kind=='train' and arm=='Updated' and ADAPTER['level0'],noise[s]) if ADAPTER else
+                c1b_rd.StallSelectSession(args.kind=='train',noise[s],seed=[SELECT_SEED,s]) if HYBRID and arm=='Updated' else
                 c1b_r.StallSession(args.kind=='train',noise[s]) if STALL and arm=='Updated' else
                 c1b_d.SelectSession(args.kind=='train',noise[s],entries,seed=[SELECT_SEED,s],expand=VARIANT=='d2') if SELECT and arm=='Updated' else
                 c1b_l.LibrarySession(args.kind=='train',noise[s],entries) if LIBRARY and arm=='Updated' else
@@ -169,6 +171,24 @@ def collect(args):
         if checkpoint['control_steps'] != args.mark: raise ValueError('wrong evaluation snapshot')
         for head,spec in zip(heads,specs):
             head.load_evaluation_mean(checkpoint['heads'][2*spec['session']+int(spec['arm']=='Updated')])
+    small = None
+    if ADAPTER:  # S1 的小模型：每个会话（评估时每个环境）一份，Updated 组在奇数行；第 0 级的受阻修正仍由上面的 heads 给出
+        from rl_training.ea_lpl import adapter as adapter_module
+        from rl_training.ea_lpl.sara import tracking_error as sara_error
+        from reference_online_c1a2 import ADAPTER_SEED
+        if any(specs[i]['arm']!=('Frozen','Updated')[i%2] for i in range(n)): raise ValueError('arms not alternating')
+        if parallel and any(specs[2*k+1]['session']!=k//REPLICAS or specs[2*k+1]['repeat']!=k%REPLICAS for k in range(n//2)): raise ValueError('session rows not contiguous')
+        states = torch.load(MODEL_PATHS['B'],map_location='cpu',weights_only=False)
+        small = adapter_module.Learner(states['actor_state_dict'],states['critic_state_dict'],kind=ADAPTER['kind'],update=ADAPTER['update'],
+            copies=60 if parallel else n//2,replicas=REPLICAS if parallel else 1,learn=args.kind=='train',seed=ADAPTER_SEED,device=device,extra=20)
+        probe = env.obs['policy'][1::2]
+        with torch.no_grad(): mismatch = float((small.act(probe,env.obs['critic'][1::2],torch.zeros(n//2,20,device=device),torch.zeros(n//2,dtype=torch.bool,device=device))-env.actor(probe)).abs().max())
+        small.pending = None
+        if mismatch>1.e-4: raise ValueError(f'adapter copies do not start at the base policy: {mismatch}')
+        if args.kind in ('target','retention'):
+            for i in range(1,n,2): small.load(i//2,checkpoint['adapters'][specs[i]['session']])
+        small_initial = [small.digest(c) for c in range(small.copies)]
+    correction = torch.zeros(n,12,device=device)  # 上一步请求的残差减执行的残差
     initial_digests = [h.digest() for h in heads]
     base_digest = digest(env.actor)
     swing = dict(SWING[script]) if script in SWING else None
@@ -216,7 +236,7 @@ def collect(args):
 
     def checkpoint(name,step):
         saved = [groups[s,arm].snapshot() for s in range(60) for arm in ('Frozen','Updated')] if parallel else [h.snapshot() for h in heads]
-        torch.save(dict(heads=saved,control_steps=step,
+        torch.save(dict(heads=saved,control_steps=step,**(dict(adapters=[small.snapshot(c) for c in range(small.copies)]) if small and parallel else {}),
             base_sha256=HASHES['B'],noise_sha256=noise_sha,kind=args.kind),args.output/name)
 
     def persist(name):
@@ -258,6 +278,10 @@ def collect(args):
                 if learner:
                     active = torch.as_tensor(policy[1::2],device=device)
                     request[1::2] = learner.act(env.obs['policy'][1::2],clip_action(raw[1::2]),active)
+                if small:  # 适配后的动作减基础动作，与第 0 级的请求相加
+                    extra = torch.cat((torch.as_tensor(features[1::2],dtype=torch.float32,device=device),stance[1::2].float(),correction[1::2]),1)
+                    adapted = small.act(env.obs['policy'][1::2],env.obs['critic'][1::2],extra,torch.as_tensor(policy[1::2],device=device))
+                    request[1::2] += clip_action(adapted)-clip_action(raw[1::2])
                 if reflex:
                     request[1::2] += reflex.step(stance,torch.as_tensor(before['feet'][:,:,0],device=device),torch.as_tensor(features[:,0],device=device))[1::2]
                 if swing:
@@ -270,6 +294,7 @@ def collect(args):
                     raise ValueError('nonzero preparation or waiting action')
                 components = safety.execution_components()
                 executed = (components['learned_effect'].double()@projector).cpu().numpy()
+                correction = request-components['learned_effect']
                 if bsea:
                     done, squared = c1b_s_ea.execution_sums(request,components['learned_effect'])
                     executed_requested[policy] += done[policy]; requested_squared[policy] += squared[policy]
@@ -299,6 +324,10 @@ def collect(args):
                     gravity = data.projected_gravity_b[1::2]
                     learner.observe(error,gravity[:,0].abs()+gravity[:,1].abs(),(data.root_lin_vel_b[1::2,0]/.4).clamp(0,1),active)
                     values['sara_gamma'] = learner.gamma.cpu().numpy().copy()
+                if small:  # 上一步执行的关节目标与走完这一步后的关节状态之差
+                    data, ids = env.robot.data, env.adapter.ids
+                    small_error = sara_error(data.default_joint_pos[:,ids]+env.adapter.scale*trace.executed_action,data.joint_pos[:,ids],data.joint_vel[:,ids],env.adapter.scale)[1::2]
+                    values['filter_correction'] = correction.cpu().numpy().copy()
                 previous = trace.executed_action.clone()
             after = env.frame()
             terminated, truncated = term.cpu().numpy().copy(), trunc.cpu().numpy().copy()
@@ -355,8 +384,16 @@ def collect(args):
                 ended = np.zeros(n,bool); ended[finished] = True
                 tuner.record(reward[1::2],env.obs['critic'][1::2],torch.as_tensor(ended[1::2],device=device),torch.as_tensor((ended&terminated)[1::2],device=device))
                 if tuner.ready(): tuner.update()
+            if small and args.kind=='train':
+                ended = np.zeros(n,bool); ended[finished] = True
+                swinging = ~stance[1::2]
+                stalled = swinging & (torch.as_tensor((after['feet'][1::2,:,0]-before['feet'][1::2,:,0])/.02,device=device)<c1b_w.STALL_SPEED)
+                failed = torch.as_tensor((ended&terminated)[1::2],device=device)
+                step_reward = adapter_module.reward(torch.as_tensor(after['body_velocity'][1::2,0],dtype=torch.float32,device=device),swinging,stalled,correction[1::2],failed)
+                small.observe(step_reward,env.obs['critic'][1::2],torch.as_tensor(ended[1::2],device=device),failed,small_error,stalled)
             if finished:
                 safety.reset_temporal_state(torch.tensor(finished,device=device)); reset_filter[finished] = True
+                correction[finished] = 0
             ready = np.flatnonzero(prep & (preparation==50))
             if len(ready):
                 index = torch.tensor(ready,device=device)
@@ -366,6 +403,7 @@ def collect(args):
                 if lead: lead.reset(index)
                 if reflex: reflex.reset(index)
                 if learner: learner.reset(torch.as_tensor(ready[ready%2==1]//2,device=device))
+                if small: small.reset(torch.as_tensor(ready[ready%2==1]//2,device=device)); correction[index] = 0
                 env.policy_active[:] = phase==1; env.policy_age[:] = age; env.refresh()
                 prepared = env.prepared_state(ready.tolist())
                 prepared_states.append(dict(control_step=tick+1,ids=ready,episode=episodes[ready],**prepared))
@@ -386,7 +424,7 @@ def collect(args):
                     executed_requested[reset_ids] = requested_squared[reset_ids] = 0
                     for i in reset_ids: positions[i] = []
                     index = torch.tensor(reset_ids,device=device)
-                    safety.reset_temporal_state(index); previous[index] = 0; reset_filter[reset_ids] = True
+                    safety.reset_temporal_state(index); previous[index] = 0; reset_filter[reset_ids] = True; correction[index] = 0
             values.update(terminal_return=terminal_return,filter_reset_after=reset_filter)
             writer.append(values)
             if args.kind=='train' and tick+1 in MARKS: checkpoint(f'at_{tick+1}.pt',tick+1)
@@ -395,7 +433,9 @@ def collect(args):
                       +(f', mean_std={np.mean([h.std.numpy() for h in heads[1::2]],0).round(3).tolist()}' if ea else '')
                       +(f', mean_std={np.mean([g.std.numpy()[2:] for (_,arm),g in groups.items() if arm=="Updated"],0).round(3).tolist()}' if bsea and parallel else '')
                       +(f', success Frozen/Updated={sum(r["outcome"]=="success" and r["arm"]=="Frozen" for r in records)}/{sum(r["outcome"]=="success" and r["arm"]=="Updated" for r in records)}'
-                        +(f', lr={np.mean(tuner.log[-1]["lr"]):.2e}, kl={np.mean(tuner.log[-1]["kl"]):.4f}, value_loss={np.mean(tuner.log[-1]["value_loss"]):.3f}, std={np.mean(tuner.log[-1]["std"]):.3f}, reward={np.mean(tuner.log[-1]["mean_reward"]):.4f}' if tuner.log else '') if tuner else ''),flush=True)
+                        +(f', lr={np.mean(tuner.log[-1]["lr"]):.2e}, kl={np.mean(tuner.log[-1]["kl"]):.4f}, value_loss={np.mean(tuner.log[-1]["value_loss"]):.3f}, std={np.mean(tuner.log[-1]["std"]):.3f}, reward={np.mean(tuner.log[-1]["mean_reward"]):.4f}' if tuner.log else '') if tuner else '')
+                      +(f', adapter updates={int(small.updates.sum())}, critic updates={int(small.critic_updates.sum())}, success Frozen/Updated={sum(r["outcome"]=="success" and r["arm"]=="Frozen" for r in records)}/{sum(r["outcome"]=="success" and r["arm"]=="Updated" for r in records)}'
+                        +(f', lr={np.mean(small.log[-1]["lr"]):.2e}, std={np.mean(small.log[-1]["std"]):.3f}, reward={np.mean(small.log[-1]["mean_reward"]):.4f}, value_loss={np.mean(small.log[-1]["value_loss"]):.4f}' if small.log else '') if small else ''),flush=True)
             if args.kind in ('target','retention') and (phase==2).all(): break
     except Exception:
         persist('partial_report.json'); checkpoint('failure.pt',completed_steps)
@@ -411,7 +451,11 @@ def collect(args):
     if args.kind=='smoke' and (not (episodes>=2).all() or any(h.updates for h in heads)): raise ValueError('smoke incomplete')
     if windowed and any(g.windows==0 for g in groups.values()): raise ValueError('no window closed')
     if args.kind=='smoke' and args.smoke_index==2 and counts['waiting'][::2].min()<50: raise ValueError('no asynchronous waiting')
-    if args.kind=='train' and any(h.updates==0 for i,h in enumerate(heads) if specs[i]['arm']=='Updated'): raise ValueError('no training updates')
+    if args.kind=='train' and not (ADAPTER and not ADAPTER['level0']) and any(h.updates==0 for i,h in enumerate(heads) if specs[i]['arm']=='Updated'): raise ValueError('no training updates')
+    if small:
+        if args.kind=='train' and (small.updates==0).any(): raise ValueError('no adapter updates')
+        if args.kind!='train' and any(small.digest(c)!=small_initial[c] for c in range(small.copies)): raise ValueError('adapter changed outside training')
+        save(args.output/'adapter.json',dict(settings=protocol()['adapter'],updates=small.updates,critic_updates=small.critic_updates,log=small.log))
     checkpoint('final.pt',completed_steps); persist('episodes.json')
     if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
     if reflex: save(args.output/'reflex.json',dict(rule=REFLEX,triggers=reflex.triggers.cpu().numpy()))

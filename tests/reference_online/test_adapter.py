@@ -170,11 +170,12 @@ def test_combined_update_weights_the_supervised_term_by_a_halving_schedule():
     assert adapter.beta(0) == 1. and adapter.beta(10) == .5 and adapter.beta(20) == .25
     L = learner('residual', 'c', horizon=10, minimum=4, calibration=0)
     stalled = torch.zeros(4, 4, dtype=torch.bool); stalled[:, 0] = True
-    rollout(L, 40, error=torch.zeros(4, 12), stalled=stalled)
-    assert L.updates.tolist() == [4, 4] and 'supervised' in L.log[-1]
+    rollout(L, 100, error=torch.zeros(4, 12), stalled=stalled)
+    assert L.updates.tolist() == [10, 10] and 'supervised' in L.log[-1]
     A = learner('residual', 'a', horizon=10, minimum=4, calibration=0)
-    rollout(A, 40, error=torch.zeros(4, 12), stalled=stalled)
-    obs, extra = torch.randn(2, 2, 45), torch.randn(2, 2, EXTRA)
+    rollout(A, 100, error=torch.zeros(4, 12), stalled=stalled)
+    g = torch.Generator().manual_seed(11)
+    obs, extra = torch.randn(2, 8, 45, generator=g), torch.randn(2, 8, EXTRA, generator=g)
     lift = lambda M: float((lambda a, b: (a - b)[..., 1].mean())(*M.adapter(obs, extra)))
     assert lift(L) < lift(A) - .005  # 加了有方向的误差之后，受阻腿的髋关节残差更靠近抬腿方向
 
@@ -199,3 +200,26 @@ def test_snapshot_round_trip_and_frozen_evaluation(update):
 def test_unknown_structure_or_update_is_rejected():
     with pytest.raises(ValueError): make('lora')
     with pytest.raises(ValueError): learner('film', 'd')
+
+
+def test_learning_rate_rule_can_go_one_decade_below_the_base_training_floor():
+    lr = torch.tensor([2e-6, 1e-3, 1e-3])
+    assert torch.allclose(adapter.adapt_lr(lr, torch.tensor([1., .001, .01])), torch.tensor([2e-6 / 1.5, 1.5e-3, 1e-3]))
+    assert adapter.adapt_lr(torch.tensor([1e-6]), torch.tensor([1.])) == pytest.approx(1e-6)
+
+
+def test_combined_update_applies_the_directed_step_every_control_step_after_calibration():
+    L = learner('film', 'c', horizon=10, minimum=4, calibration=10)
+    before = [p.detach().clone() for p in L.adapter.parameters()]
+    stalled = torch.zeros(4, 4, dtype=torch.bool); stalled[:, 0] = True
+    rollout(L, 10, error=torch.zeros(4, 12), stalled=stalled)
+    assert all(torch.equal(a, b) for a, b in zip(before, L.adapter.parameters()))  # 校准阶段不动适配器
+    rollout(L, 3, error=torch.zeros(4, 12), stalled=stalled)
+    assert any(not torch.equal(a, b) for a, b in zip(before, L.adapter.parameters())) and L.updates.tolist() == [0, 0]  # 还没到 PPO 更新，已经在按误差修正
+    assert L.directed.lr[0] == pytest.approx(1e-3 / (1 + 13 / 5000))
+
+
+def test_directed_target_stays_inside_the_residual_limits():
+    error = torch.full((1, 12), 5.); error[0, 3:6] = -5.
+    target = adapter.directed_target(error, torch.ones(1, 4, dtype=torch.bool))
+    assert target[0, :6].tolist() == pytest.approx([.24, .20, .20, -.24, -.20, -.20])
