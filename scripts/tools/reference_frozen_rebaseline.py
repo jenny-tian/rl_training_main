@@ -25,13 +25,47 @@ MAP_COLUMNS = dict(flat=0, rough=4, slope_up=8, slope_down=10, friction_lateral=
 BASE_FIXED = ('stairs_up_05', 'stairs_down_05')
 TARGETS = ('stairs_up_06', 'stairs_up_07', 'stairs_up_08', 'boxes_08', 'stairs_down_08', 'slope_rough_up_x13')
 # 训练上限：坡度参数 0.4，粗糙幅度 0.06 m。候选取约 1.3 倍。
-BEYOND = {'x13': (.52, (.02, .08)), 'x11': (.44, (.01, .07)), 'x12': (.48, (.01, .07))}
+BEYOND = {'x13': (.52, (.02, .08)), 'x11': (.44, (.01, .07)), 'x12': (.48, (.01, .07)),
+          'x085': (.34, (.01, .06)), 'x10': (.40, (.01, .06))}  # 后两个在训练范围内：相当于训练地图第 8 行、训练上限
 DENSE = ('stairs_up_065', 'boxes_05', 'boxes_06', 'slope_rough_up_x11', 'slope_rough_up_x12', 'stairs_down_10')
+
+
+# S0 目标筛选（docs/lite3-online-targets-20261125/PLAN.md）：其余地形族超出训练范围的候选，最后两个是用来对比失败形式的已有目标。
+SCREEN_OUTPUT = ROOT / 'logs/reference_six/target_screening_20261125'
+SCREEN = ('rough_09', 'rough_12', 'rough_15', 'slope_up_50', 'slope_up_60', 'slope_up_70',
+          'slope_down_50', 'slope_down_60', 'slope_down_70', 'slope_rough_up_x11', 'slope_rough_up_x12',
+          'slope_rough_down_x085', 'slope_rough_down_x10', 'slope_rough_down_x11',
+          'stairs_down_09', 'stairs_down_10', 'stairs_up_07', 'boxes_07')
+# 摩擦候选按地面系数范围分组（名字是下限、上限各两位，单位 0.01）；同一张地图里的摩擦分区只能用同一组系数，所以每组单独一个进程。
+SCREEN_FRICTION = ('1020', '0512', '0206')
+FRICTION_LAYOUTS = dict(friction_lateral='left_right_bands', friction_longitudinal='front_back_bands')
 
 
 def height(c):
     d = c.rsplit('_', 1)[1]
     return int(d) / (100. if len(d) == 2 else 1000.)
+
+
+def terrain_spec(condition):
+    """由候选名得到地形参数。source 是训练地图里的子地形名（或 boxes、friction），其余是要改成固定值的字段。"""
+    import re
+    family, _, tail = condition.rpartition('_')
+    if family in ('stairs_up', 'stairs_down') and re.fullmatch(r'\d{2,3}', tail):
+        return dict(source=family, step_height_range=(height(condition),) * 2)
+    if family == 'boxes' and re.fullmatch(r'\d{2,3}', tail):
+        return dict(source='boxes', grid_height_range=(height(condition),) * 2)
+    if family in ('slope_rough_up', 'slope_rough_down') and tail in BEYOND:
+        slope, noise = BEYOND[tail]
+        return dict(source=family, slope_range=(slope, slope), noise_range=noise)
+    if family == 'rough' and re.fullmatch(r'\d{2}', tail):
+        return dict(source='rough', noise_range=(.01, int(tail) / 100.))
+    if family in ('slope_up', 'slope_down') and re.fullmatch(r'\d{2}', tail):
+        return dict(source=family, slope_range=(int(tail) / 100.,) * 2)
+    if family in FRICTION_LAYOUTS and re.fullmatch(r'\d{4}', tail):
+        low, high = int(tail[:2]) / 100., int(tail[2:]) / 100.
+        if 0 < low <= high:
+            return dict(source='friction', friction_layout=FRICTION_LAYOUTS[family], friction_range=(low, high))
+    raise ValueError(f'unknown terrain candidate: {condition}')
 HEAD_TARGETS = ('stairs_up_06', 'stairs_up_065', 'boxes_06', 'slope_rough_up_x11')
 WIDE_TARGETS = ('stairs_up_065', 'slope_rough_up_x11')
 RUNS = {
@@ -49,6 +83,18 @@ RUNS = {
     'wide_confirm': dict(layout='fixed', profile='nominal', heading=True, conditions=WIDE_TARGETS[:1], namespace=47, residual='confirm', starts=64, scale=2., winners='winners_wide.json'),
     'headroom_confirm': dict(layout='fixed', profile='nominal', heading=True, conditions=HEAD_TARGETS, namespace=44, residual='confirm', starts=64),
 }
+_screen = dict(layout='fixed', profile='nominal', heading=True, namespace=48, diagnostics=True, tolerate_start_failure=True)
+RUNS.update(screen=dict(_screen, conditions=SCREEN), screen_smoke=dict(_screen, conditions=SCREEN, namespace=49, starts=4))
+for _band in SCREEN_FRICTION:
+    _conditions = tuple(f'{layout}_{_band}' for layout in FRICTION_LAYOUTS)
+    RUNS[f'screen_friction_{_band}'] = dict(_screen, conditions=_conditions)
+    RUNS[f'screen_friction_{_band}_smoke'] = dict(_screen, conditions=_conditions, namespace=49, starts=4)
+
+
+def output_of(run):
+    return (SCREEN_OUTPUT if run.startswith('screen') else OUTPUT) / run
+
+
 GRID_VALUES = (-1.5, 0., 1.5)
 BASES = ('sag', 'roll', 'hipx')
 RESIDUAL_LIMITS = [.24, .20, .20] * 4
@@ -141,18 +187,19 @@ def collect(args):
         source = gen.sub_terrains
         subs = {}
         for c in conditions:
-            if c.startswith('stairs'):
-                sub = copy.deepcopy(source['stairs_up' if '_up_' in c else 'stairs_down'])
-                sub.step_height_range = (height(c),) * 2
-            elif c.startswith('boxes'):
+            changes = dict(terrain_spec(c)); kind = changes.pop('source')
+            if kind == 'boxes':
                 sub = HeldoutBoxesTrackCfg(flat_length=3., lane_width=2., grid_width=.4,
-                                           grid_height_range=[height(c)] * 2, seed=101)
+                                           grid_height_range=list(changes['grid_height_range']), seed=101)
             else:
-                sub = copy.deepcopy(source['slope_rough_up'])
-                assert tuple(sub.slope_range) == (0., .4) and tuple(sub.noise_range) == (.01, .06)
-                slope, noise = BEYOND[c.rsplit('_', 1)[1]]
-                sub.slope_range = (slope,) * 2
-                sub.noise_range = noise
+                sub = copy.deepcopy(source['friction_lateral' if kind == 'friction' else kind])
+                if kind.startswith('slope_rough'):
+                    assert tuple(sub.slope_range) == (0., .4) and tuple(sub.noise_range) == (.01, .06)
+                if kind == 'friction':
+                    assert tuple(sub.friction_range) == (.5, 1.)
+                for key, value in changes.items():
+                    assert hasattr(sub, key), (c, key)
+                    setattr(sub, key, value)
             sub.proportion = 1. / len(conditions)
             subs[c] = sub
         gen.sub_terrains = subs
@@ -375,7 +422,7 @@ def main():
     p.add_argument('--gpu', type=int, default=0)
     p.add_argument('--child', action='store_true')
     args = p.parse_args()
-    args.output = OUTPUT / args.run
+    args.output = output_of(args.run)
     if not args.child:
         from source_block_runtime import run
         return run([sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--child'],
