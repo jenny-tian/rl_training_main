@@ -37,7 +37,10 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # 只用于新地形。方案见 docs/lite3-online-select-20261123/PLAN.md。
 # s4n 是在新地形上做本地学习用的 C1-b-S：4 个幅度都学，现有安全过滤，起点槽位与其他变体在新地形上的相同，40000 步。
 # d3 与 d1 相同，参数库换成扩充后的 6 组。方案见 docs/lite3-online-library2-20261123/PLAN.md。
-assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau')
+assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau', 'sa1', 'sa2')
+# sa1、sa2 是 SARA 式在线残差的对照（学习率相差 5 倍），上限 0.04。方案见 docs/lite3-online-baselines-20261125/PLAN.md。
+SARA = VARIANT in ('sa1', 'sa2')
+SARA_SEED = 2026112501
 # ft、lora 是直接微调基础策略的对照：全参数微调和秩 1 LoRA，每个会话一份网络，PPO，上限 0.04；ftu、lorau 另外放开残差幅度上限和每步变化上限，
 # 只做 7 cm 上阶和 7 cm 箱体。方案见 docs/lite3-online-finetune-20261124/PLAN.md。
 FINETUNE, UNFILTERED = VARIANT in ('ft', 'lora', 'ftu', 'lorau'), VARIANT in ('ftu', 'lorau')
@@ -49,20 +52,22 @@ FINETUNE_SEED = 2026112401
 WINDOWED, LIBRARY, SELECT, STALL = VARIANT in ('w2', 'c3', 'd1', 'd2', 'd3', 'r1', 'd4', 'h1', 'r2'), VARIANT == 'c3', VARIANT in ('d1', 'd2', 'd3', 'd4', 'h1'), VARIANT in ('r1', 'r2')
 HYBRID = VARIANT == 'h1'
 assert not WINDOWED or TARGET in ('stairs_up_06', 'stairs_up_065', 'boxes_06') + NEW_TARGETS
-assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2') or FINETUNE
+assert TARGET not in NEW_TARGETS or VARIANT in ('s2n', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2') or FINETUNE or SARA
+assert not SARA or TARGET in NEW_TARGETS
 assert not FINETUNE or TARGET in (NEW_TARGETS[:2] if UNFILTERED else NEW_TARGETS)
 assert not (LIBRARY or SELECT or STALL or VARIANT == 's4n') or TARGET in NEW_TARGETS
 assert VARIANT != 'bsf' or TARGET == 'stairs_up_06'
-ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06') or FINETUNE
+ROUND2 = VARIANT in ('s2f', 's2n', 's2ea', 's4n') or (WINDOWED and TARGET != 'boxes_06') or FINETUNE or SARA
 assert not ROUND2 or TARGET in ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS
 TRAINABLE = ('stairs_up_06', 'stairs_up_065') + NEW_TARGETS if ROUND2 else TARGETS
 SWING_BASIS = VARIANT in ('bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2')
-REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS or FINETUNE else 1
+REPLICAS = 4 if VARIANT in ('m4', 'bh') or SWING_BASIS or FINETUNE or SARA else 1
 RUNS = dict(fixed='online_c1a_heading_20261117', ea='online_c1a_ea_20261117', m4='online_c1a_m4_20261118',
             bh='online_c1b_height_20261118', bs='online_c1b_swing_20261118', bsf='online_c1b_swing_fast_20261118',
             s2f='online_c1b_s2f_20261119', s2n='online_c1b_s2n_20261119', s2ea='online_c1b_ea_20261120', w2='online_c1b_window_20261121', c3='online_c1b_library_20261122',
             d1='online_c1b_select_20261123', d2='online_c1b_select_expand_20261123', s4n='online_c1b_s4n_20261123', d3='online_c1b_select6_20261123', r1='online_c1b_stall_20261123', d4='online_c1b_select_rate04_20261124', h1='online_c1b_hybrid_20261124', r2='online_c1b_stall_rate04_20261124',
-            ft='online_finetune_full_20261124', lora='online_finetune_lora_20261124', ftu='online_finetune_full_unfiltered_20261124', lorau='online_finetune_lora_unfiltered_20261124')
+            ft='online_finetune_full_20261124', lora='online_finetune_lora_20261124', ftu='online_finetune_full_unfiltered_20261124', lorau='online_finetune_lora_unfiltered_20261124',
+            sa1='online_sara_1_20261125', sa2='online_sara_2_20261125')
 OUTPUT = ROOT / 'logs/reference_six' / RUNS[VARIANT] / TARGET
 # 参数迁移（docs/lite3-online-transfer-20261120/PLAN.md）：C1A2_SOURCE=<变体>:<地形>:<快照>[:pooled] 时只做目标评估，
 # Updated 组载入在另一个地形上学到的参数，不再学习；加 pooled 表示所有会话都用 60 个会话的平均参数。
@@ -100,13 +105,20 @@ if RATE:
     assert _rate in ('0.04', '0.06', '0.10', '0.24') and _entry in '012'
     RATE_LIMIT, FIXED_ENTRY, SOURCE_MARK = float(_rate), int(_entry), 0
     OUTPUT = ROOT / 'logs/reference_six/online_rate_20261123' / TARGET / ('rate_' + RATE.replace(':', '_'))
+# 单次触发的抬腿反射（docs/lite3-online-baselines-20261125/PLAN.md）：C1A2_REFLEX=<规则> 时只做评估，
+# Updated 组参数全 0，另外加上反射的残差请求；上限 0.04。保持评估只在 7 cm 上阶的目录下做一次（保持地形与目标无关）。
+REFLEX = os.environ.get('C1A2_REFLEX')
+if REFLEX:
+    assert not SOURCE and not CANDIDATE and not LEAD and not RATE and VARIANT == 's2n' and TARGET in NEW_TARGETS and REFLEX in ('same', 'next')
+    SOURCE_MARK = 0
+    OUTPUT = ROOT / 'logs/reference_six/online_reflex_20261125' / TARGET / REFLEX
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
-MARKS = ((0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
+MARKS = ((0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED or SARA else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
          else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' or (VARIANT == 's2n' and TARGET in NEW_TARGETS) else (0, 20000, 40000, 60000))
-PRIMARY = 2500 if LIBRARY or STALL else 10000 if SELECT or FINETUNE else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
+PRIMARY = 2500 if LIBRARY or STALL else 10000 if SELECT or FINETUNE or SARA else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
 # 微调的对照在 10000 步和 45000 步各做一次保持评估，其他变体只在 PRIMARY 做。
 RETENTION_MARKS = (PRIMARY, 45000) if FINETUNE else (PRIMARY,)
-TRAIN_STEPS = 45000 if FINETUNE else 10000 if WINDOWED else 40000 if VARIANT == 's4n' else 60000
+TRAIN_STEPS = 45000 if FINETUNE else 10000 if WINDOWED or SARA else 40000 if VARIANT == 's4n' else 60000
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
 # 只作描述的早期快照，评估排在登记的任务之后。s2ea 训练时直接保存；s2n 当时没有存，由训练记录重建
@@ -171,6 +183,14 @@ def protocol():
             extra.update(lead=LEAD)
         if RATE:
             extra.update(rate_check=RATE, residual_rate_limit=RATE_LIMIT)
+        if REFLEX:
+            extra.update(reflex=REFLEX, residual_rate_limit=.04)
+    if SARA:
+        from rl_training.ea_lpl import sara
+        extra = dict(algorithm='SARA-style residual ' + VARIANT, replicas=4, namespaces=dict(smoke=60, train=61, target=62, retention=63),
+            train_control_steps=TRAIN_STEPS, primary_mark=PRIMARY, marks=list(MARKS), residual_rate_limit=.04, initial='zero weights',
+            exploration='none', reward='none; joint tracking error', sara=dict(sara.SETTINGS[VARIANT], seed=SARA_SEED,
+                **{k.lower(): getattr(sara, k) for k in dir(sara) if k.isupper() and k != 'SETTINGS'}))
     if FINETUNE:
         # 45000 步、每个会话 4 个环境，相当于一台机器人 60 分钟。
         extra = dict(algorithm='PPO fine-tuning ' + VARIANT, replicas=4, namespaces=dict(smoke=60, train=61, target=62, retention=63),
@@ -241,9 +261,9 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    if SOURCE or CANDIDATE or LEAD or RATE:
+    if SOURCE or CANDIDATE or LEAD or RATE or REFLEX:
         result = [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
-        if RATE and RATE_LIMIT == .04 and TARGET in NEW_TARGETS:  # 上限 0.04 的保持评估（docs/lite3-online-rate04-20261124/PLAN.md）
+        if (RATE and RATE_LIMIT == .04 and TARGET in NEW_TARGETS) or (REFLEX and TARGET == 'stairs_up_07'):  # 上限 0.04 的保持评估（docs/lite3-online-rate04-20261124/PLAN.md）
             result += [dict(name=f'retention_0_{p:02d}', kind='retention', mark=0, part=p, steps=1050, smoke_index=1) for p in range(20)]
         return result
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),

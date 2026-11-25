@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -97,6 +97,18 @@ def collect(args):
             if any(specs[2*k+1]['session']!=k//REPLICAS or specs[2*k+1]['repeat']!=k%REPLICAS for k in range(n//2)): raise ValueError('session rows not contiguous')
         else:
             heads = [finetune.Slot(finetune.Group(tuner,i//2) if i%2 else finetune.Group(None,None),0) for i in range(n)]
+    elif SARA:  # SARA 式在线残差：每个会话（评估时每个环境）一份权重，Updated 组在奇数行
+        from rl_training.ea_lpl import sara as sara_module
+        from reference_online_c1a2 import SARA_SEED
+        if any(specs[i]['arm']!=('Frozen','Updated')[i%2] for i in range(n)): raise ValueError('arms not alternating')
+        learner = sara_module.Sara(VARIANT,60 if parallel else n//2,REPLICAS if parallel else 1,env.obs['policy'].shape[1],
+            protocol()['residual_limits'],learn=args.kind=='train',seed=SARA_SEED,device=device)
+        if parallel:
+            groups = {(s,arm):sara_module.Group(learner if arm=='Updated' else None,s if arm=='Updated' else None) for s in range(60) for arm in ('Frozen','Updated')}
+            heads = [sara_module.Slot(groups[s['session'],s['arm']],s['repeat']) for s in specs]
+            if any(specs[2*k+1]['session']!=k//REPLICAS or specs[2*k+1]['repeat']!=k%REPLICAS for k in range(n//2)): raise ValueError('session rows not contiguous')
+        else:
+            heads = [sara_module.Slot(sara_module.Group(learner,i//2) if i%2 else sara_module.Group(None,None),0) for i in range(n)]
     elif parallel:
         if bsea: ParallelSession, Slot = c1b_s_ea.ParallelSessionEA, c1b_s_ea.SlotEA
         elif bs:
@@ -141,6 +153,9 @@ def collect(args):
         if SOURCE:  # 参数迁移：Updated 组用在另一个地形上学到的参数
             from reference_online_transfer import load_source
             checkpoint = load_source()
+        elif REFLEX:  # 抬腿反射：两组参数都是全 0，反射的请求在采集循环里另外加
+            from reference_online_transfer import zero_heads
+            checkpoint = dict(control_steps=0,heads=zero_heads())
         elif LEAD or RATE:  # 提前起抬、每步变化上限的脚本化检查：Updated 组都用库里的一组参数
             from reference_online_c1a2 import FIXED_ENTRY
             from reference_online_transfer import library_heads
@@ -167,13 +182,18 @@ def collect(args):
         save(args.output/'swing.json',dict(swing,residual_limits=limit.tolist(),residual_rate_limit=safety.limits.residual_rate_limit))
     else:
         safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device),
-            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs or FINETUNE else {})))
+            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs or FINETUNE or SARA else {})))
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
     lead = None
     if LEAD:
         from reference_online_c1a2 import LEAD_RULE
         from rl_training.ea_lpl.swing_lead import SwingLead
         lead = SwingLead(LEAD_RULE,n,device)
+    reflex = None
+    if REFLEX:
+        from rl_training.ea_lpl.swing_reflex import SwingReflex
+        reflex = SwingReflex(REFLEX,n,device)
+    learner = learner if SARA else None
     v = basis('sag',device=device)
     projector = (v/(v**2).sum(0)).double()  # 执行残差在两个基方向上的系数
     executed_requested, requested_squared = np.zeros((n,2)), np.zeros((n,2))
@@ -215,7 +235,7 @@ def collect(args):
             before = env.frame()
             decisions = policy & (age==0)
             for i in np.flatnonzero(decisions):
-                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') and not windowed and not FINETUNE else None
+                exploration = noise[specs[i]['session'],REPLICAS*episodes[i]+specs[i]['repeat']] if args.kind in ('train','smoke') and not windowed and not FINETUNE and not SARA else None
                 code[i] = heads[i].begin(exploration)
             if windowed:
                 for i in np.flatnonzero(policy): code[i] = heads[i].requested_code()
@@ -235,6 +255,11 @@ def collect(args):
                 if tuner:  # 微调后的动作（训练时带采样噪声）与冻结策略动作的差作为残差请求
                     tuned = tuner.act(env.obs['policy'][1::2],env.obs['critic'][1::2],torch.as_tensor(policy[1::2],device=device),sample=args.kind=='train')
                     request[1::2] = clip_action(tuned)-clip_action(raw[1::2])
+                if learner:
+                    active = torch.as_tensor(policy[1::2],device=device)
+                    request[1::2] = learner.act(env.obs['policy'][1::2],clip_action(raw[1::2]),active)
+                if reflex:
+                    request[1::2] += reflex.step(stance,torch.as_tensor(before['feet'][:,:,0],device=device),torch.as_tensor(features[:,0],device=device))[1::2]
                 if swing:
                     stance = env.sensor.data.net_forces_w[:,env.contact_ids,2]>1.
                     request = request+swing_request(stance,torch.as_tensor(features[:,0],device=device),swing_groups,swing['scale'])
@@ -267,6 +292,13 @@ def collect(args):
                 if tuner: values['reward'] = reward.cpu().numpy().copy()
                 completed_steps += 1
                 if not torch.equal(env.base.action_manager.action,trace.executed_action): raise ValueError('executed action mismatch')
+                if learner:  # 上一步执行的关节目标与走完这一步后的关节状态之差
+                    data, ids = env.robot.data, env.adapter.ids
+                    target = data.default_joint_pos[:,ids]+env.adapter.scale*trace.executed_action
+                    error = sara_module.tracking_error(target,data.joint_pos[:,ids],data.joint_vel[:,ids],env.adapter.scale)[1::2]
+                    gravity = data.projected_gravity_b[1::2]
+                    learner.observe(error,gravity[:,0].abs()+gravity[:,1].abs(),(data.root_lin_vel_b[1::2,0]/.4).clamp(0,1),active)
+                    values['sara_gamma'] = learner.gamma.cpu().numpy().copy()
                 previous = trace.executed_action.clone()
             after = env.frame()
             terminated, truncated = term.cpu().numpy().copy(), trunc.cpu().numpy().copy()
@@ -332,6 +364,8 @@ def collect(args):
                 safety.reset_temporal_state(index); reset_filter[ready] = True; previous[index] = 0
                 phase[ready] = 1; age[ready] = 0; x0[ready] = after['root'][ready,0]
                 if lead: lead.reset(index)
+                if reflex: reflex.reset(index)
+                if learner: learner.reset(torch.as_tensor(ready[ready%2==1]//2,device=device))
                 env.policy_active[:] = phase==1; env.policy_age[:] = age; env.refresh()
                 prepared = env.prepared_state(ready.tolist())
                 prepared_states.append(dict(control_step=tick+1,ids=ready,episode=episodes[ready],**prepared))
@@ -380,6 +414,7 @@ def collect(args):
     if args.kind=='train' and any(h.updates==0 for i,h in enumerate(heads) if specs[i]['arm']=='Updated'): raise ValueError('no training updates')
     checkpoint('final.pt',completed_steps); persist('episodes.json')
     if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
+    if reflex: save(args.output/'reflex.json',dict(rule=REFLEX,triggers=reflex.triggers.cpu().numpy()))
     if tuner and args.kind=='train': save(args.output/'finetune.json',dict(settings=settings,updates=tuner.updates,log=tuner.log))
     if windowed and (LIBRARY or SELECT):
         save(args.output/'selection.json',dict(library=entries.tolist(),sessions=[groups[s,'Updated'].selection for s in range(60)]))
