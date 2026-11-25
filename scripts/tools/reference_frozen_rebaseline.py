@@ -136,6 +136,45 @@ def specs_for(run):
     return out
 
 
+def terrain_audit(condition, x, z):
+    """按候选的参数核对中心线上的实际地形。x、z 是从地块原点沿前进方向的射线采样；不符合时报错，返回要记录的量。"""
+    import numpy as np
+    spec = terrain_spec(condition)
+    x, z = np.asarray(x, float), np.asarray(z, float)
+    noise = spec.get('noise_range')
+    if 'slope_range' in spec:
+        # 金字塔坡面沿中心线先是一段平台（8 m 的地块上到约 1.75 m），之后坡度固定；在 2.2 到 3.4 m 之间拟合。
+        slope, sign = spec['slope_range'][0], 1 if spec['source'].endswith('_up') else -1
+        fit = (x >= 2.2) & (x <= 3.4)
+        measured = float(np.polyfit(x[fit], z[fit], 1)[0])
+        if abs(measured - sign * slope) > (.15 if noise else .05) * slope:
+            raise ValueError(f'{condition}: measured slope {measured:.3f}, expected {sign * slope:.3f}')
+        level = float(np.median(z[x <= 1.]))
+        beyond = np.flatnonzero(np.abs(z - level) > (noise[1] if noise else 0.) + .02)
+        return dict(measured_slope=measured, slope_start_x=float(x[beyond[0]]) if len(beyond) else None)
+    if noise:
+        span, measured = noise[1] - noise[0], float(np.ptp(z))
+        if not .5 * span <= measured <= span + .006:
+            raise ValueError(f'{condition}: height range {measured:.3f} on the centre line, expected about {span:.3f}')
+        return dict(measured_height_range=measured)
+    if spec['source'] == 'friction' and np.abs(z).max() > 1e-3:
+        raise ValueError(f'{condition}: friction track is not flat')
+    return {}
+
+
+def path_coefficients(regions, size):
+    """机器人从地块中心沿 +x 走，左、右两侧的脚在前进 0.3、1.5、2.5、3.2 m 处各踩在哪个摩擦系数上。"""
+    def at(px, py):
+        hits = [r['coefficient'] for r in regions
+                if r['bounds_xy_m'][0] <= px < r['bounds_xy_m'][1] and r['bounds_xy_m'][2] <= py < r['bounds_xy_m'][3]]
+        if len(hits) != 1:
+            raise ValueError('friction regions do not tile the track')
+        return hits[0]
+    forward = [.3, 1.5, 2.5, 3.2]
+    cx, cy = size[0] / 2, size[1] / 2
+    return dict(forward_m=forward, left=[at(cx + d, cy + .12) for d in forward], right=[at(cx + d, cy - .12) for d in forward])
+
+
 def command_speed(t):
     return .4 * min(max((t - .5) / .5, 0.), 1.)
 
@@ -264,7 +303,14 @@ def collect(args):
                 goals[c] = 5.5
             else:
                 goals[c] = 3.25
-            geometry.append(dict(condition=c, fronts=fronts, goal_x=goals[c],
+            extra = terrain_audit(c, xx, z)
+            if terrain_spec(c)['source'] == 'friction':  # 按生成器的种子和难度重算一遍分区，记录各分区的系数
+                from lite3_terrain_reuse.source_terrain_isaac import generate_source_terrain_geometry
+                probe = copy.deepcopy(gen.sub_terrains[c]); probe.seed, probe.size = gen.seed, tuple(gen.size)
+                regions = [dict(bounds_xy_m=list(r.bounds_xy_m), coefficient=r.friction_coefficient_candidate)
+                           for r in generate_source_terrain_geometry(.5, probe).friction_regions]
+                extra.update(friction_regions=regions, path_coefficients=path_coefficients(regions, probe.size))
+            geometry.append(dict(condition=c, fronts=fronts, goal_x=goals[c], **extra,
                 z_min=float(z.min()), z_max=float(z.max()), z_at_goal=float(np.interp(goals[c], xx, z))))
     save(args.output / 'geometry.json', geometry)
     goal = np.asarray([goals[s['condition']] for s in specs])
@@ -331,11 +377,14 @@ def collect(args):
                                    torch.tensor([s['u'] for s in specs], device=device), stacked_bases(device=device)) * run.get('scale', 1.)
         no_timeout = torch.zeros(n, 1, dtype=torch.bool, device=device)
     delta_sum = torch.zeros(n, device=device); delta_steps = torch.zeros(n, device=device)
+    start_failed = torch.zeros(n, dtype=torch.bool, device=device)
     with torch.inference_mode():
         for _ in range(50):
             obs, _, terminated, truncated, _ = base.step(torch.zeros(n, 12, device=device))
             if (terminated | truncated).any():
-                raise RuntimeError('standing preparation terminated')
+                # 筛选很难的地形时，站立准备阶段就终止的回合记为起步失败，其余环境继续。
+                if not run.get('tolerate_start_failure'): raise RuntimeError('standing preparation terminated')
+                start_failed |= terminated | truncated
     base.episode_length_buf[:] = 0
     base.action_manager.reset()
     if bridge: safety.reset_temporal_state()
@@ -348,6 +397,15 @@ def collect(args):
     feet_ids, _ = sensor.find_bodies(['FL_FOOT', 'FR_FOOT', 'HL_FOOT', 'HR_FOOT'], preserve_order=True)
     active = np.ones(n, bool)
     records = [None] * n
+    for i in torch.where(start_failed)[0].tolist():
+        from reference_target_screening import start_failure_record
+        records[i] = start_failure_record(specs[i], start[i, 0], start[i, 1]); active[i] = False
+    diagnostics = None
+    if run.get('diagnostics'):  # 每个回合的支撑脚滑动、摆动脚受阻与碰撞、力矩到限、最大倾角
+        from reference_target_screening import EpisodeDiagnostics
+        foot_bodies, _ = robot.find_bodies(['FL_FOOT', 'FR_FOOT', 'HL_FOOT', 'HR_FOOT'], preserve_order=True)
+        diagnostics = EpisodeDiagnostics(n, device)
+        diagnostics.start(sensor.data.net_forces_w[:, feet_ids, 2] > 1., robot.data.body_pos_w[:, foot_bodies, :2])
     dwell, maximum = np.zeros(n), start[:, 0].copy()
     history = []          # 每步相对地块原点的 x，用于判断最后 5 秒是否停滞
     speed_error = np.zeros(n); speed_steps = np.zeros(n)
@@ -366,6 +424,10 @@ def collect(args):
         truncated = base.reset_time_outs.cpu().numpy()
         support = (sensor.data.net_forces_w[:, feet_ids, 2] > 1.).sum(-1).cpu().numpy()
         assert np.isfinite(rel).all() and np.isfinite(vx).all()
+        if diagnostics:
+            forces = sensor.data.net_forces_w[:, feet_ids]
+            diagnostics.step(torch.as_tensor(active, device=device), forces[..., 2] > 1., data.body_pos_w[:, foot_bodies, :2], forces[..., :2],
+                             data.computed_torque, data.applied_torque, data.projected_gravity_b)
         history.append(rel[:, 0].copy())
         dt = step
         t = (tick + 1) * dt
@@ -386,7 +448,8 @@ def collect(args):
                 records[i] = dict(**specs[i], outcome=name, duration_s=t, final_x=float(rel[i, 0]),
                     final_y=float(rel[i, 1]), progress=float(np.clip((maximum[i] - start[i, 0]) / span, 0., 1.)),
                     max_abs_heading_rad=float(yaw_abs[i]),
-                    speed_mae=float(speed_error[i] / speed_steps[i]) if speed_steps[i] else None)
+                    speed_mae=float(speed_error[i] / speed_steps[i]) if speed_steps[i] else None,
+                    **(dict(diagnostics=diagnostics.summary(i)) if diagnostics else {}))
                 active[i] = False
         return result
 
@@ -413,6 +476,7 @@ def collect(args):
     save(args.output / 'report.json', dict(status='passed', run=args.run, **{k: run[k] for k in ('layout', 'profile', 'heading')},
         model='B10200', model_sha256=HASHES['B'], episodes=n, records=records, actor_unchanged=True,
         first_episodes_only=True, optimizer_updates=0, step_dt=dt, feedback_max_error=feedback_error,
+        start_failures=int(start_failed.sum()),
         safety_filter=bridge is not None, source_sha256=sha(__file__), sources=source_manifest(), goals=goals))
 
 
