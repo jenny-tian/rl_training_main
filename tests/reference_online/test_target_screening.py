@@ -288,3 +288,12 @@ def test_second_round_screens_the_midpoints_with_the_same_protocol(tool):
     assert {k: v for k, v in run.items() if k != 'conditions'} == {k: v for k, v in first.items() if k != 'conditions'}
     assert tool.output_of('screen_round2').parts[-2:] == ('target_screening_20261125', 'screen_round2')
     assert len(tool.specs_for('screen_round2')) == 2 * 64
+
+
+def test_third_round_screens_two_more_uphill_slopes(tool):
+    # 用户 2026-11-26 同意：上坡 0.55 是 59/64、0.6 是 2/64，再筛 0.57 和 0.58。
+    run = tool.RUNS['screen_round3']
+    assert run['conditions'] == ('slope_up_57', 'slope_up_58')
+    assert tool.terrain_spec('slope_up_57')['slope_range'] == (.57, .57)
+    assert {k: v for k, v in run.items() if k != 'conditions'} == {k: v for k, v in tool.RUNS['screen'].items() if k != 'conditions'}
+    assert len(tool.specs_for('screen_round3')) == 2 * 64

@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import reference_target_screening as S  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2] / 'logs/reference_six/target_screening_20261125'
-DEFAULT = ('screen', 'screen_friction_1020', 'screen_friction_0512', 'screen_friction_0206', 'screen_round2')
+DEFAULT = ('screen', 'screen_friction_1020', 'screen_friction_0512', 'screen_friction_0206', 'screen_round2', 'screen_round3')
 LABEL = dict(eligible='符合', too_easy='太容易', too_hard='太难', excluded='排除')
 
 
