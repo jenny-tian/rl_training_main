@@ -85,6 +85,8 @@ RUNS = {
 }
 _screen = dict(layout='fixed', profile='nominal', heading=True, namespace=48, diagnostics=True, tolerate_start_failure=True)
 RUNS.update(screen=dict(_screen, conditions=SCREEN), screen_smoke=dict(_screen, conditions=SCREEN, namespace=49, starts=4))
+# 第二轮：第一轮里相邻两个候选一个太容易、一个太难的族，取中间参数（方案第 4 节）。
+RUNS['screen_round2'] = dict(_screen, conditions=('slope_up_55', 'stairs_down_085'))
 for _band in SCREEN_FRICTION:
     _conditions = tuple(f'{layout}_{_band}' for layout in FRICTION_LAYOUTS)
     RUNS[f'screen_friction_{_band}'] = dict(_screen, conditions=_conditions)

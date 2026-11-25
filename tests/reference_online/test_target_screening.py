@@ -276,3 +276,15 @@ def test_slope_audit_allows_one_height_field_slope_step(tool):
     for steepness in (.66, .54):
         with pytest.raises(ValueError):
             tool.terrain_audit('slope_up_60', X, ramp(steepness))
+
+
+def test_second_round_screens_the_midpoints_with_the_same_protocol(tool):
+    # 方案第 4 节：相邻两个候选一个太容易、一个太难时，取中间参数再筛一轮。上坡 0.5/0.6 取 0.55；下阶 8 cm（11 月 17 日 54/64）/9 cm 取 8.5 cm。
+    run = tool.RUNS['screen_round2']
+    assert run['conditions'] == ('slope_up_55', 'stairs_down_085')
+    assert tool.terrain_spec('slope_up_55')['slope_range'] == (.55, .55)
+    assert tool.terrain_spec('stairs_down_085')['step_height_range'] == (.085, .085)
+    first = tool.RUNS['screen']
+    assert {k: v for k, v in run.items() if k != 'conditions'} == {k: v for k, v in first.items() if k != 'conditions'}
+    assert tool.output_of('screen_round2').parts[-2:] == ('target_screening_20261125', 'screen_round2')
+    assert len(tool.specs_for('screen_round2')) == 2 * 64
