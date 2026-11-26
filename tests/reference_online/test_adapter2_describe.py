@@ -48,3 +48,26 @@ def test_phase_means_split_the_executed_residual_by_joint_and_by_swing_or_stance
     assert means['stance']['knee'] == pytest.approx((.1 + .05 * 2) / 7)  # 支撑的腿步数 7 个：左前 1 个，其余三条腿各 2 个
     none = describe.phase_means(effect, stance, np.zeros((2, 1), bool))
     assert none['swing']['knee'] is None and none['stance']['hipx'] is None
+
+
+def test_mean_speed_uses_only_policy_steps_at_the_full_command(describe):
+    # 三步、两个环境：指令从 0.2 升到 0.4；环境 1 的最后一步不在策略阶段。
+    speed = np.array([[.1, .1], [.3, .2], [.5, .9]])
+    command = np.array([[.2, .2], [.4, .4], [.4, .4]])
+    policy = np.array([[True, True], [True, True], [True, False]])
+    assert describe.mean_speed(speed, command, policy) == pytest.approx((.3 + .2 + .5) / 3)
+    assert describe.mean_speed(speed, command, np.zeros((3, 2), bool)) is None
+
+
+def test_retention_counts_split_a_condition_by_map_row_and_arm(describe):
+    record = lambda condition, row, arm, outcome: dict(condition=condition, row=row, arm=arm, outcome=outcome)
+    records = [record('slope_rough_down', 8, 'Frozen', 'timeout'), record('slope_rough_down', 8, 'Updated', 'success'),
+               record('slope_rough_down', 8, 'Frozen', 'success'), record('slope_rough_down', 8, 'Updated', 'success'),
+               record('slope_rough_down', 1, 'Frozen', 'success'), record('slope_rough_down', 1, 'Updated', 'stuck'),
+               record('stairs_up', 8, 'Frozen', 'posture_failure'), record('stairs_up', 8, 'Updated', 'success')]
+    counts = describe.retention_counts(records)
+    assert counts['slope_rough_down', 8] == dict(n=2, Frozen=1, Updated=2)
+    assert counts['slope_rough_down', 1] == dict(n=1, Frozen=1, Updated=0)
+    assert counts['stairs_up', 8] == dict(n=1, Frozen=0, Updated=1)
+    with pytest.raises(ValueError):  # 两组的回合数不相等说明记录不完整
+        describe.retention_counts(records[:-1])

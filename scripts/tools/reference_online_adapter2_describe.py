@@ -1,7 +1,8 @@
 """S2′ 里只作描述的统计（docs/lite3-online-adapter2-20261126/PLAN.md 第 6 节末尾）：失败的回合停在哪里、实际执行的残差、
 跨地形的保持结果。只读已有的记录，不跑仿真。
 
-用法：python reference_online_adapter2_describe.py [变体:目标 ...]     缺省是 S2′ 的九条运行链加 7 cm 上阶上已有的 r2
+用法：python reference_online_adapter2_describe.py [变体:目标 ...]              缺省是 S2′ 的九条运行链加 7 cm 上阶上已有的 r2
+      python reference_online_adapter2_describe.py --retention [变体:目标 ...]  保持地图上按行拆开的成功数（跨地形的结果）
 """
 from __future__ import annotations
 
@@ -14,6 +15,7 @@ import numpy as np
 
 JOINTS = ('hipx', 'hipy', 'knee')
 MARK = 10000
+FULL_COMMAND = .4
 
 
 def risers_passed(feet_x, fronts):
@@ -49,6 +51,27 @@ def phase_means(effect, stance, policy):
     return result
 
 
+def mean_speed(speed, command, policy):
+    """指令升到 0.4 m/s 之后的策略步里机身前向速度的平均。三个数组都是 (T, n)。没有这样的步时返回 None。"""
+    mask = np.asarray(policy, bool) & (np.asarray(command) >= FULL_COMMAND - 1e-3)
+    return float(np.asarray(speed)[mask].mean()) if mask.any() else None
+
+
+def retention_counts(records):
+    """保持评估的记录按（地形、地图的行）拆开：每组的回合数和两组各自的成功数。两组回合数不等时报错。"""
+    counts = collections.defaultdict(lambda: collections.Counter())
+    for r in records:
+        key = r['condition'], r['row']
+        counts[key][r['arm'] + '_n'] += 1
+        counts[key][r['arm']] += r['outcome'] == 'success'
+    result = {}
+    for key, c in counts.items():
+        if c['Frozen_n'] != c['Updated_n']:
+            raise ValueError(f'unpaired retention records for {key}')
+        result[key] = dict(n=c['Frozen_n'], Frozen=c['Frozen'], Updated=c['Updated'])
+    return result
+
+
 def describe(variant, target):
     from reference_online_c1a2 import RUNS  # 只用到各变体的输出目录名
     from reference_stairs_eval import ROOT
@@ -59,13 +82,14 @@ def describe(variant, target):
     places = {arm: collections.Counter() for arm in ('Frozen', 'Updated')}
     steps = {arm: [] for arm in ('Frozen', 'Updated')}
     sums = {arm: {phase: {j: [0., 0] for j in JOINTS} for phase in ('swing', 'stance')} for arm in ('Frozen', 'Updated')}
+    motion = {arm: dict(speed=[], command=[], policy=[]) for arm in ('Frozen', 'Updated')}
     fronts = None
     for part in range(4):
         d = base / f'target_{MARK}_{part:02d}'
         geometry = json.loads((d / 'geometry.json').read_text())[f'{target}:0']
         fronts = geometry['fronts']
         records = json.loads((d / 'episodes.json').read_text())['records']
-        keys = ('learned_effect', 'stance', 'phase', 'feet')
+        keys = ('learned_effect', 'stance', 'phase', 'feet', 'body_velocity', 'command')
         trace = {k: [] for k in keys}
         for f in sorted(glob.glob(str(d / 'trace_*.npz'))):
             z = np.load(f)
@@ -74,6 +98,8 @@ def describe(variant, target):
         policy = trace['phase'] == 1
         for arm, offset in (('Frozen', 0), ('Updated', 1)):
             legs = trace['stance'][:, offset::2]
+            motion[arm]['speed'].append(trace['body_velocity'][:, offset::2, 0]); motion[arm]['command'].append(trace['command'][:, offset::2, 0])
+            motion[arm]['policy'].append(policy[:, offset::2])
             for phase, mask in (('swing', ~legs), ('stance', legs)):
                 mask = mask & policy[:, offset::2, None]
                 for k, joint in enumerate(JOINTS):
@@ -88,12 +114,31 @@ def describe(variant, target):
     print(f'{variant} {target} @ {MARK}')
     for arm in ('Frozen', 'Updated'):
         mean = lambda phase: ' '.join(f"{j} {sums[arm][phase][j][0] / max(sums[arm][phase][j][1], 1):.3f}" for j in JOINTS)
-        print(f"  {arm:7s} {dict(outcomes[arm])} mean steps {np.mean(steps[arm]):.0f}" + (f" | stuck or timeout by place {dict(places[arm])}" if fronts else '')
+        speed = mean_speed(*(np.concatenate(motion[arm][k]) for k in ('speed', 'command', 'policy')))
+        print(f"  {arm:7s} {dict(outcomes[arm])} mean steps {np.mean(steps[arm]):.0f} mean speed {speed:.3f}" + (f" | stuck or timeout by place {dict(places[arm])}" if fronts else '')
               + (f" | executed residual swing {mean('swing')} stance {mean('stance')}" if arm == 'Updated' else ''))
+
+
+def retention_rows(variant, target, mark):
+    from reference_online_c1a2 import RUNS
+    from reference_stairs_eval import ROOT
+    base = ROOT / 'logs/reference_six' / RUNS[variant] / target
+    if not all((base / f'retention_{mark}_{p:02d}' / 'report.json').exists() for p in range(20)):
+        return print(variant, target, 'no retention at', mark)
+    records = [r for p in range(20) for r in json.loads((base / f'retention_{mark}_{p:02d}' / 'episodes.json').read_text())['records']]
+    counts = retention_counts(records)
+    show = [('slope_rough_down', 8), ('slope_rough_down', 1), ('stairs_up', 8), ('stairs_up', 1), ('stairs_down', 8), ('slope_rough_up', 8), ('rough', 8), ('slope_down', 8)]
+    print(f'{variant:5s} trained on {target:22s} @ {mark:5d} | ' + ' | '.join(f"{c}@{row} {counts[c, row]['Frozen']}->{counts[c, row]['Updated']}/{counts[c, row]['n']}" for c, row in show))
 
 
 def main():
     from reference_online_adapter_results import STAGE2_RUNS
+    if '--retention' in sys.argv:
+        runs = [tuple(a.split(':')) for a in sys.argv[1:] if not a.startswith('--')]
+        for variant, target in runs or [('r2', 'stairs_up_07'), ('r2', 'slope_rough_up_x11'), ('mfa', 'stairs_up_07'), ('mrb', 'stairs_up_07'), ('mrb', 'slope_rough_up_x11'),
+                                        ('mrcz', 'stairs_up_07'), *[r for r in STAGE2_RUNS if r[0] != 'r2']]:
+            retention_rows(variant, target, 2500 if variant == 'r2' else MARK)
+        return
     runs = [tuple(a.split(':')) for a in sys.argv[1:]] or [('r2', 'stairs_up_07'), *STAGE2_RUNS]
     for variant, target in runs: describe(variant, target)
 
