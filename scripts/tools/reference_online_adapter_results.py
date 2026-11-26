@@ -69,7 +69,30 @@ def one(partial):
     if 'registered' in result: print('   registered', result['registered'])
 
 
+def compare():
+    """只作描述的配对比较（10000 步，同一目标、相同评估起点）：两种结构之间、三种更新方式之间，以及各快照的成功数。"""
+    from reference_online_c1a2 import RUNS
+    from reference_online_c1aea_results import against_fixed
+    from reference_online_select_results import done, evaluation
+    result = {}
+    for target in TARGETS:
+        base = lambda v: LOGS / RUNS[v] / target
+        rows = {v: evaluation(base(v), 10000) for v in VARIANTS}
+        pairs = [(f'mf{u}', f'mr{u}') for u in 'abc'] + [(f'm{k}{x}', f'm{k}{y}') for k in 'fr' for x, y in (('b', 'a'), ('c', 'a'), ('c', 'b'))]
+        result[target] = dict(pairs={f'{a}-{b}': against_fixed(rows[a], rows[b]) for a, b in pairs}, success={})
+        for v in VARIANTS + ('r2',) + tuple(x for x in ('mrcz',) if done(base(x), 10000)):
+            marks = [m for m in (1250, 2500, 5000, 10000, 20000) if done(base(v), m)]
+            counts = {m: [sum(r['arm'] == arm and r['outcome'] == 'success' for r in evaluation(base(v), m)) for arm in ('Frozen', 'Updated')] for m in marks}
+            result[target]['success'][v] = {str(m): c[1] for m, c in counts.items()}
+            result[target]['frozen'] = counts[marks[0]][0]
+        print(target, 'Frozen', result[target]['frozen'])
+        for v, row in result[target]['success'].items(): print(f'  {v:5s}', ' '.join(f'{m}:{c}' for m, c in row.items()))
+        for name, v in result[target]['pairs'].items(): print(f"  {name}: {v['D_success']} - {v['B_success']} = {pp(v)}")
+    save(DOCS / 'COMPARISONS.json', result)
+
+
 def main():
+    if '--compare' in sys.argv: return compare()
     arguments = [a for a in sys.argv[1:] if not a.startswith('--')]
     if os.environ.get('ADAPTER_CHILD'): return one('--partial' in sys.argv)
     for target in TARGETS:
