@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX, ADAPTER
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX, ADAPTER, RULE
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -155,7 +155,7 @@ def collect(args):
         if SOURCE:  # 参数迁移：Updated 组用在另一个地形上学到的参数
             from reference_online_transfer import load_source
             checkpoint = load_source()
-        elif REFLEX:  # 抬腿反射：两组参数都是全 0，反射的请求在采集循环里另外加
+        elif REFLEX or RULE:  # 抬腿反射、规则对照：两组参数都是全 0，请求在采集循环里另外加
             from reference_online_transfer import zero_heads
             checkpoint = dict(control_steps=0,heads=zero_heads())
         elif LEAD or RATE:  # 提前起抬、每步变化上限的脚本化检查：Updated 组都用库里的一组参数
@@ -214,6 +214,13 @@ def collect(args):
     if REFLEX:
         from rl_training.ea_lpl.swing_reflex import SwingReflex
         reflex = SwingReflex(REFLEX,n,device)
+    rule = None
+    if RULE:  # 不学习的规则对照：Updated 组（奇数行）把上一步结束时算出的目标残差作为这一步的请求
+        from rl_training.ea_lpl.directed_rule import DirectedRule
+        from rl_training.ea_lpl.sara import tracking_error as sara_error
+        if any(specs[i]['arm']!=('Frozen','Updated')[i%2] for i in range(n)): raise ValueError('arms not alternating')
+        rule = DirectedRule(n//2,limits=protocol()['directed_rule']['limits'],device=device)
+        rule_steps = 0
     learner = learner if SARA else None
     v = basis('sag',device=device)
     projector = (v/(v**2).sum(0)).double()  # 执行残差在两个基方向上的系数
@@ -283,6 +290,9 @@ def collect(args):
                     extra = torch.cat((torch.as_tensor(features[1::2],dtype=torch.float32,device=device),stance[1::2].float(),correction[1::2]),1)
                     adapted = small.act(env.obs['policy'][1::2],env.obs['critic'][1::2],extra,torch.as_tensor(policy[1::2],device=device))
                     request[1::2] += clip_action(adapted)-clip_action(raw[1::2])
+                if rule:
+                    rule_active = torch.as_tensor(policy[1::2],device=device)
+                    request[1::2] += rule.act(rule_active)
                 if reflex:
                     request[1::2] += reflex.step(stance,torch.as_tensor(before['feet'][:,:,0],device=device),torch.as_tensor(features[:,0],device=device))[1::2]
                 if swing:
@@ -325,6 +335,9 @@ def collect(args):
                     gravity = data.projected_gravity_b[1::2]
                     learner.observe(error,gravity[:,0].abs()+gravity[:,1].abs(),(data.root_lin_vel_b[1::2,0]/.4).clamp(0,1),active)
                     values['sara_gamma'] = learner.gamma.cpu().numpy().copy()
+                if rule:  # 走完这一步后的跟踪误差和受阻的摆动腿，定义与小模型训练时用的相同
+                    data, ids = env.robot.data, env.adapter.ids
+                    rule_error = sara_error(data.default_joint_pos[:,ids]+env.adapter.scale*trace.executed_action,data.joint_pos[:,ids],data.joint_vel[:,ids],env.adapter.scale)[1::2]
                 if small:  # 上一步执行的关节目标与走完这一步后的关节状态之差
                     data, ids = env.robot.data, env.adapter.ids
                     small_error = sara_error(data.default_joint_pos[:,ids]+env.adapter.scale*trace.executed_action,data.joint_pos[:,ids],data.joint_vel[:,ids],env.adapter.scale)[1::2]
@@ -385,6 +398,9 @@ def collect(args):
                 ended = np.zeros(n,bool); ended[finished] = True
                 tuner.record(reward[1::2],env.obs['critic'][1::2],torch.as_tensor(ended[1::2],device=device),torch.as_tensor((ended&terminated)[1::2],device=device))
                 if tuner.ready(): tuner.update()
+            if rule:
+                rule_stalled = ~stance[1::2] & (torch.as_tensor((after['feet'][1::2,:,0]-before['feet'][1::2,:,0])/.02,device=device)<c1b_w.STALL_SPEED)
+                rule.observe(rule_error,rule_stalled,rule_active); rule_steps += int(rule_active.sum())
             if small and args.kind=='train':
                 ended = np.zeros(n,bool); ended[finished] = True
                 swinging = ~stance[1::2]
@@ -405,6 +421,7 @@ def collect(args):
                 if reflex: reflex.reset(index)
                 if learner: learner.reset(torch.as_tensor(ready[ready%2==1]//2,device=device))
                 if small: small.reset(torch.as_tensor(ready[ready%2==1]//2,device=device)); correction[index] = 0
+                if rule: rule.reset(torch.as_tensor(ready[ready%2==1]//2,device=device))
                 env.policy_active[:] = phase==1; env.policy_age[:] = age; env.refresh()
                 prepared = env.prepared_state(ready.tolist())
                 prepared_states.append(dict(control_step=tick+1,ids=ready,episode=episodes[ready],**prepared))
@@ -460,6 +477,7 @@ def collect(args):
     checkpoint('final.pt',completed_steps); persist('episodes.json')
     if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
     if reflex: save(args.output/'reflex.json',dict(rule=REFLEX,triggers=reflex.triggers.cpu().numpy()))
+    if rule: save(args.output/'rule.json',dict(rule=RULE,settings=protocol()['directed_rule'],policy_steps_with_rule=rule_steps))
     if tuner and args.kind=='train': save(args.output/'finetune.json',dict(settings=settings,updates=tuner.updates,log=tuner.log))
     if windowed and (LIBRARY or SELECT):
         save(args.output/'selection.json',dict(library=entries.tolist(),sessions=[groups[s,'Updated'].selection for s in range(60)]))

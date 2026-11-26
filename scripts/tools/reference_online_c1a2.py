@@ -130,6 +130,14 @@ if REFLEX:
     assert not SOURCE and not CANDIDATE and not LEAD and not RATE and VARIANT == 's2n' and TARGET in NEW_TARGETS and REFLEX in ('same', 'next')
     SOURCE_MARK = 0
     OUTPUT = ROOT / 'logs/reference_six/online_reflex_20261125' / TARGET / REFLEX
+# 不学习的规则对照（docs/lite3-online-adapter2-20261126/PLAN.md 第 12 节）：C1A2_RULE=directed 时只做评估，Updated 组参数全 0、不带受阻修正，
+# 另外把走完上一步后算出的有方向误差的目标残差作为这一步的请求（ea_lpl/directed_rule.py）。安全过滤和评估起点与 r2 相同。
+# 保持评估只在 7 cm 上阶的目录下做一次（保持地形与目标无关）。
+RULE = os.environ.get('C1A2_RULE')
+if RULE:
+    assert not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX) and VARIANT == 'r2' and TARGET in ('stairs_up_07',) + DOWN_TARGETS and RULE == 'directed'
+    SOURCE_MARK = 0
+    OUTPUT = ROOT / 'logs/reference_six/online_directed_rule_20261126' / TARGET / RULE
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
 # S2′ 的新变体训练到主判定所在的 10000 步；不带受阻修正的 mrsz 在 7 cm 上阶上保留 20000 步，用来看约 73 次尝试时是否仍然保持。
 ADAPTER_LONG = bool(ADAPTER) and (ADAPTER['update'] != 's' or (VARIANT == 'mrsz' and TARGET == 'stairs_up_07'))
@@ -144,7 +152,7 @@ TRAIN_STEPS = 20000 if ADAPTER_LONG else 45000 if FINETUNE else 10000 if WINDOWE
 # 短训练检查：C1A2_TRIAL=<步数> 时训练只跑这么多步，输出放到 <目标>_trial，不影响正式运行的目录。只用于启动前确认训练路径能跑通。
 TRIAL = int(os.environ.get('C1A2_TRIAL', 0))
 if TRIAL:
-    assert ADAPTER and not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX)
+    assert ADAPTER and not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE)
     TRAIN_STEPS, OUTPUT = TRIAL, OUTPUT.parent / (TARGET + '_trial')
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
@@ -212,6 +220,9 @@ def protocol():
             extra.update(rate_check=RATE, residual_rate_limit=RATE_LIMIT)
         if REFLEX:
             extra.update(reflex=REFLEX, residual_rate_limit=.04)
+        if RULE:
+            from rl_training.ea_lpl import adapter
+            extra.update(rule=RULE, directed_rule=dict(track_gain=adapter.TRACK_GAIN, slow=adapter.SLOW, limits=list(_protocol()['residual_limits']), delay_steps=1, level0=None))
         if ADAPTER:
             from rl_training.ea_lpl import adapter
             extra.update(algorithm='small adapter ' + VARIANT, exploration='gaussian action noise, trainable' if ADAPTER['update'] in 'ac' else 'none',
@@ -298,9 +309,9 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    if SOURCE or CANDIDATE or LEAD or RATE or REFLEX:
+    if SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE:
         result = [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
-        if (RATE and RATE_LIMIT == .04 and TARGET in NEW_TARGETS) or (REFLEX and TARGET == 'stairs_up_07'):  # 上限 0.04 的保持评估（docs/lite3-online-rate04-20261124/PLAN.md）
+        if (RATE and RATE_LIMIT == .04 and TARGET in NEW_TARGETS) or ((REFLEX or RULE) and TARGET == 'stairs_up_07'):  # 上限 0.04 的保持评估（docs/lite3-online-rate04-20261124/PLAN.md）
             result += [dict(name=f'retention_0_{p:02d}', kind='retention', mark=0, part=p, steps=1050, smoke_index=1) for p in range(20)]
         return result
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
