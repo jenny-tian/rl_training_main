@@ -91,3 +91,12 @@ def test_slip_ratio_counts_grounded_feet_that_move(describe):
     lifted = stance.copy(); lifted[2, 0, 0] = False  # 脚 0 在第 1 步结束时已经离地：这一步不算着地
     assert describe.slip_ratio(feet, lifted, policy) == pytest.approx(0 / 4)
     assert describe.slip_ratio(feet, stance, np.zeros((4, 1), bool)) is None
+
+
+def test_run_location_points_at_the_snapshot_that_is_compared(describe):
+    runs = dict(mrsz='online_adapter_mrsz_20261126', r2='online_c1b_stall_rate04_20261124')
+    assert describe.run_location('mrsz', 'stairs_down_085', runs) == (('online_adapter_mrsz_20261126', 'stairs_down_085'), 10000)
+    assert describe.run_location('r2', 'stairs_up_07', runs) == (('online_c1b_stall_rate04_20261124', 'stairs_up_07'), 10000)
+    # 规则对照不学习，只有一组评估，记在快照 0 下
+    assert describe.run_location('rule', 'slope_rough_down_x10', runs) == (('online_directed_rule_20261126', 'slope_rough_down_x10', 'directed'), 0)
+    with pytest.raises(KeyError): describe.run_location('unknown', 'stairs_up_07', runs)

@@ -96,11 +96,18 @@ def retention_counts(records):
     return result
 
 
+def run_location(variant, target, runs):
+    """一条运行的评估记录在哪里：（logs/reference_six 下的目录，用来比较的快照）。rule 是不学习的规则对照，只有快照 0。"""
+    if variant == 'rule': return ('online_directed_rule_20261126', target, 'directed'), 0
+    return (runs[variant], target), MARK
+
+
 def describe(variant, target):
     from reference_online_c1a2 import RUNS  # 只用到各变体的输出目录名
     from reference_stairs_eval import ROOT
-    base = ROOT / 'logs/reference_six' / RUNS[variant] / target
-    if not all((base / f'target_{MARK}_{p:02d}' / 'report.json').exists() for p in range(4)):
+    parts, mark = run_location(variant, target, RUNS)
+    base = ROOT.joinpath('logs/reference_six', *parts)
+    if not all((base / f'target_{mark}_{p:02d}' / 'report.json').exists() for p in range(4)):
         return print(variant, target, 'not finished')
     outcomes = {arm: collections.Counter() for arm in ('Frozen', 'Updated')}
     places = {arm: collections.Counter() for arm in ('Frozen', 'Updated')}
@@ -110,7 +117,7 @@ def describe(variant, target):
     slip = {arm: [0, 0] for arm in ('Frozen', 'Updated')}
     fronts = None
     for part in range(4):
-        d = base / f'target_{MARK}_{part:02d}'
+        d = base / f'target_{mark}_{part:02d}'
         geometry = json.loads((d / 'geometry.json').read_text())[f'{target}:0']
         fronts = geometry['fronts']
         records = json.loads((d / 'episodes.json').read_text())['records']
@@ -137,7 +144,7 @@ def describe(variant, target):
             if fronts and r['outcome'] in ('stuck', 'timeout'):
                 last = np.flatnonzero(policy[:, r['env_id']])[-1]
                 places[r['arm']][failure_place(trace['feet'][last, r['env_id'], :, 0], fronts)] += 1
-    print(f'{variant} {target} @ {MARK}')
+    print(f'{variant} {target} @ {mark}')
     for arm in ('Frozen', 'Updated'):
         mean = lambda phase: ' '.join(f"{j} {sums[arm][phase][j][0] / max(sums[arm][phase][j][1], 1):.3f}" for j in JOINTS)
         speed = mean_speed(*(np.concatenate(motion[arm][k]) for k in ('speed', 'command', 'policy')))
@@ -148,7 +155,8 @@ def describe(variant, target):
 def retention_rows(variant, target, mark):
     from reference_online_c1a2 import RUNS
     from reference_stairs_eval import ROOT
-    base = ROOT / 'logs/reference_six' / RUNS[variant] / target
+    parts, rule_mark = run_location(variant, target, RUNS)
+    base, mark = ROOT.joinpath('logs/reference_six', *parts), (rule_mark if variant == 'rule' else mark)
     if not all((base / f'retention_{mark}_{p:02d}' / 'report.json').exists() for p in range(20)):
         return print(variant, target, 'no retention at', mark)
     records = [r for p in range(20) for r in json.loads((base / f'retention_{mark}_{p:02d}' / 'episodes.json').read_text())['records']]
