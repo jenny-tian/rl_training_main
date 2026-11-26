@@ -8,6 +8,7 @@ import torch
 import reference_online_c1b_env_repaired as environment_module
 import reference_online_c1b_env_reset_api as reset_module
 from reference_online_c1a2 import protocol, TARGET
+from reference_online_c1a2_targets import DOWN_STAIR_HEIGHT, stair_profile, target_sub_terrains
 
 
 STAIR_HEIGHT = dict(stairs_up_065=.065, stairs_up_07=.07, stairs_up_075=.075)
@@ -27,12 +28,9 @@ class Environment(reset_module.Environment):
                 cfg.scene.terrain.terrain_generator.sub_terrains = {TARGET: sub}
             if TARGET in STAIR_HEIGHT and args.kind != 'retention':
                 cfg.scene.terrain.terrain_generator.sub_terrains['stairs_06'].step_height_range = (STAIR_HEIGHT[TARGET],) * 2
-            if TARGET == 'slope_rough_up_x11' and args.kind != 'retention':
-                # 与 reference_frozen_rebaseline 的 x11 相同：坡度参数 0.44，粗糙幅度 0.01 到 0.07 m。
-                sub = captured['slope_rough_up']
-                assert tuple(sub.slope_range) == (0., .4) and tuple(sub.noise_range) == (.01, .06)
-                sub.slope_range, sub.noise_range, sub.proportion = (.44, .44), (.01, .07), 1.
-                cfg.scene.terrain.terrain_generator.sub_terrains = {'slope_rough_up_x11': sub}
+            # 坡面目标和下行台阶：由训练地图的子地形改出来，参数与 reference_frozen_rebaseline 的筛选相同。
+            subs = target_sub_terrains(TARGET, captured) if args.kind != 'retention' else None
+            if subs: cfg.scene.terrain.terrain_generator.sub_terrains = subs
             return resolve(cfg)
 
         # 基类在换成台阶地形之前调用 replace_terrain；在这里记下六类地形的原始子地形配置。
@@ -84,6 +82,20 @@ class Environment(reset_module.Environment):
         self.feedback_error = max(getattr(self, 'feedback_error', 0.), float(np.abs(wz.double().cpu().numpy() - expect).max()))
 
     def audit_geometry(self, path):
+        if TARGET in DOWN_STAIR_HEIGHT and self.args.kind != 'retention':
+            # 下行台阶：终点同样取最后一个立面之后 0.30 m，tops 是每个立面之后的高度（最后一个就是底部）。
+            from isaaclab.sensors import RayCaster
+            from isaaclab.utils.warp import raycast_mesh
+            origin = self.terrain.env_origins[0]
+            xs = torch.linspace(0., 3.8, 3401, device=self.device)
+            starts = origin + torch.stack((xs, torch.zeros_like(xs), torch.full_like(xs, 20.)), -1)
+            directions = torch.zeros_like(starts); directions[:, 2] = -1
+            hits = raycast_mesh(starts, directions, RayCaster.meshes[path])[0]
+            assert torch.isfinite(hits).all()
+            z, x = (hits[:, 2] - origin[2]).cpu().numpy(), xs.cpu().numpy()
+            fronts, tops = stair_profile(x, z, -DOWN_STAIR_HEIGHT[TARGET], tolerance=.003)
+            return {f'{TARGET}:0': dict(fronts=fronts, tops=tops, goal_x=fronts[-1] + .3,
+                                        centerline_min_z=float(z.min()), centerline_max_z=float(z.max()))}
         if TARGET in STAIR_HEIGHT and self.args.kind != 'retention':
             # 基类按 6 cm 核对台阶高度；这里用同样的做法按该目标的高度核对。
             height = STAIR_HEIGHT[TARGET]
