@@ -108,3 +108,11 @@ def test_the_second_stage_always_judges_at_ten_thousand_steps(results):
     # r2 登记的主快照是 2500 步；S2′ 里它作参照时也按 10000 步比较
     assert results.judged_mark(stage2=True, primary=2500) == 10000 and results.judged_mark(stage2=True, primary=10000) == 10000
     assert results.judged_mark(stage2=False, primary=2500) == 2500
+
+
+def test_training_counts_of_the_frozen_arm_are_labelled_by_what_the_arm_really_ran(results):
+    # 审查发现：r2 的训练任务里 Frozen 组每个窗口加参数扰动、只是不更新，它的训练成功数不是冻结策略的数字；
+    # 小模型的变体两组都不加参数扰动，Frozen 组就是冻结策略。
+    assert results.frozen_training_arm(dict(kind='residual', update='s', level0=False, limit_scale=1.)) == 'base policy'
+    assert results.frozen_training_arm(dict(kind='film', update='a', level0=True, limit_scale=1.)) == 'base policy'
+    assert results.frozen_training_arm(None) == 'perturbed parameters, not updated'

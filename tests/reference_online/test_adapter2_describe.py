@@ -71,3 +71,23 @@ def test_retention_counts_split_a_condition_by_map_row_and_arm(describe):
     assert counts['stairs_up', 8] == dict(n=1, Frozen=0, Updated=1)
     with pytest.raises(ValueError):  # 两组的回合数不相等说明记录不完整
         describe.retention_counts(records[:-1])
+
+
+def test_failures_at_the_time_limit_are_reported_as_one_category(describe):
+    # 审查发现：坡面目标没有终点坐标，采集循环在这类目标上不会给出 stuck，到时间的失败全部记为 timeout；
+    # 所以汇报时把两者合成一类，台阶和坡面才能比较。
+    assert describe.merged_outcomes({'success': 5, 'stuck': 2, 'timeout': 3, 'posture_failure': 1}) == {'success': 5, 'not_reached': 5, 'posture_failure': 1}
+    assert describe.merged_outcomes({'success': 240}) == {'success': 240}
+    assert describe.merged_outcomes({'timeout': 135, 'success': 105}) == {'success': 105, 'not_reached': 135}
+
+
+def test_slip_ratio_counts_grounded_feet_that_move(describe):
+    # 4 步、1 个环境。脚 0 一直着地，在第 1、2 步各移动 4 mm（0.2 m/s）；脚 1、3 着地不动；脚 2 在摆动。
+    feet = np.zeros((4, 1, 4, 2)); feet[:, 0, 0, 0] = [0., .004, .008, .008]; feet[:, 0, 2, 0] = [0., .05, .10, .15]
+    stance = np.ones((4, 1, 4), bool); stance[:, 0, 2] = False
+    policy = np.ones((4, 1), bool)
+    # 可用的是第 1、2 步（需要上一步结束时的位置和下一步开始时的着地状态）：每步 3 只脚着地共 6 个，其中 2 个在滑
+    assert describe.slip_ratio(feet, stance, policy) == pytest.approx(2 / 6)
+    lifted = stance.copy(); lifted[2, 0, 0] = False  # 脚 0 在第 1 步结束时已经离地：这一步不算着地
+    assert describe.slip_ratio(feet, lifted, policy) == pytest.approx(0 / 4)
+    assert describe.slip_ratio(feet, stance, np.zeros((4, 1), bool)) is None

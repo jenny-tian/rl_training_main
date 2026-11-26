@@ -16,6 +16,7 @@ import numpy as np
 JOINTS = ('hipx', 'hipy', 'knee')
 MARK = 10000
 FULL_COMMAND = .4
+SLIP_SPEED, DT = .10, .02  # 与 S0 筛选的支撑脚滑动定义相同
 
 
 def risers_passed(feet_x, fronts):
@@ -51,6 +52,29 @@ def phase_means(effect, stance, policy):
     return result
 
 
+def merged_outcomes(outcomes):
+    """到时间还没到终点的失败合成一类（not_reached）。坡面目标没有终点坐标，采集循环在这类目标上不会给出 stuck，
+    全部记为 timeout；合并之后台阶和坡面的失败形式才能比较。"""
+    result = {k: v for k, v in outcomes.items() if k not in ('stuck', 'timeout')}
+    late = outcomes.get('stuck', 0) + outcomes.get('timeout', 0)
+    if late: result['not_reached'] = late
+    return result
+
+
+def slip_counts(feet_xy, stance, policy):
+    """（在滑的着地脚步数，着地脚步数）。feet_xy (T, n, 4, 2) 每步结束时的脚的位置；stance (T, n, 4) 每步开始时是否着地；
+    policy (T, n)。一步里脚在开始和结束时都着地才算着地；水平位移折合速度超过 SLIP_SPEED 算在滑。"""
+    feet_xy, stance, policy = np.asarray(feet_xy, float), np.asarray(stance, bool), np.asarray(policy, bool)
+    speed = np.linalg.norm(feet_xy[1:-1] - feet_xy[:-2], axis=-1) / DT
+    grounded = stance[1:-1] & stance[2:] & (policy[:-2] & policy[1:-1] & policy[2:])[:, :, None]
+    return int((speed[grounded] > SLIP_SPEED).sum()), int(grounded.sum())
+
+
+def slip_ratio(feet_xy, stance, policy):
+    slipping, grounded = slip_counts(feet_xy, stance, policy)
+    return slipping / grounded if grounded else None
+
+
 def mean_speed(speed, command, policy):
     """指令升到 0.4 m/s 之后的策略步里机身前向速度的平均。三个数组都是 (T, n)。没有这样的步时返回 None。"""
     mask = np.asarray(policy, bool) & (np.asarray(command) >= FULL_COMMAND - 1e-3)
@@ -83,6 +107,7 @@ def describe(variant, target):
     steps = {arm: [] for arm in ('Frozen', 'Updated')}
     sums = {arm: {phase: {j: [0., 0] for j in JOINTS} for phase in ('swing', 'stance')} for arm in ('Frozen', 'Updated')}
     motion = {arm: dict(speed=[], command=[], policy=[]) for arm in ('Frozen', 'Updated')}
+    slip = {arm: [0, 0] for arm in ('Frozen', 'Updated')}
     fronts = None
     for part in range(4):
         d = base / f'target_{MARK}_{part:02d}'
@@ -100,6 +125,7 @@ def describe(variant, target):
             legs = trace['stance'][:, offset::2]
             motion[arm]['speed'].append(trace['body_velocity'][:, offset::2, 0]); motion[arm]['command'].append(trace['command'][:, offset::2, 0])
             motion[arm]['policy'].append(policy[:, offset::2])
+            a, b = slip_counts(trace['feet'][:, offset::2, :, :2], legs, policy[:, offset::2]); slip[arm][0] += a; slip[arm][1] += b
             for phase, mask in (('swing', ~legs), ('stance', legs)):
                 mask = mask & policy[:, offset::2, None]
                 for k, joint in enumerate(JOINTS):
@@ -115,7 +141,7 @@ def describe(variant, target):
     for arm in ('Frozen', 'Updated'):
         mean = lambda phase: ' '.join(f"{j} {sums[arm][phase][j][0] / max(sums[arm][phase][j][1], 1):.3f}" for j in JOINTS)
         speed = mean_speed(*(np.concatenate(motion[arm][k]) for k in ('speed', 'command', 'policy')))
-        print(f"  {arm:7s} {dict(outcomes[arm])} mean steps {np.mean(steps[arm]):.0f} mean speed {speed:.3f}" + (f" | stuck or timeout by place {dict(places[arm])}" if fronts else '')
+        print(f"  {arm:7s} {merged_outcomes(outcomes[arm])} mean steps {np.mean(steps[arm]):.0f} mean speed {speed:.3f} stance slip {slip[arm][0] / max(slip[arm][1], 1):.3f}" + (f" | not reached, by place {dict(places[arm])}" if fronts else '')
               + (f" | executed residual swing {mean('swing')} stance {mean('stance')}" if arm == 'Updated' else ''))
 
 

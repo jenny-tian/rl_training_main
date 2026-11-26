@@ -31,6 +31,12 @@ STAGE2_RUNS = (('mrsz', 'slope_rough_down_x10'), ('mrsz', 'stairs_down_085'), ('
 EPSILON = 1e-9  # 门槛正好落在整数个回合上时，按会话平均的浮点误差不应改变判定
 
 
+def frozen_training_arm(adapter):
+    """训练任务里 Frozen 组实际跑的是什么。小模型的变体两组都不加参数扰动，Frozen 组就是冻结策略；
+    r2 等窗口学习器的 Frozen 组每个窗口加参数扰动、只是不更新，它在训练里的成功数不能当作冻结策略的数字。评估任务不受影响。"""
+    return 'base policy' if adapter else 'perturbed parameters, not updated'
+
+
 def judged_mark(*, stage2, primary):
     """判定所在的快照。S2′ 一律是 10000 步（r2 登记的主快照是 2500 步，作参照时也按 10000 步比较）。"""
     return 10000 if stage2 else primary
@@ -62,6 +68,8 @@ def one(partial):
     rows = {m: evaluation(OUTPUT, m) for m in marks}
     result = dict(target=TARGET, method=VARIANT, adapter=ADAPTER, marks=marks, versus_frozen={str(m): paired_summary(rows[m]) for m in marks})
     train = read(OUTPUT, 'train')['records']
+    result['training_frozen_arm'] = frozen_training_arm(ADAPTER)
+    frozen_label = 'Frozen' if ADAPTER else 'perturbed'
     result['training'] = {str(m): {arm: dict(attempts=sum(r['arm'] == arm and r['control_step'] <= m for r in train) / 60,
         success=sum(r['arm'] == arm and r['control_step'] <= m and r['outcome'] == 'success' for r in train)) for arm in ('Frozen', 'Updated')} for m in marks}
     stage2 = bool(os.environ.get('ADAPTER_STAGE2'))
@@ -93,7 +101,7 @@ def one(partial):
     print(TARGET, VARIANT)
     for m in marks:
         x, t = result['versus_frozen'][str(m)], result['training'][str(m)]
-        line = f" {m:>5}: Frozen {count(x, 'Frozen')} -> {count(x, 'Updated')} gain {pp(x)} posture {posture(x, 'Frozen')} -> {posture(x, 'Updated')} | train success {t['Frozen']['success']}/{t['Updated']['success']} attempts {t['Updated']['attempts']:.1f}"
+        line = f" {m:>5}: Frozen {count(x, 'Frozen')} -> {count(x, 'Updated')} gain {pp(x)} posture {posture(x, 'Frozen')} -> {posture(x, 'Updated')} | train success {frozen_label}/Updated {t['Frozen']['success']}/{t['Updated']['success']} attempts {t['Updated']['attempts']:.1f}"
         if str(m) in result.get('minus_r2', {}):
             d = result['minus_r2'][str(m)]
             line += f" | minus r2 ({d['B_success']}) {pp(d)} frozen identical {result['frozen_reproduced'][str(m)]['identical']}/{result['frozen_reproduced'][str(m)]['n']}"
