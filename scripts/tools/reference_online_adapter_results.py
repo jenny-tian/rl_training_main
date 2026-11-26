@@ -3,6 +3,7 @@
 用法：python reference_online_adapter_results.py [--partial] [变体 ...]              S1
       python reference_online_adapter_results.py --stage2 [--partial]               S2′ 的九条运行链
       python reference_online_adapter_results.py --rule                             S2′ 不学习的规则对照（方案第 12 节）
+      python reference_online_adapter_results.py --compare2                         S2′ 只作描述的配对比较
 各目标、各变体用子进程分别汇总；参照是同一目标上只有受阻修正的 r2（评估起点相同）。
 """
 from __future__ import annotations
@@ -31,6 +32,11 @@ STAGE2_RUNS = (('mrsz', 'slope_rough_down_x10'), ('mrsz', 'stairs_down_085'), ('
                ('mrbz', 'stairs_up_07'))
 EPSILON = 1e-9  # 门槛正好落在整数个回合上时，按会话平均的浮点误差不应改变判定
 RULE_TARGETS = ('stairs_up_07', 'slope_rough_down_x10', 'stairs_down_085')
+# 方案第 13 节：2 倍上限对照的配对运行（同样的学习器，原来的上限），只作描述。
+STAGE2_EXTRA = (('mrs', 'stairs_up_07'),)
+# 只作描述的配对比较（目标，前一个变体，后一个变体），都在 10000 步，前减后。mrcz 是 S1 的运行。
+STAGE2_PAIRS = (('stairs_up_07', 'mrsw', 'mrs'), ('stairs_up_07', 'mrsz', 'mrbz'), ('stairs_up_07', 'mrsz', 'mrcz'), ('stairs_up_07', 'mrs', 'mrsz'),
+                ('slope_rough_down_x10', 'mrs', 'mrsz'), ('stairs_down_085', 'mrs', 'mrsz'))
 
 
 def frozen_training_arm(adapter):
@@ -47,6 +53,7 @@ def judged_mark(*, stage2, primary):
 def verdict2(variant, target, *, gain, late_minus_early, minus_r2, five):
     """S2′ 登记的判定。gain：10000 步对 Frozen；late_minus_early：10000 步减 1250 步；minus_r2：10000 步减 r2 的 10000 步；
     三个都是带 mean_session_delta 和 ci95 的配对汇总。five 是保持评估的五项。只作描述的运行返回 None。"""
+    if (variant, target) in STAGE2_EXTRA: return None
     if (variant, target) not in STAGE2_RUNS:
         raise ValueError(f'{variant} on {target} is not a registered S2′ run')
     if variant in ('mrbz', 'r2'): return None
@@ -167,6 +174,21 @@ def compare():
     save(DOCS / 'COMPARISONS.json', result)
 
 
+def compare2():
+    """S2′ 只作描述的配对比较，10000 步，相同的评估起点。没有跑完的一对跳过。"""
+    from reference_online_c1a2 import RUNS
+    from reference_online_c1aea_results import against_fixed
+    from reference_online_select_results import done, evaluation
+    result = {}
+    for target, first, second in STAGE2_PAIRS:
+        a, b = (LOGS / RUNS[v] / target for v in (first, second))
+        if not (done(a, 10000) and done(b, 10000)):
+            print(f'{target} {first}-{second}: not finished'); continue
+        v = result[f'{target}:{first}-{second}'] = against_fixed(evaluation(a, 10000), evaluation(b, 10000))
+        print(f"{target} {first}-{second}: {v['D_success']} - {v['B_success']} = {pp(v)}")
+    save(STAGE2_DOCS / 'COMPARISONS.json', result)
+
+
 def main():
     if os.environ.get('ADAPTER_CHILD'):  # 子进程只汇总自己这一条，不再派发
         return rule_one() if os.environ.get('ADAPTER_RULE') else one('--partial' in sys.argv)
@@ -176,8 +198,9 @@ def main():
                            env=dict(os.environ, ADAPTER_CHILD='1', ADAPTER_RULE='1', C1A2_TARGET=target, C1A2_VARIANT='r2', C1A2_RULE='directed'))
         return
     if '--compare' in sys.argv: return compare()
+    if '--compare2' in sys.argv: return compare2()
     if '--stage2' in sys.argv:
-        for variant, target in STAGE2_RUNS:
+        for variant, target in STAGE2_RUNS + STAGE2_EXTRA:
             subprocess.run([sys.executable, __file__, *[a for a in sys.argv[1:] if a.startswith('--')]],
                            env=dict(os.environ, ADAPTER_CHILD='1', ADAPTER_STAGE2='1', C1A2_TARGET=target, C1A2_VARIANT=variant), check='--partial' not in sys.argv)
         return

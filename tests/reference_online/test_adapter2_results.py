@@ -101,7 +101,7 @@ def test_the_stage_two_parent_starts_one_child_per_registered_chain(results, mon
         (env['C1A2_VARIANT'], env['C1A2_TARGET'], env['ADAPTER_CHILD'], env['ADAPTER_STAGE2'], check, '--stage2' in command)))
     monkeypatch.setattr(sys, 'argv', ['x', '--stage2'])
     results.main()
-    assert [s[:2] for s in started] == list(results.STAGE2_RUNS) and all(s[2:] == ('1', '1', True, True) for s in started)
+    assert [s[:2] for s in started] == list(results.STAGE2_RUNS + results.STAGE2_EXTRA) and all(s[2:] == ('1', '1', True, True) for s in started)
 
 
 def test_the_second_stage_always_judges_at_ten_thousand_steps(results):
@@ -148,3 +148,25 @@ def test_a_rule_child_summarises_the_rule_and_nothing_else(results, monkeypatch)
     monkeypatch.setattr(sys, 'argv', ['x', '--rule'])
     results.main()
     assert calls == ['rule']
+
+
+# ---------------------------------------------------------------- 方案第 13 节：2 倍上限对照的配对运行
+def test_the_twin_of_the_wide_control_is_summarised_but_has_no_registered_verdict(results):
+    assert results.STAGE2_EXTRA == (('mrs', 'stairs_up_07'),)
+    assert results.verdict2('mrs', 'stairs_up_07', **good()) is None
+    assert len(results.STAGE2_RUNS) == 9 and ('mrs', 'stairs_up_07') not in results.STAGE2_RUNS
+
+
+def test_the_stage_two_parent_also_summarises_the_extra_chain(results, monkeypatch):
+    started = []
+    monkeypatch.delenv('ADAPTER_CHILD', raising=False)
+    monkeypatch.setattr(results.subprocess, 'run', lambda command, env, check: started.append((env['C1A2_VARIANT'], env['C1A2_TARGET'])))
+    monkeypatch.setattr(sys, 'argv', ['x', '--stage2', '--partial'])
+    results.main()
+    assert started == list(results.STAGE2_RUNS) + [('mrs', 'stairs_up_07')]
+
+
+def test_descriptive_pairs_of_the_second_stage_are_listed_with_their_marks(results):
+    # （目标，前一个变体，后一个变体）：都在 10000 步比较，前减后
+    assert results.STAGE2_PAIRS == (('stairs_up_07', 'mrsw', 'mrs'), ('stairs_up_07', 'mrsz', 'mrbz'), ('stairs_up_07', 'mrsz', 'mrcz'), ('stairs_up_07', 'mrs', 'mrsz'),
+                                    ('slope_rough_down_x10', 'mrs', 'mrsz'), ('stairs_down_085', 'mrs', 'mrsz'))
