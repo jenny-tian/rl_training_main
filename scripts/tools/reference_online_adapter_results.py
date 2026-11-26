@@ -2,6 +2,7 @@
 
 用法：python reference_online_adapter_results.py [--partial] [变体 ...]              S1
       python reference_online_adapter_results.py --stage2 [--partial]               S2′ 的九条运行链
+      python reference_online_adapter_results.py --rule                             S2′ 不学习的规则对照（方案第 12 节）
 各目标、各变体用子进程分别汇总；参照是同一目标上只有受阻修正的 r2（评估起点相同）。
 """
 from __future__ import annotations
@@ -29,6 +30,7 @@ STAGE2_RUNS = (('mrsz', 'slope_rough_down_x10'), ('mrsz', 'stairs_down_085'), ('
                ('r2', 'slope_rough_down_x10'), ('r2', 'stairs_down_085'), ('mrs', 'slope_rough_down_x10'), ('mrs', 'stairs_down_085'),
                ('mrbz', 'stairs_up_07'))
 EPSILON = 1e-9  # 门槛正好落在整数个回合上时，按会话平均的浮点误差不应改变判定
+RULE_TARGETS = ('stairs_up_07', 'slope_rough_down_x10', 'stairs_down_085')
 
 
 def frozen_training_arm(adapter):
@@ -55,6 +57,37 @@ def verdict2(variant, target, *, gain, late_minus_early, minus_r2, five):
     if variant == 'mrsw': result['still_improving'] = bool(late_minus_early['ci95'][0] > 0)
     result['passed'] = all(result.values())
     return result
+
+
+def rule_verdict(delta):
+    """小模型（mrsz 的 10000 步）减规则对照，按会话配对的登记判定：区间下限大于 0 是小模型好于规则，区间上限小于 0 是规则好于小模型。"""
+    low, high = delta['ci95']
+    return 'model_better' if low > 0 else 'rule_better' if high < 0 else 'no_confirmed_difference'
+
+
+def rule_one():
+    from reference_online_c1a2 import OUTPUT, RULE, RUNS, TARGET, protocol
+    from reference_online_c1a_results import paired_summary
+    from reference_online_c1aea_results import against_fixed, frozen_reproduced
+    from reference_online_select_results import done, evaluation, read, retention
+    assert RULE == 'directed'
+    if not done(OUTPUT, 0): return print(TARGET, 'rule not finished')
+    rows = evaluation(OUTPUT, 0)
+    model, stall = evaluation(LOGS / RUNS['mrsz'] / TARGET, 10000), evaluation(LOGS / RUNS['r2'] / TARGET, 10000)
+    result = dict(target=TARGET, method='directed rule, no learning', versus_frozen=paired_summary(rows),
+                  model_minus_rule=against_fixed(model, rows), rule_minus_r2=against_fixed(rows, stall),
+                  frozen_reproduced=frozen_reproduced(rows, model),
+                  policy_steps_with_rule=[read(OUTPUT, f'target_0_{p:02d}', 'rule.json')['policy_steps_with_rule'] for p in range(4)])
+    result['registered'] = rule_verdict(result['model_minus_rule'])
+    if (OUTPUT / 'retention_0_19' / 'report.json').exists():
+        result.update(retention(OUTPUT, protocol(), result['versus_frozen']))
+    save(STAGE2_DOCS / f'RESULTS_rule_{TARGET}.json', result)
+    x, d, e = result['versus_frozen'], result['model_minus_rule'], result['rule_minus_r2']
+    print(f"{TARGET} rule: Frozen {count(x, 'Frozen')} -> {count(x, 'Updated')} gain {pp(x)} posture {posture(x, 'Frozen')} -> {posture(x, 'Updated')}"
+          f" | mrsz@10000 ({d['D_success']}) minus rule {pp(d)} -> {result['registered']} | rule minus r2@10000 ({e['B_success']}) {pp(e)}"
+          f" | frozen identical {result['frozen_reproduced']['identical']}/{result['frozen_reproduced']['n']}")
+    if 'five_criteria' in result: print('   five:', result['five_criteria'], 'flat ratio', round(result['flat_velocity_rmse_ratio'], 3),
+                                        'families', {f: round(100 * v['mean_session_delta'], 1) for f, v in result['retention_families'].items()})
 
 
 def one(partial):
@@ -135,7 +168,13 @@ def compare():
 
 
 def main():
-    if os.environ.get('ADAPTER_CHILD'): return one('--partial' in sys.argv)  # 子进程只汇总自己这一条，不再派发
+    if os.environ.get('ADAPTER_CHILD'):  # 子进程只汇总自己这一条，不再派发
+        return rule_one() if os.environ.get('ADAPTER_RULE') else one('--partial' in sys.argv)
+    if '--rule' in sys.argv:
+        for target in RULE_TARGETS:
+            subprocess.run([sys.executable, __file__, '--rule'], check=True,
+                           env=dict(os.environ, ADAPTER_CHILD='1', ADAPTER_RULE='1', C1A2_TARGET=target, C1A2_VARIANT='r2', C1A2_RULE='directed'))
+        return
     if '--compare' in sys.argv: return compare()
     if '--stage2' in sys.argv:
         for variant, target in STAGE2_RUNS:

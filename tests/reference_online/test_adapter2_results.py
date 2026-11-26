@@ -116,3 +116,35 @@ def test_training_counts_of_the_frozen_arm_are_labelled_by_what_the_arm_really_r
     assert results.frozen_training_arm(dict(kind='residual', update='s', level0=False, limit_scale=1.)) == 'base policy'
     assert results.frozen_training_arm(dict(kind='film', update='a', level0=True, limit_scale=1.)) == 'base policy'
     assert results.frozen_training_arm(None) == 'perturbed parameters, not updated'
+
+
+# ---------------------------------------------------------------- 不学习的规则对照（方案第 12 节）
+def test_the_rule_comparison_has_three_registered_outcomes(results):
+    assert results.rule_verdict(s(.08, .01, .15)) == 'model_better'
+    assert results.rule_verdict(s(-.08, -.15, -.01)) == 'rule_better'
+    assert results.rule_verdict(s(.03, -.04, .10)) == 'no_confirmed_difference'
+    assert results.rule_verdict(s(.03, 0., .10)) == 'no_confirmed_difference'  # 区间下限正好是 0 不算大于 0
+    assert results.rule_verdict(s(0., 0., 0.)) == 'no_confirmed_difference'    # 两边都全部通过时没有差别
+
+
+def test_the_rule_parent_starts_one_child_per_target_with_the_rule_switch(results, monkeypatch):
+    started = []
+    monkeypatch.delenv('ADAPTER_CHILD', raising=False)
+    monkeypatch.setattr(results.subprocess, 'run', lambda command, env, check: started.append(
+        (env['C1A2_VARIANT'], env['C1A2_TARGET'], env['C1A2_RULE'], env['ADAPTER_CHILD'], env['ADAPTER_RULE'], check)))
+    monkeypatch.setattr(sys, 'argv', ['x', '--rule'])
+    results.main()
+    assert started == [('r2', target, 'directed', '1', '1', True) for target in ('stairs_up_07', 'slope_rough_down_x10', 'stairs_down_085')]
+
+
+def test_a_rule_child_summarises_the_rule_and_nothing_else(results, monkeypatch):
+    calls = []
+    monkeypatch.setattr(results, 'rule_one', lambda: calls.append('rule'))
+    monkeypatch.setattr(results, 'one', lambda partial: calls.append('chain'))
+
+    def refuse(*args, **kwargs): raise AssertionError('a child process started another process')
+    monkeypatch.setattr(results.subprocess, 'run', refuse)
+    monkeypatch.setenv('ADAPTER_CHILD', '1'); monkeypatch.setenv('ADAPTER_RULE', '1')
+    monkeypatch.setattr(sys, 'argv', ['x', '--rule'])
+    results.main()
+    assert calls == ['rule']
