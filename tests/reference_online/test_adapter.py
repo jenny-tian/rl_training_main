@@ -223,3 +223,75 @@ def test_directed_target_stays_inside_the_residual_limits():
     error = torch.full((1, 12), 5.); error[0, 3:6] = -5.
     target = adapter.directed_target(error, torch.ones(1, 4, dtype=torch.bool))
     assert target[0, :6].tolist() == pytest.approx([.24, .20, .20, -.24, -.20, -.20])
+
+
+# ---------------------------------------------------------------- S2′：更新方式 s（有方向的误差加权重的滑动平均）和可设的幅度上限
+def stalled_front_left(n=4):
+    stalled = torch.zeros(n, 4, dtype=torch.bool); stalled[:, 0] = True
+    return stalled
+
+
+def test_averaged_update_decays_the_learning_rate_over_1000_steps():
+    L = learner('residual', 's')
+    assert adapter.DECAY_STEPS_S == 1000 and adapter.EMA == .996
+    assert L.learning_rate() == pytest.approx(1e-3)
+    rollout(L, 50)
+    assert L.learning_rate() == pytest.approx(1e-3 / (1 + 50 / 1000))
+
+
+def test_averaged_update_acts_with_the_running_average_of_the_trained_weights():
+    L = learner('residual', 's')
+    n, g = 4, torch.Generator().manual_seed(0)
+    obs, cobs, extra = torch.randn(n, 45, generator=g), torch.randn(n, 393, generator=g), torch.randn(n, EXTRA, generator=g)
+    active = torch.tensor([True, True, False, False])
+    start = {k: v.detach().clone() for k, v in L.adapter.named_parameters()}
+    expect = {k: v[0].clone() for k, v in start.items()}  # 会话 0 的慢权重，按定义逐步手算
+    for _ in range(30):
+        L.act(obs, cobs, extra, active)
+        L.observe(torch.zeros(n), cobs, torch.zeros(n, dtype=torch.bool), torch.zeros(n, dtype=torch.bool), torch.zeros(n, 12), stalled_front_left())
+        for k, v in L.adapter.named_parameters(): expect[k] = .996 * expect[k] + .004 * v[0].detach()
+    fast, slow = dict(L.adapter.named_parameters()), dict(L.average.named_parameters())
+    for k in expect:
+        assert torch.allclose(slow[k][0], expect[k], atol=1e-7)
+        assert torch.equal(slow[k][1], start[k][1]) and torch.equal(fast[k][1], start[k][1])  # 没有在走的会话两套权重都不变
+    assert not torch.allclose(fast['R2'][0], slow['R2'][0]) and L.updates.tolist() == [30, 0]
+    action = L.act(obs, cobs, extra, active); L.pending = None
+    by_slow, _ = L.average(obs.view(2, 2, 45), extra.view(2, 2, EXTRA))
+    by_fast, _ = L.adapter(obs.view(2, 2, 45), extra.view(2, 2, EXTRA))
+    assert torch.equal(action.view(2, 2, 12), by_slow) and not torch.allclose(by_slow[0], by_fast[0])  # 作用在机器人上的是慢权重
+
+
+def test_averaged_snapshot_carries_the_acting_weights_into_evaluation():
+    L = learner('residual', 's')
+    rollout(L, 40, error=torch.zeros(4, 12), stalled=stalled_front_left())
+    obs, cobs, extra = torch.randn(4, 45), torch.randn(4, 393), torch.randn(4, EXTRA)
+    during = L.act(obs, cobs, extra, torch.ones(4, dtype=torch.bool)); L.pending = None
+    E = learner('residual', 's', copies=4, replicas=1, learn=False)
+    for i in range(4): E.load(i, L.snapshot(i // 2))
+    after = E.act(obs, cobs, extra, torch.ones(4, dtype=torch.bool))
+    assert torch.allclose(after, during, atol=1e-6)  # 评估用的就是训练中作用在机器人上的权重
+    assert float((after - base_forward(state(), obs)).abs().max()) > 1e-4
+    assert E.digest(0) == L.digest(0) and E.digest(2) == L.digest(1) and E.digest(0) != E.digest(2)
+
+
+def test_plain_directed_update_still_acts_with_the_trained_weights():
+    L = learner('residual', 'b')
+    obs, cobs, extra = torch.randn(4, 45), torch.randn(4, 393), torch.randn(4, EXTRA)
+    L.act(obs, cobs, extra, torch.ones(4, dtype=torch.bool))
+    L.observe(torch.zeros(4), cobs, torch.zeros(4, dtype=torch.bool), torch.zeros(4, dtype=torch.bool), torch.zeros(4, 12), stalled_front_left())
+    action = L.act(obs, cobs, extra, torch.ones(4, dtype=torch.bool)); L.pending = None
+    by_trained, base = L.adapter(obs.view(2, 2, 45), extra.view(2, 2, EXTRA))
+    assert torch.equal(action.view(2, 2, 12), by_trained) and not torch.equal(by_trained, base)
+    assert L.learning_rate() == pytest.approx(1e-3 / (1 + 1 / 5000))
+
+
+def test_the_amplitude_limit_of_the_directed_target_can_be_doubled():
+    wide = [2 * x for x in adapter.RESIDUAL_LIMITS]
+    error = torch.full((1, 12), 5.); error[0, 3:6] = -5.
+    target = adapter.directed_target(error, torch.ones(1, 4, dtype=torch.bool), limits=wide)
+    assert target[0, :6].tolist() == pytest.approx([.48, .40, .40, -.48, -.40, -.40])
+    for limits, expect in ((wide, [.48, .40, .40]), (None, [.24, .20, .20])):
+        L = learner('residual', 's', **(dict(limits=limits) if limits else {}))
+        none, on = torch.zeros(4, 4, dtype=torch.bool), torch.ones(4, dtype=torch.bool)
+        L.target(torch.zeros(4, 12), none, on)
+        assert L.target(torch.full((4, 12), 5.), none, on)[0, :3].tolist() == pytest.approx(expect)

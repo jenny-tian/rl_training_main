@@ -10,12 +10,15 @@
   a  PPO：自定义奖励，损失里加对基础动作的偏离惩罚；critic 从基础策略的复制，先校准再更新适配器。
   b  有方向的误差：适配器输出的残差回归到 directed_target，每个控制步更新一次。
   c  a 和 b 同时进行：b 每个控制步更新，学习率再乘 beta(PPO 更新次数)；a 每批更新。校准阶段两者都不更新适配器。
+  s  b 加两处改动（docs/lite3-online-adapter2-20261126/PLAN.md）：学习率按 DECAY_STEPS_S 衰减；作用在机器人上、保存和评估用的
+     是训练权重的指数滑动平均（系数 EMA）。
 环境按 [copies, replicas] 的顺序排列，与 finetune.Tuner 相同。
 """
 from __future__ import annotations
 
 import hashlib
 import math
+from copy import deepcopy
 
 import numpy as np
 import torch
@@ -30,6 +33,7 @@ STD, LEARNING_RATE, DEVIATION, VALUE, CALIBRATION, HORIZON, MINIMUM = .1, 1e-3, 
 TRACK_GAIN, SLOW, DECAY_STEPS, WEIGHT_DECAY = .2, .02, 5000, 1e-4
 BETA_START, BETA_HALF = 1., 10
 RESIDUAL_LIMITS = [.24, .20, .20] * 4
+DECAY_STEPS_S, EMA = 1000, .996  # 更新方式 s：学习率的衰减步数；滑动平均的系数（时间常数 250 步，约一次尝试）
 LR_LOW, LR_HIGH = 1e-6, 1e-2  # 探索标准差只有 0.1，同样的 KL 对应的步长比基础训练小得多，下限比基础训练的 1e-5 低一档
 
 
@@ -93,13 +97,13 @@ def reward(forward_speed, swing, stalled, correction, failed):
     return DT * (track + FREE_WEIGHT * free - CORRECTION_WEIGHT * (correction**2).sum(1)) - FAILURE_PENALTY * failed.float()
 
 
-def directed_target(error, stalled):
-    """error (n, 12) 去掉慢变部分的跟踪误差；stalled (n, 4) 这一步里受阻的摆动腿。返回目标残差 (n, 12)。"""
+def directed_target(error, stalled, limits=None):
+    """error (n, 12) 去掉慢变部分的跟踪误差；stalled (n, 4) 这一步里受阻的摆动腿；limits 是逐关节的残差幅度上限，缺省为 RESIDUAL_LIMITS。返回目标残差 (n, 12)。"""
     target = TRACK_GAIN * error
     lift = stalled.to(error)
     target[:, 1::3] = target[:, 1::3] + HIPY * lift
     target[:, 2::3] = target[:, 2::3] + KNEE * lift
-    limits = torch.tensor(RESIDUAL_LIMITS, dtype=target.dtype, device=target.device)
+    limits = torch.as_tensor(RESIDUAL_LIMITS if limits is None else limits, dtype=target.dtype, device=target.device)
     return torch.maximum(torch.minimum(target, limits), -limits)  # 超过残差上限的部分会被安全过滤截掉，不作为目标
 
 
@@ -114,20 +118,24 @@ def beta(updates):
 
 class Learner:
     def __init__(self, actor_state, critic_state, *, kind, update, copies, replicas, learn, seed, device, extra,
-                 horizon=HORIZON, minimum=MINIMUM, calibration=CALIBRATION):
-        if update not in ('a', 'b', 'c'):
+                 horizon=HORIZON, minimum=MINIMUM, calibration=CALIBRATION, limits=None):
+        if update not in ('a', 'b', 'c', 's'):
             raise ValueError('unknown update')
         generator = torch.Generator().manual_seed(seed)
         self.kind, self.update, self.copies, self.replicas, self.learn = kind, update, copies, replicas, bool(learn)
         self.horizon, self.minimum, self.calibration = horizon, minimum, calibration
         self.ppo = update in ('a', 'c')
         self.adapter = StackedAdapter(actor_state, copies, kind, extra=extra, generator=generator).to(device)
+        # 更新方式 s：训练的是 adapter，作用在机器人上、保存和评估用的是它的滑动平均 average；其余更新方式两者是同一个网络。
+        self.averaged = update == 's'
+        self.average = deepcopy(self.adapter).requires_grad_(False) if self.averaged else self.adapter
+        self.limits = [float(x) for x in (RESIDUAL_LIMITS if limits is None else limits)]
         self.log_std = nn.Parameter(torch.full((copies, self.adapter.d.shape[1] if kind == 'film' else self.adapter.r2.shape[1]), math.log(STD), device=device))
         self.actor_parameters = [*self.adapter.parameters()] + ([self.log_std] if self.ppo else [])
         self.critic = StackedMLP(critic_state, copies, 'full').to(device) if self.ppo and self.learn else None
         lr = torch.full((copies,), LEARNING_RATE, device=device)
         self.optimizer = StackedAdam(self.actor_parameters, lr) if self.learn and self.ppo else None
-        self.directed = StackedAdam(list(self.adapter.parameters()), lr.clone()) if self.learn and update in ('b', 'c') else None
+        self.directed = StackedAdam(list(self.adapter.parameters()), lr.clone()) if self.learn and update in ('b', 'c', 's') else None
         self.directed_loss = []
         self.critic_optimizer = StackedAdam(list(self.critic.parameters()), lr) if self.critic is not None else None
         self.generator = torch.Generator(device=device).manual_seed(seed + 1)
@@ -139,8 +147,8 @@ class Learner:
     def _shape(self, x): return x.view(self.copies, self.replicas, *x.shape[1:])
 
     def learning_rate(self):
-        """更新方式 b 的学习率，随训练步数减小。"""
-        return LEARNING_RATE / (1 + self.steps / DECAY_STEPS)
+        """有方向误差的学习率，随训练步数减小。"""
+        return LEARNING_RATE / (1 + self.steps / (DECAY_STEPS_S if self.averaged else DECAY_STEPS))
 
     def reset(self, rows):
         """一次尝试开始时调用：跟踪误差的慢滤波重新开始。"""
@@ -154,7 +162,7 @@ class Learner:
     @torch.no_grad()
     def act(self, obs, critic_obs, extra, active):
         obs, extra = self._shape(obs.float()), self._shape(extra.float())
-        mean, base = self.adapter(obs, extra)
+        mean, base = self.average(obs, extra)
         action = mean
         if self.learn and self.ppo and self.steps >= self.calibration:
             action = mean + self.log_std.exp()[:, None, :] * torch.randn(mean.shape, generator=self.generator, device=mean.device)
@@ -172,7 +180,7 @@ class Learner:
         start = self.fresh & active
         self.slow = torch.where(start[:, None], error, torch.where(active[:, None], self.slow + SLOW * (error - self.slow), self.slow))
         self.fresh = self.fresh & ~active
-        return directed_target(error - self.slow, stalled) * active[:, None]
+        return directed_target(error - self.slow, stalled, self.limits) * active[:, None]
 
     def observe(self, reward, next_critic_obs, done, failed, error, stalled):
         """环境走完一步之后调用。reward (n,)；done、failed (n,) 这一步里回合结束、姿态终止；error (n, 12) 跟踪误差；stalled (n, 4)。"""
@@ -208,6 +216,11 @@ class Learner:
         self.directed.lr.fill_(self.learning_rate() * scale)
         self.directed.step(active)
         self._decay(active, self.directed.lr)
+        if self.averaged:
+            with torch.no_grad():
+                for slow, fast in zip(self.average.parameters(), self.adapter.parameters()):
+                    on = active.view((-1,) + (1,) * (fast.ndim - 1))
+                    slow.copy_(torch.where(on, EMA * slow + (1 - EMA) * fast, slow))
         if not all(torch.isfinite(p).all() for p in self.adapter.parameters()):
             raise ValueError('nonfinite adapter weights')
         if self.ppo: self.directed_loss.append(float(loss.detach()[active].mean()))
@@ -274,14 +287,15 @@ class Learner:
         return entry
 
     def snapshot(self, copy):
-        return dict(mode='adapter', kind=self.kind, update=self.update, adapter=self.adapter.export(copy),
+        return dict(mode='adapter', kind=self.kind, update=self.update, adapter=self.average.export(copy),
                     log_std=self.log_std[copy].detach().float().cpu().clone(), updates=int(self.updates[copy]))
 
     def load(self, copy, saved):
         assert saved['mode'] == 'adapter' and saved['kind'] == self.kind and saved['update'] == self.update
         self.adapter.load(copy, saved['adapter'])
+        if self.averaged: self.average.load(copy, saved['adapter'])
         with torch.no_grad(): self.log_std[copy] = saved['log_std'].to(self.log_std)
 
     def digest(self, copy):
-        parts = [*self.adapter.export(copy).values(), self.log_std[copy].detach().cpu()]
+        parts = [*self.average.export(copy).values(), self.log_std[copy].detach().cpu()]
         return hashlib.sha256(b''.join(p.numpy().tobytes() for p in parts)).hexdigest()
