@@ -88,6 +88,9 @@ RUNS.update(screen=dict(_screen, conditions=SCREEN), screen_smoke=dict(_screen, 
 # 第二轮：第一轮里相邻两个候选一个太容易、一个太难的族，取中间参数（方案第 4 节）。
 RUNS['screen_round2'] = dict(_screen, conditions=('slope_up_55', 'stairs_down_085'))
 RUNS['screen_round3'] = dict(_screen, conditions=('slope_up_57', 'slope_up_58'))  # 用户 2026-11-26 同意的上坡补筛
+# 单地块核对（docs/lite3-online-adapter2-20261126/PLAN.md 第 11 节）：一个候选单独成图，与在线入口只有一个地块的地图相同。
+for _name in ('slope_rough_down_x085', 'slope_rough_down_x10', 'slope_rough_down_x11'):
+    RUNS[f'screen_single_{_name}'] = dict(_screen, conditions=(_name,))
 for _band in SCREEN_FRICTION:
     _conditions = tuple(f'{layout}_{_band}' for layout in FRICTION_LAYOUTS)
     RUNS[f'screen_friction_{_band}'] = dict(_screen, conditions=_conditions)

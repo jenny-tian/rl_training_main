@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 TOOLS = str(Path(__file__).resolve().parents[2] / 'scripts/tools')
-DOWN = ('slope_rough_down_x085', 'stairs_down_085')
+DOWN = ('slope_rough_down_x10', 'stairs_down_085')
 NARROW, WIDE = [.24, .20, .20] * 4, [.48, .40, .40] * 4
 
 
@@ -91,8 +91,10 @@ def test_every_variant_on_a_target_shares_the_starts_of_the_stall_correction(mon
 
 
 @pytest.mark.parametrize('variant,target', [('mrs', 'boxes_07'), ('mrsz', 'slope_rough_up_x11'), ('mrs', 'stairs_up_06'), ('mrbz', 'stairs_down_085'),
-                                            ('mfb', 'stairs_down_085'), ('mrc', 'slope_rough_down_x085'), ('r1', 'stairs_down_085'),
-                                            ('h1', 'slope_rough_down_x085'), ('s2n', 'stairs_down_085'), ('sa1', 'slope_rough_down_x085')])
+                                            ('mfb', 'stairs_down_085'), ('mrc', 'slope_rough_down_x10'), ('r1', 'stairs_down_085'),
+                                            ('h1', 'slope_rough_down_x10'), ('s2n', 'stairs_down_085'), ('sa1', 'slope_rough_down_x10'),
+                                            # 坡度 0.34 的粗糙下坡在单地块的地图上太容易，不再是目标
+                                            ('mrs', 'slope_rough_down_x085'), ('mrsz', 'slope_rough_down_x085'), ('r2', 'slope_rough_down_x085')])
 def test_combinations_outside_the_registered_runs_are_rejected(monkeypatch, variant, target):
     with pytest.raises(AssertionError): load(monkeypatch, variant, target)
 

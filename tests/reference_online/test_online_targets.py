@@ -46,16 +46,17 @@ def test_a_profile_that_does_not_match_the_registered_stairs_is_rejected(targets
 def test_slope_and_downstairs_targets_use_the_screened_terrain_parameters(targets, monkeypatch):
     sys.modules.pop('reference_frozen_rebaseline', None)
     screening = importlib.import_module('reference_frozen_rebaseline')
-    assert set(targets.SLOPE_TARGETS) == {'slope_rough_up_x11', 'slope_rough_down_x085'}
+    assert set(targets.SLOPE_TARGETS) == {'slope_rough_up_x11', 'slope_rough_down_x10'}
     for name, spec in targets.SLOPE_TARGETS.items():
         assert spec == {k: tuple(v) if isinstance(v, (tuple, list)) else v for k, v in screening.terrain_spec(name).items()}
-    assert targets.SLOPE_TARGETS['slope_rough_down_x085'] == dict(source='slope_rough_down', slope_range=(.34, .34), noise_range=(.01, .06))
+    # 单地块核对之后粗糙下坡的目标从坡度 0.34 改为 0.40（方案第 11 节）
+    assert targets.SLOPE_TARGETS['slope_rough_down_x10'] == dict(source='slope_rough_down', slope_range=(.40, .40), noise_range=(.01, .06))
     assert targets.DOWN_STAIR_HEIGHT == dict(stairs_down_085=.085)
     assert screening.terrain_spec('stairs_down_085') == dict(source='stairs_down', step_height_range=(.085, .085))
 
 
 def test_stair_targets_are_recognised_by_name(targets):
-    assert targets.stairs_target('stairs_down_085') and targets.stairs_target('stairs_up_07') and not targets.stairs_target('slope_rough_down_x085')
+    assert targets.stairs_target('stairs_down_085') and targets.stairs_target('stairs_up_07') and not targets.stairs_target('slope_rough_down_x10')
 
 
 def training_map():
@@ -67,7 +68,7 @@ def training_map():
 
 @pytest.mark.parametrize('name,source,expect', [
     ('slope_rough_up_x11', 'slope_rough_up', dict(slope_range=(.44, .44), noise_range=(.01, .07))),
-    ('slope_rough_down_x085', 'slope_rough_down', dict(slope_range=(.34, .34), noise_range=(.01, .06))),
+    ('slope_rough_down_x10', 'slope_rough_down', dict(slope_range=(.40, .40), noise_range=(.01, .06))),
     ('stairs_down_085', 'stairs_down', dict(step_height_range=(.085, .085)))])
 def test_a_target_becomes_the_only_sub_terrain_with_its_parameters_fixed(targets, name, source, expect):
     captured = training_map()
@@ -76,7 +77,7 @@ def test_a_target_becomes_the_only_sub_terrain_with_its_parameters_fixed(targets
     for key, value in expect.items(): assert getattr(result[name], key) == value
 
 
-@pytest.mark.parametrize('name', ['stairs_up_07', 'boxes_07', 'stairs_up_06'])
+@pytest.mark.parametrize('name', ['stairs_up_07', 'boxes_07', 'stairs_up_06', 'slope_rough_down_x085'])
 def test_targets_handled_elsewhere_are_left_alone(targets, name):
     assert targets.target_sub_terrains(name, training_map()) is None
 
@@ -85,4 +86,4 @@ def test_a_slope_target_refuses_a_map_whose_training_range_changed(targets):
     captured = training_map()
     captured['slope_rough_down'].slope_range = (0., .5)
     with pytest.raises(ValueError):
-        targets.target_sub_terrains('slope_rough_down_x085', captured)
+        targets.target_sub_terrains('slope_rough_down_x10', captured)

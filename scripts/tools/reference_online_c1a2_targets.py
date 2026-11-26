@@ -7,10 +7,12 @@ from __future__ import annotations
 
 import numpy as np
 
-# 目标名 -> 训练地图里的子地形（source）和要固定的参数。粗糙上坡是 S1 的目标，粗糙下坡的坡度在训练范围内（相当于训练地图第 8 行）。
+# 目标名 -> 训练地图里的子地形（source）和要固定的参数。粗糙上坡是 S1 的目标；粗糙下坡取训练范围的上限（坡度 0.40）。
+# 粗糙地形的起伏是随机生成的，同一组参数在不同的地图里是不同的地块：在线入口的地图只有一个地块，坡度 0.34 在这个地块上
+# 冻结策略已有 57/64，所以目标改用 0.40（12/64）。见 docs/lite3-online-adapter2-20261126/PLAN.md 第 11 节。
 SLOPE_TARGETS = dict(
     slope_rough_up_x11=dict(source='slope_rough_up', slope_range=(.44, .44), noise_range=(.01, .07)),
-    slope_rough_down_x085=dict(source='slope_rough_down', slope_range=(.34, .34), noise_range=(.01, .06)))
+    slope_rough_down_x10=dict(source='slope_rough_down', slope_range=(.40, .40), noise_range=(.01, .06)))
 # 下行台阶：训练范围是 2 到 5 cm。
 DOWN_STAIR_HEIGHT = dict(stairs_down_085=.085)
 MINIMUM_RISERS = 5

@@ -297,3 +297,14 @@ def test_third_round_screens_two_more_uphill_slopes(tool):
     assert tool.terrain_spec('slope_up_57')['slope_range'] == (.57, .57)
     assert {k: v for k, v in run.items() if k != 'conditions'} == {k: v for k, v in tool.RUNS['screen'].items() if k != 'conditions'}
     assert len(tool.specs_for('screen_round3')) == 2 * 64
+
+
+@pytest.mark.parametrize('name', ['slope_rough_down_x085', 'slope_rough_down_x10', 'slope_rough_down_x11'])
+def test_single_tile_checks_put_one_candidate_alone_on_the_map_with_the_screening_protocol(tool, name):
+    # S2′ 的核对：在线入口的地图只有一个地块，粗糙地形的起伏是随机生成的，同一组参数在不同地图里是不同的地块。
+    run = tool.RUNS[f'screen_single_{name}']
+    assert run['conditions'] == (name,)
+    assert {k: v for k, v in run.items() if k != 'conditions'} == {k: v for k, v in tool.RUNS['screen'].items() if k != 'conditions'}
+    specs = tool.specs_for(f'screen_single_{name}')
+    assert len(specs) == 64 and specs[0]['offset'] == tool.start_offset(name, 0, 48)
+    assert tool.output_of(f'screen_single_{name}').parts[-2:] == ('target_screening_20261125', f'screen_single_{name}')

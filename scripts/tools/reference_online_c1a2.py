@@ -22,8 +22,9 @@ PROBE_TARGETS = ('stairs_up_065', 'slope_rough_up_x11')
 # 后两个是 2026-11-23 加的，用于检验扩充后的参数库（docs/lite3-online-library2-20261123/PLAN.md）。
 NEW_TARGETS = ('stairs_up_07', 'boxes_07', 'stairs_up_075', 'boxes_08')
 TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
-# S2′ 的两个下行目标（docs/lite3-online-adapter2-20261126/PLAN.md）：粗糙下坡（坡度 0.34）和 8.5 cm 下阶，地形定义在 reference_online_c1a2_targets.py。
-DOWN_TARGETS = ('slope_rough_down_x085', 'stairs_down_085')
+# S2′ 的两个下行目标（docs/lite3-online-adapter2-20261126/PLAN.md）：粗糙下坡（坡度 0.40，方案第 11 节由 0.34 改来）和 8.5 cm 下阶，
+# 地形定义在 reference_online_c1a2_targets.py。
+DOWN_TARGETS = ('slope_rough_down_x10', 'stairs_down_085')
 assert TARGET in TARGETS + PROBE_TARGETS + NEW_TARGETS + DOWN_TARGETS
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
 # C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
