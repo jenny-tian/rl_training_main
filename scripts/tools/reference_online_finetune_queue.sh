@@ -11,7 +11,7 @@ while :; do
   [ -z "$line" ] && break
   read -r v t <<< "$line"
   while [ "$(nvidia-smi -i $g --query-gpu=memory.free --format=csv,noheader,nounits)" -lt "$need" ]; do sleep 30; done
-  d=$(cd $W/scripts/tools && C1A2_VARIANT=$v C1A2_TARGET=$t PYTHONPATH=$W/source/rl_training $PY -c "from reference_online_c1a2 import OUTPUT, UNFILTERED; print(OUTPUT, '--skip-retention' if UNFILTERED else '')")
+  d=$(cd $W/scripts/tools && C1A2_VARIANT=$v C1A2_TARGET=$t PYTHONPATH=$W/source/rl_training $PY -c "from reference_online_c1a2 import OUTPUT, UNFILTERED, SKIP_RETENTION; print(OUTPUT, '--skip-retention' if UNFILTERED or SKIP_RETENTION else '')")
   read -r d extra <<< "$d"
   mkdir -p $d
   echo "QUEUE $v $t gpu $g $(date +%H:%M)"

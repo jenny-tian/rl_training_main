@@ -22,7 +22,7 @@ def load(monkeypatch, variant, target):
 def test_adapter_variants_follow_the_registered_run(monkeypatch, variant, target):
     entry = load(monkeypatch, variant, target)
     p = entry.protocol()
-    assert entry.ADAPTER == dict(kind=dict(f='film', r='residual')[variant[1]], update=variant[2], level0=True)
+    assert entry.ADAPTER == dict(kind=dict(f='film', r='residual')[variant[1]], update=variant[2], level0=True, limit_scale=1.)
     assert entry.REPLICAS == 4 and entry.TRAIN_STEPS == 20000 and entry.MARKS == (0, 1250, 2500, 5000, 10000, 20000)
     assert entry.PRIMARY == 10000 and entry.RETENTION_MARKS == (10000,)
     assert p['residual_rate_limit'] == .04 and p['residual_limits'] == [.24, .20, .20] * 4
@@ -39,7 +39,7 @@ def test_adapter_variants_follow_the_registered_run(monkeypatch, variant, target
 
 def test_the_group_without_level_zero_only_drops_the_stall_correction(monkeypatch):
     entry = load(monkeypatch, 'mfcz', 'stairs_up_07')
-    assert entry.ADAPTER == dict(kind='film', update='c', level0=False) and entry.protocol()['adapter']['level0'] is None
+    assert entry.ADAPTER == dict(kind='film', update='c', level0=False, limit_scale=1.) and entry.protocol()['adapter']['level0'] is None
     assert entry.OUTPUT.parts[-2:] == ('online_adapter_mfcz_20261126', 'stairs_up_07')
     same = load(monkeypatch, 'mfc', 'stairs_up_07')
     assert entry.rows('train') == same.rows('train') and entry.rows('target', part=2) == same.rows('target', part=2)

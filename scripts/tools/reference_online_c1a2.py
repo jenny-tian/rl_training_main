@@ -22,7 +22,9 @@ PROBE_TARGETS = ('stairs_up_065', 'slope_rough_up_x11')
 # 后两个是 2026-11-23 加的，用于检验扩充后的参数库（docs/lite3-online-library2-20261123/PLAN.md）。
 NEW_TARGETS = ('stairs_up_07', 'boxes_07', 'stairs_up_075', 'boxes_08')
 TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
-assert TARGET in TARGETS + PROBE_TARGETS + NEW_TARGETS
+# S2′ 的两个下行目标（docs/lite3-online-adapter2-20261126/PLAN.md）：粗糙下坡（坡度 0.34）和 8.5 cm 下阶，地形定义在 reference_online_c1a2_targets.py。
+DOWN_TARGETS = ('slope_rough_down_x085', 'stairs_down_085')
+assert TARGET in TARGETS + PROBE_TARGETS + NEW_TARGETS + DOWN_TARGETS
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
 # C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
 # C1A2_VARIANT=bh 时码由高度特征决定（C1-b-H），每 10 步重新计算，探索加在 8 个参数上。方案见 docs/lite3-online-c1b-height-20261118/PLAN.md。
@@ -39,14 +41,20 @@ VARIANT = os.environ.get('C1A2_VARIANT', 'fixed')
 # d3 与 d1 相同，参数库换成扩充后的 6 组。方案见 docs/lite3-online-library2-20261123/PLAN.md。
 # m + 结构（f：FiLM 调制，r：动作残差网络）+ 更新方式（a：PPO，b：有方向的误差，c：两者相加）是 S1 的小模型，冻结基础策略，每个会话一份，
 # 第 0 级是 r2 的受阻修正；末尾加 z 的不带第 0 级。只做 7 cm 上阶和粗糙上坡。方案见 docs/lite3-online-adapter-20261126/PLAN.md。
-ADAPTER_VARIANTS = {f'm{k}{u}{z}': dict(kind=dict(f='film', r='residual')[k], update=u, level0=not z) for k in 'fr' for u in 'abc' for z in ('', 'z')}
-ADAPTER_TARGETS = ('stairs_up_07', 'slope_rough_up_x11')
+ADAPTER_VARIANTS = {f'm{k}{u}{z}': dict(kind=dict(f='film', r='residual')[k], update=u, level0=not z, limit_scale=1.) for k in 'fr' for u in 'abc' for z in ('', 'z')}
+ADAPTER_TARGETS = {v: ('stairs_up_07', 'slope_rough_up_x11') for v in ADAPTER_VARIANTS}
+# S2′（docs/lite3-online-adapter2-20261126/PLAN.md）：更新方式 s 是有方向的误差加权重的滑动平均，结构是动作残差网络。
+# mrs 带受阻修正，mrsz 不带；mrsw 带受阻修正并把残差幅度上限放宽到 2 倍（只在仿真里，只做 7 cm 上阶，每步变化上限不变）。
+# mrbz（S1 的 b，不带受阻修正）在 S2′ 里只做 7 cm 上阶。
+ADAPTER_VARIANTS.update(mrs=dict(kind='residual', update='s', level0=True, limit_scale=1.), mrsz=dict(kind='residual', update='s', level0=False, limit_scale=1.),
+                        mrsw=dict(kind='residual', update='s', level0=True, limit_scale=2.))
+ADAPTER_TARGETS.update(mrs=('stairs_up_07',) + DOWN_TARGETS, mrsz=('stairs_up_07',) + DOWN_TARGETS, mrsw=('stairs_up_07',), mrbz=('stairs_up_07',))
 ADAPTER_SEED = 2026112601
 assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau', 'sa1', 'sa2') + tuple(ADAPTER_VARIANTS)
 ADAPTER = ADAPTER_VARIANTS.get(VARIANT)
-assert not ADAPTER or TARGET in ADAPTER_TARGETS
-# 粗糙上坡除了小模型，只有 r2 可以训练（作为小模型的参照）。
-SLOPE = ('slope_rough_up_x11',) if ADAPTER or VARIANT == 'r2' else ()
+assert not ADAPTER or TARGET in ADAPTER_TARGETS[VARIANT]
+# 粗糙上坡和两个下行目标除了小模型，只有 r2 可以训练（作为小模型的参照）。
+SLOPE = ('slope_rough_up_x11',) + DOWN_TARGETS if ADAPTER or VARIANT == 'r2' else ()
 # sa1、sa2 是 SARA 式在线残差的对照（学习率相差 5 倍），上限 0.04。方案见 docs/lite3-online-baselines-20261125/PLAN.md。
 SARA = VARIANT in ('sa1', 'sa2')
 SARA_SEED = 2026112501
@@ -122,12 +130,16 @@ if REFLEX:
     SOURCE_MARK = 0
     OUTPUT = ROOT / 'logs/reference_six/online_reflex_20261125' / TARGET / REFLEX
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
-MARKS = ((0, 1250, 2500, 5000, 10000, 20000) if ADAPTER else (0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED or SARA else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
+# S2′ 的新变体训练到主判定所在的 10000 步；不带受阻修正的 mrsz 在 7 cm 上阶上保留 20000 步，用来看约 73 次尝试时是否仍然保持。
+ADAPTER_LONG = bool(ADAPTER) and (ADAPTER['update'] != 's' or (VARIANT == 'mrsz' and TARGET == 'stairs_up_07'))
+MARKS = ((0, 1250, 2500, 5000, 10000, 20000) if ADAPTER_LONG else (0, 1250, 2500, 5000, 10000, 20000, 45000) if FINETUNE else (0, 1250, 2500, 5000, 10000) if WINDOWED or SARA else (0, 5000, 10000, 20000, 40000) if VARIANT == 's4n'
          else (0, 5000, 10000, 20000, 40000, 60000) if VARIANT == 's2ea' or (VARIANT == 's2n' and TARGET in NEW_TARGETS) else (0, 20000, 40000, 60000))
 PRIMARY = 10000 if ADAPTER else 2500 if LIBRARY or STALL else 10000 if SELECT or FINETUNE or SARA else 40000 if VARIANT == 's4n' else (10000 if TARGET == 'boxes_06' else 5000) if WINDOWED else 60000 if VARIANT in ('s2n', 's2ea') else 40000
 # 微调的对照在 10000 步和 45000 步各做一次保持评估，其他变体只在 PRIMARY 做。
 RETENTION_MARKS = (PRIMARY, 45000) if FINETUNE else (PRIMARY,)
-TRAIN_STEPS = 20000 if ADAPTER else 45000 if FINETUNE else 10000 if WINDOWED or SARA else 40000 if VARIANT == 's4n' else 60000
+# 下行目标上的 r2 只作小模型的参照，不做保持评估（它的保持评估在 7 cm 上阶和粗糙上坡上做过，与训练的地形无关的部分相同）。
+SKIP_RETENTION = VARIANT == 'r2' and TARGET in DOWN_TARGETS
+TRAIN_STEPS = 20000 if ADAPTER_LONG else 45000 if FINETUNE else 10000 if WINDOWED or SARA else 40000 if VARIANT == 's4n' else 60000
 # 短训练检查：C1A2_TRIAL=<步数> 时训练只跑这么多步，输出放到 <目标>_trial，不影响正式运行的目录。只用于启动前确认训练路径能跑通。
 TRIAL = int(os.environ.get('C1A2_TRIAL', 0))
 if TRIAL:
@@ -204,7 +216,9 @@ def protocol():
             extra.update(algorithm='small adapter ' + VARIANT, exploration='gaussian action noise, trainable' if ADAPTER['update'] in 'ac' else 'none',
                 reward='forward speed tracking + 0.5 * unimpeded swing ratio - 2 * filter correction^2, posture termination -1' if ADAPTER['update'] in 'ac' else 'none; directed error',
                 initial='zero output layers; identical to the base policy',
+                **(dict(residual_limits=[x * ADAPTER['limit_scale'] for x in _protocol()['residual_limits']]) if ADAPTER['limit_scale'] != 1. else {}),
                 adapter=dict(kind=ADAPTER['kind'], update=ADAPTER['update'], level0='stall correction (C1-b-R)' if ADAPTER['level0'] else None, seed=ADAPTER_SEED,
+                    limits=[x * ADAPTER['limit_scale'] for x in _protocol()['residual_limits']],
                     inputs=['policy observation 45', 'terrain features 4', 'stance 4', 'previous filter correction 12'],
                     **{k.lower(): getattr(adapter, k) for k in dir(adapter) if k.isupper()}))
     if SARA:
@@ -291,7 +305,7 @@ def jobs():
     result = [dict(name='smoke', kind='smoke', part=0, mark=0, steps=600),
               dict(name='train', kind='train', part=0, mark=0, steps=TRAIN_STEPS)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050) for m in MARKS[1:] if m not in EARLY_MARKS for p in range(4)]
-    result += [dict(name=f'retention_{m}_{p:02d}', kind='retention', mark=m, part=p, steps=1050) for m in RETENTION_MARKS for p in range(20)]
+    if not SKIP_RETENTION: result += [dict(name=f'retention_{m}_{p:02d}', kind='retention', mark=m, part=p, steps=1050) for m in RETENTION_MARKS for p in range(20)]
     result += [dict(name=f'target_{m}_{p:02d}', kind='target', mark=m, part=p, steps=1050, extra=True) for m in EARLY_MARKS for p in range(4)]
     if VARIANT == 'bh':
         result += [dict(name='script', kind='target', part=0, mark=0, steps=1050, script='target'),

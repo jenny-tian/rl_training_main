@@ -180,7 +180,8 @@ def collect(args):
         if parallel and any(specs[2*k+1]['session']!=k//REPLICAS or specs[2*k+1]['repeat']!=k%REPLICAS for k in range(n//2)): raise ValueError('session rows not contiguous')
         states = torch.load(MODEL_PATHS['B'],map_location='cpu',weights_only=False)
         small = adapter_module.Learner(states['actor_state_dict'],states['critic_state_dict'],kind=ADAPTER['kind'],update=ADAPTER['update'],
-            copies=60 if parallel else n//2,replicas=REPLICAS if parallel else 1,learn=args.kind=='train',seed=ADAPTER_SEED,device=device,extra=20)
+            copies=60 if parallel else n//2,replicas=REPLICAS if parallel else 1,learn=args.kind=='train',seed=ADAPTER_SEED,device=device,extra=20,
+            limits=protocol()['adapter']['limits'])  # 目标残差的截断与安全过滤的幅度上限一致
         probe = env.obs['policy'][1::2]
         with torch.no_grad(): mismatch = float((small.act(probe,env.obs['critic'][1::2],torch.zeros(n//2,20,device=device),torch.zeros(n//2,dtype=torch.bool,device=device))-env.actor(probe)).abs().max())
         small.pending = None
