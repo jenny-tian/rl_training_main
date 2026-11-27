@@ -1,0 +1,143 @@
+{
+ "targets": {
+  "stairs_up": {
+   "target": "stairs_up_07",
+   "source": "lite3-online-adapter2-20261126",
+   "frozen": 22,
+   "mrs": 85,
+   "gain": 0.2625,
+   "ci95": [
+    0.1875,
+    0.3375
+   ],
+   "effective": true,
+   "registered": null
+  },
+  "boxes": {
+   "target": "boxes_07",
+   "source": "lite3-online-s2-20261127",
+   "frozen": 24,
+   "mrs": 90,
+   "gain": 0.275,
+   "ci95": [
+    0.20416666666666666,
+    0.3416666666666667
+   ],
+   "effective": true,
+   "registered": {
+    "effective": true,
+    "not_worse": true,
+    "retention": false,
+    "learning_contributes": false,
+    "passed": false
+   }
+  },
+  "rough": {
+   "target": "rough_09",
+   "source": "lite3-online-s2-20261127",
+   "frozen": 132,
+   "mrs": 172,
+   "gain": 0.16666666666666666,
+   "ci95": [
+    0.08333333333333333,
+    0.25
+   ],
+   "effective": true,
+   "registered": {
+    "effective": true,
+    "not_worse": true,
+    "retention": true,
+    "learning_contributes": false,
+    "passed": false
+   }
+  },
+  "slope": {
+   "target": "slope_up_57",
+   "source": "lite3-online-s2-20261127",
+   "frozen": 39,
+   "mrs": 56,
+   "gain": 0.07083333333333333,
+   "ci95": [
+    0.004166666666666667,
+    0.1375
+   ],
+   "effective": false,
+   "registered": {
+    "effective": false,
+    "not_worse": true,
+    "retention": false,
+    "learning_contributes": false,
+    "passed": false
+   }
+  },
+  "slope_rough_up": {
+   "target": "slope_rough_up_x11",
+   "source": "lite3-online-s2-20261127",
+   "frozen": 51,
+   "mrs": 78,
+   "gain": 0.1125,
+   "ci95": [
+    0.0375,
+    0.18333333333333332
+   ],
+   "effective": true,
+   "registered": {
+    "effective": true,
+    "not_worse": true,
+    "retention": false,
+    "learning_contributes": false,
+    "passed": false
+   }
+  },
+  "slope_rough_down": {
+   "target": "slope_rough_down_x11",
+   "source": "lite3-online-s2-20261127",
+   "frozen": 2,
+   "mrs": 66,
+   "gain": 0.26666666666666666,
+   "ci95": [
+    0.20833333333333334,
+    0.32916666666666666
+   ],
+   "effective": true,
+   "registered": {
+    "effective": true,
+    "not_worse": true,
+    "retention": true,
+    "learning_contributes": false,
+    "passed": false
+   }
+  },
+  "stairs_down": {
+   "target": "stairs_down_085",
+   "source": "lite3-online-adapter2-20261126",
+   "frozen": 78,
+   "mrs": 240,
+   "gain": 0.675,
+   "ci95": [
+    0.6125,
+    0.7375
+   ],
+   "effective": true,
+   "registered": {
+    "effective": true,
+    "not_worse": true,
+    "beats_stall_correction": true,
+    "retention": true,
+    "passed": true
+   }
+  }
+ },
+ "coverage": {
+  "classes": {
+   "stairs_up": true,
+   "stairs_down": true,
+   "boxes": true,
+   "rough": true,
+   "slope": false,
+   "slope_rough": true
+  },
+  "effective": 5,
+  "passed": true
+ }
+}

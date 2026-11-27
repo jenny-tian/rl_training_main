@@ -3,6 +3,8 @@
 用法：python reference_online_s2.py probe                 汇总规则对照探路，按方案第 2 节选目标，写 PROBE.json
       python reference_online_s2.py chains [--partial]    入选目标上 mrs 的判定（方案第 4 节），写 RESULTS_*.json 和 SUMMARY.json
       python reference_online_s2.py top                   脚本化检查的初筛和确认（方案第 5 节），写 TOP.json
+      python reference_online_s2.py extra                 只作描述的配对比较（减规则对照、10000 步减 2500 步），写 EXTRA.json
+      python reference_online_s2.py top-describe          脚本化检查各组的描述（暂停比例、最后一级的姿态、失败停在哪里），写 TOP_DESCRIBE.json
 前面几个函数不依赖记录文件，有测试。读记录时各目标、各变体用子进程分别汇总（运行入口在导入时由环境变量确定目标和变体）。
 """
 from __future__ import annotations
@@ -231,10 +233,91 @@ def top_one():
     save(ROOT / 'docs/lite3-online-s2-20261127/TOP.json', result)
 
 
+def top_posture(feet_x, fronts):
+    """停在最后一级的姿态：两条前腿都过了全部立面，后腿最多只差最后一级，并且至少有一条后腿还没过去。
+    feet_x (..., 4)，顺序 FL FR HL HR；fronts 是各立面的位置（递增）。"""
+    import numpy as np
+    feet_x, fronts = np.asarray(feet_x, float), np.asarray(fronts, float)
+    if feet_x.shape[-1] != 4 or fronts.ndim != 1 or len(fronts) == 0:
+        raise ValueError('four feet and at least one riser required')
+    passed, n = (feet_x[..., None] > fronts).sum(-1), len(fronts)
+    return (passed[..., :2] == n).all(-1) & (passed[..., 2:].min(-1) >= n - 1) & (passed[..., 2:].min(-1) < n)
+
+
+def top_describe():
+    """脚本化检查各组 Updated 组的描述（子进程）：暂停的比例、停在最后一级的姿态下的机身高度和执行的残差、没到终点的回合停在哪里。只读记录。"""
+    import collections
+    import glob
+    import numpy as np
+    from reference_online_c1a2 import OUTPUT
+    from reference_online_adapter2_describe import failure_place
+    from reference_stairs_eval import ROOT, save
+    base, result = OUTPUT.parent, {}
+    for group in TOP_GROUPS + tuple(f'confirm_{g}' for g in ('none',) + tuple(json.loads((ROOT / 'docs/lite3-online-s2-20261127/TOP.json').read_text())['to_confirm'])):
+        total = collections.Counter(); places = collections.Counter()
+        for part in range(4):
+            d = base / group / f'target_0_{part:02d}'
+            fronts = json.loads((d / 'geometry.json').read_text())['stairs_up_07:0']['fronts']
+            records = json.loads((d / 'episodes.json').read_text())['records']
+            keys = ('paused', 'stance', 'phase', 'feet', 'learned_effect', 'state.base_height', 'residual_request')
+            trace = {k: np.concatenate([np.load(f)[k] for f in sorted(glob.glob(str(d / 'trace_*.npz')))]) for k in keys}
+            policy = (trace['phase'] == 1)[:, 1::2]
+            posture = top_posture(trace['feet'][:, 1::2, :, 0], fronts) & policy
+            paused, height = trace['paused'][:, 1::2], trace['state.base_height'][:, 1::2, 0]
+            stance, effect, request = trace['stance'][:, 1::2].astype(bool), trace['learned_effect'][:, 1::2], trace['residual_request'][:, 1::2]
+            total.update(policy=int(policy.sum()), paused=int((paused & policy).sum()), posture=int(posture.sum()), posture_paused=int((paused & posture).sum()),
+                         posture_low=int(((height < .20) & posture).sum()))
+            total['height_sum'] += float(height[posture].sum())
+            hind = stance[:, :, 2:] & posture[:, :, None]      # 这个姿态下着地的后腿
+            total['hind_steps'] += int(hind.sum())
+            total['hind_knee_effect'] += float(effect[:, :, 8::3][hind].sum()); total['hind_knee_request'] += float(request[:, :, 8::3][hind].sum())
+            for r in records:
+                if r['arm'] == 'Updated' and r['outcome'] in ('stuck', 'timeout'):
+                    last = np.flatnonzero(trace['phase'][:, r['env_id']] == 1)[-1]
+                    places[failure_place(trace['feet'][last, r['env_id'], :, 0], fronts)] += 1
+        result[group] = dict(paused_fraction=total['paused'] / total['policy'], posture_fraction=total['posture'] / total['policy'],
+            posture_paused_fraction=total['posture_paused'] / max(total['posture'], 1), posture_height_below_020=total['posture_low'] / max(total['posture'], 1),
+            posture_mean_height=total['height_sum'] / max(total['posture'], 1),
+            posture_hind_stance_knee_executed=total['hind_knee_effect'] / max(total['hind_steps'], 1), posture_hind_stance_knee_requested=total['hind_knee_request'] / max(total['hind_steps'], 1),
+            not_reached_by_place=dict(places))
+        x = result[group]
+        print(f"{group:22s} paused {x['paused_fraction']:.3f} | at last riser: share of steps {x['posture_fraction']:.3f} paused {x['posture_paused_fraction']:.3f} height<0.20 {x['posture_height_below_020']:.3f}"
+              f" mean height {x['posture_mean_height']:.3f} hind stance knee requested {x['posture_hind_stance_knee_requested']:+.3f} executed {x['posture_hind_stance_knee_executed']:+.3f} | not reached {x['not_reached_by_place']}")
+    save(ROOT / 'docs/lite3-online-s2-20261127/TOP_DESCRIBE.json', result)
+
+
+EXTRA_TARGETS = ('stairs_up_07', 'stairs_down_085', 'slope_rough_down_x10', 'boxes_07', 'rough_09', 'slope_up_57', 'slope_rough_up_x11', 'slope_rough_down_x11')
+
+
+def extra_one():
+    """只作描述的配对比较（子进程）：mrs 的 10000 步减规则对照、10000 步减 2500 步，包括沿用 S2′ 结果的三个目标。"""
+    from reference_online_c1a2 import OUTPUT, TARGET, VARIANT
+    from reference_online_c1aea_results import against_fixed
+    from reference_online_select_results import evaluation
+    from reference_stairs_eval import ROOT
+    assert VARIANT == 'mrs'
+    rule = evaluation(ROOT / 'logs/reference_six/online_directed_rule_20261126' / TARGET / 'directed', 0)
+    late = evaluation(OUTPUT, 10000)
+    print(json.dumps({TARGET: dict(minus_rule=against_fixed(late, rule), late_minus_2500=against_fixed(late, evaluation(OUTPUT, 2500)))}))
+
+
+def extra():
+    from pathlib import Path
+    result = {}
+    for target in EXTRA_TARGETS:
+        out = subprocess.run([sys.executable, __file__, 'extra'], check=True, capture_output=True, text=True,
+                             env=dict(os.environ, S2_CHILD='1', C1A2_TARGET=target, C1A2_VARIANT='mrs')).stdout
+        result.update(json.loads(out.strip().splitlines()[-1]))
+        for name, v in result[target].items():
+            print(f"{target:22s} {name:16s} {v['D_success']} - {v['B_success']} = {100 * v['mean_session_delta']:+.1f} [{100 * v['ci95'][0]:.1f}, {100 * v['ci95'][1]:.1f}]")
+    (Path(__file__).resolve().parents[2] / 'docs/lite3-online-s2-20261127/EXTRA.json').write_text(json.dumps(result, ensure_ascii=False, indent=1))
+
+
 if __name__ == '__main__':
-    if os.environ.get('S2_CHILD'): chain_one('--partial' in sys.argv) if sys.argv[1] == 'chains' else top_one()
+    if os.environ.get('S2_CHILD'): chain_one('--partial' in sys.argv) if sys.argv[1] == 'chains' else top_describe() if sys.argv[1] == 'top-describe' else extra_one() if sys.argv[1] == 'extra' else top_one()
     elif sys.argv[1] == 'probe': probe()
     elif sys.argv[1] == 'chains': chains('--partial' in sys.argv)
+    elif sys.argv[1] == 'extra': extra()
     else:
-        assert sys.argv[1] == 'top'
-        subprocess.run([sys.executable, __file__, 'top'], check=True, env=dict(os.environ, S2_CHILD='1', C1A2_TARGET='stairs_up_07', C1A2_VARIANT='r2', C1A2_TOP='none'))
+        assert sys.argv[1] in ('top', 'top-describe')
+        subprocess.run([sys.executable, __file__, sys.argv[1]], check=True, env=dict(os.environ, S2_CHILD='1', C1A2_TARGET='stairs_up_07', C1A2_VARIANT='r2', C1A2_TOP='none'))

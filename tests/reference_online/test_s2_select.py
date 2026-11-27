@@ -133,3 +133,15 @@ def test_the_chain_verdict_follows_the_four_registered_conditions(s2):
     assert not s2.verdict(**dict(good, minus_rule=delta(.03, 0.)))['learning_contributes']
     bad = s2.verdict(**dict(good, five=dict(five, every_family_loss_at_most_5pp=False)))
     assert not bad['retention'] and not bad['passed']
+
+
+def test_the_top_posture_is_front_feet_past_every_riser_and_hind_feet_at_the_last_one(s2):
+    import numpy as np
+    fronts = [1., 2., 3.]
+    feet = np.array([[[3.2, 3.1, 2.5, 2.4],      # 前腿都过了，后腿在最后一级前：是
+                      [3.2, 3.1, 3.05, 2.4],     # 一条后腿已经过去：仍然是
+                      [3.2, 3.1, 3.05, 3.02],    # 四条腿都过了：不是
+                      [3.2, 2.9, 2.5, 2.4],      # 一条前腿没过：不是
+                      [3.2, 3.1, 1.5, 2.4]]])    # 一条后腿还差两级：不是
+    assert s2.top_posture(feet, fronts).tolist() == [[True, True, False, False, False]]
+    with pytest.raises(ValueError): s2.top_posture(feet[..., :3], fronts)
