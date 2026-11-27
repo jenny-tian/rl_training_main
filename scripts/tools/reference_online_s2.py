@@ -22,6 +22,7 @@ CLASSES = dict(boxes=('boxes_07', 'boxes_08'), rough=('rough_09', 'rough_10', 'r
 FALLBACK = dict(slope_rough_down='slope_rough_down_x10', stairs_down='stairs_down_085')
 RULE_CEILING, FROZEN_CEILING, FLOOR, PREFERRED_FROZEN = 204, 168, 24, 75   # 每个候选 240 个回合
 TOP_GROUPS = ('none', 'hind_half', 'hind_full', 'all_half', 'h15', 'h15_hind_half')
+TOP_EXTRA_CONFIRM = ('hind_full',)  # 方案第 9 节补充的确认起点评估，只作描述
 EPSILON = 1e-9
 
 
@@ -230,6 +231,11 @@ def top_one():
             other = evaluation(base / f'confirm_{g}', 0); d = against_fixed(other, none)
             result['confirmation'][g] = dict(versus_frozen=paired_summary(other), minus_none=d, confirmed=confirmed(d))
             print(f" confirm {g}: none {d['B_success']} group {d['D_success']} delta {pp(d)} confirmed {confirmed(d)} outcomes {result['confirmation'][g]['versus_frozen']['Updated']['outcomes']}")
+        for g in TOP_EXTRA_CONFIRM:  # 方案第 9 节：看到确认结果之后加的，只作描述，不给出登记的判定
+            if g in result['to_confirm'] or not done(base / f'confirm_{g}', 0): continue
+            other = evaluation(base / f'confirm_{g}', 0); d = against_fixed(other, none)
+            result.setdefault('descriptive_confirmation', {})[g] = dict(versus_frozen=paired_summary(other), minus_none=d)
+            print(f" descriptive confirm {g}: none {d['B_success']} group {d['D_success']} delta {pp(d)} outcomes {result['descriptive_confirmation'][g]['versus_frozen']['Updated']['outcomes']}")
     save(ROOT / 'docs/lite3-online-s2-20261127/TOP.json', result)
 
 
@@ -253,7 +259,8 @@ def top_describe():
     from reference_online_adapter2_describe import failure_place
     from reference_stairs_eval import ROOT, save
     base, result = OUTPUT.parent, {}
-    for group in TOP_GROUPS + tuple(f'confirm_{g}' for g in ('none',) + tuple(json.loads((ROOT / 'docs/lite3-online-s2-20261127/TOP.json').read_text())['to_confirm'])):
+    confirmed_groups = tuple(json.loads((ROOT / 'docs/lite3-online-s2-20261127/TOP.json').read_text())['to_confirm'])
+    for group in TOP_GROUPS + tuple(f'confirm_{g}' for g in ('none',) + confirmed_groups + tuple(g for g in TOP_EXTRA_CONFIRM if g not in confirmed_groups)):
         total = collections.Counter(); places = collections.Counter()
         for part in range(4):
             d = base / group / f'target_0_{part:02d}'
