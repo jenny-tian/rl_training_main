@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 import torch
 
-from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX, ADAPTER, RULE
+from reference_online_c1a2 import OUTPUT, MARKS, rows, protocol, episode_return, NOISE_SEED, VARIANT, REPLICAS, SWING, SWING_BASIS, SOURCE, WINDOWED, WINDOW_INITIAL, LIBRARY, SELECT, SELECT_SEED, CANDIDATE, LEAD, RATE, STALL, HYBRID, FINETUNE, SARA, REFLEX, ADAPTER, RULE, TOP
 from reference_online_targets import MODEL_PATHS, HASHES
 from reference_stairs_eval import save as native_save, sha
 
@@ -155,6 +155,11 @@ def collect(args):
         if SOURCE:  # 参数迁移：Updated 组用在另一个地形上学到的参数
             from reference_online_transfer import load_source
             checkpoint = load_source()
+        elif TOP:  # 上阶最后一级的脚本化检查：Updated 组用 r2 在 10000 步学到的摆动幅度，手工动作在采集循环里另外加
+            from reference_online_c1a2 import TOP_SOURCE, TOP_SOURCE_MARK
+            learned = torch.load(TOP_SOURCE,map_location='cpu',weights_only=True)
+            if learned['control_steps']!=TOP_SOURCE_MARK or learned['kind']!='train' or len(learned['heads'])!=120: raise ValueError('unexpected stall-correction snapshot')
+            checkpoint = dict(control_steps=0,heads=learned['heads'])
         elif REFLEX or RULE:  # 抬腿反射、规则对照：两组参数都是全 0，请求在采集循环里另外加
             from reference_online_transfer import zero_heads
             checkpoint = dict(control_steps=0,heads=zero_heads())
@@ -203,7 +208,12 @@ def collect(args):
         save(args.output/'swing.json',dict(swing,residual_limits=limit.tolist(),residual_rate_limit=safety.limits.residual_rate_limit))
     else:
         safety = CurrentModelSafetyFilter(SafetyLimits(residual_limits=torch.tensor(protocol()['residual_limits'],device=device),
-            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs or FINETUNE or SARA else {})))
+            **(dict(residual_rate_limit=protocol()['residual_rate_limit']) if bs or FINETUNE or SARA else {}),
+            **(dict(min_base_height=protocol()['top_probe']['min_base_height']) if TOP else {})))
+    if TOP:
+        from rl_training.ea_lpl import top_probe
+        if args.kind!='target' or any(specs[i]['arm']!=('Frozen','Updated')[i%2] for i in range(n)): raise ValueError('top probe needs paired target evaluation')
+        top_feature, top_steps, top_sum = c1b_h.FEATURES.index('top'), 0, 0.
     bridge = ResidualSafetyBridge(env.adapter,safety,action_clip=clip_action)
     lead = None
     if LEAD:
@@ -290,6 +300,10 @@ def collect(args):
                     extra = torch.cat((torch.as_tensor(features[1::2],dtype=torch.float32,device=device),stance[1::2].float(),correction[1::2]),1)
                     adapted = small.act(env.obs['policy'][1::2],env.obs['critic'][1::2],extra,torch.as_tensor(policy[1::2],device=device))
                     request[1::2] += clip_action(adapted)-clip_action(raw[1::2])
+                if TOP:  # 手工动作只加在 Updated 组（奇数行）着地的腿上，乘顶部特征
+                    top_request = top_probe.request(TOP,stance[1::2],torch.as_tensor(features[1::2,top_feature],dtype=torch.float32,device=device).clamp(0,1))
+                    request[1::2] += top_request
+                    top_steps += int(policy[1::2].sum()); top_sum += float(top_request[torch.as_tensor(policy[1::2],device=device)].abs().sum())
                 if rule:
                     rule_active = torch.as_tensor(policy[1::2],device=device)
                     request[1::2] += rule.act(rule_active)
@@ -477,6 +491,8 @@ def collect(args):
     checkpoint('final.pt',completed_steps); persist('episodes.json')
     if windowed: save(args.output/'windows.json',{f'{s}:{arm}':group.log for (s,arm),group in groups.items()})
     if reflex: save(args.output/'reflex.json',dict(rule=REFLEX,triggers=reflex.triggers.cpu().numpy()))
+    if TOP: save(args.output/'top.json',dict(settings=protocol()['top_probe'],policy_steps=top_steps,mean_abs_request_per_step=top_sum/max(top_steps,1),
+        residual_limits=safety.limits.residual_limits.tolist(),residual_rate_limit=safety.limits.residual_rate_limit,min_base_height=safety.limits.min_base_height))
     if rule: save(args.output/'rule.json',dict(rule=RULE,settings=protocol()['directed_rule'],policy_steps_with_rule=rule_steps))
     if tuner and args.kind=='train': save(args.output/'finetune.json',dict(settings=settings,updates=tuner.updates,log=tuner.log))
     if windowed and (LIBRARY or SELECT):

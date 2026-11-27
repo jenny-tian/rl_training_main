@@ -142,6 +142,17 @@ if RULE:
     assert not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX) and VARIANT == 'r2' and TARGET in ('stairs_up_07',) + DOWN_TARGETS + S2_CANDIDATES and RULE == 'directed'
     SOURCE_MARK = 0
     OUTPUT = ROOT / 'logs/reference_six/online_directed_rule_20261126' / TARGET / RULE
+# 上阶最后一级的脚本化检查（docs/lite3-online-s2-20261127/PLAN.md 第 5 节）：C1A2_TOP=<组> 时只做目标评估，Updated 组载入 r2 在 7 cm 上阶
+# 10000 步的参数（受阻修正学到的摆动幅度），另外加一组手工设定的动作（ea_lpl/top_probe.py）；带 h15 的组把仿真里过滤器的机身高度下限降到 0.15 m。
+# 评估起点与 r2 相同；C1A2_TOP_CONFIRM=1 时换成同一命名空间里新的起点槽位，输出放到 confirm_<组>。
+TOP, TOP_CONFIRM = os.environ.get('C1A2_TOP'), bool(os.environ.get('C1A2_TOP_CONFIRM'))
+TOP_GROUPS = ('none', 'hind_half', 'hind_full', 'all_half', 'h15', 'h15_hind_half')
+TOP_CONFIRM_SLOT = 500000  # 确认用的起点槽位从这里开始，不与训练、评估（最大 59901）和其他脚本化检查（900000 起）重合
+assert TOP or not TOP_CONFIRM
+if TOP:
+    assert not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE) and VARIANT == 'r2' and TARGET == 'stairs_up_07' and TOP in TOP_GROUPS
+    TOP_SOURCE, TOP_SOURCE_MARK, SOURCE_MARK = OUTPUT / 'train' / 'at_10000.pt', 10000, 0
+    OUTPUT = ROOT / 'logs/reference_six/online_top_probe_20261127' / TARGET / (('confirm_' if TOP_CONFIRM else '') + TOP)
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
 # S2′ 的新变体训练到主判定所在的 10000 步；不带受阻修正的 mrsz 在 7 cm 上阶上保留 20000 步，用来看约 73 次尝试时是否仍然保持。
 ADAPTER_LONG = bool(ADAPTER) and (ADAPTER['update'] != 's' or (VARIANT == 'mrsz' and TARGET == 'stairs_up_07'))
@@ -156,7 +167,7 @@ TRAIN_STEPS = 20000 if ADAPTER_LONG else 45000 if FINETUNE else 10000 if WINDOWE
 # 短训练检查：C1A2_TRIAL=<步数> 时训练只跑这么多步，输出放到 <目标>_trial，不影响正式运行的目录。只用于启动前确认训练路径能跑通。
 TRIAL = int(os.environ.get('C1A2_TRIAL', 0))
 if TRIAL:
-    assert ADAPTER and not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE)
+    assert ADAPTER and not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE or TOP)
     TRAIN_STEPS, OUTPUT = TRIAL, OUTPUT.parent / (TARGET + '_trial')
 # w2 在箱体上的起点：s2n 在 6 cm 上阶 60000 步的 60 个会话平均参数（与迁移评估 T3 的平均参数相同）。
 WINDOW_INITIAL = ROOT / 'logs/reference_six' / RUNS['s2n'] / 'stairs_up_06/train/at_60000.pt' if WINDOWED and TARGET == 'boxes_06' else None
@@ -227,6 +238,11 @@ def protocol():
         if RULE:
             from rl_training.ea_lpl import adapter
             extra.update(rule=RULE, directed_rule=dict(track_gain=adapter.TRACK_GAIN, slow=adapter.SLOW, limits=list(_protocol()['residual_limits']), delay_steps=1, level0=None))
+        if TOP:
+            from rl_training.ea_lpl import top_probe
+            amplitude, legs, _ = top_probe.PROBES[TOP]
+            extra.update(top_probe=dict(group=TOP, amplitude=amplitude, legs=list(legs), min_base_height=top_probe.min_base_height(TOP), feature='top',
+                                        parameters='r2 stairs_up_07 at 10000', confirmation=TOP_CONFIRM))
         if ADAPTER:
             from rl_training.ea_lpl import adapter
             extra.update(algorithm='small adapter ' + VARIANT, exploration='gaussian action noise, trainable' if ADAPTER['update'] in 'ac' else 'none',
@@ -303,6 +319,7 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
             for repeat in range(4 if kind == 'target' else 2 if kind == 'retention' else REPLICAS):
                 # 训练时 repeat 是会话内并行环境的编号，各用自己的起点槽位。
                 slot = pair + 1000 * repeat if training else pair * 1000 + case_index * 100 + repeat
+                if TOP_CONFIRM and kind == 'target': slot += TOP_CONFIRM_SLOT
                 for arm in ('Frozen', 'Updated'):
                     result.append(dict(env_id=len(result), session=pair, arm=arm, condition=case, slot=slot,
                         repeat=repeat, column=TERRAINS.get(case, 0), row=(1, 8)[repeat] if kind == 'retention' else 0))
@@ -313,7 +330,7 @@ def rows(kind, *, part=0, smoke_index=1, script=None):
 
 
 def jobs():
-    if SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE:
+    if SOURCE or CANDIDATE or LEAD or RATE or REFLEX or RULE or TOP:
         result = [dict(name=f'target_{SOURCE_MARK}_{p:02d}', kind='target', mark=SOURCE_MARK, part=p, steps=1050, smoke_index=1) for p in range(4)]
         if (RATE and RATE_LIMIT == .04 and TARGET in NEW_TARGETS) or ((REFLEX or RULE) and TARGET == 'stairs_up_07'):  # 上限 0.04 的保持评估（docs/lite3-online-rate04-20261124/PLAN.md）
             result += [dict(name=f'retention_0_{p:02d}', kind='retention', mark=0, part=p, steps=1050, smoke_index=1) for p in range(20)]
