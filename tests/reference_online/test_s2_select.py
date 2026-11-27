@@ -110,3 +110,14 @@ def test_probe_counts_refuse_an_unfinished_or_failed_candidate(s2, tmp_path):
     write_part(tmp_path / 'rough_10' / 'directed' / 'target_0_03', [('success', 'success')])
     (tmp_path / 'rough_10' / 'directed' / 'target_0_03' / 'report.json').write_text(json.dumps(dict(status='failed')))
     with pytest.raises(ValueError): s2.probe_counts(tmp_path, 'rough_10')
+
+
+def test_a_candidate_that_falls_while_standing_is_marked_unusable(s2, tmp_path):
+    import json
+    write_part(tmp_path / 'rough_10' / 'directed' / 'target_0_00', [('success', 'success')])
+    assert not s2.standing_failed(tmp_path, 'rough_10')
+    d = tmp_path / 'rough_10' / 'directed' / 'target_0_01'; d.mkdir()
+    (d / 'error.json').write_text(json.dumps(dict(error='RuntimeError: standing preparation terminated')))
+    assert s2.standing_failed(tmp_path, 'rough_10')
+    # 不可用的候选按 (0, 0) 参加选择，不会符合条件
+    assert not s2.eligible(0, 0)

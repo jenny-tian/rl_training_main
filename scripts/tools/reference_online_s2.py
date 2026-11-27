@@ -82,22 +82,34 @@ def probe_counts(directory, candidate):
                 frozen_outcomes=outcomes['Frozen'], rule_outcomes=outcomes['Updated'], frozen_progress=progress['Frozen'], rule_progress=progress['Updated'])
 
 
+def standing_failed(directory, candidate):
+    """这个候选有没有评估分片在起步前的站立准备阶段就有机器人终止（入口的保护会中止这个分片）。"""
+    from pathlib import Path
+    errors = sorted((Path(directory) / candidate / 'directed').glob('target_0_*/error.json'))
+    return any('standing preparation terminated' in json.loads(e.read_text())['error'] for e in errors)
+
+
 def probe():
     from pathlib import Path
     root = Path(__file__).resolve().parents[2]
-    rows = {c: probe_counts(root / 'logs/reference_six/online_directed_rule_20261126', c) for names in CLASSES.values() for c in names}
+    logs = root / 'logs/reference_six/online_directed_rule_20261126'
+    # 站立准备阶段就有终止的候选不能用在线入口评估，更不能训练，记为不可用，不参加选目标（方案补充一节）。
+    unusable = [c for names in CLASSES.values() for c in names if standing_failed(logs, c)]
+    rows = {c: probe_counts(logs, c) for names in CLASSES.values() for c in names if c not in unusable}
     if any(r['n'] != 240 for r in rows.values()): raise ValueError('every candidate needs 240 paired episodes')
-    chosen = select_targets({c: (r['frozen'], r['rule']) for c, r in rows.items()})
+    chosen = select_targets({c: (rows[c]['frozen'], rows[c]['rule']) if c in rows else (0, 0) for names in CLASSES.values() for c in names})
     late = lambda o: o.get('stuck', 0) + o.get('timeout', 0)
     print('| 类 | 候选 | 原步态 | 规则对照 | 原步态的失败（姿态 / 没到终点 / 越界） | 规则对照的失败 | 是否符合 |\n|---|---|---|---|---|---|---|')
     for name, candidates in CLASSES.items():
         for c in candidates:
+            if c in unusable:
+                print(f'| {name} | `{c}` | — | — | 站立准备阶段有终止，评估中止 | — | 不可用 |'); continue
             r = rows[c]; f, u = r['frozen_outcomes'], r['rule_outcomes']
             mark = '入选' if chosen[name]['target'] == c and chosen[name]['train'] else '符合' if eligible(r['frozen'], r['rule']) else '不符合'
             print(f"| {name} | `{c}` | {r['frozen']} | {r['rule']} | {f.get('posture_failure', 0)} / {late(f)} / {f.get('lateral_exit', 0)} | "
                   f"{u.get('posture_failure', 0)} / {late(u)} / {u.get('lateral_exit', 0)} | {mark} |")
     print(json.dumps(chosen, ensure_ascii=False))
-    (root / 'docs/lite3-online-s2-20261127/PROBE.json').write_text(json.dumps(dict(candidates=rows, selection=chosen), ensure_ascii=False, indent=1))
+    (root / 'docs/lite3-online-s2-20261127/PROBE.json').write_text(json.dumps(dict(candidates=rows, unusable=unusable, selection=chosen), ensure_ascii=False, indent=1))
 
 
 if __name__ == '__main__':
