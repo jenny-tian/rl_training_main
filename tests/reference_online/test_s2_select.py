@@ -121,3 +121,15 @@ def test_a_candidate_that_falls_while_standing_is_marked_unusable(s2, tmp_path):
     assert s2.standing_failed(tmp_path, 'rough_10')
     # 不可用的候选按 (0, 0) 参加选择，不会符合条件
     assert not s2.eligible(0, 0)
+
+
+def test_the_chain_verdict_follows_the_four_registered_conditions(s2):
+    delta = lambda mean, low: dict(mean_session_delta=mean, ci95=[low, mean + .1])
+    five = dict(posture_increase_at_most_2pp=True, every_family_loss_at_most_5pp=True, flat_velocity_ratio_at_most_1p10=True)
+    good = dict(gain=delta(.10, .01), late_minus_early=delta(-.05, -.2), minus_rule=delta(.03, .001), five=five)
+    assert s2.verdict(**good) == dict(effective=True, not_worse=True, retention=True, learning_contributes=True, passed=True)
+    assert not s2.verdict(**dict(good, gain=delta(.09, .01)))['effective'] and not s2.verdict(**dict(good, gain=delta(.2, 0.)))['effective']
+    assert not s2.verdict(**dict(good, late_minus_early=delta(-.06, -.2)))['not_worse']
+    assert not s2.verdict(**dict(good, minus_rule=delta(.03, 0.)))['learning_contributes']
+    bad = s2.verdict(**dict(good, five=dict(five, every_family_loss_at_most_5pp=False)))
+    assert not bad['retention'] and not bad['passed']
