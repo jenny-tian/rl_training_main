@@ -25,7 +25,11 @@ TARGET = os.environ.get('C1A2_TARGET', TARGETS[0])
 # S2′ 的两个下行目标（docs/lite3-online-adapter2-20261126/PLAN.md）：粗糙下坡（坡度 0.40，方案第 11 节由 0.34 改来）和 8.5 cm 下阶，
 # 地形定义在 reference_online_c1a2_targets.py。
 DOWN_TARGETS = ('slope_rough_down_x10', 'stairs_down_085')
-assert TARGET in TARGETS + PROBE_TARGETS + NEW_TARGETS + DOWN_TARGETS
+# S2 的候选目标（docs/lite3-online-s2-20261127/PLAN.md）：前三个是已有的在线目标，其余是新加的地形。规则对照探路、mrs 和 r2 可以用在这些目标上。
+S2_NEW = ('rough_09', 'rough_10', 'rough_11', 'slope_up_55', 'slope_up_57', 'slope_up_60', 'slope_rough_up_x12',
+          'slope_rough_down_x11', 'slope_rough_down_x12', 'stairs_down_09', 'stairs_down_10')
+S2_CANDIDATES = ('boxes_07', 'boxes_08', 'slope_rough_up_x11') + S2_NEW
+assert TARGET in TARGETS + PROBE_TARGETS + NEW_TARGETS + DOWN_TARGETS + S2_NEW
 # C1A2_VARIANT=ea 时改用执行感知的探索协方差（C1-a-EA），其余设置完全相同。方案见 docs/lite3-online-c1a-ea-20261117/PLAN.md。
 # C1A2_VARIANT=m4 时每个会话用 4 个并行环境、普通梯度步、探索标准差 1.0。方案见 docs/lite3-online-c1a-m4-20261118/PLAN.md。
 # C1A2_VARIANT=bh 时码由高度特征决定（C1-b-H），每 10 步重新计算，探索加在 8 个参数上。方案见 docs/lite3-online-c1b-height-20261118/PLAN.md。
@@ -49,13 +53,13 @@ ADAPTER_TARGETS = {v: ('stairs_up_07', 'slope_rough_up_x11') for v in ADAPTER_VA
 # mrbz（S1 的 b，不带受阻修正）在 S2′ 里只做 7 cm 上阶。
 ADAPTER_VARIANTS.update(mrs=dict(kind='residual', update='s', level0=True, limit_scale=1.), mrsz=dict(kind='residual', update='s', level0=False, limit_scale=1.),
                         mrsw=dict(kind='residual', update='s', level0=True, limit_scale=2.))
-ADAPTER_TARGETS.update(mrs=('stairs_up_07',) + DOWN_TARGETS, mrsz=('stairs_up_07',) + DOWN_TARGETS, mrsw=('stairs_up_07',), mrbz=('stairs_up_07',))
+ADAPTER_TARGETS.update(mrs=('stairs_up_07',) + DOWN_TARGETS + S2_CANDIDATES, mrsz=('stairs_up_07',) + DOWN_TARGETS, mrsw=('stairs_up_07',), mrbz=('stairs_up_07',))
 ADAPTER_SEED = 2026112601
 assert VARIANT in ('fixed', 'ea', 'm4', 'bh', 'bs', 'bsf', 's2f', 's2n', 's2ea', 'w2', 'c3', 'd1', 'd2', 's4n', 'd3', 'r1', 'd4', 'h1', 'r2', 'ft', 'lora', 'ftu', 'lorau', 'sa1', 'sa2') + tuple(ADAPTER_VARIANTS)
 ADAPTER = ADAPTER_VARIANTS.get(VARIANT)
 assert not ADAPTER or TARGET in ADAPTER_TARGETS[VARIANT]
 # 粗糙上坡和两个下行目标除了小模型，只有 r2 可以训练（作为小模型的参照）。
-SLOPE = ('slope_rough_up_x11',) + DOWN_TARGETS if ADAPTER or VARIANT == 'r2' else ()
+SLOPE = ('slope_rough_up_x11',) + DOWN_TARGETS + S2_NEW if ADAPTER or VARIANT == 'r2' else ()
 # sa1、sa2 是 SARA 式在线残差的对照（学习率相差 5 倍），上限 0.04。方案见 docs/lite3-online-baselines-20261125/PLAN.md。
 SARA = VARIANT in ('sa1', 'sa2')
 SARA_SEED = 2026112501
@@ -135,7 +139,7 @@ if REFLEX:
 # 保持评估只在 7 cm 上阶的目录下做一次（保持地形与目标无关）。
 RULE = os.environ.get('C1A2_RULE')
 if RULE:
-    assert not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX) and VARIANT == 'r2' and TARGET in ('stairs_up_07',) + DOWN_TARGETS and RULE == 'directed'
+    assert not (SOURCE or CANDIDATE or LEAD or RATE or REFLEX) and VARIANT == 'r2' and TARGET in ('stairs_up_07',) + DOWN_TARGETS + S2_CANDIDATES and RULE == 'directed'
     SOURCE_MARK = 0
     OUTPUT = ROOT / 'logs/reference_six/online_directed_rule_20261126' / TARGET / RULE
 # 新地形上的本地学习直接保存 5000、10000 步的快照，用来报告学习速度。
@@ -147,7 +151,7 @@ PRIMARY = 10000 if ADAPTER else 2500 if LIBRARY or STALL else 10000 if SELECT or
 # 微调的对照在 10000 步和 45000 步各做一次保持评估，其他变体只在 PRIMARY 做。
 RETENTION_MARKS = (PRIMARY, 45000) if FINETUNE else (PRIMARY,)
 # 下行目标上的 r2 只作小模型的参照，不做保持评估（它的保持评估在 7 cm 上阶和粗糙上坡上做过，与训练的地形无关的部分相同）。
-SKIP_RETENTION = VARIANT == 'r2' and TARGET in DOWN_TARGETS
+SKIP_RETENTION = VARIANT == 'r2' and TARGET in DOWN_TARGETS + S2_NEW
 TRAIN_STEPS = 20000 if ADAPTER_LONG else 45000 if FINETUNE else 10000 if WINDOWED or SARA else 40000 if VARIANT == 's4n' else 60000
 # 短训练检查：C1A2_TRIAL=<步数> 时训练只跑这么多步，输出放到 <目标>_trial，不影响正式运行的目录。只用于启动前确认训练路径能跑通。
 TRIAL = int(os.environ.get('C1A2_TRIAL', 0))

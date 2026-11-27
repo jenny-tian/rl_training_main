@@ -46,7 +46,7 @@ def test_the_rule_control_shares_starts_with_the_runs_it_is_compared_to(monkeypa
 
 
 @pytest.mark.parametrize('variant,target,rule', [('s2n', 'stairs_up_07', 'directed'), ('mrsz', 'stairs_down_085', 'directed'),
-                                                ('r2', 'slope_rough_up_x11', 'directed'), ('r2', 'boxes_07', 'directed'), ('r2', 'stairs_up_07', 'other')])
+                                                ('r2', 'stairs_up_075', 'directed'), ('r2', 'boxes_06', 'directed'), ('r2', 'stairs_up_07', 'other')])
 def test_the_rule_control_is_limited_to_the_registered_targets(monkeypatch, variant, target, rule):
     with pytest.raises(AssertionError): load(monkeypatch, variant, target, rule=rule)
 

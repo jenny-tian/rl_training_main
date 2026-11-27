@@ -46,12 +46,12 @@ def test_a_profile_that_does_not_match_the_registered_stairs_is_rejected(targets
 def test_slope_and_downstairs_targets_use_the_screened_terrain_parameters(targets, monkeypatch):
     sys.modules.pop('reference_frozen_rebaseline', None)
     screening = importlib.import_module('reference_frozen_rebaseline')
-    assert set(targets.SLOPE_TARGETS) == {'slope_rough_up_x11', 'slope_rough_down_x10'}
+    assert {'slope_rough_up_x11', 'slope_rough_down_x10'} <= set(targets.SLOPE_TARGETS)  # S2 又加了候选，见 test_s2_targets.py
     for name, spec in targets.SLOPE_TARGETS.items():
         assert spec == {k: tuple(v) if isinstance(v, (tuple, list)) else v for k, v in screening.terrain_spec(name).items()}
     # 单地块核对之后粗糙下坡的目标从坡度 0.34 改为 0.40（方案第 11 节）
     assert targets.SLOPE_TARGETS['slope_rough_down_x10'] == dict(source='slope_rough_down', slope_range=(.40, .40), noise_range=(.01, .06))
-    assert targets.DOWN_STAIR_HEIGHT == dict(stairs_down_085=.085)
+    assert targets.DOWN_STAIR_HEIGHT['stairs_down_085'] == .085  # S2 又加了 9 cm 和 10 cm，见 test_s2_targets.py
     assert screening.terrain_spec('stairs_down_085') == dict(source='stairs_down', step_height_range=(.085, .085))
 
 

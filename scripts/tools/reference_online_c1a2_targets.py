@@ -7,14 +7,24 @@ from __future__ import annotations
 
 import numpy as np
 
-# 目标名 -> 训练地图里的子地形（source）和要固定的参数。粗糙上坡是 S1 的目标；粗糙下坡取训练范围的上限（坡度 0.40）。
+# 目标名 -> 训练地图里的子地形（source）和要固定的参数。名字沿用历史：除了粗糙坡面，现在也包括光滑上坡和粗糙地面。
+# 粗糙上坡 x11 是 S1 的目标；粗糙下坡 x10 取训练范围的上限（坡度 0.40）。
 # 粗糙地形的起伏是随机生成的，同一组参数在不同的地图里是不同的地块：在线入口的地图只有一个地块，坡度 0.34 在这个地块上
 # 冻结策略已有 57/64，所以目标改用 0.40（12/64）。见 docs/lite3-online-adapter2-20261126/PLAN.md 第 11 节。
 SLOPE_TARGETS = dict(
     slope_rough_up_x11=dict(source='slope_rough_up', slope_range=(.44, .44), noise_range=(.01, .07)),
-    slope_rough_down_x10=dict(source='slope_rough_down', slope_range=(.40, .40), noise_range=(.01, .06)))
+    slope_rough_down_x10=dict(source='slope_rough_down', slope_range=(.40, .40), noise_range=(.01, .06)),
+    # S2 的候选（docs/lite3-online-s2-20261127/PLAN.md）
+    slope_rough_up_x12=dict(source='slope_rough_up', slope_range=(.48, .48), noise_range=(.01, .07)),
+    slope_rough_down_x11=dict(source='slope_rough_down', slope_range=(.44, .44), noise_range=(.01, .07)),
+    slope_rough_down_x12=dict(source='slope_rough_down', slope_range=(.48, .48), noise_range=(.01, .07)),
+    slope_up_55=dict(source='slope_up', slope_range=(.55, .55)), slope_up_57=dict(source='slope_up', slope_range=(.57, .57)),
+    slope_up_60=dict(source='slope_up', slope_range=(.60, .60)),
+    rough_09=dict(source='rough', noise_range=(.01, .09)), rough_10=dict(source='rough', noise_range=(.01, .10)), rough_11=dict(source='rough', noise_range=(.01, .11)))
+# 训练地图里这些参数的范围；改之前核对，保证候选是在筛选时的那张训练地图上改出来的。
+TRAINING_RANGE = dict(slope_range=(0., .4), noise_range=(.01, .06))
 # 下行台阶：训练范围是 2 到 5 cm。
-DOWN_STAIR_HEIGHT = dict(stairs_down_085=.085)
+DOWN_STAIR_HEIGHT = dict(stairs_down_085=.085, stairs_down_09=.09, stairs_down_10=.10)
 MINIMUM_RISERS = 5
 
 
@@ -48,9 +58,11 @@ def target_sub_terrains(target, captured):
     if target in SLOPE_TARGETS:
         spec = SLOPE_TARGETS[target]
         sub = captured[spec['source']]
-        if tuple(sub.slope_range) != (0., .4) or tuple(sub.noise_range) != (.01, .06):
-            raise ValueError(f'{spec["source"]} no longer has the training range the targets were screened against')
-        sub.slope_range, sub.noise_range = spec['slope_range'], spec['noise_range']
+        for field, value in spec.items():
+            if field == 'source': continue
+            if tuple(getattr(sub, field)) != TRAINING_RANGE[field]:
+                raise ValueError(f'{spec["source"]} no longer has the training range the targets were screened against')
+            setattr(sub, field, value)
     elif target in DOWN_STAIR_HEIGHT:
         sub = captured['stairs_down']
         sub.step_height_range = (DOWN_STAIR_HEIGHT[target],) * 2
